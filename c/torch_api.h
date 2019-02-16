@@ -9,13 +9,13 @@ typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef std::shared_ptr<torch::jit::script::Module> *module;
 typedef torch::jit::IValue *ivalue;
+char *torch_last_err = nullptr;
 #define PROTECT(x) \
   try { \
     x \
   } catch (const exception& e) { \
-      printf("torch error: %s\n", e.what()); \
+      torch_last_err = strdup(e.what()); \
   }
-  //  caml_failwith(strdup(e.what()));
 #else
 typedef void *tensor;
 typedef void *optimizer;
