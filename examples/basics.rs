@@ -9,6 +9,7 @@ fn main() {
     let mut t = torchr::Tensor::float_vec(&[1.1, 2.1, 3.1]);
     t += 42;
     t.print();
+    println!("{:?} {}", t.size(), t.double_value(&[1]));
     let t = torchr::Tensor::randn(&[5, 4, 3000, 3000, 3000, 3000, 3000], torchr::Kind::Float);
     t.print();
 }
