@@ -3,7 +3,7 @@ use torchr::{Kind, Tensor};
 
 fn grad_example() {
     let mut x = Tensor::from(2.0).set_requires_grad(true);
-    let mut y = x.mul_tensor(&x).add_tensor(&x);
+    let mut y = &x * &x + &x + 36;
     println!("{}", y.double_value(&[]));
     x.zero_grad();
     y.backward();

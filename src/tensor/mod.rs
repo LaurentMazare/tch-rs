@@ -1,121 +1,125 @@
 use crate::scalar::Scalar;
+use std::ops::{Add, AddAssign, Mul, MulAssign};
 
 mod c_wrapper;
 
 pub use c_wrapper::Tensor;
 
-// TODO: create binary operator for references via a macro ?
-impl std::ops::Add<Tensor> for Tensor {
-    type Output = Tensor;
+macro_rules! impl_op {
+    ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
+        impl $trait<$rhs> for Tensor {
+            type Output = Tensor;
 
-    fn add(self, rhs: Tensor) -> Tensor {
-        self.add_tensor(&rhs)
-    }
+            fn $func(self, rhs: $rhs) -> Self::Output {
+                self.$op(&rhs)
+            }
+        }
+
+        impl $trait<&$rhs> for Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &$rhs) -> Self::Output {
+                self.$op(rhs)
+            }
+        }
+
+        impl<'a> $trait<&$rhs> for &'a Tensor {
+            type Output = Tensor;
+
+            fn $func<'b>(self, rhs: &'b $rhs) -> Self::Output {
+                self.$op(rhs)
+            }
+        }
+
+        impl $trait<$rhs> for &Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: $rhs) -> Self::Output {
+                self.$op(&rhs)
+            }
+        }
+    };
 }
 
-impl std::ops::Mul<Tensor> for Tensor {
-    type Output = Tensor;
+macro_rules! impl_op_basic {
+    ($trait:ident, $func:ident, $op:ident) => {
+        impl $trait<i64> for Tensor {
+            type Output = Tensor;
 
-    fn mul(self, rhs: Tensor) -> Tensor {
-        self.mul_tensor(&rhs)
-    }
+            fn $func(self, rhs: i64) -> Self::Output {
+                self.$op(&rhs.into())
+            }
+        }
+
+        impl $trait<f64> for Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: f64) -> Self::Output {
+                self.$op(&rhs.into())
+            }
+        }
+
+        impl<'a> $trait<i64> for &'a Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: i64) -> Self::Output {
+                self.$op(&rhs.into())
+            }
+        }
+
+        impl $trait<f64> for &Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: f64) -> Self::Output {
+                self.$op(&rhs.into())
+            }
+        }
+    };
 }
 
-impl std::ops::Add<f64> for Tensor {
-    type Output = Tensor;
+macro_rules! impl_op_assign {
+    ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
+        impl $trait<$rhs> for Tensor {
+            fn $func(&mut self, rhs: $rhs) {
+                self.$op(&rhs)
+            }
+        }
 
-    fn add(self, rhs: f64) -> Tensor {
-        self.add_scalar(&rhs.into())
-    }
+        impl $trait<&$rhs> for Tensor {
+            fn $func(&mut self, rhs: &$rhs) {
+                self.$op(rhs)
+            }
+        }
+    };
 }
 
-impl std::ops::Mul<f64> for Tensor {
-    type Output = Tensor;
-
-    fn mul(self, rhs: f64) -> Tensor {
-        self.mul_scalar(&rhs.into())
-    }
+macro_rules! impl_op_assign_basic {
+    ($trait:ident, $func:ident, $op:ident) => {
+        impl $trait<i64> for Tensor {
+            fn $func(&mut self, rhs: i64) {
+                self.$op(&rhs.into())
+            }
+        }
+        impl $trait<f64> for Tensor {
+            fn $func(&mut self, rhs: f64) {
+                self.$op(&rhs.into())
+            }
+        }
+    };
 }
 
-impl std::ops::Add<i64> for Tensor {
-    type Output = Tensor;
-
-    fn add(self, rhs: i64) -> Tensor {
-        self.add_scalar(&rhs.into())
-    }
-}
-
-impl std::ops::Mul<i64> for Tensor {
-    type Output = Tensor;
-
-    fn mul(self, rhs: i64) -> Tensor {
-        self.mul_scalar(&rhs.into())
-    }
-}
-
-impl std::ops::Add<Scalar> for Tensor {
-    type Output = Tensor;
-
-    fn add(self, rhs: Scalar) -> Tensor {
-        self.add_scalar(&rhs)
-    }
-}
-
-impl std::ops::Mul<Scalar> for Tensor {
-    type Output = Tensor;
-
-    fn mul(self, rhs: Scalar) -> Tensor {
-        self.mul_scalar(&rhs)
-    }
-}
-
-impl std::ops::AddAssign<Tensor> for Tensor {
-    fn add_assign(&mut self, rhs: Tensor) {
-        self.add_tensor_(&rhs)
-    }
-}
-
-impl std::ops::MulAssign<Tensor> for Tensor {
-    fn mul_assign(&mut self, rhs: Tensor) {
-        self.mul_tensor_(&rhs)
-    }
-}
-
-impl std::ops::AddAssign<f64> for Tensor {
-    fn add_assign(&mut self, rhs: f64) {
-        self.add_scalar_(&rhs.into())
-    }
-}
-
-impl std::ops::MulAssign<f64> for Tensor {
-    fn mul_assign(&mut self, rhs: f64) {
-        self.mul_scalar_(&rhs.into())
-    }
-}
-
-impl std::ops::AddAssign<i64> for Tensor {
-    fn add_assign(&mut self, rhs: i64) {
-        self.add_scalar_(&rhs.into())
-    }
-}
-
-impl std::ops::MulAssign<i64> for Tensor {
-    fn mul_assign(&mut self, rhs: i64) {
-        self.mul_scalar_(&rhs.into())
-    }
-}
-
-impl std::ops::AddAssign<Scalar> for Tensor {
-    fn add_assign(&mut self, rhs: Scalar) {
-        self.add_scalar_(&rhs)
-    }
-}
-
-impl std::ops::MulAssign<Scalar> for Tensor {
-    fn mul_assign(&mut self, rhs: Scalar) {
-        self.mul_scalar_(&rhs)
-    }
-}
+impl_op!(Add, Tensor, add, add_tensor);
+impl_op!(Mul, Tensor, mul, mul_tensor);
+impl_op!(Add, Scalar, add, add_scalar);
+impl_op!(Mul, Scalar, mul, mul_scalar);
+impl_op_basic!(Add, add, add_scalar);
+impl_op_basic!(Mul, mul, mul_scalar);
+impl_op_assign!(AddAssign, Tensor, add_assign, add_tensor_);
+impl_op_assign!(MulAssign, Tensor, mul_assign, mul_tensor_);
+impl_op_assign!(AddAssign, Scalar, add_assign, add_scalar_);
+impl_op_assign!(MulAssign, Scalar, mul_assign, mul_scalar_);
+impl_op_assign_basic!(AddAssign, add_assign, add_scalar_);
+impl_op_assign_basic!(MulAssign, mul_assign, mul_scalar_);
 
 impl From<&[i64]> for Tensor {
     fn from(v: &[i64]) -> Tensor {
