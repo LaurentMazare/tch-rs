@@ -3669,7 +3669,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn div(
+    pub fn g_div(
         &self, other: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3682,7 +3682,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn div1(
+    pub fn g_div1(
         &self, other: &Scalar
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3695,7 +3695,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn div_(
+    pub fn g_div_(
         &self, other: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3708,7 +3708,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn div_1(
+    pub fn g_div_1(
         &self, other: &Scalar
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11327,7 +11327,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn sub(
+    pub fn g_sub(
         &self, other: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11340,7 +11340,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn sub1(
+    pub fn g_sub1(
         &self, other: &Scalar
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11353,7 +11353,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn sub_(
+    pub fn g_sub_(
         &self, other: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11366,7 +11366,7 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn sub_1(
+    pub fn g_sub_1(
         &self, other: &Scalar
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];

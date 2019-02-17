@@ -1,6 +1,6 @@
 use crate::scalar::Scalar;
 use crate::Kind;
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 mod c_wrapper;
 mod c_wrapper_generated;
@@ -111,17 +111,32 @@ macro_rules! impl_op_assign_basic {
 }
 
 impl_op!(Add, Tensor, add, g_add);
-impl_op!(Mul, Tensor, mul, g_mul);
 impl_op!(Add, Scalar, add, g_add1);
-impl_op!(Mul, Scalar, mul, g_mul1);
 impl_op_basic!(Add, add, g_add1);
-impl_op_basic!(Mul, mul, g_mul1);
 impl_op_assign!(AddAssign, Tensor, add_assign, g_add_);
-impl_op_assign!(MulAssign, Tensor, mul_assign, g_mul_);
 impl_op_assign!(AddAssign, Scalar, add_assign, g_add_1);
-impl_op_assign!(MulAssign, Scalar, mul_assign, g_mul_1);
 impl_op_assign_basic!(AddAssign, add_assign, g_add_1);
+
+impl_op!(Mul, Tensor, mul, g_mul);
+impl_op!(Mul, Scalar, mul, g_mul1);
+impl_op_basic!(Mul, mul, g_mul1);
+impl_op_assign!(MulAssign, Tensor, mul_assign, g_mul_);
+impl_op_assign!(MulAssign, Scalar, mul_assign, g_mul_1);
 impl_op_assign_basic!(MulAssign, mul_assign, g_mul_1);
+
+impl_op!(Div, Tensor, div, g_div);
+impl_op!(Div, Scalar, div, g_div1);
+impl_op_basic!(Div, div, g_div1);
+impl_op_assign!(DivAssign, Tensor, div_assign, g_div_);
+impl_op_assign!(DivAssign, Scalar, div_assign, g_div_1);
+impl_op_assign_basic!(DivAssign, div_assign, g_div_1);
+
+impl_op!(Sub, Tensor, sub, g_sub);
+impl_op!(Sub, Scalar, sub, g_sub1);
+impl_op_basic!(Sub, sub, g_sub1);
+impl_op_assign!(SubAssign, Tensor, sub_assign, g_sub_);
+impl_op_assign!(SubAssign, Scalar, sub_assign, g_sub_1);
+impl_op_assign_basic!(SubAssign, sub_assign, g_sub_1);
 
 impl From<&[i64]> for Tensor {
     fn from(v: &[i64]) -> Tensor {

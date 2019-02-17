@@ -16,7 +16,9 @@ let excluded_functions =
     ; "softmax_backward_data" ]
 
 let prefixed_functions =
-  Set.of_list (module String) ["add"; "mul"; "add_"; "mul_"; "nll_loss"]
+  Set.of_list
+    (module String)
+    ["add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss"]
 
 let excluded_prefixes = ["_"; "thnn_"; "th_"]
 
