@@ -205,10 +205,10 @@ module Func = struct
   let rust_return_type t =
     match t.returns with
     | 0 -> ""
-    | -1 as v ->
+    | 1 -> " -> Tensor"
+    | v ->
         List.init v ~f:(fun _ -> "Tensor")
         |> String.concat ~sep:", " |> Printf.sprintf " -> (%s)"
-    | _ -> " -> Tensor"
 
   let rust_binding_args t =
     List.map t.args ~f:(fun arg ->
@@ -396,17 +396,27 @@ let write_wrapper funcs filename =
             if Set.mem prefixed_functions func.name then "g_" ^ rust_name
             else rust_name
           in
+          let returns =
+            match func.returns with
+            | 0 -> ""
+            | 1 -> "Tensor { c_tensor: c_tensors[0] }"
+            | n ->
+                List.init n
+                  ~f:(Printf.sprintf "Tensor { c_tensor: c_tensors[%d] }")
+                |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
+          in
           pm "" ;
           pm "    pub fn %s(" rust_name ;
           pm "        %s" (Func.rust_args_list func) ;
           pm "    )%s {" (Func.rust_return_type func) ;
-          pm "        let mut c_tensor = std::ptr::null_mut();" ;
+          pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
+            func.returns ;
           pm "        unsafe {" ;
-          pm "            atg_%s(&mut c_tensor," exported_name ;
+          pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name ;
           pm "                %s" (Func.rust_binding_args func) ;
           pm "            ) };" ;
           pm "        read_and_clean_error();" ;
-          pm "        Tensor { c_tensor }" ;
+          pm "        %s" returns ;
           pm "    }" ) ;
       pm "}" )
 
