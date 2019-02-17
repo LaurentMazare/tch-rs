@@ -6,7 +6,7 @@ fn read_u32<T: Read>(reader: &mut T) -> Result<u32> {
     let mut b = vec![0u8; 4];
     reader.read_exact(&mut b)?;
     let (result, _) = b.iter().rev().fold((0u64, 1u64), |(s, basis), &x| {
-        (s + basis * x as u64, basis * 256)
+        (s + basis * u64::from(x), basis * 256)
     });
     Ok(result as u32)
 }
@@ -23,25 +23,25 @@ fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> Result<()> {
 }
 
 fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
-    let ref mut buf_reader = BufReader::new(File::open(filename)?);
-    check_magic_number(buf_reader, 2049)?;
-    let samples = read_u32(buf_reader)?;
+    let mut buf_reader = BufReader::new(File::open(filename)?);
+    check_magic_number(&mut buf_reader, 2049)?;
+    let samples = read_u32(&mut buf_reader)?;
     let mut data = vec![0u8; samples as usize];
     buf_reader.read_exact(&mut data)?;
-    Ok(Tensor::of_data(&data).to_kind(&Kind::Int64))
+    Ok(Tensor::of_data(&data, &Kind::Uint8).to_kind(&Kind::Int64))
 }
 
 fn read_images(filename: &std::path::Path) -> Result<Tensor> {
-    let ref mut buf_reader = BufReader::new(File::open(filename)?);
-    check_magic_number(buf_reader, 2051)?;
-    let samples = read_u32(buf_reader)?;
-    let rows = read_u32(buf_reader)?;
-    let cols = read_u32(buf_reader)?;
+    let mut buf_reader = BufReader::new(File::open(filename)?);
+    check_magic_number(&mut buf_reader, 2051)?;
+    let samples = read_u32(&mut buf_reader)?;
+    let rows = read_u32(&mut buf_reader)?;
+    let cols = read_u32(&mut buf_reader)?;
     let data_len = samples * rows * cols;
     let mut data = vec![0u8; data_len as usize];
     buf_reader.read_exact(&mut data)?;
-    let tensor = Tensor::of_data(&data)
-        .view(&[samples as i64, (rows * cols) as i64])
+    let tensor = Tensor::of_data(&data, &Kind::Uint8)
+        .view(&[i64::from(samples), i64::from(rows * cols)])
         .to_kind(&Kind::Float);
     Ok(tensor * (1. / 255.))
 }

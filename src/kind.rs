@@ -46,6 +46,22 @@ impl Kind {
             _ => panic!("unexpected kind {}", v),
         }
     }
+
+    pub(crate) fn elt_size_in_bytes(&self) -> libc::c_int {
+        match self {
+            Kind::Uint8 => 1,
+            Kind::Int8 => 1,
+            Kind::Int16 => 2,
+            Kind::Int => 4,
+            Kind::Int64 => 8,
+            Kind::Half => 2,
+            Kind::Float => 4,
+            Kind::Double => 8,
+            Kind::ComplexHalf => 4,
+            Kind::ComplexFloat => 8,
+            Kind::ComplexDouble => 16,
+        }
+    }
 }
 
 pub static FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);

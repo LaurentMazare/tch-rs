@@ -121,11 +121,17 @@ impl Tensor {
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
-    pub fn of_data(data: &[u8]) -> Tensor {
+    pub fn of_data(data: &[u8], kind: &Kind) -> Tensor {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
         let c_tensor = unsafe {
-            at_tensor_of_data(data, [data_len as i64].as_ptr(), 1, 1, Kind::Uint8.c_int())
+            at_tensor_of_data(
+                data,
+                [data_len as i64].as_ptr(),
+                1,
+                kind.elt_size_in_bytes(),
+                kind.c_int(),
+            )
         };
         read_and_clean_error();
         Tensor { c_tensor }

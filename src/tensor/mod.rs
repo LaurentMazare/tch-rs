@@ -5,6 +5,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 mod c_wrapper;
 mod c_wrapper_generated;
 
+pub(crate) use c_wrapper::C_tensor;
 pub use c_wrapper::{no_grad, Tensor};
 
 macro_rules! impl_op {
