@@ -4,18 +4,65 @@ use libc::c_int;
 #[repr(C)] pub struct C_tensor { _private: [u8; 0] }
 #[repr(C)] pub struct C_scalar { _private: [u8; 0] }
 
-extern  {
-    // This is not thread-safe but neither is libtorch in general
-    // A thread-local variable would be better.
-    static mut torch_last_err: *mut libc::c_char;
+pub enum Kind {
+    Uint8,
+    Int8,
+    Int16,
+    Int,
+    Int64,
+    Half,
+    Float,
+    Double,
+    ComplexHalf,
+    ComplexFloat,
+    ComplexDouble,
+}
 
+impl Kind {
+    fn c_int(&self) -> c_int {
+        match self {
+            Kind::Uint8 => 0,
+            Kind::Int8 => 1,
+            Kind::Int16 => 2,
+            Kind::Int => 3,
+            Kind::Int64 => 4,
+            Kind::Half => 5,
+            Kind::Float => 6,
+            Kind::Double => 7,
+            Kind::ComplexHalf => 8,
+            Kind::ComplexFloat => 9,
+            Kind::ComplexDouble => 10,
+        }
+    }
+}
+
+pub enum Device {
+    Cpu,
+    Cuda,
+}
+
+impl Device {
+    fn c_int(&self) -> c_int {
+        match self {
+            Device::Cpu => 0,
+            Device::Cuda => 1,
+        }
+    }
+}
+
+extern  {
+    fn get_and_reset_last_err() -> *mut libc::c_char;
     fn at_int_vec(v: *const i64, v_len: c_int, type_: c_int) -> *mut C_tensor;
     fn at_float_vec(v: *const f64, v_len: c_int, type_: c_int) -> *mut C_tensor;
     fn atg_randn(out: *mut *mut C_tensor, size: *const i64, size_len: c_int, kind: c_int, device: c_int);
     fn atg_add(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
     fn atg_add1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
+    fn atg_add_(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
+    fn atg_add_1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
     fn atg_mul(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
     fn atg_mul1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
+    fn atg_mul_(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
+    fn atg_mul_1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
     fn at_print(arg: *mut C_tensor);
     fn at_free(arg: *mut C_tensor);
 
@@ -34,13 +81,13 @@ pub struct Tensor {
 
 fn read_and_clean_error() {
     unsafe {
+        let torch_last_err = get_and_reset_last_err();
         if !torch_last_err.is_null() {
             let err =
                 std::ffi::CStr::from_ptr(torch_last_err)
                     .to_string_lossy()
                     .into_owned();
             libc::free(torch_last_err as *mut libc::c_void);
-            torch_last_err = std::ptr::null_mut();
             panic!(err)
         }
     }
@@ -85,10 +132,14 @@ impl From<f64> for Scalar {
 }
 
 impl Tensor {
-    pub fn randn(size: &[i64]) -> Tensor {
+    pub fn randn(size: &[i64], kind: Kind) -> Tensor {
         unsafe {
             let mut c_tensor = std::ptr::null_mut();
-            atg_randn(&mut c_tensor, size.as_ptr(), size.len() as i32, 6, 0);
+            atg_randn(&mut c_tensor,
+                      size.as_ptr(),
+                      size.len() as i32,
+                      kind.c_int(),
+                      Device::Cpu.c_int());
             read_and_clean_error();
             Tensor { c_tensor }
         }
@@ -96,7 +147,7 @@ impl Tensor {
 
     pub fn int_vec(v: &[i64]) -> Tensor {
         unsafe {
-            let c_tensor = at_int_vec(v.as_ptr(), v.len() as i32, 4);
+            let c_tensor = at_int_vec(v.as_ptr(), v.len() as i32, Kind::Int64.c_int());
             read_and_clean_error();
             Tensor { c_tensor }
         }
@@ -104,7 +155,7 @@ impl Tensor {
 
     pub fn float_vec(v: &[f64]) -> Tensor {
         unsafe {
-            let c_tensor = at_float_vec(v.as_ptr(), v.len() as i32, 4);
+            let c_tensor = at_float_vec(v.as_ptr(), v.len() as i32, Kind::Float.c_int());
             read_and_clean_error();
             Tensor { c_tensor }
         }
@@ -128,6 +179,22 @@ impl Tensor {
         }
     }
 
+    pub fn add_tensor_(&self, rhs: Tensor) {
+        unsafe {
+            let mut c_tensor = std::ptr::null_mut();
+            atg_add_(&mut c_tensor, self.c_tensor, rhs.c_tensor);
+            read_and_clean_error()
+        }
+    }
+
+    pub fn add_scalar_(&self, rhs: Scalar) {
+        unsafe {
+            let mut c_tensor = std::ptr::null_mut();
+            atg_add_1(&mut c_tensor, self.c_tensor, rhs.c_scalar);
+            read_and_clean_error()
+        }
+    }
+
     pub fn mul_tensor(&self, rhs: Tensor) -> Tensor {
         unsafe {
             let mut c_tensor = std::ptr::null_mut();
@@ -143,6 +210,22 @@ impl Tensor {
             atg_mul1(&mut c_tensor, self.c_tensor, rhs.c_scalar);
             read_and_clean_error();
             Tensor { c_tensor }
+        }
+    }
+
+    pub fn mul_tensor_(&self, rhs: Tensor) {
+        unsafe {
+            let mut c_tensor = std::ptr::null_mut();
+            atg_mul_(&mut c_tensor, self.c_tensor, rhs.c_tensor);
+            read_and_clean_error()
+        }
+    }
+
+    pub fn mul_scalar_(&self, rhs: Scalar) {
+        unsafe {
+            let mut c_tensor = std::ptr::null_mut();
+            atg_mul_1(&mut c_tensor, self.c_tensor, rhs.c_scalar);
+            read_and_clean_error()
         }
     }
 
@@ -170,6 +253,38 @@ impl std::ops::Mul<Tensor> for Tensor {
     }
 }
 
+impl std::ops::Add<f64> for Tensor {
+    type Output = Tensor;
+
+    fn add(self, rhs: f64) -> Tensor {
+        self.add_scalar(rhs.into())
+    }
+}
+
+impl std::ops::Mul<f64> for Tensor {
+    type Output = Tensor;
+
+    fn mul(self, rhs: f64) -> Tensor {
+        self.mul_scalar(rhs.into())
+    }
+}
+
+impl std::ops::Add<i64> for Tensor {
+    type Output = Tensor;
+
+    fn add(self, rhs: i64) -> Tensor {
+        self.add_scalar(rhs.into())
+    }
+}
+
+impl std::ops::Mul<i64> for Tensor {
+    type Output = Tensor;
+
+    fn mul(self, rhs: i64) -> Tensor {
+        self.mul_scalar(rhs.into())
+    }
+}
+
 impl std::ops::Add<Scalar> for Tensor {
     type Output = Tensor;
 
@@ -183,6 +298,54 @@ impl std::ops::Mul<Scalar> for Tensor {
 
     fn mul(self, rhs: Scalar) -> Tensor {
         self.mul_scalar(rhs)
+    }
+}
+
+impl std::ops::AddAssign<Tensor> for Tensor {
+    fn add_assign(&mut self, rhs: Tensor) {
+        self.add_tensor_(rhs)
+    }
+}
+
+impl std::ops::MulAssign<Tensor> for Tensor {
+    fn mul_assign(&mut self, rhs: Tensor) {
+        self.mul_tensor_(rhs)
+    }
+}
+
+impl std::ops::AddAssign<f64> for Tensor {
+    fn add_assign(&mut self, rhs: f64) {
+        self.add_scalar_(rhs.into())
+    }
+}
+
+impl std::ops::MulAssign<f64> for Tensor {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.mul_scalar_(rhs.into())
+    }
+}
+
+impl std::ops::AddAssign<i64> for Tensor {
+    fn add_assign(&mut self, rhs: i64) {
+        self.add_scalar_(rhs.into())
+    }
+}
+
+impl std::ops::MulAssign<i64> for Tensor {
+    fn mul_assign(&mut self, rhs: i64) {
+        self.mul_scalar_(rhs.into())
+    }
+}
+
+impl std::ops::AddAssign<Scalar> for Tensor {
+    fn add_assign(&mut self, rhs: Scalar) {
+        self.add_scalar_(rhs)
+    }
+}
+
+impl std::ops::MulAssign<Scalar> for Tensor {
+    fn mul_assign(&mut self, rhs: Scalar) {
+        self.mul_scalar_(rhs)
     }
 }
 

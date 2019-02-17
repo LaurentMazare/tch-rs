@@ -1,10 +1,17 @@
 #include<torch/csrc/autograd/engine.h>
 #include<torch/torch.h>
 #include<torch/script.h>
+#include<stdexcept>
 #include<vector>
 #include "torch_api.h"
 
 using namespace std;
+
+char *get_and_reset_last_err() {
+    char *tmp = torch_last_err;
+    torch_last_err = nullptr;
+    return tmp;
+}
 
 void at_manual_seed(int64_t seed) {
   torch::manual_seed(seed);
@@ -25,8 +32,8 @@ tensor at_new_tensor() {
 tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in_bytes, int type) {
   PROTECT(
     torch::Tensor tensor = torch::zeros(torch::IntList(dims, ndims), torch::ScalarType(type));
-    //if (element_size_in_bytes != tensor.type().elementSizeInBytes())
-    //  caml_failwith("incoherent element sizes in bytes");
+    if (element_size_in_bytes != tensor.type().elementSizeInBytes())
+      throw std::invalid_argument("incoherent element sizes in bytes");
     void *tensor_data = tensor.data_ptr();
     memcpy(tensor_data, vs, tensor.numel() * element_size_in_bytes);
     return new torch::Tensor(tensor);
@@ -35,10 +42,10 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in
 
 void at_copy_data(tensor tensor, void *vs, int64_t numel, int element_size_in_bytes) {
   PROTECT(
-    //if (element_size_in_bytes != tensor->type().elementSizeInBytes())
-    //  caml_failwith("incoherent element sizes in bytes");
-    //if (numel != tensor->numel())
-    //  caml_failwith("incoherent number of elements");
+    if (element_size_in_bytes != tensor->type().elementSizeInBytes())
+      throw std::invalid_argument("incoherent element sizes in bytes");
+    if (numel != tensor->numel())
+      throw std::invalid_argument("incoherent number of elements");
     void *tensor_data = tensor->data_ptr();
     memcpy(vs, tensor_data, numel * element_size_in_bytes);
   )
@@ -199,8 +206,8 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 void at_load_callback(char *filename, void (*f)(char *, tensor)) {
   PROTECT(
     shared_ptr<torch::jit::script::Module> module = torch::jit::load(filename);
-    // if (module == nullptr)
-    //  caml_failwith("torch::jit::load returned a nullptr");
+    if (module == nullptr)
+      throw std::invalid_argument("torch::jit::load returned a nullptr");
     for (const auto &p : module->get_parameters()) {
       f((char*)p.key().c_str(), new torch::Tensor(*p.value().slot()));
     }
@@ -326,8 +333,8 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
       rms->options.learning_rate_ = learning_rate;
     else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
       sgd->options.learning_rate_ = learning_rate;
-    // else
-    // caml_invalid_argument("unexpected optimizer");
+    else
+      throw std::invalid_argument("unexpected optimizer");
   )
 }
 
@@ -339,8 +346,8 @@ void ato_set_momentum(optimizer t, double momentum) {
       rms->options.momentum_ = momentum;
     else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
       sgd->options.momentum_ = momentum;
-    // else
-    // caml_invalid_argument("unexpected optimizer");
+    else
+     throw std::invalid_argument("unexpected optimizer");
   )
 }
 
@@ -404,8 +411,8 @@ tensor atm_forward(module m, tensor *tensors, int ntensors) {
     for (int i = 0; i < ntensors; ++i)
       inputs.push_back(*(tensors[i]));
     torch::jit::IValue output = (*m)->forward(inputs);
-    //if (!output.isTensor())
-    //  caml_failwith("forward did not return a tensor");
+    if (!output.isTensor())
+      throw std::invalid_argument("forward did not return a tensor");
     return new torch::Tensor(output.toTensor());
   )
 }
@@ -458,7 +465,7 @@ int ati_tag(ivalue i) {
     else if (i->isInt()) return 1;
     else if (i->isDouble()) return 2;
     else if (i->isTuple()) return 3;
-    //caml_failwith(("unsupported tag" + i->tagKind()).c_str());
+    throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
   )
 }
@@ -492,9 +499,9 @@ void ati_to_tuple(ivalue i,
                   int noutputs) {
   PROTECT(
     auto vec = i->toTuple()->elements();
-    //if (vec.size() != noutputs) {
-    //  caml_failwith("unexpected tuple size");
-    //}
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected tuple size");
+    }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = new torch::jit::IValue(vec[i]);
   )

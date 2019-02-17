@@ -3,13 +3,14 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
+thread_local char *torch_last_err = nullptr;
+
 extern "C" {
 typedef torch::Tensor *tensor;
 typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef std::shared_ptr<torch::jit::script::Module> *module;
 typedef torch::jit::IValue *ivalue;
-char *torch_last_err = nullptr;
 #define PROTECT(x) \
   try { \
     x \
@@ -24,6 +25,7 @@ typedef void *module;
 typedef void *ivalue;
 #endif
 
+char *get_and_reset_last_err(); // thread-local
 void at_manual_seed(int64_t);
 tensor at_new_tensor();
 tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in_bytes, int type);
