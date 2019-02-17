@@ -16,8 +16,8 @@ fn main() {
     t.print();
     let t = Tensor::randn(&[5, 4], Kind::Float);
     t.print();
-    // TODO: the following moves t but this is not necessary.
-    (t + 1.5).print();
+    (&t + 1.5).print();
+    (&t + 2.5).print();
     let mut t = Tensor::float_vec(&[1.1, 2.1, 3.1]);
     t += 42;
     t.print();

@@ -12,4 +12,6 @@ mod scalar;
 pub use scalar::Scalar;
 
 mod tensor;
-pub use tensor::Tensor;
+pub use tensor::{no_grad, Tensor};
+
+pub mod vision;

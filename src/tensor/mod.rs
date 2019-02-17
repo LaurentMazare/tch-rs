@@ -3,7 +3,7 @@ use std::ops::{Add, AddAssign, Mul, MulAssign};
 
 mod c_wrapper;
 
-pub use c_wrapper::Tensor;
+pub use c_wrapper::{no_grad, Tensor};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
