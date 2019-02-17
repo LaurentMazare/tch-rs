@@ -1,11 +1,9 @@
-use crate::device::Device;
 use crate::kind::Kind;
-use crate::scalar::{C_scalar, Scalar};
 use crate::utils::read_and_clean_error;
 use libc::{c_int, c_void};
 
 #[repr(C)]
-pub struct C_tensor {
+pub(crate) struct C_tensor {
     _private: [u8; 0],
 }
 
@@ -32,122 +30,13 @@ extern "C" {
         kind: c_int,
     ) -> *mut C_tensor;
     fn at_grad_set_enabled(b: c_int) -> c_int;
-
-    fn atg_randn(
-        out: *mut *mut C_tensor,
-        size: *const i64,
-        size_len: c_int,
-        kind: c_int,
-        device: c_int,
-    );
-    fn atg_zeros(
-        out: *mut *mut C_tensor,
-        size: *const i64,
-        size_len: c_int,
-        kind: c_int,
-        device: c_int,
-    );
-    fn atg_add1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
-    fn atg_add_(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
-    fn atg_add_1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
-    fn atg_mul1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
-    fn atg_mul_(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
-    fn atg_mul_1(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_scalar);
-    fn atg_log_softmax(out: *mut *mut C_tensor, arg: *mut C_tensor, dim: i64);
-    fn atg_view(out: *mut *mut C_tensor, arg: *mut C_tensor, size: *const i64, size_len: c_int);
-    fn atg_set_requires_grad(out: *mut *mut C_tensor, arg: *mut C_tensor, r: c_int);
-    fn atg_detach_(out: *mut *mut C_tensor, arg: *mut C_tensor);
-    fn atg_zero_(out: *mut *mut C_tensor, arg: *mut C_tensor);
-    fn atg_totype(out: *mut *mut C_tensor, arg: *mut C_tensor, kind: c_int);
-    fn atg_nll_loss(
-        out: *mut *mut C_tensor,
-        arg: *mut C_tensor,
-        targets: *mut C_tensor,
-        weights: *mut C_tensor,
-        reduction: i64,
-        ignore_index: i64,
-    );
-    fn atg_narrow(out: *mut *mut C_tensor, arg: *mut C_tensor, dim: i64, start: i64, len: i64);
-    fn atg_argmax1(out: *mut *mut C_tensor, arg: *mut C_tensor, dim: i64, keepdim: c_int);
 }
 
 pub struct Tensor {
-    c_tensor: *mut C_tensor,
+    pub(crate) c_tensor: *mut C_tensor,
 }
-
-macro_rules! binary_op {
-    ($op:ident, $c_op:ident) => {
-        extern "C" {
-            fn $c_op(out: *mut *mut C_tensor, lhs: *mut C_tensor, rhs: *mut C_tensor);
-        }
-
-        impl Tensor {
-            pub fn $op(&self, rhs: &Tensor) -> Tensor {
-                let mut c_tensor = std::ptr::null_mut();
-                unsafe { $c_op(&mut c_tensor, self.c_tensor, rhs.c_tensor) };
-                read_and_clean_error();
-                Tensor { c_tensor }
-            }
-        }
-    };
-}
-
-macro_rules! unary_op {
-    ($op:ident, $c_op:ident) => {
-        extern "C" {
-            fn $c_op(out: *mut *mut C_tensor, arg: *mut C_tensor);
-        }
-
-        impl Tensor {
-            pub fn $op(&self) -> Tensor {
-                let mut c_tensor = std::ptr::null_mut();
-                unsafe { $c_op(&mut c_tensor, self.c_tensor) };
-                read_and_clean_error();
-                Tensor { c_tensor }
-            }
-        }
-    };
-}
-
-binary_op!(add_tensor, atg_add);
-binary_op!(mul_tensor, atg_mul);
-binary_op!(mm, atg_matmul);
-binary_op!(eq, atg_eq1);
-unary_op!(grad, atg_grad);
-unary_op!(mean, atg_mean);
-unary_op!(sum, atg_sum);
 
 impl Tensor {
-    pub fn randn(size: &[i64], kind: Kind) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe {
-            atg_randn(
-                &mut c_tensor,
-                size.as_ptr(),
-                size.len() as i32,
-                kind.c_int(),
-                Device::Cpu.c_int(),
-            );
-        };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn zeros(size: &[i64], kind: Kind) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe {
-            atg_zeros(
-                &mut c_tensor,
-                size.as_ptr(),
-                size.len() as i32,
-                kind.c_int(),
-                Device::Cpu.c_int(),
-            );
-        };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
     pub fn new() -> Tensor {
         let c_tensor = unsafe { at_new_tensor() };
         read_and_clean_error();
@@ -173,66 +62,6 @@ impl Tensor {
         unsafe { at_shape(self.c_tensor, sz.as_mut_ptr()) };
         read_and_clean_error();
         sz
-    }
-
-    pub fn add_scalar(&self, rhs: &Scalar) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_add1(&mut c_tensor, self.c_tensor, rhs.c_scalar) };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn add_tensor_(&self, rhs: &Tensor) {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_add_(&mut c_tensor, self.c_tensor, rhs.c_tensor) };
-        read_and_clean_error()
-    }
-
-    pub fn add_scalar_(&self, rhs: &Scalar) {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_add_1(&mut c_tensor, self.c_tensor, rhs.c_scalar) };
-        read_and_clean_error()
-    }
-
-    pub fn mul_scalar(&self, rhs: &Scalar) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_mul1(&mut c_tensor, self.c_tensor, rhs.c_scalar) };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn mul_tensor_(&self, rhs: &Tensor) {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_mul_(&mut c_tensor, self.c_tensor, rhs.c_tensor) };
-        read_and_clean_error()
-    }
-
-    pub fn mul_scalar_(&self, rhs: &Scalar) {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_mul_1(&mut c_tensor, self.c_tensor, rhs.c_scalar) };
-        read_and_clean_error()
-    }
-
-    // The same storage is shared so maybe this should consume self ?
-    pub fn view(&self, size: &[i64]) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe {
-            atg_view(
-                &mut c_tensor,
-                self.c_tensor,
-                size.as_ptr(),
-                size.len() as i32,
-            )
-        };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn to_kind(&self, kind: Kind) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_totype(&mut c_tensor, self.c_tensor, kind.c_int()) };
-        read_and_clean_error();
-        Tensor { c_tensor }
     }
 
     pub fn kind(&self) -> Kind {
@@ -271,20 +100,6 @@ impl Tensor {
         defined
     }
 
-    pub fn zero_(self) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_zero_(&mut c_tensor, self.c_tensor) };
-        read_and_clean_error();
-        self
-    }
-
-    pub fn detach_(self) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_detach_(&mut c_tensor, self.c_tensor) };
-        read_and_clean_error();
-        self
-    }
-
     pub fn zero_grad(&mut self) {
         let grad = self.grad();
         if grad.defined() {
@@ -312,51 +127,6 @@ impl Tensor {
         let c_tensor = unsafe {
             at_tensor_of_data(data, [data_len as i64].as_ptr(), 1, 1, Kind::Uint8.c_int())
         };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn set_requires_grad(self, r: bool) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_set_requires_grad(&mut c_tensor, self.c_tensor, if r { 1 } else { 0 }) };
-        read_and_clean_error();
-        self
-    }
-
-    pub fn nll_loss(self, targets: &Tensor) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        let weights = Tensor::new();
-        unsafe {
-            atg_nll_loss(
-                &mut c_tensor,
-                self.c_tensor,
-                targets.c_tensor,
-                weights.c_tensor,
-                1, // 0: no reduction, 1: mean, 2: sum
-                -100,
-            )
-        };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn narrow(&self, dim: i64, start: i64, len: i64) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_narrow(&mut c_tensor, self.c_tensor, dim, start, len) };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn log_softmax(&self, dim: i64) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_log_softmax(&mut c_tensor, self.c_tensor, dim) };
-        read_and_clean_error();
-        Tensor { c_tensor }
-    }
-
-    pub fn argmax(&self, dim: i64) -> Tensor {
-        let mut c_tensor = std::ptr::null_mut();
-        unsafe { atg_argmax1(&mut c_tensor, self.c_tensor, dim, 0) };
         read_and_clean_error();
         Tensor { c_tensor }
     }

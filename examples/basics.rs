@@ -1,9 +1,9 @@
 extern crate torchr;
-use torchr::{Kind, Tensor};
+use torchr::{Device, Kind, Tensor};
 
 fn grad_example() {
     let mut x = Tensor::from(2.0).set_requires_grad(true);
-    let mut y = &x * &x + &x + 36;
+    let y = &x * &x + &x + 36;
     println!("{}", y.double_value(&[]));
     x.zero_grad();
     y.backward();
@@ -14,7 +14,7 @@ fn grad_example() {
 fn main() {
     let t = Tensor::int_vec(&[3, 1, 4, 1, 5]);
     t.print();
-    let t = Tensor::randn(&[5, 4], Kind::Float);
+    let t = Tensor::randn(&[5, 4], (Kind::Float, Device::Cpu));
     t.print();
     (&t + 1.5).print();
     (&t + 2.5).print();

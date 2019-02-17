@@ -1,5 +1,7 @@
 /target
+_build/
 data/
+gen/.merlin
 **/*.rs.bk
 *.swp
 Cargo.lock

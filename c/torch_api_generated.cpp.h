@@ -4038,9 +4038,9 @@ void atg_pow1(tensor *out__, tensor self, tensor exponent) {
   )
 }
 
-void atg_pow2(tensor *out__, scalar self, tensor exponent) {
+void atg_pow2(tensor *out__, scalar self_scalar, tensor exponent) {
   PROTECT(
-    auto outputs__ = torch::pow(*self, *exponent);
+    auto outputs__ = torch::pow(*self_scalar, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4073,9 +4073,9 @@ void atg_pow_out1(tensor *out__, tensor result, tensor self, tensor exponent) {
   )
 }
 
-void atg_pow_out2(tensor *out__, tensor result, scalar self, tensor exponent) {
+void atg_pow_out2(tensor *out__, tensor result, scalar self_scalar, tensor exponent) {
   PROTECT(
-    auto outputs__ = torch::pow_out(*result, *self, *exponent);
+    auto outputs__ = torch::pow_out(*result, *self_scalar, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
