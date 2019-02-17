@@ -17,12 +17,10 @@ LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example bas
 
 The following code trains a linear classifier on MNIST as a proof of concept.
 
-This can be run with this command.
-
 ```rust
     let m = vision::Mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut ws = Tensor::zeros(&[IMAGE_DIM, LABELS], Kind::Float).set_requires_grad(true);
-    let mut bs = Tensor::randn(&[LABELS], Kind::Float).set_requires_grad(true);
+    let mut bs = Tensor::zeros(&[LABELS], Kind::Float).set_requires_grad(true);
     for epoch in 1..200 {
         let logits = m.train_images.mm(&ws) + &bs;
         let loss = logits.log_softmax(-1).nll_loss(&m.train_labels);
@@ -48,6 +46,8 @@ This can be run with this command.
         );
     }
 ```
+
+This can be run with this command.
 
 ```bash
 LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example mnist
