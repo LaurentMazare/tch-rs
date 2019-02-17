@@ -10,7 +10,7 @@
 */
 
 extern crate torchr;
-use torchr::{no_grad, vision, Device, Kind, Tensor};
+use torchr::{kind, no_grad, vision, Kind, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 10;
@@ -21,9 +21,8 @@ fn main() {
     println!("train-labels: {:?}", m.train_labels.size());
     println!("test-images: {:?}", m.test_images.size());
     println!("test-labels: {:?}", m.test_labels.size());
-    let mut ws =
-        Tensor::zeros(&[IMAGE_DIM, LABELS], (Kind::Float, Device::Cpu)).set_requires_grad(true);
-    let mut bs = Tensor::zeros(&[LABELS], (Kind::Float, Device::Cpu)).set_requires_grad(true);
+    let mut ws = Tensor::zeros(&[IMAGE_DIM, LABELS], &kind::FLOAT_CPU).set_requires_grad(true);
+    let mut bs = Tensor::zeros(&[LABELS], &kind::FLOAT_CPU).set_requires_grad(true);
     for epoch in 1..200 {
         let logits = m.train_images.mm(&ws) + &bs;
         let loss = logits.log_softmax(-1).nll_loss(&m.train_labels);

@@ -5,7 +5,7 @@ mod utils;
 mod device;
 pub use device::Device;
 
-mod kind;
+pub mod kind;
 pub use kind::Kind;
 
 mod scalar;

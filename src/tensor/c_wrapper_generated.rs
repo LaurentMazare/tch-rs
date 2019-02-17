@@ -1630,7 +1630,7 @@ impl Tensor {
     }
 
     pub fn arange(
-        end_: &Scalar, options: (Kind, Device)
+        end_: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -1643,7 +1643,7 @@ impl Tensor {
     }
 
     pub fn arange1(
-        start: &Scalar, end_: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -1657,7 +1657,7 @@ impl Tensor {
     }
 
     pub fn arange2(
-        start: &Scalar, end_: &Scalar, step: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, step: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2142,7 +2142,7 @@ impl Tensor {
     }
 
     pub fn bartlett_window(
-        window_length: i64, options: (Kind, Device)
+        window_length: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2155,7 +2155,7 @@ impl Tensor {
     }
 
     pub fn bartlett_window1(
-        window_length: i64, periodic: bool, options: (Kind, Device)
+        window_length: i64, periodic: bool, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2379,7 +2379,7 @@ impl Tensor {
     }
 
     pub fn blackman_window(
-        window_length: i64, options: (Kind, Device)
+        window_length: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2392,7 +2392,7 @@ impl Tensor {
     }
 
     pub fn blackman_window1(
-        window_length: i64, periodic: bool, options: (Kind, Device)
+        window_length: i64, periodic: bool, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -3953,7 +3953,7 @@ impl Tensor {
     }
 
     pub fn empty(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -3978,7 +3978,7 @@ impl Tensor {
     }
 
     pub fn empty_like1(
-        &self, options: (Kind, Device)
+        &self, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -4004,7 +4004,7 @@ impl Tensor {
     }
 
     pub fn empty_strided(
-        size: &[i64], stride: &[i64], options: (Kind, Device)
+        size: &[i64], stride: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -4323,7 +4323,7 @@ impl Tensor {
     }
 
     pub fn eye(
-        n: i64, options: (Kind, Device)
+        n: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -4336,7 +4336,7 @@ impl Tensor {
     }
 
     pub fn eye1(
-        n: i64, m: i64, options: (Kind, Device)
+        n: i64, m: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -4760,7 +4760,7 @@ impl Tensor {
     }
 
     pub fn full(
-        size: &[i64], fill_value: &Scalar, options: (Kind, Device)
+        size: &[i64], fill_value: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -4787,7 +4787,7 @@ impl Tensor {
     }
 
     pub fn full_like1(
-        &self, fill_value: &Scalar, options: (Kind, Device)
+        &self, fill_value: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5345,7 +5345,7 @@ impl Tensor {
     }
 
     pub fn hamming_window(
-        window_length: i64, options: (Kind, Device)
+        window_length: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5358,7 +5358,7 @@ impl Tensor {
     }
 
     pub fn hamming_window1(
-        window_length: i64, periodic: bool, options: (Kind, Device)
+        window_length: i64, periodic: bool, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5372,7 +5372,7 @@ impl Tensor {
     }
 
     pub fn hamming_window2(
-        window_length: i64, periodic: bool, alpha: f64, options: (Kind, Device)
+        window_length: i64, periodic: bool, alpha: f64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5387,7 +5387,7 @@ impl Tensor {
     }
 
     pub fn hamming_window3(
-        window_length: i64, periodic: bool, alpha: f64, beta: f64, options: (Kind, Device)
+        window_length: i64, periodic: bool, alpha: f64, beta: f64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5403,7 +5403,7 @@ impl Tensor {
     }
 
     pub fn hann_window(
-        window_length: i64, options: (Kind, Device)
+        window_length: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5416,7 +5416,7 @@ impl Tensor {
     }
 
     pub fn hann_window1(
-        window_length: i64, periodic: bool, options: (Kind, Device)
+        window_length: i64, periodic: bool, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -6144,7 +6144,7 @@ impl Tensor {
     }
 
     pub fn linspace(
-        start: &Scalar, end_: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -6158,7 +6158,7 @@ impl Tensor {
     }
 
     pub fn linspace1(
-        start: &Scalar, end_: &Scalar, steps: i64, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, steps: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -6457,7 +6457,7 @@ impl Tensor {
     }
 
     pub fn logspace(
-        start: &Scalar, end_: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -6471,7 +6471,7 @@ impl Tensor {
     }
 
     pub fn logspace1(
-        start: &Scalar, end_: &Scalar, steps: i64, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, steps: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8640,7 +8640,7 @@ impl Tensor {
     }
 
     pub fn ones(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8665,7 +8665,7 @@ impl Tensor {
     }
 
     pub fn ones_like1(
-        &self, options: (Kind, Device)
+        &self, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9256,7 +9256,7 @@ impl Tensor {
     }
 
     pub fn rand(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9281,7 +9281,7 @@ impl Tensor {
     }
 
     pub fn rand_like1(
-        &self, options: (Kind, Device)
+        &self, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9307,7 +9307,7 @@ impl Tensor {
     }
 
     pub fn randint(
-        high: i64, size: &[i64], options: (Kind, Device)
+        high: i64, size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9321,7 +9321,7 @@ impl Tensor {
     }
 
     pub fn randint1(
-        low: i64, high: i64, size: &[i64], options: (Kind, Device)
+        low: i64, high: i64, size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9363,7 +9363,7 @@ impl Tensor {
     }
 
     pub fn randint_like2(
-        &self, high: i64, options: (Kind, Device)
+        &self, high: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9377,7 +9377,7 @@ impl Tensor {
     }
 
     pub fn randint_like3(
-        &self, low: i64, high: i64, options: (Kind, Device)
+        &self, low: i64, high: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9421,7 +9421,7 @@ impl Tensor {
     }
 
     pub fn randn(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9446,7 +9446,7 @@ impl Tensor {
     }
 
     pub fn randn_like1(
-        &self, options: (Kind, Device)
+        &self, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9511,7 +9511,7 @@ impl Tensor {
     }
 
     pub fn randperm(
-        n: i64, options: (Kind, Device)
+        n: i64, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9537,7 +9537,7 @@ impl Tensor {
     }
 
     pub fn range(
-        start: &Scalar, end_: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9551,7 +9551,7 @@ impl Tensor {
     }
 
     pub fn range1(
-        start: &Scalar, end_: &Scalar, step: &Scalar, options: (Kind, Device)
+        start: &Scalar, end_: &Scalar, step: &Scalar, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11051,7 +11051,7 @@ impl Tensor {
     }
 
     pub fn sparse_coo_tensor(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11064,7 +11064,7 @@ impl Tensor {
     }
 
     pub fn sparse_coo_tensor1(
-        indices: &Tensor, values: &Tensor, options: (Kind, Device)
+        indices: &Tensor, values: &Tensor, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11078,7 +11078,7 @@ impl Tensor {
     }
 
     pub fn sparse_coo_tensor2(
-        indices: &Tensor, values: &Tensor, size: &[i64], options: (Kind, Device)
+        indices: &Tensor, values: &Tensor, size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11779,7 +11779,7 @@ impl Tensor {
     }
 
     pub fn to1(
-        &self, options: (Kind, Device), non_blocking: bool, copy: bool
+        &self, options: &(Kind, Device), non_blocking: bool, copy: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -12658,7 +12658,7 @@ impl Tensor {
     }
 
     pub fn zeros(
-        size: &[i64], options: (Kind, Device)
+        size: &[i64], options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -12683,7 +12683,7 @@ impl Tensor {
     }
 
     pub fn zeros_like1(
-        &self, options: (Kind, Device)
+        &self, options: &(Kind, Device)
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {

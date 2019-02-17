@@ -47,3 +47,5 @@ impl Kind {
         }
     }
 }
+
+pub static FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
