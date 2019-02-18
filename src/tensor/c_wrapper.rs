@@ -112,12 +112,14 @@ impl Tensor {
         read_and_clean_error()
     }
 
-    // TODO: add some trait/generic version for this.
-    pub fn copy_data(self, data: &[u8]) {
-        let data_len = data.len();
-        let data = data.as_ptr() as *const c_void;
-        unsafe { at_copy_data(self.c_tensor, data, data_len as i64, 1) };
+    pub fn copy_data(&self, dst: *const c_void, numel: i64) {
+        let kind = self.kind();
+        unsafe { at_copy_data(self.c_tensor, dst, numel, kind.elt_size_in_bytes()) };
         read_and_clean_error()
+    }
+
+    pub fn numel(&self) -> i64 {
+        self.size().iter().fold(1, |acc, &v| acc * i64::from(v))
     }
 
     // This is similar to vec_... but faster as it directly blits the data.

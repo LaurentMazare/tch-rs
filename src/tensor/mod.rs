@@ -179,3 +179,25 @@ impl Tensor {
         self.g_nll_loss(targets, &weights, 1, -100)
     }
 }
+
+macro_rules! from_tensor {
+    ($typ:ty, $kind:ident) => {
+        impl From<&Tensor> for Vec<$typ> {
+            fn from(tensor: &Tensor) -> Vec<$typ> {
+                let numel = tensor.numel();
+                let mut vec = vec![0 as $typ; numel as usize];
+                tensor
+                    .to_kind(&Kind::$kind)
+                    .copy_data(vec.as_mut_ptr() as *const libc::c_void, numel);
+                vec
+            }
+        }
+    };
+}
+
+from_tensor!(f64, Double);
+from_tensor!(f32, Float);
+from_tensor!(i64, Int64);
+from_tensor!(i32, Int);
+from_tensor!(i8, Int8);
+from_tensor!(u8, Uint8);

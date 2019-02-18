@@ -1,5 +1,5 @@
 extern crate torchr;
-use torchr::{kind, Device, Tensor};
+use torchr::{kind, Tensor};
 
 fn grad_example() {
     let mut x = Tensor::from(2.0).set_requires_grad(true);

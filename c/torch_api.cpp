@@ -40,14 +40,14 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in
   )
 }
 
-void at_copy_data(tensor tensor, void *vs, int64_t numel, int element_size_in_bytes) {
+void at_copy_data(tensor tensor, void *vs, int64_t numel, int elt_size_in_bytes) {
   PROTECT(
-    if (element_size_in_bytes != tensor->type().elementSizeInBytes())
+    if (elt_size_in_bytes != tensor->type().elementSizeInBytes())
       throw std::invalid_argument("incoherent element sizes in bytes");
-    if (numel != tensor->numel())
-      throw std::invalid_argument("incoherent number of elements");
-    void *tensor_data = tensor->data_ptr();
-    memcpy(vs, tensor_data, numel * element_size_in_bytes);
+    if (numel > tensor->numel())
+      throw std::invalid_argument("target numel is larger than tensor numel");
+    void *tensor_data = tensor->contiguous().data_ptr();
+    memcpy(vs, tensor_data, numel * elt_size_in_bytes);
   )
 }
 
@@ -60,7 +60,6 @@ tensor at_float_vec(double *vs, int len, int type) {
 }
 
 tensor at_int_vec(int64_t *vs, int len, int type) {
-    printf("%d %d\n", len, type);
   PROTECT(
     torch::Tensor tensor = torch::empty({len}, torch::ScalarType(type));
     for (int i = 0; i < len; ++i) tensor[i] = vs[i];
