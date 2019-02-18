@@ -854,9 +854,8 @@ fn ptr_option(opt: &std::option::Option<Tensor>) -> *mut C_tensor {
     }
 }
 
-fn ptr_list(l: &[Tensor]) -> *const *mut C_tensor {
-    let ptrs: Vec<*mut C_tensor> = l.iter().map(|x| x.c_tensor).collect();
-    ptrs.as_ptr()
+fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {
+    l.iter().map(|x| x.c_tensor).collect()
 }
 
 impl Tensor {
@@ -2519,12 +2518,12 @@ impl Tensor {
     }
 
     pub fn cat(
-        tensors: &[Tensor], dim: i64
+        tensors: &[&Tensor], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_cat(c_tensors.as_mut_ptr(),
-                ptr_list(tensors), tensors.len() as i32,
+                ptr_list(tensors).as_ptr(), tensors.len() as i32,
                 dim
             ) };
         read_and_clean_error();
@@ -2532,13 +2531,13 @@ impl Tensor {
     }
 
     pub fn cat_out(
-        result: &Tensor, tensors: &[Tensor], dim: i64
+        result: &Tensor, tensors: &[&Tensor], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_cat_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
-                ptr_list(tensors), tensors.len() as i32,
+                ptr_list(tensors).as_ptr(), tensors.len() as i32,
                 dim
             ) };
         read_and_clean_error();
@@ -2621,12 +2620,12 @@ impl Tensor {
     }
 
     pub fn chain_matmul(
-        matrices: &[Tensor]
+        matrices: &[&Tensor]
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_chain_matmul(c_tensors.as_mut_ptr(),
-                ptr_list(matrices), matrices.len() as i32
+                ptr_list(matrices).as_ptr(), matrices.len() as i32
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -5208,14 +5207,14 @@ impl Tensor {
     }
 
     pub fn gru(
-        input: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+        input: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
             atg_gru(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -5228,7 +5227,7 @@ impl Tensor {
     }
 
     pub fn gru1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
@@ -5236,7 +5235,7 @@ impl Tensor {
                 data.c_tensor,
                 batch_sizes.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -5576,13 +5575,13 @@ impl Tensor {
     }
 
     pub fn index(
-        &self, indices: &[Tensor]
+        &self, indices: &[&Tensor]
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_index(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                ptr_list(indices), indices.len() as i32
+                ptr_list(indices).as_ptr(), indices.len() as i32
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -5649,13 +5648,13 @@ impl Tensor {
     }
 
     pub fn index_put(
-        &self, indices: &[Tensor], values: &Tensor
+        &self, indices: &[&Tensor], values: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_index_put(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                ptr_list(indices), indices.len() as i32,
+                ptr_list(indices).as_ptr(), indices.len() as i32,
                 values.c_tensor
             ) };
         read_and_clean_error();
@@ -5663,13 +5662,13 @@ impl Tensor {
     }
 
     pub fn index_put_(
-        &self, indices: &[Tensor], values: &Tensor
+        &self, indices: &[&Tensor], values: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_index_put_(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                ptr_list(indices), indices.len() as i32,
+                ptr_list(indices).as_ptr(), indices.len() as i32,
                 values.c_tensor
             ) };
         read_and_clean_error();
@@ -6544,14 +6543,14 @@ impl Tensor {
     }
 
     pub fn lstm(
-        input: &Tensor, hx: &[Tensor], params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+        input: &Tensor, hx: &[&Tensor], params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
             atg_lstm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
-                ptr_list(hx), hx.len() as i32,
-                ptr_list(params), params.len() as i32,
+                ptr_list(hx).as_ptr(), hx.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -6564,15 +6563,15 @@ impl Tensor {
     }
 
     pub fn lstm1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &[Tensor], params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+        data: &Tensor, batch_sizes: &Tensor, hx: &[&Tensor], params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
             atg_lstm1(c_tensors.as_mut_ptr(),
                 data.c_tensor,
                 batch_sizes.c_tensor,
-                ptr_list(hx), hx.len() as i32,
-                ptr_list(params), params.len() as i32,
+                ptr_list(hx).as_ptr(), hx.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -6584,13 +6583,13 @@ impl Tensor {
     }
 
     pub fn lstm_cell(
-        input: &Tensor, hx: &[Tensor], w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
+        input: &Tensor, hx: &[&Tensor], w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
             atg_lstm_cell(c_tensors.as_mut_ptr(),
                 input.c_tensor,
-                ptr_list(hx), hx.len() as i32,
+                ptr_list(hx).as_ptr(), hx.len() as i32,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
                 ptr_option(&b_ih),
@@ -10142,14 +10141,14 @@ impl Tensor {
     }
 
     pub fn rnn_relu(
-        input: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+        input: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
             atg_rnn_relu(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -10162,7 +10161,7 @@ impl Tensor {
     }
 
     pub fn rnn_relu1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
@@ -10170,7 +10169,7 @@ impl Tensor {
                 data.c_tensor,
                 batch_sizes.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -10199,14 +10198,14 @@ impl Tensor {
     }
 
     pub fn rnn_tanh(
-        input: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+        input: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
             atg_rnn_tanh(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -10219,7 +10218,7 @@ impl Tensor {
     }
 
     pub fn rnn_tanh1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
@@ -10227,7 +10226,7 @@ impl Tensor {
                 data.c_tensor,
                 batch_sizes.c_tensor,
                 hx.c_tensor,
-                ptr_list(params), params.len() as i32,
+                ptr_list(params).as_ptr(), params.len() as i32,
                 if has_biases { 1 } else { 0 },
                 num_layers,
                 dropout,
@@ -11239,12 +11238,12 @@ impl Tensor {
     }
 
     pub fn stack(
-        tensors: &[Tensor], dim: i64
+        tensors: &[&Tensor], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_stack(c_tensors.as_mut_ptr(),
-                ptr_list(tensors), tensors.len() as i32,
+                ptr_list(tensors).as_ptr(), tensors.len() as i32,
                 dim
             ) };
         read_and_clean_error();
@@ -11252,13 +11251,13 @@ impl Tensor {
     }
 
     pub fn stack_out(
-        result: &Tensor, tensors: &[Tensor], dim: i64
+        result: &Tensor, tensors: &[&Tensor], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_stack_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
-                ptr_list(tensors), tensors.len() as i32,
+                ptr_list(tensors).as_ptr(), tensors.len() as i32,
                 dim
             ) };
         read_and_clean_error();

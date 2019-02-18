@@ -25,3 +25,21 @@ fn grad() {
     let dy_over_dx = x.grad();
     assert_eq!(Vec::<f64>::from(&dy_over_dx), [5.0]);
 }
+
+#[test]
+fn cat_and_stack() {
+    let t = Tensor::float_vec(&[13.0, 37.0]);
+    let t = Tensor::cat(&[&t, &t, &t], 0);
+    assert_eq!(t.size(), [6]);
+    assert_eq!(Vec::<f64>::from(&t), [13.0, 37.0, 13.0, 37.0, 13.0, 37.0]);
+
+    let t = Tensor::float_vec(&[13.0, 37.0]);
+    let t = Tensor::stack(&[&t, &t, &t], 0);
+    assert_eq!(t.size(), [3, 2]);
+    assert_eq!(Vec::<f64>::from(&t), [13.0, 37.0, 13.0, 37.0, 13.0, 37.0]);
+
+    let t = Tensor::float_vec(&[13.0, 37.0]);
+    let t = Tensor::stack(&[&t, &t, &t], 1);
+    assert_eq!(t.size(), [2, 3]);
+    assert_eq!(Vec::<f64>::from(&t), [13.0, 13.0, 13.0, 37.0, 37.0, 37.0]);
+}

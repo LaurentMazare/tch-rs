@@ -189,7 +189,7 @@ module Func = struct
               | Tensor -> "&Tensor"
               | TensorOption -> "&Option<Tensor>"
               | IntList -> "&[i64]"
-              | TensorList -> "&[Tensor]"
+              | TensorList -> "&[&Tensor]"
               | TensorOptions -> "&(Kind, Device)"
               | Scalar -> "&Scalar"
               | ScalarType -> "&Kind"
@@ -225,7 +225,7 @@ module Func = struct
             Printf.sprintf "%s.0.c_int(), %s.1.c_int()" name name
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | TensorList ->
-            Printf.sprintf "ptr_list(%s), %s.len() as i32" name name
+            Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
         | TensorOption -> Printf.sprintf "ptr_option(&%s)" name
         | _ -> name )
     |> String.concat ~sep:",\n                "
@@ -384,11 +384,8 @@ let write_wrapper funcs filename =
       pm "    }" ;
       pm "}" ;
       pm "" ;
-      pm "fn ptr_list(l: &[Tensor]) -> *const *mut C_tensor {" ;
-      pm
-        "    let ptrs: Vec<*mut C_tensor> = l.iter().map(|x| \
-         x.c_tensor).collect();" ;
-      pm "    ptrs.as_ptr()" ;
+      pm "fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {" ;
+      pm "    l.iter().map(|x| x.c_tensor).collect()" ;
       pm "}" ;
       pm "" ;
       pm "impl Tensor {" ;
