@@ -192,6 +192,16 @@ macro_rules! from_tensor {
                 vec
             }
         }
+
+        impl From<&Tensor> for $typ {
+            fn from(tensor: &Tensor) -> $typ {
+                let numel = tensor.numel();
+                if numel != 1 {
+                    panic!("expected exactly one element, got {}", numel)
+                }
+                Vec::from(tensor)[0]
+            }
+        }
     };
 }
 
@@ -201,3 +211,16 @@ from_tensor!(i64, Int64);
 from_tensor!(i32, Int);
 from_tensor!(i8, Int8);
 from_tensor!(u8, Uint8);
+
+impl Tensor {
+    pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {
+        self.log_softmax(-1).nll_loss(&targets)
+    }
+
+    pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
+        self.argmax1(-1, false)
+            .eq1(&targets)
+            .to_kind(&Kind::Float)
+            .mean()
+    }
+}

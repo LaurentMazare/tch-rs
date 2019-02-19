@@ -67,6 +67,10 @@ tensor at_int_vec(int64_t *vs, int len, int type) {
   )
 }
 
+tensor at_clone(tensor t) {
+    PROTECT(return new torch::Tensor(*t);)
+}
+
 int at_defined(tensor t) {
   PROTECT(return t->defined();)
 }

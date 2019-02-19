@@ -34,15 +34,15 @@ extern "C" {
     fn ato_free(arg: *mut C_optimizer);
 }
 
-pub struct Optimizer {
+pub struct COptimizer {
     c_optimizer: *mut C_optimizer,
 }
 
-impl Optimizer {
-    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Optimizer {
+impl COptimizer {
+    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> COptimizer {
         let c_optimizer = unsafe { ato_adam(lr, beta1, beta2, wd) };
         read_and_clean_error();
-        Optimizer { c_optimizer }
+        COptimizer { c_optimizer }
     }
 
     // Maybe we should use the builder pattern to provide default values for these ?
@@ -53,18 +53,18 @@ impl Optimizer {
         wd: f64,
         momentum: f64,
         centered: bool,
-    ) -> Optimizer {
+    ) -> COptimizer {
         let centered = if centered { 1 } else { 0 };
         let c_optimizer = unsafe { ato_rms_prop(lr, alpha, eps, wd, momentum, centered) };
         read_and_clean_error();
-        Optimizer { c_optimizer }
+        COptimizer { c_optimizer }
     }
 
-    pub fn sgd(lr: f64, momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> Optimizer {
+    pub fn sgd(lr: f64, momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> COptimizer {
         let nesterov = if nesterov { 1 } else { 0 };
         let c_optimizer = unsafe { ato_sgd(lr, momentum, dampening, wd, nesterov) };
         read_and_clean_error();
-        Optimizer { c_optimizer }
+        COptimizer { c_optimizer }
     }
 
     pub fn add_parameters(&mut self, ts: &[Tensor]) {
@@ -92,15 +92,9 @@ impl Optimizer {
         unsafe { ato_step(self.c_optimizer) };
         read_and_clean_error()
     }
-
-    pub fn backward_step(&self, loss: &Tensor) {
-        self.zero_grad();
-        loss.backward();
-        self.step();
-    }
 }
 
-impl Drop for Optimizer {
+impl Drop for COptimizer {
     fn drop(&mut self) {
         unsafe { ato_free(self.c_optimizer) }
     }
