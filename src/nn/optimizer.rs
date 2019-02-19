@@ -13,6 +13,12 @@ impl Optimizer {
         Optimizer { opt }
     }
 
+    pub fn adam(vs: &VarStore, lr: f64) -> Optimizer {
+        let mut opt = COptimizer::adam(lr, 0.9, 0.999, 0.);
+        opt.add_parameters(vs.variables());
+        Optimizer { opt }
+    }
+
     pub fn zero_grad(&self) {
         self.opt.zero_grad()
     }

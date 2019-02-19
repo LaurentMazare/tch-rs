@@ -15,7 +15,13 @@ impl VarStore {
 
     pub fn zeros(&mut self, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, &kind::FLOAT_CPU).set_requires_grad(true);
-        self.variables.push(z.clone());
+        self.variables.push(z.shallow_clone());
+        z
+    }
+
+    pub fn randn(&mut self, dims: &[i64]) -> Tensor {
+        let z = Tensor::randn(dims, &kind::FLOAT_CPU).set_requires_grad(true);
+        self.variables.push(z.shallow_clone());
         z
     }
 

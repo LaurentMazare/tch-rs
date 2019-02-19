@@ -1,3 +1,4 @@
+// TODO: proper weight initialization.
 use crate::tensor::Tensor;
 
 pub struct Linear {
@@ -11,8 +12,8 @@ impl super::module::Module for Linear {
     fn new(vs: &mut super::var_store::VarStore, cfg: &Self::Config) -> Linear {
         let (in_dim, out_dim) = *cfg;
         Linear {
-            ws: vs.zeros(&[in_dim, out_dim]),
-            bs: vs.zeros(&[out_dim]),
+            ws: vs.randn(&[in_dim, out_dim]),
+            bs: vs.randn(&[out_dim]),
         }
     }
 
