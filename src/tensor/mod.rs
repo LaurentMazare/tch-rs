@@ -29,7 +29,7 @@ macro_rules! impl_op {
         impl<'a> $trait<&$rhs> for &'a Tensor {
             type Output = Tensor;
 
-            fn $func<'b>(self, rhs: &'b $rhs) -> Self::Output {
+            fn $func(self, rhs: &$rhs) -> Self::Output {
                 self.$op(rhs)
             }
         }
@@ -181,14 +181,14 @@ impl Tensor {
 }
 
 macro_rules! from_tensor {
-    ($typ:ty, $kind:ident) => {
+    ($typ:ty, $zero:expr, $kind:ident) => {
         impl From<&Tensor> for Vec<$typ> {
             fn from(tensor: &Tensor) -> Vec<$typ> {
                 let numel = tensor.numel();
-                let mut vec = vec![0 as $typ; numel as usize];
+                let mut vec = vec![$zero; numel as usize];
                 tensor
                     .to_kind(&Kind::$kind)
-                    .copy_data(vec.as_mut_ptr() as *const libc::c_void, numel);
+                    .copy_data(&mut vec, numel);
                 vec
             }
         }
@@ -205,12 +205,12 @@ macro_rules! from_tensor {
     };
 }
 
-from_tensor!(f64, Double);
-from_tensor!(f32, Float);
-from_tensor!(i64, Int64);
-from_tensor!(i32, Int);
-from_tensor!(i8, Int8);
-from_tensor!(u8, Uint8);
+from_tensor!(f64, 0f64, Double);
+from_tensor!(f32, 0f32, Float);
+from_tensor!(i64, 0i64, Int64);
+from_tensor!(i32, 0i32, Int);
+from_tensor!(i8, 0i8, Int8);
+from_tensor!(u8, 0u8, Uint8);
 
 impl Tensor {
     pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {

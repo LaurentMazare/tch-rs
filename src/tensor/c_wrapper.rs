@@ -113,9 +113,9 @@ impl Tensor {
         read_and_clean_error()
     }
 
-    pub fn copy_data(&self, dst: *const c_void, numel: i64) {
+    pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
         let kind = self.kind();
-        unsafe { at_copy_data(self.c_tensor, dst, numel, kind.elt_size_in_bytes()) };
+        unsafe { at_copy_data(self.c_tensor, dst.as_mut_ptr() as *const c_void, numel, kind.elt_size_in_bytes()) };
         read_and_clean_error()
     }
 
