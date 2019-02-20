@@ -48,7 +48,7 @@ impl VarStore {
 
     pub fn kaiming_uniform(&mut self, dims: &[i64]) -> Tensor {
         let fan_in: i64 = dims.iter().skip(1).product();
-        let bound = (fan_in as f64).sqrt();
+        let bound = (1.0 / fan_in as f64).sqrt();
         self.uniform(dims, - bound, bound)
     }
 
