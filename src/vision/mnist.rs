@@ -43,7 +43,7 @@ fn read_images(filename: &std::path::Path) -> Result<Tensor> {
     let tensor = Tensor::of_data(&data, &Kind::Uint8)
         .view(&[i64::from(samples), i64::from(rows * cols)])
         .to_kind(&Kind::Float);
-    Ok(tensor * (1. / 255.))
+    Ok(tensor / 255.)
 }
 
 pub struct Mnist {

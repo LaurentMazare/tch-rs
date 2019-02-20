@@ -12,8 +12,8 @@ impl super::module::Module for Linear {
     fn new(vs: &mut super::var_store::VarStore, cfg: &Self::Config) -> Linear {
         let (in_dim, out_dim) = *cfg;
         Linear {
-            ws: vs.randn(&[in_dim, out_dim]),
-            bs: vs.randn(&[out_dim]),
+            ws: vs.kaiming_uniform(&[in_dim, out_dim]),
+            bs: vs.kaiming_uniform(&[out_dim]),
         }
     }
 
