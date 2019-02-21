@@ -39,7 +39,7 @@ fn main() {
     let m = torchr::vision::Mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = VarStore::new();
     let net = Net::new(&mut vs, &());
-    let opt = Optimizer::adam(&vs, 1e-3);
+    let opt = Optimizer::adam(&vs, 1e-3, Default::default());
     for epoch in 1..200 {
         let loss = net
             .forward(&m.train_images)
