@@ -21,15 +21,15 @@ struct Net {
     fc2: nn::Linear,
 }
 
-impl Module for Net {
-    type Config = ();
-
-    fn new(vs: &mut VarStore, _cfg: &()) -> Net {
-        let fc1 = nn::Linear::new(vs, &(IMAGE_DIM, HIDDEN_NODES));
-        let fc2 = nn::Linear::new(vs, &(HIDDEN_NODES, LABELS));
+impl Net {
+    fn new(vs: &mut VarStore) -> Net {
+        let fc1 = nn::Linear::new(vs, IMAGE_DIM, HIDDEN_NODES);
+        let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS);
         Net { fc1, fc2 }
     }
+}
 
+impl Module for Net {
     fn forward(&self, xs: &Tensor) -> Tensor {
         xs.apply(&self.fc1).relu().apply(&self.fc2)
     }
@@ -38,7 +38,7 @@ impl Module for Net {
 fn main() {
     let m = torchr::vision::Mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = VarStore::new();
-    let net = Net::new(&mut vs, &());
+    let net = Net::new(&mut vs);
     let opt = Optimizer::adam(&vs, 1e-3, Default::default());
     for epoch in 1..200 {
         let loss = net

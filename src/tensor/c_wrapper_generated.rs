@@ -847,12 +847,6 @@ extern "C" {
     fn atg_zeros_like1(out__: *mut *mut C_tensor, self_: *mut C_tensor, options_kind: c_int, options_device: c_int);
     fn atg_zeros_out(out__: *mut *mut C_tensor, result_: *mut C_tensor, size_data: *const i64, size_len: c_int);
 }
-fn ptr_option(opt: &std::option::Option<Tensor>) -> *mut C_tensor {
-    match opt {
-    | std::option::Option::Some(v) => { v.c_tensor }
-    | std::option::Option::None => { std::ptr::null_mut() }
-    }
-}
 
 fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {
     l.iter().map(|x| x.c_tensor).collect()
@@ -2168,16 +2162,16 @@ impl Tensor {
     }
 
     pub fn batch_norm(
-        input: &Tensor, weight: &Option<Tensor>, bias: &Option<Tensor>, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, training: bool, momentum: f64, eps: f64, cudnn_enabled: bool
+        input: &Tensor, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, momentum: f64, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_batch_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
-                ptr_option(&weight),
-                ptr_option(&bias),
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if training { 1 } else { 0 },
                 momentum,
                 eps,
@@ -2252,7 +2246,7 @@ impl Tensor {
     }
 
     pub fn bilinear(
-        input1: &Tensor, input2: &Tensor, weight: &Tensor, bias: &Option<Tensor>
+        input1: &Tensor, input2: &Tensor, weight: &Tensor, bias: Option<&Tensor>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2260,7 +2254,7 @@ impl Tensor {
                 input1.c_tensor,
                 input2.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias)
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor)
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -2282,7 +2276,7 @@ impl Tensor {
     }
 
     pub fn binary_cross_entropy_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2290,7 +2284,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction
             ) };
         read_and_clean_error();
@@ -2298,7 +2292,7 @@ impl Tensor {
     }
 
     pub fn binary_cross_entropy_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2307,7 +2301,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction
             ) };
         read_and_clean_error();
@@ -2331,15 +2325,15 @@ impl Tensor {
     }
 
     pub fn binary_cross_entropy_with_logits(
-        &self, target: &Tensor, weight: &Option<Tensor>, pos_weight: &Option<Tensor>, reduction: i64
+        &self, target: &Tensor, weight: Option<&Tensor>, pos_weight: Option<&Tensor>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_binary_cross_entropy_with_logits(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
-                ptr_option(&pos_weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                pos_weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction
             ) };
         read_and_clean_error();
@@ -2347,7 +2341,7 @@ impl Tensor {
     }
 
     pub fn binary_cross_entropy_with_logits_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, pos_weight: &Option<Tensor>, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, pos_weight: Option<&Tensor>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -2355,8 +2349,8 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
-                ptr_option(&pos_weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                pos_weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction
             ) };
         read_and_clean_error();
@@ -2364,13 +2358,13 @@ impl Tensor {
     }
 
     pub fn bincount(
-        &self, weights: &Option<Tensor>, minlength: i64
+        &self, weights: Option<&Tensor>, minlength: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_bincount(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                ptr_option(&weights),
+                weights.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 minlength
             ) };
         read_and_clean_error();
@@ -2973,14 +2967,14 @@ impl Tensor {
     }
 
     pub fn convolution(
-        input: &Tensor, weight: &Tensor, bias: &Option<Tensor>, stride: &[i64], padding: &[i64], dilation: &[i64], transposed: bool, output_padding: &[i64], groups: i64
+        input: &Tensor, weight: &Tensor, bias: Option<&Tensor>, stride: &[i64], padding: &[i64], dilation: &[i64], transposed: bool, output_padding: &[i64], groups: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_convolution(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 stride.as_ptr(), stride.len() as i32,
                 padding.as_ptr(), padding.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -3192,16 +3186,16 @@ impl Tensor {
     }
 
     pub fn cudnn_batch_norm(
-        input: &Tensor, weight: &Tensor, bias: &Option<Tensor>, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
+        input: &Tensor, weight: &Tensor, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
             atg_cudnn_batch_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if training { 1 } else { 0 },
                 exponential_average_factor,
                 epsilon
@@ -3211,7 +3205,7 @@ impl Tensor {
     }
 
     pub fn cudnn_batch_norm_backward(
-        input: &Tensor, grad_output: &Tensor, weight: &Tensor, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, save_mean: &Option<Tensor>, save_var: &Option<Tensor>, epsilon: f64
+        input: &Tensor, grad_output: &Tensor, weight: &Tensor, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, save_mean: Option<&Tensor>, save_var: Option<&Tensor>, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
@@ -3219,10 +3213,10 @@ impl Tensor {
                 input.c_tensor,
                 grad_output.c_tensor,
                 weight.c_tensor,
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
-                ptr_option(&save_mean),
-                ptr_option(&save_var),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                save_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                save_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 epsilon
             ) };
         read_and_clean_error();
@@ -3230,14 +3224,14 @@ impl Tensor {
     }
 
     pub fn cudnn_convolution(
-        &self, weight: &Tensor, bias: &Option<Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_cudnn_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -3302,14 +3296,14 @@ impl Tensor {
     }
 
     pub fn cudnn_convolution_transpose(
-        &self, weight: &Tensor, bias: &Option<Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_cudnn_convolution_transpose(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 output_padding.as_ptr(), output_padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
@@ -5190,15 +5184,15 @@ impl Tensor {
     }
 
     pub fn group_norm(
-        input: &Tensor, num_groups: i64, weight: &Option<Tensor>, bias: &Option<Tensor>, eps: f64, cudnn_enabled: bool
+        input: &Tensor, num_groups: i64, weight: Option<&Tensor>, bias: Option<&Tensor>, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_group_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 num_groups,
-                ptr_option(&weight),
-                ptr_option(&bias),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 eps,
                 if cudnn_enabled { 1 } else { 0 }
             ) };
@@ -5247,7 +5241,7 @@ impl Tensor {
     }
 
     pub fn gru_cell(
-        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
+        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -5256,8 +5250,8 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                ptr_option(&b_ih),
-                ptr_option(&b_hh)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -5717,16 +5711,16 @@ impl Tensor {
     }
 
     pub fn instance_norm(
-        input: &Tensor, weight: &Option<Tensor>, bias: &Option<Tensor>, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, use_input_stats: bool, momentum: f64, eps: f64, cudnn_enabled: bool
+        input: &Tensor, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, use_input_stats: bool, momentum: f64, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_instance_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
-                ptr_option(&weight),
-                ptr_option(&bias),
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if use_input_stats { 1 } else { 0 },
                 momentum,
                 eps,
@@ -5915,15 +5909,15 @@ impl Tensor {
     }
 
     pub fn layer_norm(
-        input: &Tensor, normalized_shape: &[i64], weight: &Option<Tensor>, bias: &Option<Tensor>, eps: f64, cudnn_enable: bool
+        input: &Tensor, normalized_shape: &[i64], weight: Option<&Tensor>, bias: Option<&Tensor>, eps: f64, cudnn_enable: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_layer_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 normalized_shape.as_ptr(), normalized_shape.len() as i32,
-                ptr_option(&weight),
-                ptr_option(&bias),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 eps,
                 if cudnn_enable { 1 } else { 0 }
             ) };
@@ -6583,7 +6577,7 @@ impl Tensor {
     }
 
     pub fn lstm_cell(
-        input: &Tensor, hx: &[&Tensor], w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
+        input: &Tensor, hx: &[&Tensor], w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe {
@@ -6592,8 +6586,8 @@ impl Tensor {
                 ptr_list(hx).as_ptr(), hx.len() as i32,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                ptr_option(&b_ih),
-                ptr_option(&b_hh)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
             ) };
         read_and_clean_error();
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
@@ -7500,16 +7494,16 @@ impl Tensor {
     }
 
     pub fn miopen_batch_norm(
-        input: &Tensor, weight: &Tensor, bias: &Option<Tensor>, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
+        input: &Tensor, weight: &Tensor, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
             atg_miopen_batch_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if training { 1 } else { 0 },
                 exponential_average_factor,
                 epsilon
@@ -7519,7 +7513,7 @@ impl Tensor {
     }
 
     pub fn miopen_batch_norm_backward(
-        input: &Tensor, grad_output: &Tensor, weight: &Tensor, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, save_mean: &Option<Tensor>, save_var: &Option<Tensor>, epsilon: f64
+        input: &Tensor, grad_output: &Tensor, weight: &Tensor, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, save_mean: Option<&Tensor>, save_var: Option<&Tensor>, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
@@ -7527,10 +7521,10 @@ impl Tensor {
                 input.c_tensor,
                 grad_output.c_tensor,
                 weight.c_tensor,
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
-                ptr_option(&save_mean),
-                ptr_option(&save_var),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                save_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                save_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 epsilon
             ) };
         read_and_clean_error();
@@ -7538,14 +7532,14 @@ impl Tensor {
     }
 
     pub fn miopen_convolution(
-        &self, weight: &Tensor, bias: &Option<Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_miopen_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -7610,14 +7604,14 @@ impl Tensor {
     }
 
     pub fn miopen_convolution_transpose(
-        &self, weight: &Tensor, bias: &Option<Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_miopen_convolution_transpose(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 output_padding.as_ptr(), output_padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
@@ -7670,14 +7664,14 @@ impl Tensor {
     }
 
     pub fn mkldnn_convolution(
-        &self, weight: &Tensor, bias: &Option<Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64
+        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
             atg_mkldnn_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                ptr_option(&bias),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -8083,16 +8077,16 @@ impl Tensor {
     }
 
     pub fn native_batch_norm(
-        input: &Tensor, weight: &Option<Tensor>, bias: &Option<Tensor>, running_mean: &Option<Tensor>, running_var: &Option<Tensor>, training: bool, momentum: f64, eps: f64
+        input: &Tensor, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, momentum: f64, eps: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe {
             atg_native_batch_norm(c_tensors.as_mut_ptr(),
                 input.c_tensor,
-                ptr_option(&weight),
-                ptr_option(&bias),
-                ptr_option(&running_mean),
-                ptr_option(&running_var),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if training { 1 } else { 0 },
                 momentum,
                 eps
@@ -8327,7 +8321,7 @@ impl Tensor {
     }
 
     pub fn nll_loss2d_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8335,7 +8329,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -8345,7 +8339,7 @@ impl Tensor {
     }
 
     pub fn nll_loss2d_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8354,7 +8348,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -8381,7 +8375,7 @@ impl Tensor {
     }
 
     pub fn nll_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8389,7 +8383,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -8399,7 +8393,7 @@ impl Tensor {
     }
 
     pub fn nll_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: &Option<Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -8408,7 +8402,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                ptr_option(&weight),
+                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -10181,7 +10175,7 @@ impl Tensor {
     }
 
     pub fn rnn_relu_cell(
-        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
+        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -10190,8 +10184,8 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                ptr_option(&b_ih),
-                ptr_option(&b_hh)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -10238,7 +10232,7 @@ impl Tensor {
     }
 
     pub fn rnn_tanh_cell(
-        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: &Option<Tensor>, b_hh: &Option<Tensor>
+        input: &Tensor, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -10247,8 +10241,8 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                ptr_option(&b_ih),
-                ptr_option(&b_hh)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
             ) };
         read_and_clean_error();
         Tensor { c_tensor: c_tensors[0] }
@@ -11309,7 +11303,7 @@ impl Tensor {
     }
 
     pub fn stft(
-        &self, n_fft: i64, hop_length: i64, win_length: i64, window: &Option<Tensor>, normalized: bool, onesided: bool
+        &self, n_fft: i64, hop_length: i64, win_length: i64, window: Option<&Tensor>, normalized: bool, onesided: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11318,7 +11312,7 @@ impl Tensor {
                 n_fft,
                 hop_length,
                 win_length,
-                ptr_option(&window),
+                window.map_or(std::ptr::null_mut(), |t| t.c_tensor),
                 if normalized { 1 } else { 0 },
                 if onesided { 1 } else { 0 }
             ) };

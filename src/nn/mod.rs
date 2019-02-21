@@ -7,9 +7,9 @@ pub use module::Module;
 mod linear;
 pub use linear::Linear;
 
+mod batch_norm;
+pub use batch_norm::BatchNorm2D;
+
 mod c_optimizer;
 mod optimizer;
 pub use optimizer::Optimizer;
-
-// TODO: do not expose this
-pub use c_optimizer::COptimizer;

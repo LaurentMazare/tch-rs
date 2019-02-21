@@ -187,7 +187,7 @@ module Func = struct
               | Int64 -> "i64"
               | Double -> "f64"
               | Tensor -> "&Tensor"
-              | TensorOption -> "&Option<Tensor>"
+              | TensorOption -> "Option<&Tensor>"
               | IntList -> "&[i64]"
               | TensorList -> "&[&Tensor]"
               | TensorOptions -> "&(Kind, Device)"
@@ -226,7 +226,9 @@ module Func = struct
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | TensorList ->
             Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
-        | TensorOption -> Printf.sprintf "ptr_option(&%s)" name
+        | TensorOption ->
+            Printf.sprintf "%s.map_or(std::ptr::null_mut(), |t| t.c_tensor)"
+              name
         | _ -> name )
     |> String.concat ~sep:",\n                "
 end
@@ -376,12 +378,6 @@ let write_wrapper funcs filename =
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
           pm "    fn atg_%s(out__: *mut *mut C_tensor, %s);" exported_name
             (Func.c_rust_args_list func) ) ;
-      pm "}" ;
-      pm "fn ptr_option(opt: &std::option::Option<Tensor>) -> *mut C_tensor {" ;
-      pm "    match opt {" ;
-      pm "    | std::option::Option::Some(v) => { v.c_tensor }" ;
-      pm "    | std::option::Option::None => { std::ptr::null_mut() }" ;
-      pm "    }" ;
       pm "}" ;
       pm "" ;
       pm "fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {" ;

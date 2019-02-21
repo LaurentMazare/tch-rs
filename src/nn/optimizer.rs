@@ -92,4 +92,12 @@ impl Optimizer {
         loss.backward();
         self.step();
     }
+
+    pub fn set_lr(&mut self, lr: f64) {
+        self.opt.set_learning_rate(lr)
+    }
+
+    pub fn set_momentum(&mut self, m: f64) {
+        self.opt.set_momentum(m)
+    }
 }
