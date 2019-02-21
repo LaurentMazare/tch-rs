@@ -186,9 +186,7 @@ macro_rules! from_tensor {
             fn from(tensor: &Tensor) -> Vec<$typ> {
                 let numel = tensor.numel();
                 let mut vec = vec![$zero; numel as usize];
-                tensor
-                    .to_kind(&Kind::$kind)
-                    .copy_data(&mut vec, numel);
+                tensor.to_kind(&Kind::$kind).copy_data(&mut vec, numel);
                 vec
             }
         }
@@ -226,5 +224,27 @@ impl Tensor {
 
     pub fn to_tensor(&self, device: &Device) -> Tensor {
         self.to_(&device)
+    }
+
+    pub fn random_batch(&self, batch_size: i64) -> Tensor {
+        let len: i64 = self.size()[0].into();
+        let index = Tensor::randint(len, &[batch_size], &crate::kind::FLOAT_CPU);
+        self.index_select(0, &index)
+    }
+
+    pub fn random_batch2(t1: &Tensor, t2: &Tensor, batch_size: i64) -> (Tensor, Tensor) {
+        let len1: i64 = t1.size()[0].into();
+        let len2: i64 = t2.size()[0].into();
+        if len1 != len2 {
+            panic!(
+                "random_batch2: shape mismatch {:?} {:?}",
+                t1.size(),
+                t2.size()
+            )
+        }
+        let index = Tensor::randint(len1, &[batch_size], &crate::kind::FLOAT_CPU);
+        let batch1 = t1.index_select(0, &index);
+        let batch2 = t2.index_select(0, &index);
+        (batch1, batch2)
     }
 }

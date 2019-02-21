@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Device {
     Cpu,
     Cuda,
@@ -45,8 +45,7 @@ impl Device {
     pub fn cuda_if_available() -> Device {
         if Cuda::is_available() {
             Device::Cuda
-        }
-        else {
+        } else {
             Device::Cpu
         }
     }

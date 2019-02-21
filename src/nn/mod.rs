@@ -7,6 +7,9 @@ pub use module::Module;
 mod linear;
 pub use linear::Linear;
 
+mod conv2d;
+pub use conv2d::Conv2D;
+
 mod batch_norm;
 pub use batch_norm::BatchNorm2D;
 
