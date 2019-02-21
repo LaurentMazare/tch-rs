@@ -1,4 +1,3 @@
-// TODO: proper weight initialization.
 use crate::tensor::Tensor;
 
 pub struct Linear {
@@ -11,13 +10,14 @@ impl super::module::Module for Linear {
 
     fn new(vs: &mut super::var_store::VarStore, cfg: &Self::Config) -> Linear {
         let (in_dim, out_dim) = *cfg;
+        let bound = 1.0 / (in_dim as f64).sqrt();
         Linear {
-            ws: vs.kaiming_uniform(&[in_dim, out_dim]),
-            bs: vs.kaiming_uniform(&[out_dim]),
+            ws: vs.kaiming_uniform(&[out_dim, in_dim]),
+            bs: vs.uniform(&[out_dim], -bound, bound),
         }
     }
 
     fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.mm(&self.ws) + &self.bs
+        xs.mm(&self.ws.tr()) + &self.bs
     }
 }

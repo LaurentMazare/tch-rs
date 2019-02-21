@@ -2,8 +2,9 @@ extern crate libc;
 
 mod utils;
 
+mod device_wrapper;
 mod device;
-pub use device::Device;
+pub use device::{Cpu, Cuda, Device};
 
 pub mod kind;
 pub use kind::Kind;

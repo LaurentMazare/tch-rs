@@ -1,5 +1,5 @@
 use crate::scalar::Scalar;
-use crate::Kind;
+use crate::{Device, Kind};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 mod c_wrapper;
@@ -222,5 +222,9 @@ impl Tensor {
             .eq1(&targets)
             .to_kind(&Kind::Float)
             .mean()
+    }
+
+    pub fn to_tensor(&self, device: &Device) -> Tensor {
+        self.to_(&device)
     }
 }
