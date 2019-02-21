@@ -55,11 +55,13 @@ fn main() {
         let test_accuracy = net
             .forward_t(&m.test_images, false)
             .accuracy_for_logits(&m.test_labels);
-        println!(
-            "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-            epoch,
-            f64::from(&loss),
-            100. * f64::from(&test_accuracy),
-        );
+        if epoch % 50 == 0 {
+            println!(
+                "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
+                epoch,
+                f64::from(&loss),
+                100. * f64::from(&test_accuracy),
+            );
+        }
     }
 }
