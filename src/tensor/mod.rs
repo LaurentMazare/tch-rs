@@ -247,4 +247,12 @@ impl Tensor {
         let batch2 = t2.index_select(0, &index);
         (batch1, batch2)
     }
+
+    pub fn to_device(&self, device: Device) -> Tensor {
+        self.to_(&device)
+    }
+
+    pub fn max_pool2d_default(&self, ksize:i64) -> Tensor {
+        self.max_pool2d(&[ksize, ksize], &[1, 1], &[0, 0], &[0, 0], false)
+    }
 }

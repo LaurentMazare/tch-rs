@@ -2,7 +2,7 @@ mod var_store;
 pub use var_store::VarStore;
 
 mod module;
-pub use module::Module;
+pub use module::{Module, ModuleT};
 
 mod linear;
 pub use linear::Linear;
