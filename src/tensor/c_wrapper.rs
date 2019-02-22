@@ -115,7 +115,14 @@ impl Tensor {
 
     pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
         let kind = self.kind();
-        unsafe { at_copy_data(self.c_tensor, dst.as_mut_ptr() as *const c_void, numel, kind.elt_size_in_bytes()) };
+        unsafe {
+            at_copy_data(
+                self.c_tensor,
+                dst.as_mut_ptr() as *const c_void,
+                numel,
+                kind.elt_size_in_bytes(),
+            )
+        };
         read_and_clean_error()
     }
 
@@ -124,7 +131,7 @@ impl Tensor {
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
-    pub fn of_data(data: &[u8], kind: &Kind) -> Tensor {
+    pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
         let c_tensor = unsafe {

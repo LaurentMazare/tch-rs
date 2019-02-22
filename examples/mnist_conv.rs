@@ -21,23 +21,29 @@ impl Net {
         let fc1 = nn::Linear::new(vs, 1024, 1024);
         let fc2 = nn::Linear::new(vs, 1024, 10);
         let device = vs.device();
-        Net { conv1, conv2, fc1, fc2, device }
+        Net {
+            conv1,
+            conv2,
+            fc1,
+            fc2,
+            device,
+        }
     }
 }
 
 impl nn::ModuleT for Net {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.to_(&self.device)
-          .view(&[-1, 1, 28, 28])
-          .apply(&self.conv1)
-          .max_pool2d_default(2)
-          .apply(&self.conv2)
-          .max_pool2d_default(2)
-          .view(&[-1, 1024])
-          .apply(&self.fc1)
-          .relu()
-          .dropout_(0.5, train)
-          .apply(&self.fc2)
+        xs.to_device(self.device)
+            .view(&[-1, 1, 28, 28])
+            .apply(&self.conv1)
+            .max_pool2d_default(2)
+            .apply(&self.conv2)
+            .max_pool2d_default(2)
+            .view(&[-1, 1024])
+            .apply(&self.fc1)
+            .relu()
+            .dropout_(0.5, train)
+            .apply(&self.fc2)
     }
 }
 

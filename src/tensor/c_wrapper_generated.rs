@@ -3408,7 +3408,7 @@ impl Tensor {
     }
 
     pub fn cumprod1(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -3436,7 +3436,7 @@ impl Tensor {
     }
 
     pub fn cumprod_out1(
-        &self, result: &Tensor, dim: i64, dtype: &Kind
+        &self, result: &Tensor, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -3464,7 +3464,7 @@ impl Tensor {
     }
 
     pub fn cumsum1(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -3492,7 +3492,7 @@ impl Tensor {
     }
 
     pub fn cumsum_out1(
-        &self, result: &Tensor, dim: i64, dtype: &Kind
+        &self, result: &Tensor, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -6424,7 +6424,7 @@ impl Tensor {
     }
 
     pub fn log_softmax1(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -7267,7 +7267,7 @@ impl Tensor {
     }
 
     pub fn mean1(
-        &self, dtype: &Kind
+        &self, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -7294,7 +7294,7 @@ impl Tensor {
     }
 
     pub fn mean3(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -7308,7 +7308,7 @@ impl Tensor {
     }
 
     pub fn mean4(
-        &self, dim: i64, keepdim: bool, dtype: &Kind
+        &self, dim: i64, keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -7338,7 +7338,7 @@ impl Tensor {
     }
 
     pub fn mean_out1(
-        &self, result: &Tensor, dim: i64, dtype: &Kind
+        &self, result: &Tensor, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -7353,7 +7353,7 @@ impl Tensor {
     }
 
     pub fn mean_out2(
-        &self, result: &Tensor, dim: i64, keepdim: bool, dtype: &Kind
+        &self, result: &Tensor, dim: i64, keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9078,7 +9078,7 @@ impl Tensor {
     }
 
     pub fn prod1(
-        &self, dtype: &Kind
+        &self, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9105,7 +9105,7 @@ impl Tensor {
     }
 
     pub fn prod3(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9119,7 +9119,7 @@ impl Tensor {
     }
 
     pub fn prod4(
-        &self, dim: i64, keepdim: bool, dtype: &Kind
+        &self, dim: i64, keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9149,7 +9149,7 @@ impl Tensor {
     }
 
     pub fn prod_out1(
-        &self, result: &Tensor, dim: i64, dtype: &Kind
+        &self, result: &Tensor, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -9164,7 +9164,7 @@ impl Tensor {
     }
 
     pub fn prod_out2(
-        &self, result: &Tensor, dim: i64, keepdim: bool, dtype: &Kind
+        &self, result: &Tensor, dim: i64, keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -10950,7 +10950,7 @@ impl Tensor {
     }
 
     pub fn softmax1(
-        &self, dim: i64, dtype: &Kind
+        &self, dim: i64, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11399,7 +11399,7 @@ impl Tensor {
     }
 
     pub fn sum1(
-        &self, dtype: &Kind
+        &self, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11426,7 +11426,7 @@ impl Tensor {
     }
 
     pub fn sum3(
-        &self, dim: &[i64], dtype: &Kind
+        &self, dim: &[i64], dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11440,7 +11440,7 @@ impl Tensor {
     }
 
     pub fn sum4(
-        &self, dim: &[i64], keepdim: bool, dtype: &Kind
+        &self, dim: &[i64], keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11470,7 +11470,7 @@ impl Tensor {
     }
 
     pub fn sum_out1(
-        &self, result: &Tensor, dim: &[i64], dtype: &Kind
+        &self, result: &Tensor, dim: &[i64], dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11485,7 +11485,7 @@ impl Tensor {
     }
 
     pub fn sum_out2(
-        &self, result: &Tensor, dim: &[i64], keepdim: bool, dtype: &Kind
+        &self, result: &Tensor, dim: &[i64], keepdim: bool, dtype: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11759,7 +11759,7 @@ impl Tensor {
     }
 
     pub fn to_(
-        &self, device: &Device
+        &self, device: Device
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11787,7 +11787,7 @@ impl Tensor {
     }
 
     pub fn to2(
-        &self, dtype: &Kind, non_blocking: bool, copy: bool
+        &self, dtype: Kind, non_blocking: bool, copy: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11817,7 +11817,7 @@ impl Tensor {
     }
 
     pub fn to4(
-        &self, device: &Device, dtype: &Kind, non_blocking: bool, copy: bool
+        &self, device: Device, dtype: Kind, non_blocking: bool, copy: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {
@@ -11904,7 +11904,7 @@ impl Tensor {
     }
 
     pub fn totype(
-        &self, scalar_type: &Kind
+        &self, scalar_type: Kind
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe {

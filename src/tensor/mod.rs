@@ -170,7 +170,7 @@ impl std::fmt::Debug for Tensor {
 }
 
 impl Tensor {
-    pub fn to_kind(&self, kind: &Kind) -> Tensor {
+    pub fn to_kind(&self, kind: Kind) -> Tensor {
         self.totype(kind)
     }
 
@@ -186,7 +186,7 @@ macro_rules! from_tensor {
             fn from(tensor: &Tensor) -> Vec<$typ> {
                 let numel = tensor.numel();
                 let mut vec = vec![$zero; numel as usize];
-                tensor.to_kind(&Kind::$kind).copy_data(&mut vec, numel);
+                tensor.to_kind(Kind::$kind).copy_data(&mut vec, numel);
                 vec
             }
         }
@@ -218,12 +218,12 @@ impl Tensor {
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.argmax1(-1, false)
             .eq1(&targets)
-            .to_kind(&Kind::Float)
+            .to_kind(Kind::Float)
             .mean()
     }
 
-    pub fn to_tensor(&self, device: &Device) -> Tensor {
-        self.to_(&device)
+    pub fn to_tensor(&self, device: Device) -> Tensor {
+        self.to_(device)
     }
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
@@ -249,10 +249,10 @@ impl Tensor {
     }
 
     pub fn to_device(&self, device: Device) -> Tensor {
-        self.to_(&device)
+        self.to_(device)
     }
 
-    pub fn max_pool2d_default(&self, ksize:i64) -> Tensor {
+    pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {
         self.max_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], &[1, 1], false)
     }
 }

@@ -192,8 +192,8 @@ module Func = struct
               | TensorList -> "&[&Tensor]"
               | TensorOptions -> "&(Kind, Device)"
               | Scalar -> "&Scalar"
-              | ScalarType -> "&Kind"
-              | Device -> "&Device"
+              | ScalarType -> "Kind"
+              | Device -> "Device"
             in
             Some
               (Printf.sprintf "%s: %s" (rust_name arg.arg_name) rust_arg_type)

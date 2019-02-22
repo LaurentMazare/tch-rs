@@ -37,7 +37,7 @@ fn main() {
         let test_accuracy = test_logits
             .argmax1(-1, false)
             .eq1(&m.test_labels)
-            .to_kind(&Kind::Float)
+            .to_kind(Kind::Float)
             .mean()
             .double_value(&[]);
         println!(
