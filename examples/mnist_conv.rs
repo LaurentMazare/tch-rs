@@ -48,7 +48,7 @@ impl nn::ModuleT for Net {
 }
 
 fn main() {
-    let m = torchr::vision::Mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let m = torchr::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&mut vs);
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());

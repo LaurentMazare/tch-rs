@@ -1,3 +1,6 @@
-mod mnist;
+mod dataset;
+pub use dataset::Dataset;
 
-pub use mnist::Mnist;
+pub mod mnist;
+
+pub mod cifar;

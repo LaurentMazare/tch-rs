@@ -10,6 +10,7 @@ pub(crate) struct C_tensor {
 extern "C" {
     fn at_new_tensor() -> *mut C_tensor;
     fn at_shallow_clone(arg: *mut C_tensor) -> *mut C_tensor;
+    fn at_copy_(dst: *mut C_tensor, src: *mut C_tensor);
     fn at_int_vec(v: *const i64, v_len: c_int, type_: c_int) -> *mut C_tensor;
     fn at_float_vec(v: *const f64, v_len: c_int, type_: c_int) -> *mut C_tensor;
     fn at_defined(arg: *mut C_tensor) -> c_int;
@@ -151,6 +152,11 @@ impl Tensor {
         let c_tensor = unsafe { at_shallow_clone(self.c_tensor) };
         read_and_clean_error();
         Tensor { c_tensor }
+    }
+
+    pub fn copy_(&self, src: &Tensor) {
+        unsafe { at_copy_(self.c_tensor, src.c_tensor) };
+        read_and_clean_error()
     }
 }
 

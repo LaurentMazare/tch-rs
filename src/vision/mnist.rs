@@ -1,4 +1,5 @@
 use crate::{Kind, Tensor};
+use super::dataset::Dataset;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Result};
 
@@ -46,24 +47,16 @@ fn read_images(filename: &std::path::Path) -> Result<Tensor> {
     Ok(tensor / 255.)
 }
 
-pub struct Mnist {
-    pub train_images: Tensor,
-    pub train_labels: Tensor,
-    pub test_images: Tensor,
-    pub test_labels: Tensor,
-}
-
-impl Mnist {
-    pub fn load_dir(dir: &std::path::Path) -> Result<Mnist> {
-        let train_images = read_images(&dir.join("train-images-idx3-ubyte"))?;
-        let train_labels = read_labels(&dir.join("train-labels-idx1-ubyte"))?;
-        let test_images = read_images(&dir.join("t10k-images-idx3-ubyte"))?;
-        let test_labels = read_labels(&dir.join("t10k-labels-idx1-ubyte"))?;
-        Ok(Mnist {
-            train_images,
-            train_labels,
-            test_images,
-            test_labels,
-        })
-    }
+pub fn load_dir(dir: &std::path::Path) -> Result<Dataset> {
+    let train_images = read_images(&dir.join("train-images-idx3-ubyte"))?;
+    let train_labels = read_labels(&dir.join("train-labels-idx1-ubyte"))?;
+    let test_images = read_images(&dir.join("t10k-images-idx3-ubyte"))?;
+    let test_labels = read_labels(&dir.join("t10k-labels-idx1-ubyte"))?;
+    Ok(Dataset {
+        train_images,
+        train_labels,
+        test_images,
+        test_labels,
+        labels: 10,
+    })
 }
