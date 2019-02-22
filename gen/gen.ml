@@ -171,38 +171,46 @@ module Func = struct
 
   let self_name = "self"
 
+  let input_name = "input"
+
   let self_tensor arg =
     match arg.arg_type with
     | Tensor -> String.( = ) arg.arg_name self_name
     | _ -> false
 
+  let input_tensor arg =
+    match arg.arg_type with
+    | Tensor -> String.( = ) arg.arg_name input_name
+    | _ -> false
+
   let rust_args_list t =
-    let args_list =
-      List.filter_map t.args ~f:(fun arg ->
-          if self_tensor arg then None
-          else
-            let rust_arg_type =
-              match arg.arg_type with
-              | Bool -> "bool"
-              | Int64 -> "i64"
-              | Double -> "f64"
-              | Tensor -> "&Tensor"
-              | TensorOption -> "Option<&Tensor>"
-              | IntList -> "&[i64]"
-              | TensorList -> "&[&Tensor]"
-              | TensorOptions -> "&(Kind, Device)"
-              | Scalar -> "&Scalar"
-              | ScalarType -> "Kind"
-              | Device -> "Device"
-            in
-            Some
-              (Printf.sprintf "%s: %s" (rust_name arg.arg_name) rust_arg_type)
-      )
+    let to_string args =
+      List.map args ~f:(fun arg ->
+          let rust_arg_type =
+            match arg.arg_type with
+            | Bool -> "bool"
+            | Int64 -> "i64"
+            | Double -> "f64"
+            | Tensor -> "&Tensor"
+            | TensorOption -> "Option<&Tensor>"
+            | IntList -> "&[i64]"
+            | TensorList -> "&[&Tensor]"
+            | TensorOptions -> "&(Kind, Device)"
+            | Scalar -> "&Scalar"
+            | ScalarType -> "Kind"
+            | Device -> "Device"
+          in
+          Printf.sprintf "%s: %s" (rust_name arg.arg_name) rust_arg_type )
       |> String.concat ~sep:", "
     in
-    if List.exists t.args ~f:self_tensor then
-      Printf.sprintf "&self, %s" args_list
-    else args_list
+    match List.partition_tf t.args ~f:self_tensor with
+    | [self], args_list ->
+        (Some self.arg_name, Printf.sprintf "&self, %s" (to_string args_list))
+    | _, _ -> (
+      match List.partition_tf t.args ~f:input_tensor with
+      | [self], args_list ->
+          (Some self.arg_name, Printf.sprintf "&self, %s" (to_string args_list))
+      | _, _ -> (None, to_string t.args) )
 
   let rust_return_type t =
     match t.returns with
@@ -212,9 +220,14 @@ module Func = struct
         List.init v ~f:(fun _ -> "Tensor")
         |> String.concat ~sep:", " |> Printf.sprintf " -> (%s)"
 
-  let rust_binding_args t =
+  let rust_binding_args t ~self =
     List.map t.args ~f:(fun arg ->
-        let name = rust_name arg.arg_name in
+        let name =
+          if
+            Option.value_map self ~default:false ~f:(String.( = ) arg.arg_name)
+          then "self"
+          else rust_name arg.arg_name
+        in
         match arg.arg_type with
         | Tensor -> Printf.sprintf "%s.c_tensor" name
         | Scalar -> Printf.sprintf "%s.c_scalar" name
@@ -402,13 +415,14 @@ let write_wrapper funcs filename =
           in
           pm "" ;
           pm "    pub fn %s(" rust_name ;
-          pm "        %s" (Func.rust_args_list func) ;
+          let self, rust_args_list = Func.rust_args_list func in
+          pm "        %s" rust_args_list ;
           pm "    )%s {" (Func.rust_return_type func) ;
           pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
             func.returns ;
           pm "        unsafe {" ;
           pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name ;
-          pm "                %s" (Func.rust_binding_args func) ;
+          pm "                %s" (Func.rust_binding_args func ~self) ;
           pm "            ) };" ;
           pm "        read_and_clean_error();" ;
           pm "        %s" returns ;
