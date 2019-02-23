@@ -1,5 +1,5 @@
 # torch-rust
-Some very experimental rust bindings for PyTorch.
+Experimental rust bindings for PyTorch.
 The code generation part for the C api on top of libtorch comes from
 [ocaml-torch](https://github.com/LaurentMazare/ocaml-torch).
 
@@ -15,40 +15,57 @@ LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example bas
 
 ## Examples
 
-The following code trains a linear classifier on MNIST as a proof of concept.
+The following code defines a simple model with one hidden layer.
 
 ```rust
-    let m = vision::Mnist::load_dir(std::path::Path::new("data")).unwrap();
-    let mut ws = Tensor::zeros(&[IMAGE_DIM, LABELS], Kind::Float).set_requires_grad(true);
-    let mut bs = Tensor::zeros(&[LABELS], Kind::Float).set_requires_grad(true);
+struct Net {
+    fc1: nn::Linear,
+    fc2: nn::Linear,
+}
+
+impl Net {
+    fn new(vs: &mut nn::VarStore) -> Net {
+        let fc1 = nn::Linear::new(vs, IMAGE_DIM, HIDDEN_NODES);
+        let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS);
+        Net { fc1, fc2 }
+    }
+}
+
+impl nn::Module for Net {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.apply(&self.fc1).relu().apply(&self.fc2)
+    }
+}
+```
+
+This model can then be trained on the MNIST dataset with the following code.
+
+```ocaml
+fn main() {
+    let m = torchr::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let mut vs = nn::VarStore::new(Device::Cpu);
+    let net = Net::new(&mut vs);
+    let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
     for epoch in 1..200 {
-        let logits = m.train_images.mm(&ws) + &bs;
-        let loss = logits.log_softmax(-1).nll_loss(&m.train_labels);
-        ws.zero_grad();
-        bs.zero_grad();
-        loss.backward();
-        no_grad(|| {
-            ws += ws.grad() * (-1);
-            bs += bs.grad() * (-1);
-        });
-        let test_logits = m.test_images.mm(&ws) + &bs;
-        let test_accuracy = test_logits
-            .argmax(-1)
-            .eq(&m.test_labels)
-            .to_kind(Kind::Float)
-            .mean()
-            .double_value(&[]);
+        let loss = net
+            .forward(&m.train_images)
+            .cross_entropy_for_logits(&m.train_labels);
+        opt.backward_step(&loss);
+        let test_accuracy = net
+            .forward(&m.test_images)
+            .accuracy_for_logits(&m.test_labels);
         println!(
             "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
             epoch,
-            loss.double_value(&[]),
-            100. * test_accuracy
+            f64::from(&loss),
+            100. * f64::from(&test_accuracy),
         );
     }
+}
 ```
-
-This can be run with this command.
+More examples can be found in the `examples` directory. They can be run
+using the following command:
 
 ```bash
-LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example mnist
+LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example mnist_nn
 ```
