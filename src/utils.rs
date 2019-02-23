@@ -1,6 +1,22 @@
+use std::convert::From;
+
 #[derive(Debug)]
 pub struct TorchError {
     c_error: String,
+}
+
+impl TorchError {
+    pub fn new(c_error: String) -> TorchError {
+        TorchError { c_error }
+    }
+}
+
+impl From<std::ffi::NulError> for TorchError {
+    fn from(_err: std::ffi::NulError) -> Self {
+        TorchError {
+            c_error: "ffi nul error".to_string(),
+        }
+    }
 }
 
 extern "C" {
@@ -26,6 +42,14 @@ macro_rules! unsafe_torch {
     ($e:expr) => {{
         let v = unsafe { $e };
         read_and_clean_error().unwrap();
+        v
+    }};
+}
+
+macro_rules! unsafe_torch_err {
+    ($e:expr) => {{
+        let v = unsafe { $e };
+        read_and_clean_error()?;
         v
     }};
 }

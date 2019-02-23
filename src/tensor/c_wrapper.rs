@@ -1,6 +1,6 @@
 use crate::kind::Kind;
-use crate::utils::read_and_clean_error;
-use libc::{c_int, c_void};
+use crate::utils::{read_and_clean_error, TorchError};
+use libc::{c_char, c_int, c_void};
 
 #[repr(C)]
 pub(crate) struct C_tensor {
@@ -32,10 +32,19 @@ extern "C" {
         kind: c_int,
     ) -> *mut C_tensor;
     fn at_grad_set_enabled(b: c_int) -> c_int;
+    fn at_save(arg: *mut C_tensor, filename: *const c_char);
+    fn at_load(filename: *const c_char) -> *mut C_tensor;
 }
 
 pub struct Tensor {
     pub(crate) c_tensor: *mut C_tensor,
+}
+
+fn path_to_str(path: &std::path::Path) -> Result<&str, TorchError> {
+    match path.to_str() {
+        Some(path) => Ok(path),
+        None => Err(TorchError::new(format!("path {:?} is none", path))),
+    }
 }
 
 impl Tensor {
@@ -139,16 +148,28 @@ impl Tensor {
     pub fn copy_(&self, src: &Tensor) {
         unsafe_torch!({ at_copy_(self.c_tensor, src.c_tensor) })
     }
+
+    pub fn load(path: &std::path::Path) -> Result<Tensor, TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
+        Ok(Tensor { c_tensor })
+    }
+
+    pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
+        Ok(())
+    }
 }
 
 impl Drop for Tensor {
     fn drop(&mut self) {
-        unsafe { at_free(self.c_tensor) }
+        unsafe_torch!({ at_free(self.c_tensor) })
     }
 }
 
 fn grad_set_enabled(b: bool) -> bool {
-    unsafe { at_grad_set_enabled(if b { 1 } else { 0 }) != 0 }
+    unsafe_torch!({ at_grad_set_enabled(if b { 1 } else { 0 }) != 0 })
 }
 pub fn no_grad<F>(f: F)
 where
