@@ -43,3 +43,13 @@ fn cat_and_stack() {
     assert_eq!(t.size(), [2, 3]);
     assert_eq!(Vec::<f64>::from(&t), [13.0, 13.0, 13.0, 37.0, 37.0, 37.0]);
 }
+
+#[test]
+fn save_and_load() {
+    let filename = std::env::temp_dir().join(format!("tch-{}", std::process::id()));
+    let vec = [3.0, 1.0, 4.0, 1.0, 5.0].to_vec();
+    let t1 = Tensor::float_vec(&vec);
+    t1.save(&filename).unwrap();
+    let t2 = Tensor::load(&filename).unwrap();
+    assert_eq!(Vec::<f64>::from(&t2), vec)
+}
