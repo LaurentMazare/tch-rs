@@ -40,8 +40,7 @@ pub struct COptimizer {
 
 impl COptimizer {
     pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> COptimizer {
-        let c_optimizer = unsafe { ato_adam(lr, beta1, beta2, wd) };
-        read_and_clean_error();
+        let c_optimizer = unsafe_torch!({ ato_adam(lr, beta1, beta2, wd) });
         COptimizer { c_optimizer }
     }
 
@@ -55,42 +54,35 @@ impl COptimizer {
         centered: bool,
     ) -> COptimizer {
         let centered = if centered { 1 } else { 0 };
-        let c_optimizer = unsafe { ato_rms_prop(lr, alpha, eps, wd, momentum, centered) };
-        read_and_clean_error();
+        let c_optimizer = unsafe_torch!({ ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
         COptimizer { c_optimizer }
     }
 
     pub fn sgd(lr: f64, momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> COptimizer {
         let nesterov = if nesterov { 1 } else { 0 };
-        let c_optimizer = unsafe { ato_sgd(lr, momentum, dampening, wd, nesterov) };
-        read_and_clean_error();
+        let c_optimizer = unsafe_torch!({ ato_sgd(lr, momentum, dampening, wd, nesterov) });
         COptimizer { c_optimizer }
     }
 
     pub fn add_parameters(&mut self, ts: &[Tensor]) {
         let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
-        unsafe { ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int) };
-        read_and_clean_error()
+        unsafe_torch!({ ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int) })
     }
 
     pub fn set_learning_rate(&mut self, lr: f64) {
-        unsafe { ato_set_learning_rate(self.c_optimizer, lr) };
-        read_and_clean_error()
+        unsafe_torch!({ ato_set_learning_rate(self.c_optimizer, lr) })
     }
 
     pub fn set_momentum(&mut self, m: f64) {
-        unsafe { ato_set_momentum(self.c_optimizer, m) };
-        read_and_clean_error()
+        unsafe_torch!({ ato_set_momentum(self.c_optimizer, m) })
     }
 
     pub fn zero_grad(&self) {
-        unsafe { ato_zero_grad(self.c_optimizer) };
-        read_and_clean_error()
+        unsafe_torch!({ ato_zero_grad(self.c_optimizer) })
     }
 
     pub fn step(&self) {
-        unsafe { ato_step(self.c_optimizer) };
-        read_and_clean_error()
+        unsafe_torch!({ ato_step(self.c_optimizer) })
     }
 }
 

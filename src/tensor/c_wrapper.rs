@@ -40,66 +40,52 @@ pub struct Tensor {
 
 impl Tensor {
     pub fn new() -> Tensor {
-        let c_tensor = unsafe { at_new_tensor() };
-        read_and_clean_error();
+        let c_tensor = unsafe_torch!({ at_new_tensor() });
         Tensor { c_tensor }
     }
 
     pub fn int_vec(v: &[i64]) -> Tensor {
-        let c_tensor = unsafe { at_int_vec(v.as_ptr(), v.len() as i32, Kind::Int64.c_int()) };
-        read_and_clean_error();
+        let c_tensor =
+            unsafe_torch!({ at_int_vec(v.as_ptr(), v.len() as i32, Kind::Int64.c_int()) });
         Tensor { c_tensor }
     }
 
     pub fn float_vec(v: &[f64]) -> Tensor {
-        let c_tensor = unsafe { at_float_vec(v.as_ptr(), v.len() as i32, Kind::Float.c_int()) };
-        read_and_clean_error();
+        let c_tensor =
+            unsafe_torch!({ at_float_vec(v.as_ptr(), v.len() as i32, Kind::Float.c_int()) });
         Tensor { c_tensor }
     }
 
     pub fn size(&self) -> Vec<i32> {
-        let dim = unsafe { at_dim(self.c_tensor) as usize };
-        read_and_clean_error();
+        let dim = unsafe_torch!({ at_dim(self.c_tensor) as usize });
         let mut sz = vec![0i32; dim];
-        unsafe { at_shape(self.c_tensor, sz.as_mut_ptr()) };
-        read_and_clean_error();
+        unsafe_torch!({ at_shape(self.c_tensor, sz.as_mut_ptr()) });
         sz
     }
 
     pub fn kind(&self) -> Kind {
-        let kind = unsafe { at_scalar_type(self.c_tensor) };
-        read_and_clean_error();
+        let kind = unsafe_torch!({ at_scalar_type(self.c_tensor) });
         Kind::of_c_int(kind)
     }
 
     pub fn print(&self) {
-        unsafe { at_print(self.c_tensor) };
-        read_and_clean_error()
+        unsafe_torch!({ at_print(self.c_tensor) })
     }
 
     pub fn double_value(&self, idx: &[i32]) -> f64 {
-        let v =
-            unsafe { at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) };
-        read_and_clean_error();
-        v
+        unsafe_torch!({ at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) })
     }
 
     pub fn int64_value(&self, idx: &[i32]) -> i64 {
-        let v = unsafe { at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) };
-        read_and_clean_error();
-        v
+        unsafe_torch!({ at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) })
     }
 
     pub fn requires_grad(&self) -> bool {
-        let r = unsafe { at_requires_grad(self.c_tensor) };
-        read_and_clean_error();
-        r != 0
+        unsafe_torch!({ at_requires_grad(self.c_tensor) }) != 0
     }
 
     pub fn defined(&self) -> bool {
-        let defined = unsafe { at_defined(self.c_tensor) != 0 };
-        read_and_clean_error();
-        defined
+        unsafe_torch!({ at_defined(self.c_tensor) != 0 })
     }
 
     pub fn zero_grad(&mut self) {
@@ -110,21 +96,19 @@ impl Tensor {
     }
 
     pub fn backward(&self) {
-        unsafe { at_backward(self.c_tensor, 0, 0) };
-        read_and_clean_error()
+        unsafe_torch!({ at_backward(self.c_tensor, 0, 0) })
     }
 
     pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
         let kind = self.kind();
-        unsafe {
+        unsafe_torch!({
             at_copy_data(
                 self.c_tensor,
                 dst.as_mut_ptr() as *const c_void,
                 numel,
                 kind.elt_size_in_bytes(),
             )
-        };
-        read_and_clean_error()
+        })
     }
 
     pub fn numel(&self) -> i64 {
@@ -135,7 +119,7 @@ impl Tensor {
     pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
-        let c_tensor = unsafe {
+        let c_tensor = unsafe_torch!({
             at_tensor_of_data(
                 data,
                 [data_len as i64].as_ptr(),
@@ -143,20 +127,17 @@ impl Tensor {
                 kind.elt_size_in_bytes(),
                 kind.c_int(),
             )
-        };
-        read_and_clean_error();
+        });
         Tensor { c_tensor }
     }
 
     pub fn shallow_clone(&self) -> Tensor {
-        let c_tensor = unsafe { at_shallow_clone(self.c_tensor) };
-        read_and_clean_error();
+        let c_tensor = unsafe_torch!({ at_shallow_clone(self.c_tensor) });
         Tensor { c_tensor }
     }
 
     pub fn copy_(&self, src: &Tensor) {
-        unsafe { at_copy_(self.c_tensor, src.c_tensor) };
-        read_and_clean_error()
+        unsafe_torch!({ at_copy_(self.c_tensor, src.c_tensor) })
     }
 }
 

@@ -420,11 +420,10 @@ let write_wrapper funcs filename =
           pm "    )%s {" (Func.rust_return_type func) ;
           pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
             func.returns ;
-          pm "        unsafe {" ;
+          pm "        unsafe_torch!({" ;
           pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name ;
           pm "                %s" (Func.rust_binding_args func ~self) ;
-          pm "            ) };" ;
-          pm "        read_and_clean_error();" ;
+          pm "            ) });" ;
           pm "        %s" returns ;
           pm "    }" ) ;
       pm "}" )

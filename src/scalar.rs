@@ -17,25 +17,19 @@ pub struct Scalar {
 
 impl Scalar {
     pub fn int(v: i64) -> Scalar {
-        unsafe {
-            let c_scalar = ats_int(v);
-            read_and_clean_error();
-            Scalar { c_scalar }
-        }
+        let c_scalar = unsafe_torch!({ ats_int(v) });
+        Scalar { c_scalar }
     }
 
     pub fn float(v: f64) -> Scalar {
-        unsafe {
-            let c_scalar = ats_float(v);
-            read_and_clean_error();
-            Scalar { c_scalar }
-        }
+        let c_scalar = unsafe_torch!({ ats_float(v) });
+        Scalar { c_scalar }
     }
 }
 
 impl Drop for Scalar {
     fn drop(&mut self) {
-        unsafe { ats_free(self.c_scalar) }
+        unsafe_torch!({ ats_free(self.c_scalar) })
     }
 }
 
