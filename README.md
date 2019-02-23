@@ -1,4 +1,4 @@
-# torch-rust
+# tch-rs
 Experimental rust bindings for PyTorch.
 The code generation part for the C api on top of libtorch comes from
 [ocaml-torch](https://github.com/LaurentMazare/ocaml-torch).
@@ -42,7 +42,7 @@ This model can then be trained on the MNIST dataset with the following code.
 
 ```ocaml
 fn main() {
-    let m = torchr::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = nn::VarStore::new(Device::Cpu);
     let net = Net::new(&mut vs);
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());

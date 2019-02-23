@@ -1,5 +1,5 @@
 [package]
-name = "torchr"
+name = "tch"
 version = "0.1.0"
 authors = ["laurent <lmazare@gmail.com>"]
 edition = "2018"

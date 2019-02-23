@@ -3,8 +3,8 @@
    This should rearch XX.X% accuracy.
 */
 
-extern crate torchr;
-use torchr::{nn, nn::ModuleT, Device, Tensor};
+extern crate tch;
+use tch::{nn, nn::ModuleT, Device, Tensor};
 
 struct Net {
     conv1: nn::Conv2D,
@@ -48,7 +48,7 @@ impl nn::ModuleT for Net {
 }
 
 fn main() {
-    let m = torchr::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&mut vs);
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());

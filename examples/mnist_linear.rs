@@ -9,8 +9,8 @@
    This should rearch 91.5% accuracy.
 */
 
-extern crate torchr;
-use torchr::{kind, no_grad, vision, Kind, Tensor};
+extern crate tch;
+use tch::{kind, no_grad, vision, Kind, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 10;

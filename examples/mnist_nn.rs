@@ -9,8 +9,8 @@
    This should rearch XX.X% accuracy.
 */
 
-extern crate torchr;
-use torchr::{nn, nn::Module, Device, Tensor};
+extern crate tch;
+use tch::{nn, nn::Module, Device, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static HIDDEN_NODES: i64 = 128;
@@ -36,7 +36,7 @@ impl nn::Module for Net {
 }
 
 fn main() {
-    let m = torchr::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = nn::VarStore::new(Device::Cpu);
     let net = Net::new(&mut vs);
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
