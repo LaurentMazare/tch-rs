@@ -383,7 +383,6 @@ let write_wrapper funcs filename =
       pm "use crate::device::Device;" ;
       pm "use crate::kind::Kind;" ;
       pm "use crate::scalar::{C_scalar, Scalar};" ;
-      pm "use crate::utils::read_and_clean_error;" ;
       pm "use libc::c_int;" ;
       pm "use super::c_wrapper::{C_tensor, Tensor};" ;
       pm "" ;

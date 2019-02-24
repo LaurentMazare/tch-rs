@@ -1,5 +1,3 @@
-use crate::utils::read_and_clean_error;
-
 #[repr(C)]
 pub struct C_scalar {
     _private: [u8; 0],

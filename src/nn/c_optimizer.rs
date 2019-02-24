@@ -1,6 +1,5 @@
 // TODO: add gradient clipping
 use crate::tensor::C_tensor;
-use crate::utils::read_and_clean_error;
 use crate::Tensor;
 use libc::c_int;
 

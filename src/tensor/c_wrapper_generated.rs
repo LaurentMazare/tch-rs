@@ -3,7 +3,6 @@
 use crate::device::Device;
 use crate::kind::Kind;
 use crate::scalar::{C_scalar, Scalar};
-use crate::utils::read_and_clean_error;
 use libc::c_int;
 use super::c_wrapper::{C_tensor, Tensor};
 

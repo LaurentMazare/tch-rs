@@ -23,7 +23,7 @@ extern "C" {
     fn get_and_reset_last_err() -> *mut libc::c_char;
 }
 
-pub fn read_and_clean_error() -> Result<(), TorchError> {
+pub(crate) fn read_and_clean_error() -> Result<(), TorchError> {
     unsafe {
         let torch_last_err = get_and_reset_last_err();
         if !torch_last_err.is_null() {
@@ -41,7 +41,7 @@ pub fn read_and_clean_error() -> Result<(), TorchError> {
 macro_rules! unsafe_torch {
     ($e:expr) => {{
         let v = unsafe { $e };
-        read_and_clean_error().unwrap();
+        crate::utils::read_and_clean_error().unwrap();
         v
     }};
 }
@@ -49,7 +49,7 @@ macro_rules! unsafe_torch {
 macro_rules! unsafe_torch_err {
     ($e:expr) => {{
         let v = unsafe { $e };
-        read_and_clean_error()?;
+        crate::utils::read_and_clean_error()?;
         v
     }};
 }

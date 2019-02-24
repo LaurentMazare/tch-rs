@@ -1,4 +1,3 @@
-use crate::utils::read_and_clean_error;
 use libc::c_int;
 extern "C" {
     fn atc_get_num_threads() -> c_int;
