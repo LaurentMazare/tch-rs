@@ -1,3 +1,5 @@
+// This is more a device type than a device.
+// If needed we should add the device index.
 #[derive(Debug, Copy, Clone)]
 pub enum Device {
     Cpu,
@@ -39,6 +41,14 @@ impl Device {
         match self {
             Device::Cpu => 0,
             Device::Cuda => 1,
+        }
+    }
+
+    pub(crate) fn of_c_int(v: libc::c_int) -> Self {
+        match v {
+            0 => Device::Cpu,
+            1 => Device::Cuda,
+            _ => panic!("unexpected device {}", v),
         }
     }
 

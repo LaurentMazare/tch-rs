@@ -99,6 +99,12 @@ int at_scalar_type(tensor t) {
   )
 }
 
+int at_device(tensor t) {
+  PROTECT(
+    return static_cast<int>(t->device().type());
+  )
+}
+
 void at_backward(tensor t, int keep_graph, int create_graph) {
   PROTECT(t->backward(c10::nullopt, keep_graph, create_graph);)
 }

@@ -1,5 +1,5 @@
-use crate::kind::Kind;
 use crate::utils::TorchError;
+use crate::{Device, Kind};
 use libc::{c_char, c_int, c_void};
 
 #[repr(C)]
@@ -28,6 +28,7 @@ extern "C" {
     fn at_free(arg: *mut C_tensor);
     fn at_copy_data(arg: *mut C_tensor, vs: *const c_void, numel: i64, elt_size_in_bytes: c_int);
     fn at_scalar_type(arg: *mut C_tensor) -> c_int;
+    fn at_device(arg: *mut C_tensor) -> c_int;
     fn at_tensor_of_data(
         vs: *const c_void,
         dims: *const i64,
@@ -86,6 +87,11 @@ impl Tensor {
     pub fn kind(&self) -> Kind {
         let kind = unsafe_torch!({ at_scalar_type(self.c_tensor) });
         Kind::of_c_int(kind)
+    }
+
+    pub fn device(&self) -> Device {
+        let device = unsafe_torch!({ at_device(self.c_tensor) });
+        Device::of_c_int(device)
     }
 
     pub fn print(&self) {

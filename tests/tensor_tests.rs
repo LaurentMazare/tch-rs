@@ -1,4 +1,4 @@
-use tch::Tensor;
+use tch::{IValue, Tensor};
 
 #[test]
 fn assign_ops() {
@@ -61,9 +61,15 @@ fn save_and_load_multi() {
     let e = Tensor::int_vec(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]);
     Tensor::save_multi(&[(&"pi", &pi), (&"e", &e)], &filename).unwrap();
     let named_tensors = Tensor::load_multi(&filename).unwrap();
-    println!("{:?}", named_tensors);
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
     assert_eq!(i64::from(&named_tensors[1].1.sum()), 57);
+}
+
+#[test]
+fn ivalue() {
+    let ivalue = IValue::Tuple(vec![IValue::Int(42), IValue::Double(3.1415)]);
+    let ivalue2 = IValue::of_c(ivalue.to_c()).unwrap();
+    assert_eq!(format!("{:?}", ivalue), format!("{:?}", ivalue2));
 }
