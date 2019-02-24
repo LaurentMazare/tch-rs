@@ -46,8 +46,15 @@ void at_copy_data(tensor tensor, void *vs, int64_t numel, int elt_size_in_bytes)
       throw std::invalid_argument("incoherent element sizes in bytes");
     if (numel > tensor->numel())
       throw std::invalid_argument("target numel is larger than tensor numel");
-    void *tensor_data = tensor->contiguous().data_ptr();
-    memcpy(vs, tensor_data, numel * elt_size_in_bytes);
+    if (tensor->device().type() != at::kCPU) {
+      torch::Tensor tmp_tensor = tensor->to(at::kCPU);
+      void *tensor_data = tmp_tensor.contiguous().data_ptr();
+      memcpy(vs, tensor_data, numel * elt_size_in_bytes);
+    }
+    else {
+      void *tensor_data = tensor->contiguous().data_ptr();
+      memcpy(vs, tensor_data, numel * elt_size_in_bytes);
+    }
   )
 }
 
