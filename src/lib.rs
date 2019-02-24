@@ -10,8 +10,8 @@ pub use device::{Cpu, Cuda, Device};
 pub mod kind;
 pub use kind::Kind;
 
-mod ivalue;
-pub use ivalue::IValue;
+mod jit;
+pub use jit::{CModule, IValue};
 
 mod scalar;
 pub use scalar::Scalar;

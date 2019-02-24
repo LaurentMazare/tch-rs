@@ -53,3 +53,10 @@ macro_rules! unsafe_torch_err {
         v
     }};
 }
+
+pub(crate) fn path_to_str(path: &std::path::Path) -> Result<&str, TorchError> {
+    match path.to_str() {
+        Some(path) => Ok(path),
+        None => Err(TorchError::new(format!("path {:?} is none", path))),
+    }
+}

@@ -1,4 +1,4 @@
-use crate::utils::TorchError;
+use crate::utils::{path_to_str, TorchError};
 use crate::{Device, Kind};
 use libc::{c_char, c_int, c_void};
 
@@ -50,13 +50,6 @@ extern "C" {
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
     );
-}
-
-fn path_to_str(path: &std::path::Path) -> Result<&str, TorchError> {
-    match path.to_str() {
-        Some(path) => Ok(path),
-        None => Err(TorchError::new(format!("path {:?} is none", path))),
-    }
 }
 
 impl Tensor {
