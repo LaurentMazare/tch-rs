@@ -19,16 +19,16 @@ pub trait ModuleT {
         let xs_size = xs.size()[0] as i64;
         let mut sum_accuracy = 0f64;
         let mut sample_count = 0f64;
-        for index in 0..(xs_size / batch_size) {
+        for index in 0..((xs_size + batch_size - 1) / batch_size) {
             let start = index * batch_size;
-            let xs = xs.narrow(0, start, batch_size);
-            let ys = ys.narrow(0, start, batch_size);
+            let size = std::cmp::min(batch_size, xs_size - start);
+            let xs = xs.narrow(0, start, size);
+            let ys = ys.narrow(0, start, size);
             let acc = self
                 .forward_t(&xs.to_device(d), false)
                 .accuracy_for_logits(&ys.to_device(d));
-            let cnt = xs.size()[0] as f64;
-            sum_accuracy += f64::from(&acc) * cnt;
-            sample_count += cnt;
+            sum_accuracy += f64::from(&acc) * size as f64;
+            sample_count += size as f64;
         }
         sum_accuracy / sample_count
     }
