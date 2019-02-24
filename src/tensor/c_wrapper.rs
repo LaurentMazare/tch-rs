@@ -7,6 +7,10 @@ pub(crate) struct C_tensor {
     _private: [u8; 0],
 }
 
+pub struct Tensor {
+    pub(crate) c_tensor: *mut C_tensor,
+}
+
 extern "C" {
     fn at_new_tensor() -> *mut C_tensor;
     fn at_shallow_clone(arg: *mut C_tensor) -> *mut C_tensor;
@@ -34,10 +38,10 @@ extern "C" {
     fn at_grad_set_enabled(b: c_int) -> c_int;
     fn at_save(arg: *mut C_tensor, filename: *const c_char);
     fn at_load(filename: *const c_char) -> *mut C_tensor;
-}
-
-pub struct Tensor {
-    pub(crate) c_tensor: *mut C_tensor,
+    fn at_save_multi(args: *const *mut C_tensor, names: *const *const c_char, n: c_int, filename: *const c_char);
+    fn at_load_callback(filename: *const c_char,
+        data: *mut c_void,
+        f: extern fn(*mut c_void, name: *const c_char, t: *mut C_tensor));
 }
 
 fn path_to_str(path: &std::path::Path) -> Result<&str, TorchError> {
@@ -159,6 +163,31 @@ impl Tensor {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
         Ok(())
+    }
+
+    pub fn save_multi(named_tensors: &[(&str, &Tensor)], path: &std::path::Path) -> Result<(), TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let c_tensors = named_tensors.iter().map(|nt| nt.1.c_tensor).collect::<Vec<_>>();
+        let names = named_tensors.iter().map(|nt| std::ffi::CString::new(nt.0)).collect::<Result<Vec<_>, _>>()?;
+        let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
+        unsafe_torch_err!({ at_save_multi(c_tensors.as_ptr(), name_ptrs.as_ptr(), names.len() as i32, path.as_ptr()) });
+        Ok(())
+    }
+}
+
+extern "C"
+fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mut C_tensor) {
+    let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
+    let v: &mut Vec<(String, Tensor)> = unsafe { &mut *(data as *mut Vec<(String, Tensor)>) };
+    v.push((name.to_owned(), Tensor { c_tensor }))
+}
+
+impl Tensor {
+    pub fn load_multi(path: &std::path::Path) -> Result<Vec<(String, Tensor)>, TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!({ at_load_callback(path.as_ptr(), &mut v as *mut _ as *mut c_void, add_callback) });
+        Ok(v)
     }
 }
 

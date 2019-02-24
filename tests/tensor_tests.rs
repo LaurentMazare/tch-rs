@@ -53,3 +53,17 @@ fn save_and_load() {
     let t2 = Tensor::load(&filename).unwrap();
     assert_eq!(Vec::<f64>::from(&t2), vec)
 }
+
+#[test]
+fn save_and_load_multi() {
+    let filename = std::env::temp_dir().join(format!("tch2-{}", std::process::id()));
+    let pi = Tensor::float_vec(&[3.0, 1.0, 4.0, 1.0, 5.0]);
+    let e = Tensor::int_vec(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]);
+    Tensor::save_multi(&[(&"pi", &pi), (&"e", &e)], &filename).unwrap();
+    let named_tensors = Tensor::load_multi(&filename).unwrap();
+    println!("{:?}", named_tensors);
+    assert_eq!(named_tensors.len(), 2);
+    assert_eq!(named_tensors[0].0, "pi");
+    assert_eq!(named_tensors[1].0, "e");
+    assert_eq!(i64::from(&named_tensors[1].1.sum()), 57);
+}
