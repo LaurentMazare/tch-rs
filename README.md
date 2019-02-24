@@ -8,10 +8,12 @@ The code generation part for the C api on top of libtorch comes from
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
 the content of the zip file.
-- Run the following command:
+- Add the following to your `.bashrc` or equivalent.
 ```bash
-LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example basics
+export LIBTORCH=/path/to/libtorch
+export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
+- You should now be able to run some examples, e.g. `cargo run --example basics`.
 
 ## Examples
 

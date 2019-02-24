@@ -461,5 +461,5 @@ let run ~yaml_filename ~cpp_filename ~wrapper_filename =
 
 let () =
   run ~yaml_filename:"data/Declarations.yaml"
-    ~cpp_filename:"c/torch_api_generated"
+    ~cpp_filename:"libtch/torch_api_generated"
     ~wrapper_filename:"src/tensor/c_wrapper_generated.rs"
