@@ -69,5 +69,5 @@ More examples can be found in the `examples` directory. They can be run
 using the following command:
 
 ```bash
-LD_LIBRARY_PATH=/.../libtorch/lib LIBTORCH=/.../libtorch cargo run --example mnist_nn
+cargo run --example mnist_nn
 ```
