@@ -1,4 +1,5 @@
 use crate::tensor::Tensor;
+use crate::utils::TorchError;
 use crate::{Device, Kind};
 use std::collections::HashMap;
 use std::ops::Div;
@@ -38,6 +39,30 @@ impl VarStore {
             path: vec![],
             var_store: self,
         }
+    }
+
+    pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
+        let named_tensors = self
+            .variables
+            .iter()
+            .map(|(x, y)| (&x[..], y))
+            .collect::<Vec<_>>();
+        Tensor::save_multi(named_tensors.as_slice(), path)
+    }
+
+    pub fn load(&self, path: &std::path::Path) -> Result<(), TorchError> {
+        let named_tensors = Tensor::load_multi(path)?;
+        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        for (name, tensor) in self.variables.iter() {
+            match named_tensors.get(name) {
+                Some(src) => crate::no_grad(|| tensor.copy_(src)),
+                None => Err(TorchError::new(format!(
+                    "cannot find {} in {:?}",
+                    name, path
+                )))?,
+            }
+        }
+        Ok(())
     }
 }
 
