@@ -32,10 +32,10 @@ impl BatchNorm2D {
     ) -> BatchNorm2D {
         BatchNorm2D {
             config,
-            running_mean: vs.zeros(&[out_dim]),
-            running_var: vs.ones(&[out_dim]),
-            ws: vs.uniform(&[out_dim], 0.0, 1.0),
-            bs: vs.zeros(&[out_dim]),
+            running_mean: vs.zeros_no_train("running_mean", &[out_dim]),
+            running_var: vs.ones_no_train("running_var", &[out_dim]),
+            ws: vs.uniform("weight", &[out_dim], 0.0, 1.0),
+            bs: vs.zeros("bias", &[out_dim]),
         }
     }
 }
