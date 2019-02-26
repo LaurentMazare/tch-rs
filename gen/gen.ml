@@ -195,7 +195,7 @@ module Func = struct
             | TensorOption -> "Option<&Tensor>"
             | IntList -> "&[i64]"
             | TensorList -> "&[&Tensor]"
-            | TensorOptions -> "&(Kind, Device)"
+            | TensorOptions -> "(Kind, Device)"
             | Scalar -> "&Scalar"
             | ScalarType -> "Kind"
             | Device -> "Device"

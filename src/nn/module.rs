@@ -16,7 +16,7 @@ pub trait ModuleT {
         d: Device,
         batch_size: i64,
     ) -> f64 {
-        let xs_size = xs.size()[0] as i64;
+        let xs_size = i64::from(xs.size()[0]);
         let mut sum_accuracy = 0f64;
         let mut sample_count = 0f64;
         for index in 0..((xs_size + batch_size - 1) / batch_size) {

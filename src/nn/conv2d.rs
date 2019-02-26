@@ -47,7 +47,7 @@ impl Conv2D {
         let bs = if bias {
             vs.zeros(&[out_dim])
         } else {
-            Tensor::zeros(&[out_dim], &(crate::Kind::Float, vs.device()))
+            Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
         };
         let ws = vs.kaiming_uniform(&[out_dim, in_dim, ksize, ksize]);
         Conv2D {

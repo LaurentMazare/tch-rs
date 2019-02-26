@@ -228,7 +228,7 @@ impl Tensor {
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
         let len: i64 = self.size()[0].into();
-        let index = Tensor::randint(len, &[batch_size], &crate::kind::INT64_CPU);
+        let index = Tensor::randint(len, &[batch_size], crate::kind::INT64_CPU);
         self.index_select(0, &index)
     }
 
@@ -247,7 +247,7 @@ impl Tensor {
                 t2.size()
             )
         }
-        let index = Tensor::randint(len1, &[batch_size], &crate::kind::INT64_CPU);
+        let index = Tensor::randint(len1, &[batch_size], crate::kind::INT64_CPU);
         let batch1 = t1.index_select(0, &index).to_device(device);
         let batch2 = t2.index_select(0, &index).to_device(device);
         (batch1, batch2)
