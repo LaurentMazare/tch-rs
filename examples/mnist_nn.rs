@@ -22,7 +22,7 @@ struct Net {
 }
 
 impl Net {
-    fn new(vs: &mut nn::VarStore) -> Net {
+    fn new(vs: &mut nn::Path) -> Net {
         let fc1 = nn::Linear::new(vs, IMAGE_DIM, HIDDEN_NODES);
         let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS);
         Net { fc1, fc2 }
@@ -38,7 +38,7 @@ impl nn::Module for Net {
 fn main() {
     let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let mut vs = nn::VarStore::new(Device::Cpu);
-    let net = Net::new(&mut vs);
+    let net = Net::new(&mut vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
     for epoch in 1..200 {
         let loss = net

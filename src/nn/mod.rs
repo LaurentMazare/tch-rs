@@ -1,4 +1,5 @@
 mod var_store;
+pub use var_store::Path;
 pub use var_store::VarStore;
 
 mod module;

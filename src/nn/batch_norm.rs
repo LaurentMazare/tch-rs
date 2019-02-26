@@ -26,7 +26,7 @@ pub struct BatchNorm2D {
 
 impl BatchNorm2D {
     pub fn new(
-        vs: &mut super::var_store::VarStore,
+        vs: &mut super::var_store::Path,
         out_dim: i64,
         config: BatchNorm2DConfig,
     ) -> BatchNorm2D {
