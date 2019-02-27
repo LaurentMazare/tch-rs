@@ -15,7 +15,7 @@ fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
     buf_reader.read_exact(&mut data)?;
     let content = Tensor::of_data(&data, kind::Kind::Uint8);
     let images = Tensor::zeros(&[SAMPLES_PER_FILE, C, H, W], kind::FLOAT_CPU);
-    let labels = Tensor::zeros(&[SAMPLES_PER_FILE], kind::FLOAT_CPU);
+    let labels = Tensor::zeros(&[SAMPLES_PER_FILE], kind::INT64_CPU);
     for index in 0..SAMPLES_PER_FILE {
         let content_offset = BYTES_PER_IMAGE * index;
         labels
@@ -23,8 +23,9 @@ fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
             .copy_(&content.narrow(0, content_offset, 1));
         images.narrow(0, index, 1).copy_(
             &content
-                .narrow(0, 1 + content_offset, BYTES_PER_IMAGE)
-                .view(&[1, C, H, W]),
+                .narrow(0, 1 + content_offset, BYTES_PER_IMAGE - 1)
+                .view(&[1, C, H, W])
+                .to_kind(kind::Kind::Float),
         );
     }
     Ok((images.to_kind(kind::Kind::Float) / 255.0, labels))

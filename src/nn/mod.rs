@@ -9,10 +9,14 @@ mod linear;
 pub use linear::Linear;
 
 mod conv2d;
-pub use conv2d::Conv2D;
+pub use conv2d::{Conv2D, Conv2DConfig};
 
 mod batch_norm;
 pub use batch_norm::BatchNorm2D;
+
+mod sequential;
+pub use sequential::Sequential;
+pub use sequential::SequentialT;
 
 mod c_optimizer;
 mod optimizer;

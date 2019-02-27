@@ -1,11 +1,11 @@
 use crate::tensor::Tensor;
 
 pub struct Conv2DConfig {
-    stride: i64,
-    padding: i64,
-    dilation: i64,
-    groups: i64,
-    bias: bool,
+    pub stride: i64,
+    pub padding: i64,
+    pub dilation: i64,
+    pub groups: i64,
+    pub bias: bool,
 }
 
 impl Default for Conv2DConfig {
