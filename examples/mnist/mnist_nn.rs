@@ -1,15 +1,5 @@
-/* Hidden layer model for the MNIST dataset.
-   The 4 following dataset files can be downloaded from http://yann.lecun.com/exdb/mnist/
-   These files should be extracted in the 'data' directory.
-     train-images-idx3-ubyte.gz
-     train-labels-idx1-ubyte.gz
-     t10k-images-idx3-ubyte.gz
-     t10k-labels-idx1-ubyte.gz
+// This should rearch 97% accuracy.
 
-   This should rearch XX.X% accuracy.
-*/
-
-extern crate tch;
 use tch::{nn, nn::Module, Device, Tensor};
 
 static IMAGE_DIM: i64 = 784;
@@ -35,10 +25,10 @@ impl nn::Module for Net {
     }
 }
 
-fn main() {
+pub fn run() {
     let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let vs = nn::VarStore::new(Device::Cpu);
-    let net = Net::new(&mut vs.root());
+    let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
     for epoch in 1..200 {
         let loss = net

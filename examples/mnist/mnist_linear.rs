@@ -1,21 +1,11 @@
-/* Linear model for the MNIST dataset.
-   The 4 following dataset files can be downloaded from http://yann.lecun.com/exdb/mnist/
-   These files should be extracted in the 'data' directory.
-     train-images-idx3-ubyte.gz
-     train-labels-idx1-ubyte.gz
-     t10k-images-idx3-ubyte.gz
-     t10k-labels-idx1-ubyte.gz
+// This should rearch 91.5% accuracy.
 
-   This should rearch 91.5% accuracy.
-*/
-
-extern crate tch;
 use tch::{kind, no_grad, vision, Kind, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 10;
 
-fn main() {
+pub fn run() {
     let m = vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     println!("train-images: {:?}", m.train_images.size());
     println!("train-labels: {:?}", m.train_labels.size());

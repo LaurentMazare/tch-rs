@@ -1,9 +1,5 @@
-/* CNN model for the MNIST dataset.
+// CNN model. This should rearch 99.1% accuracy.
 
-   This should rearch 99.1% accuracy.
-*/
-
-extern crate tch;
 use tch::{nn, nn::ModuleT, Device, Tensor};
 
 struct Net {
@@ -43,7 +39,7 @@ impl nn::ModuleT for Net {
     }
 }
 
-fn main() {
+pub fn run() {
     let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());
