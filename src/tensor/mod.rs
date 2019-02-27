@@ -260,4 +260,9 @@ impl Tensor {
     pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {
         self.max_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], &[1, 1], false)
     }
+
+    pub fn flat_view(&self) -> Tensor {
+        let batch_size = self.size()[0] as i64;
+        self.view(&[batch_size, -1])
+    }
 }

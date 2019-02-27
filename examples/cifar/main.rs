@@ -7,7 +7,7 @@
 */
 
 extern crate tch;
-use tch::nn::{BatchNorm2D, Conv2D, Func, Linear, ModuleT, SequentialT};
+use tch::nn::{BatchNorm2D, Conv2D, Linear, ModuleT, SequentialT};
 use tch::{nn, Device, Tensor};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
@@ -19,7 +19,7 @@ fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
     SequentialT::new()
         .add(Conv2D::new(vs, c_in, c_out, 3, conv2d_cfg))
         .add(BatchNorm2D::new(vs, c_out, Default::default()))
-        .add(Func::new(|x| x.relu()))
+        .add_fn(|x| x.relu())
 }
 
 struct Layer {
@@ -28,13 +28,11 @@ struct Layer {
     block2: SequentialT,
 }
 
-impl Layer {
-    fn new(vs: &nn::Path, c_in: i64, c_out: i64) -> Layer {
-        Layer {
-            pre: conv_bn(&vs.sub("pre"), c_in, c_out),
-            block1: conv_bn(&vs.sub("b1"), c_out, c_out),
-            block2: conv_bn(&vs.sub("b2"), c_out, c_out),
-        }
+fn layer(vs: &nn::Path, c_in: i64, c_out: i64) -> Layer {
+    Layer {
+        pre: conv_bn(&vs.sub("pre"), c_in, c_out),
+        block1: conv_bn(&vs.sub("b1"), c_out, c_out),
+        block2: conv_bn(&vs.sub("b2"), c_out, c_out),
     }
 }
 
@@ -51,14 +49,13 @@ impl ModuleT for Layer {
 fn fast_resnet(vs: &nn::Path) -> SequentialT {
     SequentialT::new()
         .add(conv_bn(&vs.sub("pre"), 3, 64))
-        .add(Layer::new(&vs.sub("layer1"), 64, 128))
+        .add(layer(&vs.sub("layer1"), 64, 128))
         .add(conv_bn(&vs.sub("inter"), 128, 256))
-        .add(Func::new(|x| x.max_pool2d_default(2)))
-        .add(Layer::new(&vs.sub("layer2"), 256, 512))
-        .add(Func::new(|x| x.max_pool2d_default(4)))
-        .add(Func::new(|x| x.view(&[x.size()[0] as i64, 512])))
+        .add_fn(|x| x.max_pool2d_default(2))
+        .add(layer(&vs.sub("layer2"), 256, 512))
+        .add_fn(|x| x.max_pool2d_default(4).flat_view())
         .add(Linear::new(&vs.sub("linear"), 512, 10))
-        .add(Func::new(|x| x * 0.125))
+        .add_fn(|x| x * 0.125)
 }
 
 pub fn main() {

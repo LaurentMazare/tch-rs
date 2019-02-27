@@ -29,6 +29,14 @@ impl Sequential {
         self.layers.push(Box::new(layer));
         self
     }
+
+    pub fn add_fn<F>(self, f: F) -> Self
+    where
+        F: 'static,
+        F: Fn(&Tensor) -> Tensor,
+    {
+        self.add(super::func::Func::new(f))
+    }
 }
 
 pub struct SequentialT {
@@ -59,5 +67,21 @@ impl SequentialT {
     pub fn add<M: super::module::ModuleT + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
+    }
+
+    pub fn add_fn<F>(self, f: F) -> Self
+    where
+        F: 'static,
+        F: Fn(&Tensor) -> Tensor,
+    {
+        self.add(super::func::Func::new(f))
+    }
+
+    pub fn add_fn_t<F>(self, f: F) -> Self
+    where
+        F: 'static,
+        F: Fn(&Tensor, bool) -> Tensor,
+    {
+        self.add(super::func::FuncT::new(f))
     }
 }
