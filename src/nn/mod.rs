@@ -14,6 +14,9 @@ pub use conv2d::{Conv2D, Conv2DConfig};
 mod batch_norm;
 pub use batch_norm::BatchNorm2D;
 
+mod func;
+pub use func::{Func, FuncT};
+
 mod sequential;
 pub use sequential::Sequential;
 pub use sequential::SequentialT;
