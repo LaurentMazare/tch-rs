@@ -8,6 +8,7 @@ description = "PyTorch wrappers for rust"
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
 categories = ["science"]
+license = "Apache-2.0"
 
 [dependencies]
 libc = "0.2.0"
