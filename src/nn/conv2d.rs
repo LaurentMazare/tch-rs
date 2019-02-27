@@ -31,7 +31,7 @@ pub struct Conv2D {
 
 impl Conv2D {
     pub fn new(
-        vs: &mut super::var_store::Path,
+        vs: &super::var_store::Path,
         in_dim: i64,
         out_dim: i64,
         ksize: i64,

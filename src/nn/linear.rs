@@ -6,7 +6,7 @@ pub struct Linear {
 }
 
 impl Linear {
-    pub fn new(vs: &mut super::var_store::Path, in_dim: i64, out_dim: i64) -> Linear {
+    pub fn new(vs: &super::var_store::Path, in_dim: i64, out_dim: i64) -> Linear {
         let bound = 1.0 / (in_dim as f64).sqrt();
         Linear {
             ws: vs.kaiming_uniform("weight", &[out_dim, in_dim]),

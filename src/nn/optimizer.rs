@@ -63,19 +63,19 @@ impl Default for RmsProp {
 impl Optimizer {
     pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Optimizer {
         let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov);
-        opt.add_parameters(&vs.variables());
+        opt.add_parameters(&vs.trainable_variables());
         Optimizer { opt }
     }
 
     pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Optimizer {
         let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd);
-        opt.add_parameters(&vs.variables());
+        opt.add_parameters(&vs.trainable_variables());
         Optimizer { opt }
     }
 
     pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Optimizer {
         let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered);
-        opt.add_parameters(&vs.variables());
+        opt.add_parameters(&vs.trainable_variables());
         Optimizer { opt }
     }
 

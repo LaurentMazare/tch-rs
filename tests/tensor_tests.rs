@@ -72,15 +72,17 @@ fn save_and_load_multi() {
 #[test]
 fn save_and_load_var_store() {
     let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
-    let add = |vs: &mut tch::nn::VarStore| {
-        let u = vs.root().zeros("t1", &[4]);
-        let v = vs.root().sub("a").sub("b").ones("t2", &[3]);
+    let add = |vs: &tch::nn::Path| {
+        let v = vs.sub("a").sub("b").ones("t2", &[3]);
+        let u = vs.zeros("t1", &[4]);
+        let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
+        let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let mut vs1 = VarStore::new(Device::Cpu);
-    let mut vs2 = VarStore::new(Device::Cpu);
-    let (mut u1, mut v1) = add(&mut vs1);
-    let (u2, v2) = add(&mut vs2);
+    let vs1 = VarStore::new(Device::Cpu);
+    let vs2 = VarStore::new(Device::Cpu);
+    let (mut u1, mut v1) = add(&vs1.root());
+    let (u2, v2) = add(&vs2.root());
     tch::no_grad(|| {
         u1 += 42.0;
         v1 *= 2.0;

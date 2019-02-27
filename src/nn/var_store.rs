@@ -3,26 +3,25 @@ use crate::utils::TorchError;
 use crate::{Device, Kind};
 use std::collections::HashMap;
 use std::ops::Div;
+use std::sync::Mutex;
 
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
 pub struct VarStore {
-    variables: HashMap<String, Tensor>,
+    variables: Mutex<HashMap<String, Tensor>>,
     device: Device,
-    counter: i64,
 }
 
 pub struct Path<'a> {
     path: Vec<String>,
-    var_store: &'a mut VarStore,
+    var_store: &'a VarStore,
 }
 
 impl VarStore {
     pub fn new(device: Device) -> VarStore {
         VarStore {
-            variables: HashMap::new(),
+            variables: Mutex::new(HashMap::new()),
             device,
-            counter: 0,
         }
     }
 
@@ -30,11 +29,21 @@ impl VarStore {
         self.device
     }
 
-    pub fn variables(&self) -> Vec<Tensor> {
-        self.variables.values().map(|x| x.shallow_clone()).collect()
+    pub fn trainable_variables(&self) -> Vec<Tensor> {
+        let variables = self.variables.lock().unwrap();
+        variables
+            .values()
+            .filter_map(|x| {
+                if x.requires_grad() {
+                    Some(x.shallow_clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
-    pub fn root(&mut self) -> Path {
+    pub fn root(&self) -> Path {
         Path {
             path: vec![],
             var_store: self,
@@ -42,8 +51,8 @@ impl VarStore {
     }
 
     pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
-        let named_tensors = self
-            .variables
+        let variables = self.variables.lock().unwrap();
+        let named_tensors = variables
             .iter()
             .map(|(x, y)| (&x[..], y))
             .collect::<Vec<_>>();
@@ -53,7 +62,8 @@ impl VarStore {
     pub fn load(&self, path: &std::path::Path) -> Result<(), TorchError> {
         let named_tensors = Tensor::load_multi(path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
-        for (name, tensor) in self.variables.iter() {
+        let variables = self.variables.lock().unwrap();
+        for (name, tensor) in variables.iter() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| tensor.copy_(src)),
                 None => Err(TorchError::new(format!(
@@ -67,7 +77,7 @@ impl VarStore {
 }
 
 impl<'a> Path<'a> {
-    pub fn sub(&'a mut self, s: &str) -> Path<'a> {
+    pub fn sub(&'a self, s: &str) -> Path<'a> {
         if s.chars().any(|x| x == '.') {
             panic!("sub name cannot contain a dot {}", s);
         }
@@ -94,59 +104,57 @@ impl<'a> Path<'a> {
         }
     }
 
-    fn add(&mut self, name: &str, tensor: Tensor) -> Tensor {
+    fn add(&self, name: &str, tensor: Tensor) -> Tensor {
         let path = self.path(name);
-        let path = if self.var_store.variables.contains_key(&path) {
-            self.var_store.counter = self.var_store.counter + 1;
-            format!("{}__{}", path, self.var_store.counter)
+        let mut variables = self.var_store.variables.lock().unwrap();
+        let path = if variables.contains_key(&path) {
+            format!("{}__{}", path, variables.len())
         } else {
             path
         };
-        self.var_store
-            .variables
-            .insert(path, tensor.shallow_clone());
+        variables.insert(path, tensor.shallow_clone());
         tensor
     }
 
-    pub fn zeros_no_train(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn zeros_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.device()));
         self.add(name, z)
     }
 
-    pub fn ones_no_train(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn ones_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::ones(dims, (Kind::Float, self.device()));
         self.add(name, z)
     }
 
-    pub fn zeros(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn zeros(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.device())).set_requires_grad(true);
         self.add(name, z)
     }
 
-    pub fn ones(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn ones(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::ones(dims, (Kind::Float, self.device())).set_requires_grad(true);
         self.add(name, z)
     }
 
-    pub fn randn_standard(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn randn_standard(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::randn(dims, (Kind::Float, self.device())).set_requires_grad(true);
         self.add(name, z)
     }
 
-    pub fn randn(&mut self, name: &str, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
+    pub fn randn(&self, name: &str, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
         let z = Tensor::randn(dims, (Kind::Float, self.device()));
         let z = (z * stdev + mean).set_requires_grad(true);
         self.add(name, z)
     }
 
-    pub fn uniform(&mut self, name: &str, dims: &[i64], lo: f64, up: f64) -> Tensor {
+    pub fn uniform(&self, name: &str, dims: &[i64], lo: f64, up: f64) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.device()))
             .uniform_(lo, up)
             .set_requires_grad(true);
         self.add(name, z)
     }
 
-    pub fn kaiming_uniform(&mut self, name: &str, dims: &[i64]) -> Tensor {
+    pub fn kaiming_uniform(&self, name: &str, dims: &[i64]) -> Tensor {
         let fan_in: i64 = dims.iter().skip(1).product();
         let bound = (1.0 / fan_in as f64).sqrt();
         self.uniform(name, dims, -bound, bound)

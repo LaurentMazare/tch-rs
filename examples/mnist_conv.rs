@@ -14,7 +14,7 @@ struct Net {
 }
 
 impl Net {
-    fn new(vs: &mut nn::Path) -> Net {
+    fn new(vs: &nn::Path) -> Net {
         let conv1 = nn::Conv2D::new(vs, 1, 32, 5, Default::default());
         let conv2 = nn::Conv2D::new(vs, 32, 64, 5, Default::default());
         let fc1 = nn::Linear::new(vs, 1024, 1024);
@@ -45,8 +45,8 @@ impl nn::ModuleT for Net {
 
 fn main() {
     let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
-    let mut vs = nn::VarStore::new(Device::cuda_if_available());
-    let net = Net::new(&mut vs.root());
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
     for epoch in 1..6000 {
         let (bimages, blabels) =
