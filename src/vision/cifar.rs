@@ -9,7 +9,7 @@ static C: i64 = 3;
 static BYTES_PER_IMAGE: i64 = W * H * C + 1;
 static SAMPLES_PER_FILE: i64 = 10000;
 
-fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
+fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     let mut data = vec![0u8; (SAMPLES_PER_FILE * BYTES_PER_IMAGE) as usize];
     buf_reader.read_exact(&mut data)?;
@@ -29,6 +29,11 @@ fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
         );
     }
     Ok((images.to_kind(kind::Kind::Float) / 255.0, labels))
+}
+
+fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
+    read_file_(filename)
+        .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
 }
 
 pub fn load_dir(dir: &std::path::Path) -> Result<Dataset> {

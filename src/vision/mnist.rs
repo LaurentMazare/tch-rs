@@ -1,5 +1,5 @@
-use crate::{Kind, Tensor};
 use super::dataset::Dataset;
+use crate::{Kind, Tensor};
 use std::fs::File;
 use std::io::{self, BufReader, Read, Result};
 
@@ -23,7 +23,7 @@ fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> Result<()> {
     Ok(())
 }
 
-fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
+fn read_labels_(filename: &std::path::Path) -> Result<Tensor> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     check_magic_number(&mut buf_reader, 2049)?;
     let samples = read_u32(&mut buf_reader)?;
@@ -32,7 +32,7 @@ fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
     Ok(Tensor::of_data(&data, Kind::Uint8).to_kind(Kind::Int64))
 }
 
-fn read_images(filename: &std::path::Path) -> Result<Tensor> {
+fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     check_magic_number(&mut buf_reader, 2051)?;
     let samples = read_u32(&mut buf_reader)?;
@@ -45,6 +45,16 @@ fn read_images(filename: &std::path::Path) -> Result<Tensor> {
         .view(&[i64::from(samples), i64::from(rows * cols)])
         .to_kind(Kind::Float);
     Ok(tensor / 255.)
+}
+
+fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
+    read_labels_(filename)
+        .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
+}
+
+fn read_images(filename: &std::path::Path) -> Result<Tensor> {
+    read_images_(filename)
+        .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
 }
 
 pub fn load_dir(dir: &std::path::Path) -> Result<Dataset> {
