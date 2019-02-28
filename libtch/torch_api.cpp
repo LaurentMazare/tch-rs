@@ -86,10 +86,10 @@ int at_dim(tensor t) {
   PROTECT(return t->dim();)
 }
 
-void at_shape(tensor t, int *dims) {
+void at_shape(tensor t, int64_t *dims) {
   PROTECT(
     int i = 0;
-    for (int dim : t->sizes()) dims[i++] = dim;
+    for (int64_t dim : t->sizes()) dims[i++] = dim;
   )
 }
 

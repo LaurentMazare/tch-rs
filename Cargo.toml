@@ -12,6 +12,7 @@ license = "Apache-2.0"
 
 [dependencies]
 libc = "0.2.0"
+rand = "0.6.5"
 
 [build-dependencies]
 cc = "1.0"

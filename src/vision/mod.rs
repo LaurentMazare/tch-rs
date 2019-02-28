@@ -1,5 +1,4 @@
-mod dataset;
-pub use dataset::Dataset;
+pub mod dataset;
 
 pub mod mnist;
 

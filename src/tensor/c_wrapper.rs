@@ -22,7 +22,7 @@ extern "C" {
     fn at_print(arg: *mut C_tensor);
     fn at_dim(arg: *mut C_tensor) -> c_int;
     fn at_requires_grad(arg: *mut C_tensor) -> c_int;
-    fn at_shape(arg: *mut C_tensor, sz: *mut c_int);
+    fn at_shape(arg: *mut C_tensor, sz: *mut i64);
     fn at_double_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int) -> f64;
     fn at_int64_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int) -> i64;
     fn at_free(arg: *mut C_tensor);
@@ -70,9 +70,9 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
-    pub fn size(&self) -> Vec<i32> {
+    pub fn size(&self) -> Vec<i64> {
         let dim = unsafe_torch!({ at_dim(self.c_tensor) as usize });
-        let mut sz = vec![0i32; dim];
+        let mut sz = vec![0i64; dim];
         unsafe_torch!({ at_shape(self.c_tensor, sz.as_mut_ptr()) });
         sz
     }
