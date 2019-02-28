@@ -1,4 +1,4 @@
-// TODO: add layer names when registering inner modules?
+use crate::data::Iter2;
 use crate::tensor::Tensor;
 use crate::Device;
 
@@ -16,19 +16,15 @@ pub trait ModuleT {
         d: Device,
         batch_size: i64,
     ) -> f64 {
-        let xs_size = i64::from(xs.size()[0]);
         let mut sum_accuracy = 0f64;
         let mut sample_count = 0f64;
-        for index in 0..((xs_size + batch_size - 1) / batch_size) {
-            let start = index * batch_size;
-            let size = std::cmp::min(batch_size, xs_size - start);
-            let xs = xs.narrow(0, start, size);
-            let ys = ys.narrow(0, start, size);
+        for (xs, ys) in Iter2::new(xs, ys, batch_size).return_smaller_last_batch() {
             let acc = self
                 .forward_t(&xs.to_device(d), false)
                 .accuracy_for_logits(&ys.to_device(d));
-            sum_accuracy += f64::from(&acc) * size as f64;
-            sample_count += size as f64;
+            let size = xs.size()[0] as f64;
+            sum_accuracy += f64::from(&acc) * size;
+            sample_count += size;
         }
         sum_accuracy / sample_count
     }

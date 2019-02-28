@@ -3,6 +3,8 @@ extern crate libc;
 #[macro_use]
 mod utils;
 
+pub mod data;
+
 mod device;
 mod device_wrapper;
 pub use device::{Cpu, Cuda, Device};

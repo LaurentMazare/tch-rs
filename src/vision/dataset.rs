@@ -1,3 +1,4 @@
+use crate::data::Iter2;
 use crate::Tensor;
 use rand::Rng;
 
@@ -8,6 +9,16 @@ pub struct Dataset {
     pub test_images: Tensor,
     pub test_labels: Tensor,
     pub labels: i64,
+}
+
+impl Dataset {
+    pub fn train_iter(&self, batch_size: i64) -> Iter2 {
+        Iter2::new(&self.train_images, &self.train_labels, batch_size)
+    }
+
+    pub fn test_iter(&self, batch_size: i64) -> Iter2 {
+        Iter2::new(&self.test_images, &self.test_labels, batch_size)
+    }
 }
 
 /// Randomly applies horizontal flips

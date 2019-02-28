@@ -4,4 +4,5 @@ data/
 gen/.merlin
 **/*.rs.bk
 *.swp
+*.swo
 Cargo.lock

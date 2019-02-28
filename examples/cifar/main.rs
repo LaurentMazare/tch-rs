@@ -8,7 +8,7 @@
 
 extern crate tch;
 use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
-use tch::{nn, Device, Tensor};
+use tch::{nn, Device};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
     let conv2d_cfg = nn::Conv2DConfig {
@@ -50,22 +50,15 @@ pub fn main() {
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = fast_resnet(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
-    for epoch in 1..6000 {
-        let (bimages, blabels) =
-            Tensor::random_batch2(&m.train_images, &m.train_labels, 64, vs.device());
-        let loss = net
-            .forward_t(&bimages, true)
-            .cross_entropy_for_logits(&blabels);
-        opt.backward_step(&loss);
-        if epoch % 50 == 0 {
-            let test_accuracy =
-                net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 512);
-            println!(
-                "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-                epoch,
-                f64::from(&loss),
-                100. * test_accuracy,
-            );
+    for epoch in 1..150 {
+        for (bimages, blabels) in m.train_iter(64).shuffle().to_device(vs.device()) {
+            let loss = net
+                .forward_t(&bimages, true)
+                .cross_entropy_for_logits(&blabels);
+            opt.backward_step(&loss);
         }
+        let test_accuracy =
+            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 512);
+        println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
 }

@@ -97,3 +97,37 @@ fn save_and_load_var_store() {
     assert_eq!(f64::from(&u2.mean()), 42.0);
     assert_eq!(f64::from(&v2.mean()), 2.0);
 }
+
+#[test]
+fn data() {
+    let bsize: usize = 4;
+    let vs: Vec<i64> = (0..1337).collect();
+    let xs = Tensor::int_vec(&vs);
+    let ys = Tensor::int_vec(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
+    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64) {
+        let xs = Vec::<i64>::from(&batch_xs);
+        let ys = Vec::<i64>::from(&batch_ys);
+        assert_eq!(xs.len(), bsize);
+        assert_eq!(ys.len(), bsize);
+        for i in 0..bsize {
+            assert_eq!(ys[i], 2 * xs[i]);
+            if i > 0 {
+                assert_eq!(xs[i - 1] + 1, xs[i])
+            }
+        }
+    }
+    let mut all_in_order = true;
+    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64).shuffle() {
+        let xs = Vec::<i64>::from(&batch_xs);
+        let ys = Vec::<i64>::from(&batch_ys);
+        assert_eq!(xs.len(), bsize);
+        assert_eq!(ys.len(), bsize);
+        for i in 0..bsize {
+            assert_eq!(ys[i], 2 * xs[i]);
+            if i > 0 && xs[i - 1] + 1 != xs[i] {
+                all_in_order = false
+            }
+        }
+    }
+    assert_eq!(all_in_order, false)
+}
