@@ -7,7 +7,7 @@
 */
 
 extern crate tch;
-use tch::nn::{BatchNorm2D, Conv2D, Linear, ModuleT, SequentialT};
+use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 use tch::{nn, Device, Tensor};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
@@ -22,28 +22,15 @@ fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
         .add_fn(|x| x.relu())
 }
 
-struct Layer {
-    pre: SequentialT,
-    block1: SequentialT,
-    block2: SequentialT,
-}
-
-fn layer(vs: &nn::Path, c_in: i64, c_out: i64) -> Layer {
-    Layer {
-        pre: conv_bn(&vs.sub("pre"), c_in, c_out),
-        block1: conv_bn(&vs.sub("b1"), c_out, c_out),
-        block2: conv_bn(&vs.sub("b2"), c_out, c_out),
-    }
-}
-
-impl ModuleT for Layer {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        let pre = xs.apply_t(&self.pre, train).max_pool2d_default(2);
-        let ys = pre
-            .apply_t(&self.block1, train)
-            .apply_t(&self.block2, train);
+fn layer<'a>(vs: &nn::Path, c_in: i64, c_out: i64) -> FuncT<'a> {
+    let pre = conv_bn(&vs.sub("pre"), c_in, c_out);
+    let block1 = conv_bn(&vs.sub("b1"), c_out, c_out);
+    let block2 = conv_bn(&vs.sub("b2"), c_out, c_out);
+    FuncT::new(move |xs, train| {
+        let pre = xs.apply_t(&pre, train).max_pool2d_default(2);
+        let ys = pre.apply_t(&block1, train).apply_t(&block2, train);
         pre + ys
-    }
+    })
 }
 
 fn fast_resnet(vs: &nn::Path) -> SequentialT {

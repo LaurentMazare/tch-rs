@@ -14,4 +14,5 @@ license = "Apache-2.0"
 libc = "0.2.0"
 
 [build-dependencies]
+cc = "1.0"
 cmake = "0.1"
