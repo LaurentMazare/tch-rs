@@ -231,3 +231,21 @@ where
     f();
     let _false = grad_set_enabled(prev);
 }
+
+pub struct NoGradGuard {
+    enabled: bool,
+}
+
+impl NoGradGuard {
+    pub fn new() -> NoGradGuard {
+        NoGradGuard {
+            enabled: grad_set_enabled(false),
+        }
+    }
+}
+
+impl Drop for NoGradGuard {
+    fn drop(&mut self) {
+        let _enabled = grad_set_enabled(self.enabled);
+    }
+}

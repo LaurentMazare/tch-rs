@@ -6,7 +6,7 @@ mod c_wrapper;
 mod c_wrapper_generated;
 
 pub(crate) use c_wrapper::C_tensor;
-pub use c_wrapper::{no_grad, Tensor};
+pub use c_wrapper::{no_grad, NoGradGuard, Tensor};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {

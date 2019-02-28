@@ -16,6 +16,7 @@ pub trait ModuleT {
         d: Device,
         batch_size: i64,
     ) -> f64 {
+        let _no_grad = crate::NoGradGuard::new();
         let mut sum_accuracy = 0f64;
         let mut sample_count = 0f64;
         for (xs, ys) in Iter2::new(xs, ys, batch_size).return_smaller_last_batch() {
