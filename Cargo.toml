@@ -1,10 +1,10 @@
 [package]
 name = "tch"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["laurent <lmazare@gmail.com>"]
 edition = "2018"
 
-description = "PyTorch wrappers for rust"
+description = "Rust wrappers for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
 categories = ["science"]

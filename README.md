@@ -3,7 +3,14 @@ Experimental rust bindings for PyTorch.
 The code generation part for the C api on top of libtorch comes from
 [ocaml-torch](https://github.com/LaurentMazare/ocaml-torch).
 
-## Instructions
+## Getting Started
+
+This crate requires the C++ version of PyTorch (libtorch) to be available on
+your system. You can either install it manually and let the build script now about
+it via the `LIBTORCH` environment variable. If not set, the build script will
+try downloading and extracting a pre-built binary version of libtorch.
+
+### Libtorch Manual Install
 
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
