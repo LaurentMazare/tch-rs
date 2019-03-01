@@ -38,7 +38,10 @@ extern "C" {
     ) -> *mut C_tensor;
     fn at_grad_set_enabled(b: c_int) -> c_int;
     fn at_save(arg: *mut C_tensor, filename: *const c_char);
+    fn at_save_image(arg: *mut C_tensor, filename: *const c_char) -> c_int;
     fn at_load(filename: *const c_char) -> *mut C_tensor;
+    fn at_load_image(filename: *const c_char) -> *mut C_tensor;
+    fn at_resize_image(arg: *mut C_tensor, out_w: c_int, out_h: c_int) -> *mut C_tensor;
     fn at_save_multi(
         args: *const *mut C_tensor,
         names: *const *const c_char,
@@ -163,6 +166,27 @@ impl Tensor {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
         Ok(Tensor { c_tensor })
+    }
+
+    /// On success returns a tensor of shape [width, height, channels].
+    pub fn load_image(path: &std::path::Path) -> Result<Tensor, TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let c_tensor = unsafe_torch_err!({ at_load_image(path.as_ptr()) });
+        Ok(Tensor { c_tensor })
+    }
+
+    /// Expects a tensor of shape [width, height, channels].
+    pub fn save_image(&self, path: &std::path::Path) -> Result<(), TorchError> {
+        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let _ = unsafe_torch_err!({ at_save_image(self.c_tensor, path.as_ptr()) });
+        Ok(())
+    }
+
+    /// Expects a tensor of shape [width, height, channels].
+    /// On success returns a tensor of shape [width, height, channels].
+    pub fn resize_image(&self, out_w: i64, out_h: i64) -> Tensor {
+        let c_tensor = unsafe_torch!({ at_resize_image(self.c_tensor, out_w as c_int, out_h as c_int) });
+        Tensor { c_tensor }
     }
 
     pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {

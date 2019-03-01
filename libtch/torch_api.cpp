@@ -5,6 +5,15 @@
 #include<vector>
 #include "torch_api.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize.h"
+
 using namespace std;
 
 char *get_and_reset_last_err() {
@@ -252,6 +261,64 @@ tensor at_load(char *filename) {
     torch::Tensor tensor;
     torch::load(tensor, filename);
     return new torch::Tensor(tensor);
+  )
+}
+
+tensor at_load_image(char *filename) {
+  PROTECT(
+    int x = -1;
+    int y = -1;
+    int channels = -1;
+    void *data = stbi_load(filename, &x, &y, &channels, 0);
+    if (data == nullptr)
+      throw std::invalid_argument(stbi_failure_reason());
+    torch::Tensor tensor = torch::zeros({ x, y, channels }, at::ScalarType::Byte);
+    memcpy(tensor.data_ptr(), data, x * y * channels);
+    free(data);
+    return new torch::Tensor(tensor);
+  )
+}
+
+bool ends_with(const char *str, const char *suffix) {
+  int suffix_len = strlen(suffix);
+  int str_len = strlen(str);
+  if (str_len < suffix_len) return false;
+  for (int i = 1; i <= suffix_len; ++i)
+    if (str[str_len-i] != suffix[suffix_len-i]) return false;
+  return true;
+}
+
+int at_save_image(tensor tensor, char *filename) {
+  PROTECT(
+    auto sizes = tensor->sizes();
+    if (sizes.size() != 3)
+      throw std::invalid_argument("invalid number of dimensions, should be 3");
+    int w = sizes[0];
+    int h = sizes[1];
+    int c = sizes[2];
+    void *tensor_data = tensor->contiguous().data_ptr();
+    if (ends_with(filename, ".jpg"))
+      return stbi_write_jpg(filename, w, h, c, tensor_data, 90);
+    if (ends_with(filename, ".bmp"))
+      return stbi_write_bmp(filename, w, h, c, tensor_data);
+    if (ends_with(filename, ".tga"))
+      return stbi_write_tga(filename, w, h, c, tensor_data);
+    return stbi_write_png(filename, w, h, c, tensor_data, 0);
+    )
+}
+
+tensor at_resize_image(tensor tensor, int out_w, int out_h) {
+  PROTECT(
+    auto sizes = tensor->sizes();
+    if (sizes.size() != 3)
+      throw std::invalid_argument("invalid number of dimensions, should be 3");
+    int w = sizes[0];
+    int h = sizes[1];
+    int c = sizes[2];
+    const unsigned char *tensor_data = (unsigned char*)tensor->contiguous().data_ptr();
+    torch::Tensor out = torch::zeros({ out_w, out_h, c }, at::ScalarType::Byte);
+    stbir_resize_uint8(tensor_data, w, h, 0, (unsigned char*)out.data_ptr(), out_w, out_h, 0, c);
+    return new torch::Tensor(out);
   )
 }
 
