@@ -10,14 +10,14 @@ extern "C" {
 }
 
 /// On success returns a tensor of shape [width, height, channels].
-fn load_whc(path: &std::path::Path) -> Result<Tensor, TorchError> {
+fn load_hwc(path: &std::path::Path) -> Result<Tensor, TorchError> {
     let path = std::ffi::CString::new(path_to_str(path)?)?;
     let c_tensor = unsafe_torch_err!({ at_load_image(path.as_ptr()) });
     Ok(Tensor { c_tensor })
 }
 
 /// Expects a tensor of shape [width, height, channels].
-fn save_whc(t: &Tensor, path: &std::path::Path) -> Result<(), TorchError> {
+fn save_hwc(t: &Tensor, path: &std::path::Path) -> Result<(), TorchError> {
     let path = std::ffi::CString::new(path_to_str(path)?)?;
     let _ = unsafe_torch_err!({ at_save_image(t.c_tensor, path.as_ptr()) });
     Ok(())
@@ -25,20 +25,28 @@ fn save_whc(t: &Tensor, path: &std::path::Path) -> Result<(), TorchError> {
 
 /// Expects a tensor of shape [width, height, channels].
 /// On success returns a tensor of shape [width, height, channels].
-fn resize_whc(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
+fn resize_hwc(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
     let c_tensor = unsafe_torch!({ at_resize_image(t.c_tensor, out_w as c_int, out_h as c_int) });
     Tensor { c_tensor }
 }
 
+fn hwc_to_chw(tensor: &Tensor) -> Tensor {
+    tensor.permute(&[2, 0, 1])
+}
+
+fn chw_to_hwc(tensor: &Tensor) -> Tensor {
+    tensor.permute(&[1, 2, 0])
+}
+
 pub fn load(path: &std::path::Path) -> Result<Tensor, TorchError> {
-    let tensor = load_whc(path)?;
-    Ok(tensor.transpose(2, 0))
+    let tensor = load_hwc(path)?;
+    Ok(hwc_to_chw(&tensor))
 }
 
 pub fn save(t: &Tensor, path: &std::path::Path) -> Result<(), TorchError> {
-    save_whc(&t.transpose(2, 0), path)
+    save_hwc(&chw_to_hwc(t), path)
 }
 
 pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
-    resize_whc(&t.transpose(2, 0), out_w, out_h).transpose(2, 0)
+    hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h))
 }
