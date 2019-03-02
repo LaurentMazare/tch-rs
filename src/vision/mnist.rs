@@ -1,3 +1,7 @@
+/// The MNIST hand-written digit dataset.
+///
+/// The files can be obtained from the following link:
+/// http://yann.lecun.com/exdb/mnist/
 use super::dataset::Dataset;
 use crate::{Kind, Tensor};
 use std::fs::File;

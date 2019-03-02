@@ -1,3 +1,4 @@
+/// Optimizers to be used for gradient-descent based training.
 use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
 use crate::{Scalar, Tensor};
@@ -7,6 +8,7 @@ pub struct Optimizer {
     trainable_variables: Vec<Tensor>,
 }
 
+/// Parameters for the SGD optimizer.
 pub struct Sgd {
     momentum: f64,
     dampening: f64,
@@ -25,6 +27,7 @@ impl Default for Sgd {
     }
 }
 
+/// Parameters for the Adam optimizer.
 pub struct Adam {
     beta1: f64,
     beta2: f64,
@@ -41,6 +44,7 @@ impl Default for Adam {
     }
 }
 
+/// Parameters for the RmsProp optimizer.
 pub struct RmsProp {
     alpha: f64,
     eps: f64,
@@ -87,6 +91,7 @@ impl Optimizer {
         self.opt.zero_grad()
     }
 
+    /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
         for tensor in self.trainable_variables.iter() {
             let _t = tensor.grad().clamp_(&Scalar::float(-max), &Scalar::float(max));
@@ -103,10 +108,12 @@ impl Optimizer {
         self.step();
     }
 
+    /// Sets the optimizer learning rate.
     pub fn set_lr(&mut self, lr: f64) {
         self.opt.set_learning_rate(lr)
     }
 
+    /// Sets the optimizer momentum.
     pub fn set_momentum(&mut self, m: f64) {
         self.opt.set_momentum(m)
     }

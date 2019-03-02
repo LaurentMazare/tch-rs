@@ -1,3 +1,5 @@
+/// The different kind of elements supported in Torch.
+
 #[derive(Debug, Copy, Clone)]
 pub enum Kind {
     Uint8,

@@ -1,3 +1,4 @@
+/// Dataset iterators.
 use crate::Device;
 use crate::Tensor;
 
@@ -17,6 +18,17 @@ pub struct Iter2 {
 }
 
 impl Iter2 {
+    /// Returns a new iterator.
+    ///
+    /// This takes as input two tensors which first dimension must match. The
+    /// returned iterator can be used to range over mini-batches of data of
+    /// specified size.
+    ///
+    /// # Arguments
+    ///
+    /// * `xs` - the features to be used by the model.
+    /// * `ys` - the targets that the model attempts to predict.
+    /// * `batch_size` - the size of batches to be returned.
     pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Iter2 {
         let total_size = xs.size()[0];
         if ys.size()[0] != total_size {
@@ -33,6 +45,10 @@ impl Iter2 {
         }
     }
 
+    /// Shuffles the dataset.
+    ///
+    /// The iterator would still run over the whole dataset but the order in
+    /// which elements are grouped in mini-batches is randomized.
     pub fn shuffle(&mut self) -> &mut Iter2 {
         let index = Tensor::randperm(self.total_size, crate::kind::INT64_CPU);
         self.xs = self.xs.index_select(0, &index);
@@ -40,11 +56,13 @@ impl Iter2 {
         self
     }
 
+    /// Transfers the mini-batches to a specified device.
     pub fn to_device(&mut self, device: Device) -> &mut Iter2 {
         self.device = device;
         self
     }
 
+    /// When set, returns the last batch even if smaller than the batch size.
     pub fn return_smaller_last_batch(&mut self) -> &mut Iter2 {
         self.return_smaller_last_batch = true;
         self

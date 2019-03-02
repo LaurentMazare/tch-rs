@@ -1,3 +1,4 @@
+/// A simple dataset structure shared by various computer vision datasets.
 use crate::data::Iter2;
 use crate::Tensor;
 use rand::Rng;

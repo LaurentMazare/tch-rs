@@ -1,3 +1,5 @@
+/// Utility function to manipulate images.
+
 use crate::utils::{path_to_str, TorchError};
 use crate::Tensor;
 use libc::c_int;
@@ -31,15 +33,27 @@ fn chw_to_hwc(tensor: &Tensor) -> Tensor {
     tensor.permute(&[1, 2, 0])
 }
 
+/// Loads an image from a file.
+///
+/// On success returns a tensor of shape [channel, height, width].
 pub fn load(path: &std::path::Path) -> Result<Tensor, TorchError> {
     let tensor = load_hwc(path)?;
     Ok(hwc_to_chw(&tensor))
 }
 
+/// Saves an image to a file.
+///
+/// This expects as input a tensor of shape [channel, height, width].
+/// The image format is based on the filename suffix, supported suffixes
+/// are jpg, png, tga, and bmp.
 pub fn save(t: &Tensor, path: &std::path::Path) -> Result<(), TorchError> {
     save_hwc(&chw_to_hwc(t), path)
 }
 
+/// Resizes an image.
+///
+/// This expects as input a tensor of shape [channel, height, width] and returns
+/// a tensor of shape [channel, out_h, out_w].
 pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
     hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h))
 }

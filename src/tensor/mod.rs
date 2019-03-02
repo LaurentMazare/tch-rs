@@ -1,3 +1,5 @@
+/// A Torch tensor.
+
 use crate::scalar::Scalar;
 use crate::{Device, Kind};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
@@ -169,6 +171,7 @@ impl std::fmt::Debug for Tensor {
 }
 
 impl Tensor {
+    /// Casts a tensor to a specified kind.
     pub fn to_kind(&self, kind: Kind) -> Tensor {
         self.totype(kind)
     }
@@ -210,10 +213,13 @@ from_tensor!(i8, 0i8, Int8);
 from_tensor!(u8, 0u8, Uint8);
 
 impl Tensor {
+    /// Computes the cross-entropy loss based on some logits and targets.
     pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.log_softmax(-1).nll_loss(&targets)
     }
 
+    /// Returns the average accuracy for some given logits assuming that
+    /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.argmax1(-1, false)
             .eq1(&targets)
@@ -221,6 +227,7 @@ impl Tensor {
             .mean()
     }
 
+    /// Moves a tensor to a specified device.
     pub fn to_tensor(&self, device: Device) -> Tensor {
         self.to_(device)
     }
@@ -260,6 +267,10 @@ impl Tensor {
         self.max_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], &[1, 1], false)
     }
 
+    /// Flattens a tensor.
+    ///
+    /// This returns a flattened version of the given tensor. The first dimension
+    /// is preserved as it is assumed to be the mini-batch dimension.
     pub fn flat_view(&self) -> Tensor {
         let batch_size = self.size()[0] as i64;
         self.view(&[batch_size, -1])

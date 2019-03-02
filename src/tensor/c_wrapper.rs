@@ -3,6 +3,7 @@ use crate::utils::{path_to_str, TorchError};
 use crate::{Device, Kind};
 use libc::{c_char, c_void};
 
+/// A tensor object.
 pub struct Tensor {
     pub(crate) c_tensor: *mut C_tensor,
 }
@@ -14,23 +15,27 @@ extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mu
 }
 
 impl Tensor {
+    /// Creates a new tensor.
     pub fn new() -> Tensor {
         let c_tensor = unsafe_torch!({ at_new_tensor() });
         Tensor { c_tensor }
     }
 
+    /// Creates a one-dimension tensor using some integer values.
     pub fn int_vec(v: &[i64]) -> Tensor {
         let c_tensor =
             unsafe_torch!({ at_int_vec(v.as_ptr(), v.len() as i32, Kind::Int64.c_int()) });
         Tensor { c_tensor }
     }
 
+    /// Creates a one-dimension tensor using some float values.
     pub fn float_vec(v: &[f64]) -> Tensor {
         let c_tensor =
             unsafe_torch!({ at_float_vec(v.as_ptr(), v.len() as i32, Kind::Float.c_int()) });
         Tensor { c_tensor }
     }
 
+    /// Returns the shape of the input tensor.
     pub fn size(&self) -> Vec<i64> {
         let dim = unsafe_torch!({ at_dim(self.c_tensor) as usize });
         let mut sz = vec![0i64; dim];
@@ -38,16 +43,22 @@ impl Tensor {
         sz
     }
 
+    /// Returns the kind of elements stored in the input tensor.
     pub fn kind(&self) -> Kind {
         let kind = unsafe_torch!({ at_scalar_type(self.c_tensor) });
         Kind::of_c_int(kind)
     }
 
+    /// Returns the device on which the input tensor is located.
     pub fn device(&self) -> Device {
         let device = unsafe_torch!({ at_device(self.c_tensor) });
         Device::of_c_int(device)
     }
 
+    /// Prints the input tensor.
+    ///
+    /// Caution: this uses the C++ printer which prints the whole tensor even if
+    /// it is very large.
     pub fn print(&self) {
         unsafe_torch!({ at_print(self.c_tensor) })
     }
@@ -91,6 +102,7 @@ impl Tensor {
         })
     }
 
+    /// Returns the total number of elements stored in a tensor.
     pub fn numel(&self) -> i64 {
         self.size().iter().fold(1, |acc, &v| acc * i64::from(v))
     }
@@ -111,27 +123,38 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
+    /// Returns a new tensor that share storage with the input tensor.
     pub fn shallow_clone(&self) -> Tensor {
         let c_tensor = unsafe_torch!({ at_shallow_clone(self.c_tensor) });
         Tensor { c_tensor }
     }
 
+    /// Copies values from the argument tensor to the input tensor.
     pub fn copy_(&self, src: &Tensor) {
         unsafe_torch!({ at_copy_(self.c_tensor, src.c_tensor) })
     }
 
+    /// Loads a tensor from a file.
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load(path: &std::path::Path) -> Result<Tensor, TorchError> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
         Ok(Tensor { c_tensor })
     }
 
+    /// Saves a tensor to a file.
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
         Ok(())
     }
 
+    /// Saves some named tensors to a file
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save_multi(
         named_tensors: &[(&str, &Tensor)],
         path: &std::path::Path,
@@ -156,9 +179,10 @@ impl Tensor {
         });
         Ok(())
     }
-}
 
-impl Tensor {
+    /// Loads some named tensors from a file
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load_multi(path: &std::path::Path) -> Result<Vec<(String, Tensor)>, TorchError> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let mut v: Vec<(String, Tensor)> = vec![];
