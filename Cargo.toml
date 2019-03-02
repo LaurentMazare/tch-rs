@@ -13,4 +13,4 @@ license = "Apache-2.0"
 [dependencies]
 libc = "0.2.0"
 rand = "0.6.5"
-torch-sys = { version = "0.0.1", path = "torch-sys" }
+torch-sys = { version = "0.0.2", path = "torch-sys" }

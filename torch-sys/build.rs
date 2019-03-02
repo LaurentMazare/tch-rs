@@ -35,13 +35,32 @@ fn cmake(libtorch: &PathBuf) {
 fn maybe_download(filename: &std::path::Path, url: &str) {
     if !filename.exists() {
         Command::new("wget")
-            .args(&[url, "-O", &filename.to_string_lossy().into_owned()])
+            .args(&[url, "-nv", "-O", &filename.to_string_lossy().into_owned()])
             .status().unwrap();
     }
 }
 
+fn unzip_all(absolute_filename: &std::path::Path, outpath: &std::path::Path) {
+    let file = std::fs::File::open(&absolute_filename).unwrap();
+    let mut archive = zip::ZipArchive::new(file).unwrap();
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).unwrap();
+        let outpath = outpath.join(file.sanitized_name());
+        if !(&*file.name()).ends_with('/') {
+            println!("File {} extracted to \"{}\" ({} bytes)", i, outpath.as_path().display(), file.size());
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    std::fs::create_dir_all(&p).unwrap();
+                }
+            }
+            let mut outfile = std::fs::File::create(&outpath).unwrap();
+            std::io::copy(&mut file, &mut outfile).unwrap();
+        }
+    }
+}
+
 fn main() {
-	let out_path = PathBuf::from(&env::var("OUT_DIR").unwrap());
+    let out_path = PathBuf::from(&env::var("OUT_DIR").unwrap());
     let libtorch =
         if let Ok(libtorch) = env::var("LIBTORCH") { PathBuf::from(libtorch) }
         else {
@@ -62,10 +81,7 @@ fn main() {
                 println!("To {:?}", absolute_filename);
                 maybe_download(&absolute_filename, &url);
                 println!("Extracting in {:?}", libtorch);
-                Command::new("unzip")
-                    .arg(&absolute_filename)
-                    .args(&["-d", &out_path.to_string_lossy().into_owned()])
-                    .status().unwrap();
+                unzip_all(&absolute_filename, &out_path)
             }
             libtorch
         };
