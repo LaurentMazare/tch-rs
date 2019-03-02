@@ -1,7 +1,7 @@
 [package]
 name = "tch"
 version = "0.0.3"
-authors = ["laurent <lmazare@gmail.com>"]
+authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 
 description = "Rust wrappers for the PyTorch C++ api (libtorch)."
