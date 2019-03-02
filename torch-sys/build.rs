@@ -41,11 +41,11 @@ fn maybe_download(filename: &std::path::Path, url: &str) {
 }
 
 fn main() {
+	let out_path = PathBuf::from(&env::var("OUT_DIR").unwrap());
     let libtorch =
         if let Ok(libtorch) = env::var("LIBTORCH") { PathBuf::from(libtorch) }
         else {
-            let output = PathBuf::from(&env::var("OUT_DIR").unwrap());
-            let libtorch = output.join("libtorch");
+            let libtorch = out_path.join("libtorch");
             if !libtorch.exists() {
                 let url = match env::consts::OS {
                     "macos" => "https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.0.1.zip",
@@ -64,7 +64,7 @@ fn main() {
                 println!("Extracting in {:?}", libtorch);
                 Command::new("unzip")
                     .arg(&absolute_filename)
-                    .args(&["-d", &output.to_string_lossy().into_owned()])
+                    .args(&["-d", &out_path.to_string_lossy().into_owned()])
                     .status().unwrap();
             }
             libtorch

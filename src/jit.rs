@@ -1,41 +1,7 @@
-use super::tensor::{C_tensor, Tensor};
+use torch_sys::*;
+use crate::Tensor;
 use crate::utils::{path_to_str, TorchError};
-use libc::{c_char, c_int};
-
-#[repr(C)]
-pub struct CIValue {
-    _private: [u8; 0],
-}
-
-#[repr(C)]
-pub struct CModule_ {
-    _private: [u8; 0],
-}
-
-extern "C" {
-    // Constructors
-    fn ati_int(v: i64) -> *mut CIValue;
-    fn ati_double(v: f64) -> *mut CIValue;
-    fn ati_tensor(v: *mut C_tensor) -> *mut CIValue;
-    fn ati_tuple(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
-
-    // Type query
-    fn ati_tag(arg: *mut CIValue) -> c_int;
-
-    // Getters
-    fn ati_to_int(arg: *mut CIValue) -> i64;
-    fn ati_to_double(arg: *mut CIValue) -> f64;
-    fn ati_to_tensor(arg: *mut CIValue) -> *mut C_tensor;
-    fn ati_tuple_length(arg: *mut CIValue) -> c_int;
-    fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int) -> c_int;
-
-    fn ati_free(arg: *mut CIValue);
-
-    fn atm_load(filename: *const c_char) -> *mut CModule_;
-    fn atm_forward(m: *mut CModule_, args: *const *mut C_tensor, n: c_int) -> *mut C_tensor;
-    fn atm_forward_(m: *mut CModule_, args: *const *mut CIValue, n: c_int) -> *mut CIValue;
-    fn atm_free(m: *mut CModule_);
-}
+use libc::c_int;
 
 #[derive(Debug)]
 pub enum IValue {

@@ -19,13 +19,9 @@ impl From<std::ffi::NulError> for TorchError {
     }
 }
 
-extern "C" {
-    fn get_and_reset_last_err() -> *mut libc::c_char;
-}
-
 pub(crate) fn read_and_clean_error() -> Result<(), TorchError> {
     unsafe {
-        let torch_last_err = get_and_reset_last_err();
+        let torch_last_err = torch_sys::get_and_reset_last_err();
         if !torch_last_err.is_null() {
             let c_error = std::ffi::CStr::from_ptr(torch_last_err)
                 .to_string_lossy()

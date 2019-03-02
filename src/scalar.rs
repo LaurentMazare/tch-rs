@@ -1,33 +1,22 @@
-#[repr(C)]
-pub struct C_scalar {
-    _private: [u8; 0],
-}
-
-extern "C" {
-    fn ats_int(v: i64) -> *mut C_scalar;
-    fn ats_float(v: f64) -> *mut C_scalar;
-    fn ats_free(arg: *mut C_scalar);
-}
-
 pub struct Scalar {
-    pub(crate) c_scalar: *mut C_scalar,
+    pub(crate) c_scalar: *mut torch_sys::C_scalar,
 }
 
 impl Scalar {
     pub fn int(v: i64) -> Scalar {
-        let c_scalar = unsafe_torch!({ ats_int(v) });
+        let c_scalar = unsafe_torch!({ torch_sys::ats_int(v) });
         Scalar { c_scalar }
     }
 
     pub fn float(v: f64) -> Scalar {
-        let c_scalar = unsafe_torch!({ ats_float(v) });
+        let c_scalar = unsafe_torch!({ torch_sys::ats_float(v) });
         Scalar { c_scalar }
     }
 }
 
 impl Drop for Scalar {
     fn drop(&mut self) {
-        unsafe_torch!({ ats_free(self.c_scalar) })
+        unsafe_torch!({ torch_sys::ats_free(self.c_scalar) })
     }
 }
 
