@@ -1,5 +1,7 @@
-use crate::tensor::Tensor;
+/// A linear fully-connected layer.
+use crate::Tensor;
 
+/// A linear fully-connected layer.
 pub struct Linear {
     ws: Tensor,
     bs: Tensor,

@@ -1,3 +1,4 @@
+/// A sequential layer used to chain multiple layers and closures.
 use crate::tensor::Tensor;
 
 pub struct Sequential {
@@ -25,11 +26,13 @@ impl super::module::Module for Sequential {
 }
 
 impl Sequential {
+    /// Appends a layer after all the current layers.
     pub fn add<M: super::module::Module + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }
 
+    /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
         F: 'static,
@@ -64,11 +67,13 @@ impl super::module::ModuleT for SequentialT {
 }
 
 impl SequentialT {
+    /// Appends a layer after all the current layers.
     pub fn add<M: super::module::ModuleT + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }
 
+    /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
         F: 'static,
@@ -77,6 +82,7 @@ impl SequentialT {
         self.add(super::func::Func::new(f))
     }
 
+    /// Appends a closure after all the current layers.
     pub fn add_fn_t<F>(self, f: F) -> Self
     where
         F: 'static,

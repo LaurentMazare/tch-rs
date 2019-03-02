@@ -1,4 +1,5 @@
-use crate::tensor::Tensor;
+/// A two dimension convolution layer.
+use crate::Tensor;
 
 pub struct Conv2DConfig {
     pub stride: i64,
@@ -20,6 +21,7 @@ impl Default for Conv2DConfig {
     }
 }
 
+/// A two dimension convolution layer.
 pub struct Conv2D {
     ws: Tensor,
     bs: Tensor,

@@ -1,4 +1,5 @@
-use crate::tensor::Tensor;
+/// A batch-normalization layer.
+use crate::Tensor;
 
 pub struct BatchNorm2DConfig {
     cudnn_enabled: bool,
@@ -16,6 +17,7 @@ impl Default for BatchNorm2DConfig {
     }
 }
 
+/// A batch-normalization layer.
 pub struct BatchNorm2D {
     config: BatchNorm2DConfig,
     running_mean: Tensor,

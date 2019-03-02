@@ -19,6 +19,9 @@ pub use conv2d::{Conv2D, Conv2DConfig};
 mod batch_norm;
 pub use batch_norm::BatchNorm2D;
 
+mod rnn;
+pub use rnn::LSTM;
+
 mod func;
 pub use func::{Func, FuncT};
 

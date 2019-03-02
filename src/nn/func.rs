@@ -1,5 +1,7 @@
+/// Layers defined by closures.
 use crate::Tensor;
 
+/// A layer defined by a simple closure.
 pub struct Func<'a> {
     f: Box<Fn(&Tensor) -> Tensor + 'a>,
 }
@@ -20,6 +22,7 @@ impl<'a> super::module::Module for Func<'a> {
     }
 }
 
+/// A layer defined by a closure with an additional training parameter.
 pub struct FuncT<'a> {
     f: Box<Fn(&Tensor, bool) -> Tensor + 'a>,
 }
