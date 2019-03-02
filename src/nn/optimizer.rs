@@ -1,9 +1,10 @@
 use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
-use crate::tensor::Tensor;
+use crate::{Scalar, Tensor};
 
 pub struct Optimizer {
     opt: COptimizer,
+    trainable_variables: Vec<Tensor>,
 }
 
 pub struct Sgd {
@@ -63,24 +64,33 @@ impl Default for RmsProp {
 impl Optimizer {
     pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Optimizer {
         let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov);
-        opt.add_parameters(&vs.trainable_variables());
-        Optimizer { opt }
+        let trainable_variables = vs.trainable_variables();
+        opt.add_parameters(&trainable_variables);
+        Optimizer { opt, trainable_variables }
     }
 
     pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Optimizer {
         let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd);
-        opt.add_parameters(&vs.trainable_variables());
-        Optimizer { opt }
+        let trainable_variables = vs.trainable_variables();
+        opt.add_parameters(&trainable_variables);
+        Optimizer { opt, trainable_variables }
     }
 
     pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Optimizer {
         let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered);
-        opt.add_parameters(&vs.trainable_variables());
-        Optimizer { opt }
+        let trainable_variables = vs.trainable_variables();
+        opt.add_parameters(&trainable_variables);
+        Optimizer { opt, trainable_variables }
     }
 
     pub fn zero_grad(&self) {
         self.opt.zero_grad()
+    }
+
+    pub fn clip_grad_value(&self, max: f64) {
+        for tensor in self.trainable_variables.iter() {
+            let _t = tensor.grad().clamp_(&Scalar::float(-max), &Scalar::float(max));
+        }
     }
 
     pub fn step(&self) {
