@@ -1,9 +1,9 @@
 /// JIT interface to run model trained/saved using PyTorch Python API.
-use torch_sys::*;
+use crate::utils::path_to_cstring;
 use crate::Tensor;
-use crate::utils::path_to_str;
-use libc::c_int;
 use failure::Fallible;
+use libc::c_int;
+use torch_sys::*;
 
 /// Argument and output values for JIT models.
 #[derive(Debug)]
@@ -70,7 +70,7 @@ impl Drop for CModule {
 impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
     pub fn load(path: &std::path::Path) -> Fallible<CModule> {
-        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let path = path_to_cstring(path)?;
         let c_module = unsafe_torch_err!({ atm_load(path.as_ptr()) });
         Ok(CModule { c_module })
     }
@@ -78,14 +78,16 @@ impl CModule {
     /// Performs the forward pass for a model on some specified tensor input.
     pub fn forward(&self, ts: &[&Tensor]) -> Fallible<Tensor> {
         let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
-        let c_tensor = unsafe_torch_err!({ atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int) });
+        let c_tensor =
+            unsafe_torch_err!({ atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         Ok(Tensor { c_tensor })
     }
 
     /// Performs the forward pass for a model on some specified ivalue input.
     pub fn forward_(&self, ts: &[&IValue]) -> Fallible<IValue> {
         let ts: Vec<_> = ts.iter().map(|x| x.to_c()).collect();
-        let c_ivalue = unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
+        let c_ivalue =
+            unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         IValue::of_c(c_ivalue)
     }
 }

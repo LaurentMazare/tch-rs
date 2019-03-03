@@ -1,8 +1,8 @@
-use torch_sys::*;
-use crate::utils::path_to_str;
+use crate::utils::path_to_cstring;
 use crate::{Device, Kind};
 use failure::Fallible;
 use libc::{c_char, c_void};
+use torch_sys::*;
 
 /// A tensor object.
 pub struct Tensor {
@@ -139,7 +139,7 @@ impl Tensor {
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load(path: &std::path::Path) -> Fallible<Tensor> {
-        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let path = path_to_cstring(path)?;
         let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
         Ok(Tensor { c_tensor })
     }
@@ -148,7 +148,7 @@ impl Tensor {
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save(&self, path: &std::path::Path) -> Fallible<()> {
-        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let path = path_to_cstring(path)?;
         unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
         Ok(())
     }
@@ -156,11 +156,8 @@ impl Tensor {
     /// Saves some named tensors to a file
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn save_multi(
-        named_tensors: &[(&str, &Tensor)],
-        path: &std::path::Path,
-    ) -> Fallible<()> {
-        let path = std::ffi::CString::new(path_to_str(path)?)?;
+    pub fn save_multi(named_tensors: &[(&str, &Tensor)], path: &std::path::Path) -> Fallible<()> {
+        let path = path_to_cstring(path)?;
         let c_tensors = named_tensors
             .iter()
             .map(|nt| nt.1.c_tensor)
@@ -185,7 +182,7 @@ impl Tensor {
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load_multi(path: &std::path::Path) -> Fallible<Vec<(String, Tensor)>> {
-        let path = std::ffi::CString::new(path_to_str(path)?)?;
+        let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!({
             at_load_callback(path.as_ptr(), &mut v as *mut _ as *mut c_void, add_callback)

@@ -1,5 +1,5 @@
-use std::convert::From;
 use failure::Fallible;
+use std::convert::From;
 
 #[derive(Fail, Debug)]
 #[fail(display = "Internal torch error: {}", c_error)]
@@ -46,9 +46,13 @@ macro_rules! unsafe_torch_err {
     }};
 }
 
-pub(crate) fn path_to_str(path: &std::path::Path) -> Fallible<&str> {
+// Be cautious when using this function as the returned CString should be stored
+// in a variable when using as_ptr. Otherwise dangling pointer issues are likely
+// to happen.
+pub(crate) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<std::ffi::CString> {
+    let path = path.as_ref();
     match path.to_str() {
-        Some(path) => Ok(path),
+        Some(path) => Ok(std::ffi::CString::new(path)?),
         None => Err(format_err!("path {:?} is none", path)),
     }
 }

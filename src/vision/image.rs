@@ -1,20 +1,19 @@
-/// Utility function to manipulate images.
-
+/// Utility functions to manipulate images.
+use crate::utils::path_to_cstring;
 use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
-use crate::utils::path_to_str;
 
 /// On success returns a tensor of shape [width, height, channels].
 fn load_hwc(path: &std::path::Path) -> Fallible<Tensor> {
-    let path = std::ffi::CString::new(path_to_str(path)?)?;
+    let path = path_to_cstring(path)?;
     let c_tensor = unsafe_torch_err!({ torch_sys::at_load_image(path.as_ptr()) });
     Ok(Tensor { c_tensor })
 }
 
 /// Expects a tensor of shape [width, height, channels].
 fn save_hwc(t: &Tensor, path: &std::path::Path) -> Fallible<()> {
-    let path = std::ffi::CString::new(path_to_str(path)?)?;
+    let path = path_to_cstring(path)?;
     let _ = unsafe_torch_err!({ torch_sys::at_save_image(t.c_tensor, path.as_ptr()) });
     Ok(())
 }
@@ -22,7 +21,8 @@ fn save_hwc(t: &Tensor, path: &std::path::Path) -> Fallible<()> {
 /// Expects a tensor of shape [width, height, channels].
 /// On success returns a tensor of shape [width, height, channels].
 fn resize_hwc(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
-    let c_tensor = unsafe_torch!({ torch_sys::at_resize_image(t.c_tensor, out_w as c_int, out_h as c_int) });
+    let c_tensor =
+        unsafe_torch!({ torch_sys::at_resize_image(t.c_tensor, out_w as c_int, out_h as c_int) });
     Tensor { c_tensor }
 }
 
