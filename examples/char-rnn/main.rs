@@ -28,7 +28,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
         state = lstm.step(&input, &state);
         let sampled_y = linear.forward(&state.h()).softmax(-1).multinomial(1, false);
         last_label = i64::from(sampled_y);
-        result.push(last_label as u8 as char)
+        result.push(data.label_to_char(last_label))
     }
     result
 }
@@ -48,11 +48,11 @@ pub fn main() {
         for batch in data.iter_shuffle(SEQ_LEN + 1, BATCH_SIZE) {
             let xs_onehot = batch.narrow(1, 0, SEQ_LEN).onehot(labels);
             let ys = batch.narrow(1, 1, SEQ_LEN).to_kind(kind::Kind::Int64);
-            let (lstm_out, _) = lstm.seq(&xs_onehot);
+            let (lstm_out, _) = lstm.seq(&xs_onehot.to_device(device));
             let logits = linear.forward(&lstm_out);
             let loss = logits
                 .view(&[BATCH_SIZE * SEQ_LEN, labels])
-                .cross_entropy_for_logits(&ys.view(&[BATCH_SIZE * SEQ_LEN]));
+                .cross_entropy_for_logits(&ys.to_device(device).view(&[BATCH_SIZE * SEQ_LEN]));
             opt.backward_step_clip(&loss, 0.5);
             sum_loss += f64::from(loss);
             cnt_loss += 1.0;
