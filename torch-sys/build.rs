@@ -68,7 +68,7 @@ fn prepare_libtorch_dir() -> PathBuf {
             extract(&filename, &libtorch_dir);
         }
 
-        libtorch_dir
+        libtorch_dir.join("libtorch")
     }
 }
 
@@ -101,8 +101,7 @@ fn cmake<P: AsRef<Path>>(libtorch: P) {
 }
 
 fn main() {
-    let libtorch_dir = prepare_libtorch_dir();
-    let libtorch = libtorch_dir.join("libtorch");
+    let libtorch = prepare_libtorch_dir();
     println!(
         "cargo:rustc-link-search=native={}",
         libtorch.join("lib").display()
