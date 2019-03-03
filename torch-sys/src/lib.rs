@@ -28,10 +28,16 @@ extern "C" {
     pub fn at_dim(arg: *mut C_tensor) -> c_int;
     pub fn at_requires_grad(arg: *mut C_tensor) -> c_int;
     pub fn at_shape(arg: *mut C_tensor, sz: *mut i64);
-    pub fn at_double_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int) -> f64;
+    pub fn at_double_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int)
+        -> f64;
     pub fn at_int64_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int) -> i64;
     pub fn at_free(arg: *mut C_tensor);
-    pub fn at_copy_data(arg: *mut C_tensor, vs: *const c_void, numel: i64, elt_size_in_bytes: c_int);
+    pub fn at_copy_data(
+        arg: *mut C_tensor,
+        vs: *const c_void,
+        numel: i64,
+        elt_size_in_bytes: c_int,
+    );
     pub fn at_scalar_type(arg: *mut C_tensor) -> c_int;
     pub fn at_device(arg: *mut C_tensor) -> c_int;
     pub fn at_tensor_of_data(

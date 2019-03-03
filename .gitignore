@@ -1,5 +1,4 @@
-/target
-torch-sys/target
+target/
 _build/
 data/
 gen/.merlin
