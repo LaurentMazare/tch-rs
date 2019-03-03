@@ -108,6 +108,13 @@ impl Optimizer {
         self.step();
     }
 
+    pub fn backward_step_clip(&self, loss: &Tensor, max: f64) {
+        self.zero_grad();
+        loss.backward();
+        self.clip_grad_value(max);
+        self.step();
+    }
+
     /// Sets the optimizer learning rate.
     pub fn set_lr(&mut self, lr: f64) {
         self.opt.set_learning_rate(lr)

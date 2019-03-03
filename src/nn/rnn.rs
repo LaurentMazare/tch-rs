@@ -34,14 +34,14 @@ impl LSTM {
         LSTMState((zeros.shallow_clone(), zeros.shallow_clone()))
     }
 
-    pub fn step(&self, input: Tensor, in_state: LSTMState) -> LSTMState {
+    pub fn step(&self, input: &Tensor, in_state: &LSTMState) -> LSTMState {
         let LSTMState((h, c)) = in_state;
         let (h, c) = input.lstm_cell(
             &[&h, &c], &self.w_ih, &self.w_hh, Some(&self.b_ih), Some(&self.b_hh));
         LSTMState((h, c))
     }
 
-    pub fn seq(&self, input: Tensor) -> (Tensor, LSTMState) {
+    pub fn seq(&self, input: &Tensor) -> (Tensor, LSTMState) {
         let batch_dim = input.size()[0];
         let shape = [1, batch_dim, self.hidden_dim];
         let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
