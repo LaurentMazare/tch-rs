@@ -1,29 +1,41 @@
+#[macro_use] extern crate failure;
+
 use std::env;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use cmake::Config;
+use curl::easy::Easy;
 use failure::Fallible;
-use reqwest;
 use zip;
 
 const TORCH_VERSION: &'static str = "1.0.1";
 
-fn download<P: reqwest::IntoUrl, Q: AsRef<Path>>(source_url: P, target_file: Q) -> Fallible<()> {
-    let mut resp = reqwest::get(source_url)?;
+fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
-    resp.copy_to(&mut writer)?;
-    Ok(())
+	let mut easy = Easy::new();
+	easy.url(&source_url)?;
+	easy.write_function(move |data| {
+		Ok(writer.write(data).unwrap())
+	})?;
+	easy.perform()?;
+	let response_code = easy.response_code()?;
+	if response_code == 200 {
+		Ok(())
+	} else {
+		Err(format_err!("Unexpected response code {} for {}", response_code, source_url))
+	}
 }
 
-fn extract<P: AsRef<Path>>(filename: P, outpath: P) {
-    let file = fs::File::open(&filename).unwrap();
+fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
+    let file = fs::File::open(&filename)?;
     let buf = io::BufReader::new(file);
-    let mut archive = zip::ZipArchive::new(buf).unwrap();
+    let mut archive = zip::ZipArchive::new(buf)?;
     for i in 0..archive.len() {
-        let mut file = archive.by_index(i).unwrap();
+        let mut file = archive.by_index(i)?;
         let outpath = outpath.as_ref().join(file.sanitized_name());
         if !(&*file.name()).ends_with('/') {
             println!(
@@ -34,13 +46,14 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) {
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p).unwrap();
+                    fs::create_dir_all(&p)?;
                 }
             }
-            let mut outfile = fs::File::create(&outpath).unwrap();
-            io::copy(&mut file, &mut outfile).unwrap();
+            let mut outfile = fs::File::create(&outpath)?;
+            io::copy(&mut file, &mut outfile)?;
         }
     }
+	Ok(())
 }
 
 fn prepare_libtorch_dir() -> PathBuf {
@@ -65,7 +78,7 @@ fn prepare_libtorch_dir() -> PathBuf {
 
             let filename = libtorch_dir.join(format!("v{}.zip", TORCH_VERSION));
             download(&libtorch_url, &filename).unwrap();
-            extract(&filename, &libtorch_dir);
+            extract(&filename, &libtorch_dir).unwrap();
         }
 
         libtorch_dir.join("libtorch")
