@@ -2,7 +2,6 @@
 ///
 /// This library tries to stay as close as possible to the original
 /// Python and C++ implementations.
-
 mod var_store;
 pub use var_store::Path;
 pub use var_store::VarStore;
@@ -30,5 +29,5 @@ pub use sequential::Sequential;
 pub use sequential::SequentialT;
 
 mod c_optimizer;
-mod optimizer;
+pub mod optimizer;
 pub use optimizer::Optimizer;

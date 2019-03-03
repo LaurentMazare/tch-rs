@@ -7,7 +7,7 @@
 */
 
 extern crate tch;
-use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
+use tch::nn::{optimizer, BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 use tch::{nn, Device};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
@@ -45,13 +45,34 @@ fn fast_resnet(vs: &nn::Path) -> SequentialT {
         .add_fn(|x| x * 0.125)
 }
 
+fn learning_rate(epoch: i64) -> f64 {
+    if epoch < 50 {
+        0.1
+    } else if epoch < 100 {
+        0.01
+    } else {
+        0.001
+    }
+}
+
 pub fn main() {
     let m = tch::vision::cifar::load_dir(std::path::Path::new("data")).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = fast_resnet(&vs.root());
-    let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
+    let mut opt = nn::Optimizer::sgd(
+        &vs,
+        0.,
+        optimizer::Sgd {
+            momentum: 0.9,
+            dampening: 0.,
+            wd: 5e-4,
+            nesterov: true,
+        },
+    );
     for epoch in 1..150 {
+        opt.set_lr(learning_rate(epoch));
         for (bimages, blabels) in m.train_iter(64).shuffle().to_device(vs.device()) {
+            let bimages = tch::vision::dataset::augmentation(&bimages, true, 4, 8);
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);

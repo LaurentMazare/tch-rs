@@ -10,10 +10,10 @@ pub struct Optimizer {
 
 /// Parameters for the SGD optimizer.
 pub struct Sgd {
-    momentum: f64,
-    dampening: f64,
-    wd: f64,
-    nesterov: bool,
+    pub momentum: f64,
+    pub dampening: f64,
+    pub wd: f64,
+    pub nesterov: bool,
 }
 
 impl Default for Sgd {
@@ -29,9 +29,9 @@ impl Default for Sgd {
 
 /// Parameters for the Adam optimizer.
 pub struct Adam {
-    beta1: f64,
-    beta2: f64,
-    wd: f64,
+    pub beta1: f64,
+    pub beta2: f64,
+    pub wd: f64,
 }
 
 impl Default for Adam {
@@ -46,11 +46,11 @@ impl Default for Adam {
 
 /// Parameters for the RmsProp optimizer.
 pub struct RmsProp {
-    alpha: f64,
-    eps: f64,
-    wd: f64,
-    momentum: f64,
-    centered: bool,
+    pub alpha: f64,
+    pub eps: f64,
+    pub wd: f64,
+    pub momentum: f64,
+    pub centered: bool,
 }
 
 impl Default for RmsProp {
@@ -70,21 +70,30 @@ impl Optimizer {
         let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov);
         let trainable_variables = vs.trainable_variables();
         opt.add_parameters(&trainable_variables);
-        Optimizer { opt, trainable_variables }
+        Optimizer {
+            opt,
+            trainable_variables,
+        }
     }
 
     pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Optimizer {
         let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd);
         let trainable_variables = vs.trainable_variables();
         opt.add_parameters(&trainable_variables);
-        Optimizer { opt, trainable_variables }
+        Optimizer {
+            opt,
+            trainable_variables,
+        }
     }
 
     pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Optimizer {
         let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered);
         let trainable_variables = vs.trainable_variables();
         opt.add_parameters(&trainable_variables);
-        Optimizer { opt, trainable_variables }
+        Optimizer {
+            opt,
+            trainable_variables,
+        }
     }
 
     pub fn zero_grad(&self) {
@@ -94,7 +103,9 @@ impl Optimizer {
     /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
         for tensor in self.trainable_variables.iter() {
-            let _t = tensor.grad().clamp_(&Scalar::float(-max), &Scalar::float(max));
+            let _t = tensor
+                .grad()
+                .clamp_(&Scalar::float(-max), &Scalar::float(max));
         }
     }
 

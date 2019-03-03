@@ -87,3 +87,17 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     }
     output
 }
+
+pub fn augmentation(t: &Tensor, flip: bool, crop: i64, cutout: i64) -> Tensor {
+    let mut t = t.shallow_clone();
+    if flip {
+        t = random_flip(&t);
+    }
+    if crop > 0 {
+        t = random_crop(&t, crop);
+    }
+    if cutout > 0 {
+        t = random_cutout(&t, cutout);
+    }
+    t
+}
