@@ -13,3 +13,5 @@ script: |
 branches:
   only:
     - master
+
+dist: xenial
