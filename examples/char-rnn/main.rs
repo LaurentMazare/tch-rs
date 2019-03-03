@@ -18,7 +18,9 @@ static SAMPLING_LEN: i64 = 1024;
 pub fn main() {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
-    let labels = 26; // TODO: load dataset, extract labels, ...
+    let data = tch::data::TextData::new("data/input.txt").unwrap();
+    let labels = data.labels();
+    println!("Dataset loaded, {} labels.", labels);
     let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE);
     let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels);
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
