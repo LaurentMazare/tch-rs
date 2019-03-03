@@ -1,6 +1,7 @@
 use torch_sys::*;
-use crate::utils::{path_to_str, TorchError};
+use crate::utils::path_to_str;
 use crate::{Device, Kind};
+use failure::Fallible;
 use libc::{c_char, c_void};
 
 /// A tensor object.
@@ -137,7 +138,7 @@ impl Tensor {
     /// Loads a tensor from a file.
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn load(path: &std::path::Path) -> Result<Tensor, TorchError> {
+    pub fn load(path: &std::path::Path) -> Fallible<Tensor> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
         Ok(Tensor { c_tensor })
@@ -146,7 +147,7 @@ impl Tensor {
     /// Saves a tensor to a file.
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
+    pub fn save(&self, path: &std::path::Path) -> Fallible<()> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
         Ok(())
@@ -158,7 +159,7 @@ impl Tensor {
     pub fn save_multi(
         named_tensors: &[(&str, &Tensor)],
         path: &std::path::Path,
-    ) -> Result<(), TorchError> {
+    ) -> Fallible<()> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let c_tensors = named_tensors
             .iter()
@@ -183,7 +184,7 @@ impl Tensor {
     /// Loads some named tensors from a file
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn load_multi(path: &std::path::Path) -> Result<Vec<(String, Tensor)>, TorchError> {
+    pub fn load_multi(path: &std::path::Path) -> Fallible<Vec<(String, Tensor)>> {
         let path = std::ffi::CString::new(path_to_str(path)?)?;
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!({

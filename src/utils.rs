@@ -1,14 +1,10 @@
 use std::convert::From;
+use failure::Fallible;
 
-#[derive(Debug)]
+#[derive(Fail, Debug)]
+#[fail(display = "Internal torch error: {}", c_error)]
 pub struct TorchError {
     c_error: String,
-}
-
-impl TorchError {
-    pub fn new(c_error: String) -> TorchError {
-        TorchError { c_error }
-    }
 }
 
 impl From<std::ffi::NulError> for TorchError {
@@ -50,9 +46,9 @@ macro_rules! unsafe_torch_err {
     }};
 }
 
-pub(crate) fn path_to_str(path: &std::path::Path) -> Result<&str, TorchError> {
+pub(crate) fn path_to_str(path: &std::path::Path) -> Fallible<&str> {
     match path.to_str() {
         Some(path) => Ok(path),
-        None => Err(TorchError::new(format!("path {:?} is none", path))),
+        None => Err(format_err!("path {:?} is none", path)),
     }
 }

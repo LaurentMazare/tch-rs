@@ -1,6 +1,6 @@
 use crate::tensor::Tensor;
-use crate::utils::TorchError;
 use crate::{Device, Kind};
+use failure::Fallible;
 use std::collections::HashMap;
 use std::ops::Div;
 use std::sync::Mutex;
@@ -50,7 +50,7 @@ impl VarStore {
         }
     }
 
-    pub fn save(&self, path: &std::path::Path) -> Result<(), TorchError> {
+    pub fn save(&self, path: &std::path::Path) -> Fallible<()> {
         let variables = self.variables.lock().unwrap();
         let named_tensors = variables
             .iter()
@@ -59,17 +59,14 @@ impl VarStore {
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
 
-    pub fn load(&self, path: &std::path::Path) -> Result<(), TorchError> {
+    pub fn load(&self, path: &std::path::Path) -> Fallible<()> {
         let named_tensors = Tensor::load_multi(path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let variables = self.variables.lock().unwrap();
         for (name, tensor) in variables.iter() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| tensor.copy_(src)),
-                None => Err(TorchError::new(format!(
-                    "cannot find {} in {:?}",
-                    name, path
-                )))?,
+                None => Err(format_err!("cannot find {} in {:?}", name, path))?,
             }
         }
         Ok(())
