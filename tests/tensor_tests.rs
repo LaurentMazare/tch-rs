@@ -131,3 +131,14 @@ fn data() {
     }
     assert_eq!(all_in_order, false)
 }
+
+#[test]
+fn onehot() {
+    let xs = Tensor::int_vec(&[0, 1, 2, 3]);
+    let onehot = xs.onehot(4);
+    assert_eq!(
+        Vec::<f64>::from(&onehot),
+        vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    );
+    assert_eq!(onehot.size(), vec![4, 4])
+}

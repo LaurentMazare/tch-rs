@@ -15,6 +15,16 @@ pub struct LSTM {
 
 pub struct LSTMState((Tensor, Tensor));
 
+impl LSTMState {
+    pub fn h(&self) -> Tensor {
+        (self.0).0.shallow_clone()
+    }
+
+    pub fn c(&self) -> Tensor {
+        (self.0).1.shallow_clone()
+    }
+}
+
 impl LSTM {
     pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64) -> LSTM {
         let gate_dim = 4 * hidden_dim;
@@ -37,7 +47,12 @@ impl LSTM {
     pub fn step(&self, input: &Tensor, in_state: &LSTMState) -> LSTMState {
         let LSTMState((h, c)) = in_state;
         let (h, c) = input.lstm_cell(
-            &[&h, &c], &self.w_ih, &self.w_hh, Some(&self.b_ih), Some(&self.b_hh));
+            &[&h, &c],
+            &self.w_ih,
+            &self.w_hh,
+            Some(&self.b_ih),
+            Some(&self.b_hh),
+        );
         LSTMState((h, c))
     }
 
@@ -46,14 +61,15 @@ impl LSTM {
         let shape = [1, batch_dim, self.hidden_dim];
         let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
         let (output, h, c) = input.lstm(
-            &[&zeros, &zeros], 
+            &[&zeros, &zeros],
             &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
-            /*has_biases=*/true,
-            /*num_layers=*/1,
-            /*dropout=*/0.,
-            /*train=*/false,
-            /*bidirectional=*/false,
-            /*batch_first=*/true);
+            /*has_biases=*/ true,
+            /*num_layers=*/ 1,
+            /*dropout=*/ 0.,
+            /*train=*/ false,
+            /*bidirectional=*/ false,
+            /*batch_first=*/ true,
+        );
         (output, LSTMState((h, c)))
     }
 }

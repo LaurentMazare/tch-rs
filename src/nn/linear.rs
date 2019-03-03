@@ -19,6 +19,6 @@ impl Linear {
 
 impl super::module::Module for Linear {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.mm(&self.ws.tr()) + &self.bs
+        xs.matmul(&self.ws.tr()) + &self.bs
     }
 }

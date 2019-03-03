@@ -1,5 +1,4 @@
 /// A Torch tensor.
-
 use crate::scalar::Scalar;
 use crate::{Device, Kind};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
@@ -183,7 +182,7 @@ impl Tensor {
 }
 
 macro_rules! from_tensor {
-    ($typ:ty, $zero:expr, $kind:ident) => {
+    ($typ:ident, $zero:expr, $kind:ident) => {
         impl From<&Tensor> for Vec<$typ> {
             fn from(tensor: &Tensor) -> Vec<$typ> {
                 let numel = tensor.numel();
@@ -200,6 +199,18 @@ macro_rules! from_tensor {
                     panic!("expected exactly one element, got {}", numel)
                 }
                 Vec::from(tensor)[0]
+            }
+        }
+
+        impl From<Tensor> for Vec<$typ> {
+            fn from(tensor: Tensor) -> Vec<$typ> {
+                Vec::<$typ>::from(&tensor)
+            }
+        }
+
+        impl From<Tensor> for $typ {
+            fn from(tensor: Tensor) -> $typ {
+                $typ::from(&tensor)
             }
         }
     };
@@ -274,5 +285,22 @@ impl Tensor {
     pub fn flat_view(&self) -> Tensor {
         let batch_size = self.size()[0] as i64;
         self.view(&[batch_size, -1])
+    }
+
+    /// Converts a tensor to a one-hot encoded version.
+    ///
+    /// If the input has a size [N1, N2, ..., Nk], the returned tensor has a size
+    /// [N1, ..., Nk, labels]. The returned tensor uses float values.
+    /// Elements of the input vector are expected to be between 0 and labels-1.
+    pub fn onehot(&self, labels: i64) -> Tensor {
+        Tensor::zeros(
+            &[self.size(), vec![labels]].concat(),
+            crate::kind::FLOAT_CPU,
+        )
+        .scatter_(
+            -1,
+            &self.unsqueeze(-1).to_kind(Kind::Int64),
+            &Tensor::ones(&[], crate::kind::FLOAT_CPU),
+        )
     }
 }
