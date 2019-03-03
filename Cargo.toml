@@ -1,6 +1,6 @@
 [package]
 name = "tch"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 
@@ -9,9 +9,10 @@ repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
 categories = ["science"]
 license = "Apache-2.0"
+readme = "README.md"
 
 [dependencies]
 failure = "0.1"
 libc = "0.2.0"
 rand = "0.6.5"
-torch-sys = { version = "0.0.2", path = "torch-sys" }
+torch-sys = { version = "0.0.3", path = "torch-sys" }
