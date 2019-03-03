@@ -136,3 +136,44 @@ impl Optimizer {
         self.opt.set_momentum(m)
     }
 }
+
+pub fn sgd(
+    vs: &VarStore,
+    lr: f64,
+    momentum: f64,
+    dampening: f64,
+    wd: f64,
+    nesterov: bool,
+) -> Optimizer {
+    let sgd = Sgd {
+        momentum,
+        dampening,
+        wd,
+        nesterov,
+    };
+    Optimizer::sgd(vs, lr, sgd)
+}
+
+pub fn adam(vs: &VarStore, lr: f64, beta1: f64, beta2: f64, wd: f64) -> Optimizer {
+    let adam = Adam { beta1, beta2, wd };
+    Optimizer::adam(vs, lr, adam)
+}
+
+pub fn rms_prop(
+    vs: &VarStore,
+    lr: f64,
+    alpha: f64,
+    eps: f64,
+    wd: f64,
+    momentum: f64,
+    centered: bool,
+) -> Optimizer {
+    let rmsprop = RmsProp {
+        alpha,
+        eps,
+        wd,
+        momentum,
+        centered,
+    };
+    Optimizer::rms_prop(vs, lr, rmsprop)
+}
