@@ -1,4 +1,9 @@
-#[macro_use] extern crate failure;
+// The LIBTORCH environment variable can be used to specify the directory
+// where libtorch has been installed.
+// When not specified this script downloads the cpu version for libtorch
+// and extracts it in OUT_DIR.
+#[macro_use]
+extern crate failure;
 
 use std::env;
 use std::fs;
@@ -16,18 +21,20 @@ const TORCH_VERSION: &'static str = "1.0.1";
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
-	let mut easy = Easy::new();
-	easy.url(&source_url)?;
-	easy.write_function(move |data| {
-		Ok(writer.write(data).unwrap())
-	})?;
-	easy.perform()?;
-	let response_code = easy.response_code()?;
-	if response_code == 200 {
-		Ok(())
-	} else {
-		Err(format_err!("Unexpected response code {} for {}", response_code, source_url))
-	}
+    let mut easy = Easy::new();
+    easy.url(&source_url)?;
+    easy.write_function(move |data| Ok(writer.write(data).unwrap()))?;
+    easy.perform()?;
+    let response_code = easy.response_code()?;
+    if response_code == 200 {
+        Ok(())
+    } else {
+        Err(format_err!(
+            "Unexpected response code {} for {}",
+            response_code,
+            source_url
+        ))
+    }
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
@@ -53,7 +60,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
             io::copy(&mut file, &mut outfile)?;
         }
     }
-	Ok(())
+    Ok(())
 }
 
 fn prepare_libtorch_dir() -> PathBuf {

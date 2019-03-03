@@ -1,5 +1,9 @@
 # tch-rs
-Experimental rust bindings for PyTorch.
+Rust bindings for PyTorch. The goal of this crate is to provide some thin wrappers
+around the C++ PyTorch api (a.k.a. libtorch). It aims at staying as close as
+possible to the original C++ api. More idiomatic rust bindings could then be
+developed on top of this.
+
 The code generation part for the C api on top of libtorch comes from
 [ocaml-torch](https://github.com/LaurentMazare/ocaml-torch).
 
@@ -47,34 +51,17 @@ impl nn::Module for Net {
 }
 ```
 
-This model can then be trained on the MNIST dataset with the following code.
-
-```ocaml
-fn main() {
-    let m = tch::vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
-    let mut vs = nn::VarStore::new(Device::Cpu);
-    let net = Net::new(&mut vs);
-    let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
-    for epoch in 1..200 {
-        let loss = net
-            .forward(&m.train_images)
-            .cross_entropy_for_logits(&m.train_labels);
-        opt.backward_step(&loss);
-        let test_accuracy = net
-            .forward(&m.test_images)
-            .accuracy_for_logits(&m.test_labels);
-        println!(
-            "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-            epoch,
-            f64::from(&loss),
-            100. * f64::from(&test_accuracy),
-        );
-    }
-}
-```
-More examples can be found in the `examples` directory. They can be run
-using the following command:
+This model can be trained on the MNIST dataset by running the following command.
 
 ```bash
-cargo run --example mnist_nn
+cargo run --example mnist
 ```
+
+More details on the training loop can be found in the
+[detailed tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/mnist).
+
+Further examples include:
+* A simplified version of
+  [char-rnn](https://github.com/LaurentMazare/tch-rs/blob/master/examples/char-rnn)
+  illustrating character level language modeling using Recurrent Neural Networks.
+* Some [ResNet examples on CIFAR-10](https://github.com/LaurentMazare/tch-rs/tree/master/examples/cifar).
