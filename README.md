@@ -1,8 +1,12 @@
 # tch-rs
-Rust bindings for PyTorch. The goal of this crate is to provide some thin wrappers
+Rust bindings for PyTorch. The goal of the `tch` crate is to provide some thin wrappers
 around the C++ PyTorch api (a.k.a. libtorch). It aims at staying as close as
 possible to the original C++ api. More idiomatic rust bindings could then be
-developed on top of this.
+developed on top of this. The [documentation](https://docs.rs/tch/) can be found on docs.rs.
+
+[![Build Status](https://travis-ci.org/LaurentMazare/tch-rs.svg?branch=master)](https://travis-ci.org/LaurentMazare/tch-rs)
+[![Crate](http://meritbadge.herokuapp.com/tch)](https://crates.io/crates/tch)
+
 
 The code generation part for the C api on top of libtorch comes from
 [ocaml-torch](https://github.com/LaurentMazare/ocaml-torch).
