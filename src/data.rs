@@ -95,7 +95,17 @@ pub struct TextData {
     char_for_label: Vec<char>,
 }
 
+pub struct TextDataIter {
+    data: Tensor,
+    seq_len: i64,
+    batch_index: i64,
+    batch_size: i64,
+    total_size: i64,
+    indexes: Tensor,
+}
+
 impl TextData {
+    /// Creates a text dataset from a file.
     pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData> {
         let mut buf_reader = BufReader::new(File::open(filename)?);
         let mut buffer = Vec::new();
@@ -117,11 +127,49 @@ impl TextData {
         })
     }
 
+    /// Returns the number of different characters/labels used by the dataset.
     pub fn labels(&self) -> i64 {
         self.char_for_label.len() as i64
     }
 
+    /// Returns a shallow copy of the data.
     pub fn data(&self) -> Tensor {
         self.data.shallow_clone()
+    }
+
+    pub fn label_to_char(&self, label: i64) -> char {
+        self.char_for_label[label as usize]
+    }
+
+    /// Returns a batch iterator over the dataset.
+    /// Each sample is made of seq_len characters.
+    pub fn iter_shuffle(&self, seq_len: i64, batch_size: i64) -> TextDataIter {
+        let total_size = self.data.size()[0];
+        TextDataIter {
+            data: self.data.shallow_clone(),
+            seq_len,
+            batch_index: 0,
+            batch_size,
+            total_size,
+            indexes: Tensor::randperm(total_size - seq_len + 1, kind::INT64_CPU),
+        }
+    }
+}
+
+impl Iterator for TextDataIter {
+    type Item = Tensor;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let start = self.batch_index * self.batch_size;
+        let size = std::cmp::min(self.batch_size, self.total_size - start);
+        if size < self.batch_size {
+            None
+        } else {
+            self.batch_index = self.batch_index + 1;
+            let indexes = Vec::<i64>::from(&self.indexes.narrow(0, start, size));
+            let batch: Vec<_> = indexes.iter().map(|&i| self.data.narrow(0, i, self.seq_len)).collect();
+            let batch: Vec<_> = batch.iter().map(|b| b).collect();
+            Some(Tensor::stack(&batch, 0))
+        }
     }
 }

@@ -6,7 +6,7 @@
 
 extern crate tch;
 use tch::nn::Module;
-use tch::{nn, Device};
+use tch::{nn, kind, Device, Tensor};
 
 static LEARNING_RATE: f64 = 0.01;
 static HIDDEN_SIZE: i64 = 256;
@@ -23,14 +23,20 @@ pub fn main() {
     println!("Dataset loaded, {} labels.", labels);
     let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE);
     let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels);
-    let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
+    let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default());
     for epoch in 1..(1+EPOCHS) {
-        // TODO: loop over the dataset, extracting xs and ys
-        let (xs, ys) = panic!("TODO");
-        let (lstm_out, _) = lstm.seq(&xs);
-        let logits = linear.forward(&lstm_out);
-        let loss = logits.cross_entropy_for_logits(&ys);
-        opt.backward_step_clip(&loss, 0.5);
+        for batch in data.iter_shuffle(SEQ_LEN + 1, BATCH_SIZE) {
+            let xs = batch.narrow(1, 0, SEQ_LEN).view(&[BATCH_SIZE, SEQ_LEN, 1]);
+            let xs_onehot =
+                Tensor::zeros(&[BATCH_SIZE, SEQ_LEN, labels], kind::FLOAT_CPU)
+                    .scatter_(2, &xs.to_kind(kind::Kind::Int64), &Tensor::ones(&[], kind::FLOAT_CPU));
+            let ys = batch.narrow(1, 1, SEQ_LEN);
+            let (lstm_out, _) = lstm.seq(&xs_onehot);
+            println!("{:?} {:?}", xs_onehot, lstm_out);
+            let logits = linear.forward(&lstm_out);
+            let loss = logits.cross_entropy_for_logits(&ys);
+            opt.backward_step_clip(&loss, 0.5);
+        }
 
         // TODO: add some sampling at the end of each epoch.
         println!("Epoch: {}", epoch);
