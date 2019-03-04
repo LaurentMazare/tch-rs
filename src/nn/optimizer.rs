@@ -9,22 +9,12 @@ pub struct Optimizer {
 }
 
 /// Parameters for the SGD optimizer.
+#[derive(Default)]
 pub struct Sgd {
     pub momentum: f64,
     pub dampening: f64,
     pub wd: f64,
     pub nesterov: bool,
-}
-
-impl Default for Sgd {
-    fn default() -> Self {
-        Sgd {
-            momentum: 0.,
-            dampening: 0.,
-            wd: 0.,
-            nesterov: false,
-        }
-    }
 }
 
 /// Parameters for the Adam optimizer.
