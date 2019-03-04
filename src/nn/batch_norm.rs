@@ -1,5 +1,6 @@
-/// A batch-normalization layer.
 use crate::Tensor;
+/// A batch-normalization layer.
+use std::borrow::Borrow;
 
 pub struct BatchNorm2DConfig {
     cudnn_enabled: bool,
@@ -27,11 +28,12 @@ pub struct BatchNorm2D {
 }
 
 impl BatchNorm2D {
-    pub fn new(
-        vs: &super::var_store::Path,
+    pub fn new<'a, T: Borrow<super::Path<'a>>>(
+        vs: T,
         out_dim: i64,
         config: BatchNorm2DConfig,
     ) -> BatchNorm2D {
+        let vs = vs.borrow();
         BatchNorm2D {
             config,
             running_mean: vs.zeros_no_train("running_mean", &[out_dim]),

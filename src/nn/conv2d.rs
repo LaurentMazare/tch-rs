@@ -1,5 +1,6 @@
 /// A two dimension convolution layer.
 use crate::Tensor;
+use std::borrow::Borrow;
 
 pub struct Conv2DConfig {
     pub stride: i64,
@@ -32,13 +33,14 @@ pub struct Conv2D {
 }
 
 impl Conv2D {
-    pub fn new(
-        vs: &super::var_store::Path,
+    pub fn new<'a, T: Borrow<super::Path<'a>>>(
+        vs: T,
         in_dim: i64,
         out_dim: i64,
         ksize: i64,
         config: Conv2DConfig,
     ) -> Conv2D {
+        let vs = vs.borrow();
         let Conv2DConfig {
             stride,
             padding,

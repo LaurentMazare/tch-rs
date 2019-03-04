@@ -1,5 +1,6 @@
 /// A linear fully-connected layer.
 use crate::Tensor;
+use std::borrow::Borrow;
 
 /// A linear fully-connected layer.
 pub struct Linear {
@@ -8,7 +9,8 @@ pub struct Linear {
 }
 
 impl Linear {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, out_dim: i64) -> Linear {
+    pub fn new<'a, T: Borrow<super::Path<'a>>>(vs: T, in_dim: i64, out_dim: i64) -> Linear {
+        let vs = vs.borrow();
         let bound = 1.0 / (in_dim as f64).sqrt();
         Linear {
             ws: vs.kaiming_uniform("weight", &[out_dim, in_dim]),
