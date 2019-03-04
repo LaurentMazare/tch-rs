@@ -5,9 +5,15 @@
 */
 
 extern crate tch;
-use tch::data::TextData;
-use tch::nn::{Linear, Module, LSTM};
-use tch::{kind, nn, Device, Scalar, Tensor};
+
+use std::{error::Error, result::Result};
+
+use tch::{
+    data::TextData,
+    kind,
+    nn::{self, Linear, Module, LSTM},
+    Device, Scalar, Tensor,
+};
 
 static LEARNING_RATE: f64 = 0.01;
 static HIDDEN_SIZE: i64 = 256;
@@ -33,7 +39,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     result
 }
 
-pub fn main() {
+pub fn main() -> Result<(), Box<dyn Error>> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt").unwrap();
@@ -60,4 +66,6 @@ pub fn main() {
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
         println!("Sample: {}", sample(&data, &lstm, &linear, device));
     }
+
+    Ok(())
 }

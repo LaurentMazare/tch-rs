@@ -1,6 +1,11 @@
 // This should rearch 97% accuracy.
 
-use tch::{nn, nn::Module, Device, Tensor};
+use std::{error::Error, result::Result};
+
+use tch::{
+    nn::{self, Module},
+    Device, Tensor,
+};
 
 static IMAGE_DIM: i64 = 784;
 static HIDDEN_NODES: i64 = 128;
@@ -25,8 +30,8 @@ impl nn::Module for Net {
     }
 }
 
-pub fn run() {
-    let m = tch::vision::mnist::load_dir("data").unwrap();
+pub fn run() -> Result<(), Box<dyn Error>> {
+    let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
@@ -45,4 +50,6 @@ pub fn run() {
             100. * f64::from(&test_accuracy),
         );
     }
+
+    Ok(())
 }

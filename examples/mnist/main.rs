@@ -8,11 +8,14 @@
 */
 
 extern crate tch;
+
+use std::{error::Error, result::Result};
+
 mod mnist_conv;
 mod mnist_linear;
 mod mnist_nn;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     let model = if args.len() < 2 {
         None

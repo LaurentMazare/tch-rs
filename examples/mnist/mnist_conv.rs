@@ -1,6 +1,11 @@
 // CNN model. This should rearch 99.1% accuracy.
 
-use tch::{nn, nn::ModuleT, Device, Tensor};
+use std::{error::Error, result::Result};
+
+use tch::{
+    nn::{self, ModuleT},
+    Device, Tensor,
+};
 
 struct Net {
     conv1: nn::Conv2D,
@@ -39,20 +44,21 @@ impl nn::ModuleT for Net {
     }
 }
 
-pub fn run() {
-    let m = tch::vision::mnist::load_dir("data").unwrap();
+pub fn run() -> Result<(), Box<dyn Error>> {
+    let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
     for epoch in 1..100 {
-        for (bimages, blabels) in m.train_iter(256).shuffle().to_device(vs.device()) {
+        for (bimages, blabels) in m.train_iter(256)?.shuffle().to_device(vs.device()) {
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
             opt.backward_step(&loss);
         }
         let test_accuracy =
-            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 1024);
+            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 1024)?;
         println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
+    Ok(())
 }

@@ -1,8 +1,14 @@
-/// Dataset iterators.
+//! Dataset iterators.
+
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::{BufReader, Read, Result},
+};
+
+use failure::Fallible;
+
 use crate::{kind, Device, Tensor};
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufReader, Read, Result};
 
 /// An iterator over a pair of tensors which have the same first dimension
 /// size.
@@ -31,12 +37,16 @@ impl Iter2 {
     /// * `xs` - the features to be used by the model.
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
-    pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Iter2 {
+    pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Fallible<Iter2> {
         let total_size = xs.size()[0];
-        if ys.size()[0] != total_size {
-            panic!("different dimension for the two inputs {:?} {:?}", xs, ys)
-        }
-        Iter2 {
+        ensure!(
+            ys.size()[0] == total_size,
+            "different dimension for the two inputs {:?} {:?}",
+            xs,
+            ys
+        );
+
+        Ok(Iter2 {
             xs: xs.shallow_clone(),
             ys: ys.shallow_clone(),
             batch_index: 0,
@@ -44,7 +54,7 @@ impl Iter2 {
             total_size,
             device: Device::Cpu,
             return_smaller_last_batch: false,
-        }
+        })
     }
 
     /// Shuffles the dataset.
