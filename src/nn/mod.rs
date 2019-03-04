@@ -31,3 +31,10 @@ pub use sequential::SequentialT;
 mod c_optimizer;
 pub mod optimizer;
 pub use optimizer::Optimizer;
+
+pub struct Id();
+impl ModuleT for Id {
+    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
+        xs.shallow_clone()
+    }
+}

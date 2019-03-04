@@ -165,3 +165,11 @@ impl<'a> Div<&str> for &'a mut Path<'a> {
         self.sub(&rhs)
     }
 }
+
+impl<'a> Div<&str> for &'a Path<'a> {
+    type Output = Path<'a>;
+
+    fn div(self, rhs: &str) -> Self::Output {
+        self.sub(&rhs)
+    }
+}
