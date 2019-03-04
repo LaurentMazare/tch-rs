@@ -61,7 +61,8 @@ fn read_images(filename: &std::path::Path) -> Result<Tensor> {
         .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
 }
 
-pub fn load_dir(dir: &std::path::Path) -> Result<Dataset> {
+pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset> {
+    let dir = dir.as_ref();
     let train_images = read_images(&dir.join("train-images-idx3-ubyte"))?;
     let train_labels = read_labels(&dir.join("train-labels-idx1-ubyte"))?;
     let test_images = read_images(&dir.join("t10k-images-idx3-ubyte"))?;

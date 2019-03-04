@@ -6,7 +6,7 @@ static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 10;
 
 pub fn run() {
-    let m = vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+    let m = vision::mnist::load_dir("data").unwrap();
     println!("train-images: {:?}", m.train_images.size());
     println!("train-labels: {:?}", m.train_labels.size());
     println!("test-images: {:?}", m.test_images.size());

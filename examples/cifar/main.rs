@@ -3,7 +3,7 @@
    The dataset can be downloaded from https://www.cs.toronto.edu/~kriz/cifar.html, files
    should be placed in the data/ directory.
 
-   The resnet model reaches XX.X% accuracy.
+   The resnet model reaches 95.4% accuracy.
 */
 
 extern crate tch;
@@ -56,7 +56,7 @@ fn learning_rate(epoch: i64) -> f64 {
 }
 
 pub fn main() {
-    let m = tch::vision::cifar::load_dir(std::path::Path::new("data")).unwrap();
+    let m = tch::vision::cifar::load_dir("data").unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = fast_resnet(&vs.root());
     let mut opt = nn::optimizer::sgd(&vs, 0., 0.9, 0., 5e-4, true);

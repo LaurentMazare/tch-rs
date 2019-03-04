@@ -13,7 +13,7 @@ when training the model.  Test images and labels are used to estimate the
 validation error.
 
 ```rust
-let m = vision::mnist::load_dir(std::path::Path::new("data")).unwrap();
+let m = vision::mnist::load_dir("data").unwrap();
 ```
 
 After that two tensors are initialized to hold the weights and biases for the

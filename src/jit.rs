@@ -69,7 +69,7 @@ impl Drop for CModule {
 
 impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
-    pub fn load(path: &std::path::Path) -> Fallible<CModule> {
+    pub fn load<T: AsRef<std::path::Path>>(path: T) -> Fallible<CModule> {
         let path = path_to_cstring(path)?;
         let c_module = unsafe_torch_err!({ atm_load(path.as_ptr()) });
         Ok(CModule { c_module })

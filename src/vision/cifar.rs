@@ -41,7 +41,8 @@ fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
         .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
 }
 
-pub fn load_dir(dir: &std::path::Path) -> Result<Dataset> {
+pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset> {
+    let dir = dir.as_ref();
     let (test_images, test_labels) = read_file(&dir.join("test_batch.bin"))?;
     let train_images_and_labels = [
         "data_batch_1.bin",
