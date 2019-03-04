@@ -21,19 +21,23 @@ impl COptimizer {
         centered: bool,
     ) -> COptimizer {
         let centered = if centered { 1 } else { 0 };
-        let c_optimizer = unsafe_torch!({ torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
+        let c_optimizer =
+            unsafe_torch!({ torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
         COptimizer { c_optimizer }
     }
 
     pub fn sgd(lr: f64, momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> COptimizer {
         let nesterov = if nesterov { 1 } else { 0 };
-        let c_optimizer = unsafe_torch!({ torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov) });
+        let c_optimizer =
+            unsafe_torch!({ torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov) });
         COptimizer { c_optimizer }
     }
 
     pub fn add_parameters(&mut self, ts: &[Tensor]) {
         let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
-        unsafe_torch!({ torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int) })
+        unsafe_torch!({
+            torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int)
+        })
     }
 
     pub fn set_learning_rate(&mut self, lr: f64) {

@@ -1,6 +1,5 @@
 /// The `vision` module groups functions and models related to
 /// computer vision.
-
 pub mod dataset;
 
 pub mod image;
