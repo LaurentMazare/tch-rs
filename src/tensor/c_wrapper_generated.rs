@@ -5,10 +5,11 @@ use torch_sys::c_generated::*;
 use crate::device::Device;
 use crate::kind::Kind;
 use crate::scalar::Scalar;
+use std::borrow::Borrow;
 use super::c_wrapper::Tensor;
 
-fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {
-    l.iter().map(|x| x.c_tensor).collect()
+fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {
+    l.iter().map(|x| x.borrow().c_tensor).collect()
 }
 
 impl Tensor {
@@ -1227,17 +1228,17 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn batch_norm(
-        &self, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, momentum: f64, eps: f64, cudnn_enabled: bool
+    pub fn batch_norm<T: Borrow<Tensor>>(
+        &self, weight: Option<T>, bias: Option<T>, running_mean: Option<T>, running_var: Option<T>, training: bool, momentum: f64, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_batch_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if training { 1 } else { 0 },
                 momentum,
                 eps,
@@ -1305,8 +1306,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn bilinear(
-        input1: &Tensor, input2: &Tensor, weight: &Tensor, bias: Option<&Tensor>
+    pub fn bilinear<T: Borrow<Tensor>>(
+        input1: &Tensor, input2: &Tensor, weight: &Tensor, bias: Option<T>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1314,7 +1315,7 @@ impl Tensor {
                 input1.c_tensor,
                 input2.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor)
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
@@ -1333,8 +1334,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn binary_cross_entropy_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64
+    pub fn binary_cross_entropy_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1342,14 +1343,14 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn binary_cross_entropy_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64
+    pub fn binary_cross_entropy_backward_out<T: Borrow<Tensor>>(
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1358,7 +1359,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction
             ) });
         Tensor { c_tensor: c_tensors[0] }
@@ -1379,23 +1380,23 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn binary_cross_entropy_with_logits(
-        &self, target: &Tensor, weight: Option<&Tensor>, pos_weight: Option<&Tensor>, reduction: i64
+    pub fn binary_cross_entropy_with_logits<T: Borrow<Tensor>>(
+        &self, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_binary_cross_entropy_with_logits(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                pos_weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                pos_weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn binary_cross_entropy_with_logits_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, pos_weight: Option<&Tensor>, reduction: i64
+    pub fn binary_cross_entropy_with_logits_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1403,21 +1404,21 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                pos_weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                pos_weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn bincount(
-        &self, weights: Option<&Tensor>, minlength: i64
+    pub fn bincount<T: Borrow<Tensor>>(
+        &self, weights: Option<T>, minlength: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_bincount(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                weights.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 minlength
             ) });
         Tensor { c_tensor: c_tensors[0] }
@@ -1553,8 +1554,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn cat(
-        tensors: &[&Tensor], dim: i64
+    pub fn cat<T: Borrow<Tensor>>(
+        tensors: &[T], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1565,8 +1566,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn cat_out(
-        result: &Tensor, tensors: &[&Tensor], dim: i64
+    pub fn cat_out<T: Borrow<Tensor>>(
+        result: &Tensor, tensors: &[T], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1647,8 +1648,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn chain_matmul(
-        matrices: &[&Tensor]
+    pub fn chain_matmul<T: Borrow<Tensor>>(
+        matrices: &[T]
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -1976,15 +1977,15 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn convolution(
-        &self, weight: &Tensor, bias: Option<&Tensor>, stride: &[i64], padding: &[i64], dilation: &[i64], transposed: bool, output_padding: &[i64], groups: i64
+    pub fn convolution<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, stride: &[i64], padding: &[i64], dilation: &[i64], transposed: bool, output_padding: &[i64], groups: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 stride.as_ptr(), stride.len() as i32,
                 padding.as_ptr(), padding.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -2180,17 +2181,17 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn cudnn_batch_norm(
-        &self, weight: &Tensor, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
+    pub fn cudnn_batch_norm<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, running_mean: Option<T>, running_var: Option<T>, training: bool, exponential_average_factor: f64, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
             atg_cudnn_batch_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if training { 1 } else { 0 },
                 exponential_average_factor,
                 epsilon
@@ -2198,8 +2199,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn cudnn_batch_norm_backward(
-        &self, grad_output: &Tensor, weight: &Tensor, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, save_mean: Option<&Tensor>, save_var: Option<&Tensor>, epsilon: f64
+    pub fn cudnn_batch_norm_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, weight: &Tensor, running_mean: Option<T>, running_var: Option<T>, save_mean: Option<T>, save_var: Option<T>, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
@@ -2207,24 +2208,24 @@ impl Tensor {
                 self.c_tensor,
                 grad_output.c_tensor,
                 weight.c_tensor,
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                save_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                save_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                save_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                save_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 epsilon
             ) });
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn cudnn_convolution(
-        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+    pub fn cudnn_convolution<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_cudnn_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -2284,15 +2285,15 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn cudnn_convolution_transpose(
-        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+    pub fn cudnn_convolution_transpose<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_cudnn_convolution_transpose(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 output_padding.as_ptr(), output_padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
@@ -4034,24 +4035,24 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn group_norm(
-        &self, num_groups: i64, weight: Option<&Tensor>, bias: Option<&Tensor>, eps: f64, cudnn_enabled: bool
+    pub fn group_norm<T: Borrow<Tensor>>(
+        &self, num_groups: i64, weight: Option<T>, bias: Option<T>, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_group_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 num_groups,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 eps,
                 if cudnn_enabled { 1 } else { 0 }
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn gru(
-        &self, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+    pub fn gru<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -4069,8 +4070,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn gru1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+    pub fn gru1<T: Borrow<Tensor>>(
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -4088,8 +4089,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn gru_cell(
-        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
+    pub fn gru_cell<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<T>, b_hh: Option<T>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -4098,8 +4099,8 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
@@ -4392,8 +4393,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn index(
-        &self, indices: &[&Tensor]
+    pub fn index<T: Borrow<Tensor>>(
+        &self, indices: &[T]
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -4460,8 +4461,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn index_put(
-        &self, indices: &[&Tensor], values: &Tensor
+    pub fn index_put<T: Borrow<Tensor>>(
+        &self, indices: &[T], values: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -4473,8 +4474,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn index_put_(
-        &self, indices: &[&Tensor], values: &Tensor
+    pub fn index_put_<T: Borrow<Tensor>>(
+        &self, indices: &[T], values: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -4524,17 +4525,17 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn instance_norm(
-        &self, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, use_input_stats: bool, momentum: f64, eps: f64, cudnn_enabled: bool
+    pub fn instance_norm<T: Borrow<Tensor>>(
+        &self, weight: Option<T>, bias: Option<T>, running_mean: Option<T>, running_var: Option<T>, use_input_stats: bool, momentum: f64, eps: f64, cudnn_enabled: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_instance_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if use_input_stats { 1 } else { 0 },
                 momentum,
                 eps,
@@ -4709,16 +4710,16 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn layer_norm(
-        &self, normalized_shape: &[i64], weight: Option<&Tensor>, bias: Option<&Tensor>, eps: f64, cudnn_enable: bool
+    pub fn layer_norm<T: Borrow<Tensor>>(
+        &self, normalized_shape: &[i64], weight: Option<T>, bias: Option<T>, eps: f64, cudnn_enable: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_layer_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 normalized_shape.as_ptr(), normalized_shape.len() as i32,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 eps,
                 if cudnn_enable { 1 } else { 0 }
             ) });
@@ -5290,8 +5291,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn lstm(
-        &self, hx: &[&Tensor], params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+    pub fn lstm<T: Borrow<Tensor>>(
+        &self, hx: &[T], params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
@@ -5309,8 +5310,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn lstm1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &[&Tensor], params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+    pub fn lstm1<T: Borrow<Tensor>>(
+        data: &Tensor, batch_sizes: &Tensor, hx: &[T], params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
@@ -5328,8 +5329,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn lstm_cell(
-        &self, hx: &[&Tensor], w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
+    pub fn lstm_cell<T: Borrow<Tensor>>(
+        &self, hx: &[T], w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<T>, b_hh: Option<T>
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -5338,8 +5339,8 @@ impl Tensor {
                 ptr_list(hx).as_ptr(), hx.len() as i32,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
             ) });
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
@@ -6184,17 +6185,17 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn miopen_batch_norm(
-        &self, weight: &Tensor, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, exponential_average_factor: f64, epsilon: f64
+    pub fn miopen_batch_norm<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, running_mean: Option<T>, running_var: Option<T>, training: bool, exponential_average_factor: f64, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
             atg_miopen_batch_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if training { 1 } else { 0 },
                 exponential_average_factor,
                 epsilon
@@ -6202,8 +6203,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn miopen_batch_norm_backward(
-        &self, grad_output: &Tensor, weight: &Tensor, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, save_mean: Option<&Tensor>, save_var: Option<&Tensor>, epsilon: f64
+    pub fn miopen_batch_norm_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, weight: &Tensor, running_mean: Option<T>, running_var: Option<T>, save_mean: Option<T>, save_var: Option<T>, epsilon: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
@@ -6211,24 +6212,24 @@ impl Tensor {
                 self.c_tensor,
                 grad_output.c_tensor,
                 weight.c_tensor,
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                save_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                save_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                save_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                save_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 epsilon
             ) });
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }, Tensor { c_tensor: c_tensors[2] })
     }
 
-    pub fn miopen_convolution(
-        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+    pub fn miopen_convolution<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_miopen_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -6288,15 +6289,15 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn miopen_convolution_transpose(
-        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
+    pub fn miopen_convolution_transpose<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, padding: &[i64], output_padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64, benchmark: bool, deterministic: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_miopen_convolution_transpose(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 output_padding.as_ptr(), output_padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
@@ -6345,15 +6346,15 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn mkldnn_convolution(
-        &self, weight: &Tensor, bias: Option<&Tensor>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64
+    pub fn mkldnn_convolution<T: Borrow<Tensor>>(
+        &self, weight: &Tensor, bias: Option<T>, padding: &[i64], stride: &[i64], dilation: &[i64], groups: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
             atg_mkldnn_convolution(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 weight.c_tensor,
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 padding.as_ptr(), padding.len() as i32,
                 stride.as_ptr(), stride.len() as i32,
                 dilation.as_ptr(), dilation.len() as i32,
@@ -6730,17 +6731,17 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn native_batch_norm(
-        &self, weight: Option<&Tensor>, bias: Option<&Tensor>, running_mean: Option<&Tensor>, running_var: Option<&Tensor>, training: bool, momentum: f64, eps: f64
+    pub fn native_batch_norm<T: Borrow<Tensor>>(
+        &self, weight: Option<T>, bias: Option<T>, running_mean: Option<T>, running_var: Option<T>, training: bool, momentum: f64, eps: f64
     ) -> (Tensor, Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch!({
             atg_native_batch_norm(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                bias.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_mean.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                running_var.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if training { 1 } else { 0 },
                 momentum,
                 eps
@@ -6956,8 +6957,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn nll_loss2d_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+    pub fn nll_loss2d_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -6965,7 +6966,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -6973,8 +6974,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn nll_loss2d_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+    pub fn nll_loss2d_backward_out<T: Borrow<Tensor>>(
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -6983,7 +6984,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -7007,8 +7008,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn nll_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+    pub fn nll_loss_backward<T: Borrow<Tensor>>(
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -7016,7 +7017,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -7024,8 +7025,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn nll_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<&Tensor>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+    pub fn nll_loss_backward_out<T: Borrow<Tensor>>(
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -7034,7 +7035,7 @@ impl Tensor {
                 grad_output.c_tensor,
                 self.c_tensor,
                 target.c_tensor,
-                weight.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 reduction,
                 ignore_index,
                 total_weight.c_tensor
@@ -8639,8 +8640,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn rnn_relu(
-        &self, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+    pub fn rnn_relu<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -8658,8 +8659,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn rnn_relu1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+    pub fn rnn_relu1<T: Borrow<Tensor>>(
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -8677,8 +8678,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn rnn_relu_cell(
-        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
+    pub fn rnn_relu_cell<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<T>, b_hh: Option<T>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -8687,14 +8688,14 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn rnn_tanh(
-        &self, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
+    pub fn rnn_tanh<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool, batch_first: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -8712,8 +8713,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn rnn_tanh1(
-        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[&Tensor], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
+    pub fn rnn_tanh1<T: Borrow<Tensor>>(
+        data: &Tensor, batch_sizes: &Tensor, hx: &Tensor, params: &[T], has_biases: bool, num_layers: i64, dropout: f64, train: bool, bidirectional: bool
     ) -> (Tensor, Tensor) {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch!({
@@ -8731,8 +8732,8 @@ impl Tensor {
         (Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] })
     }
 
-    pub fn rnn_tanh_cell(
-        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<&Tensor>, b_hh: Option<&Tensor>
+    pub fn rnn_tanh_cell<T: Borrow<Tensor>>(
+        &self, hx: &Tensor, w_ih: &Tensor, w_hh: &Tensor, b_ih: Option<T>, b_hh: Option<T>
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -8741,8 +8742,8 @@ impl Tensor {
                 hx.c_tensor,
                 w_ih.c_tensor,
                 w_hh.c_tensor,
-                b_ih.map_or(std::ptr::null_mut(), |t| t.c_tensor),
-                b_hh.map_or(std::ptr::null_mut(), |t| t.c_tensor)
+                b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
             ) });
         Tensor { c_tensor: c_tensors[0] }
     }
@@ -9657,8 +9658,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn stack(
-        tensors: &[&Tensor], dim: i64
+    pub fn stack<T: Borrow<Tensor>>(
+        tensors: &[T], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -9669,8 +9670,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn stack_out(
-        result: &Tensor, tensors: &[&Tensor], dim: i64
+    pub fn stack_out<T: Borrow<Tensor>>(
+        result: &Tensor, tensors: &[T], dim: i64
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -9723,8 +9724,8 @@ impl Tensor {
         Tensor { c_tensor: c_tensors[0] }
     }
 
-    pub fn stft(
-        &self, n_fft: i64, hop_length: i64, win_length: i64, window: Option<&Tensor>, normalized: bool, onesided: bool
+    pub fn stft<T: Borrow<Tensor>>(
+        &self, n_fft: i64, hop_length: i64, win_length: i64, window: Option<T>, normalized: bool, onesided: bool
     ) -> Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch!({
@@ -9733,7 +9734,7 @@ impl Tensor {
                 n_fft,
                 hop_length,
                 win_length,
-                window.map_or(std::ptr::null_mut(), |t| t.c_tensor),
+                window.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 if normalized { 1 } else { 0 },
                 if onesided { 1 } else { 0 }
             ) });

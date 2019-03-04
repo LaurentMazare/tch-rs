@@ -183,6 +183,15 @@ module Func = struct
     | Tensor -> String.( = ) arg.arg_name input_name
     | _ -> false
 
+  let type_parameters t =
+    let needs_type_parameter =
+      List.exists t.args ~f:(fun arg ->
+          match arg.arg_type with
+          | TensorList | TensorOption -> true
+          | _ -> false )
+    in
+    if needs_type_parameter then "<T: Borrow<Tensor>>" else ""
+
   let rust_args_list t =
     let to_string args =
       List.map args ~f:(fun arg ->
@@ -192,9 +201,9 @@ module Func = struct
             | Int64 -> "i64"
             | Double -> "f64"
             | Tensor -> "&Tensor"
-            | TensorOption -> "Option<&Tensor>"
+            | TensorOption -> "Option<T>"
             | IntList -> "&[i64]"
-            | TensorList -> "&[&Tensor]"
+            | TensorList -> "&[T]"
             | TensorOptions -> "(Kind, Device)"
             | Scalar -> "&Scalar"
             | ScalarType -> "Kind"
@@ -240,8 +249,8 @@ module Func = struct
         | TensorList ->
             Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
         | TensorOption ->
-            Printf.sprintf "%s.map_or(std::ptr::null_mut(), |t| t.c_tensor)"
-              name
+            Printf.sprintf
+              "%s.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
         | _ -> name )
     |> String.concat ~sep:",\n                "
 end
@@ -385,10 +394,11 @@ let write_wrapper funcs filename =
       pm "use crate::device::Device;" ;
       pm "use crate::kind::Kind;" ;
       pm "use crate::scalar::Scalar;" ;
+      pm "use std::borrow::Borrow;" ;
       pm "use super::c_wrapper::Tensor;" ;
       pm "" ;
-      pm "fn ptr_list(l: &[&Tensor]) -> Vec<*mut C_tensor> {" ;
-      pm "    l.iter().map(|x| x.c_tensor).collect()" ;
+      pm "fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {" ;
+      pm "    l.iter().map(|x| x.borrow().c_tensor).collect()" ;
       pm "}" ;
       pm "" ;
       pm "impl Tensor {" ;
@@ -408,7 +418,7 @@ let write_wrapper funcs filename =
                 |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
           in
           pm "" ;
-          pm "    pub fn %s(" rust_name ;
+          pm "    pub fn %s%s(" rust_name (Func.type_parameters func) ;
           let self, rust_args_list = Func.rust_args_list func in
           pm "        %s" rust_args_list ;
           pm "    )%s {" (Func.rust_return_type func) ;
@@ -466,7 +476,7 @@ let run ~yaml_filename ~cpp_filename ~ffi_filename ~wrapper_filename =
     |> Map.of_alist_exn (module String)
   in
   write_cpp funcs cpp_filename ;
-  write_ffi funcs ffi_filename;
+  write_ffi funcs ffi_filename ;
   write_wrapper funcs wrapper_filename
 
 let () =

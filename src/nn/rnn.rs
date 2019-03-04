@@ -47,7 +47,7 @@ impl LSTM {
     pub fn step(&self, input: &Tensor, in_state: &LSTMState) -> LSTMState {
         let LSTMState((h, c)) = in_state;
         let (h, c) = input.lstm_cell(
-            &[&h, &c],
+            &[h, c],
             &self.w_ih,
             &self.w_hh,
             Some(&self.b_ih),

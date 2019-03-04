@@ -54,8 +54,8 @@ pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset> {
     .iter()
     .map(|x| read_file(&dir.join(x)))
     .collect::<Result<Vec<_>>>()?;
-    let train_images: Vec<_> = train_images_and_labels.iter().map(|x| &x.0).collect();
-    let train_labels: Vec<_> = train_images_and_labels.iter().map(|x| &x.1).collect();
+    let (train_images, train_labels): (Vec<_>, Vec<_>) =
+        train_images_and_labels.into_iter().unzip();
     Ok(Dataset {
         train_images: Tensor::cat(&train_images, 0),
         train_labels: Tensor::cat(&train_labels, 0),
