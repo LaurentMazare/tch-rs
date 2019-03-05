@@ -6,9 +6,9 @@ use std::result::Result;
 use tch::nn::{self, Module};
 use tch::{Device, Tensor};
 
-static IMAGE_DIM: i64 = 784;
-static HIDDEN_NODES: i64 = 128;
-static LABELS: i64 = 10;
+const IMAGE_DIM: i64 = 784;
+const HIDDEN_NODES: i64 = 128;
+const LABELS: i64 = 10;
 
 struct Net {
     fc1: nn::Linear,

@@ -10,11 +10,11 @@ use std::io::{BufReader, Read, Result};
 use super::dataset::Dataset;
 use crate::{kind, Tensor};
 
-static W: i64 = 32;
-static H: i64 = 32;
-static C: i64 = 3;
-static BYTES_PER_IMAGE: i64 = W * H * C + 1;
-static SAMPLES_PER_FILE: i64 = 10000;
+const W: i64 = 32;
+const H: i64 = 32;
+const C: i64 = 3;
+const BYTES_PER_IMAGE: i64 = W * H * C + 1;
+const SAMPLES_PER_FILE: i64 = 10000;
 
 fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
     let mut buf_reader = BufReader::new(File::open(filename)?);

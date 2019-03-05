@@ -5,8 +5,8 @@ use std::result::Result;
 
 use tch::{kind, no_grad, vision, Kind, Tensor};
 
-static IMAGE_DIM: i64 = 784;
-static LABELS: i64 = 10;
+const IMAGE_DIM: i64 = 784;
+const LABELS: i64 = 10;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let m = vision::mnist::load_dir("data")?;
