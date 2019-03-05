@@ -1,7 +1,7 @@
 use crate::utils::path_to_cstring;
 use crate::{Device, Kind};
 use failure::Fallible;
-use libc::{c_char, c_void};
+use libc::{c_char, c_int, c_void};
 use std::path::Path;
 use torch_sys::*;
 
@@ -128,6 +128,11 @@ impl Tensor {
     /// Returns a new tensor that share storage with the input tensor.
     pub fn shallow_clone(&self) -> Tensor {
         let c_tensor = unsafe_torch!({ at_shallow_clone(self.c_tensor) });
+        Tensor { c_tensor }
+    }
+
+    pub fn get(&self, index: i64) -> Tensor {
+        let c_tensor = unsafe_torch!({ at_get(self.c_tensor, index as c_int) });
         Tensor { c_tensor }
     }
 

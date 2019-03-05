@@ -12,6 +12,23 @@ fn assign_ops() {
 }
 
 #[test]
+fn array_conversion() {
+    let vec: Vec<_> = (0..6).map(|x| (x * x) as f64).collect();
+    let t = Tensor::float_vec(&vec);
+    assert_eq!(Vec::<f64>::from(&t), [0.0, 1.0, 4.0, 9.0, 16.0, 25.0]);
+    let t = t.view(&[3, 2]);
+    assert_eq!(
+        Vec::<Vec<f64>>::from(&t),
+        [[0.0, 1.0], [4.0, 9.0], [16.0, 25.0]]
+    );
+    let t = t.view(&[2, 3]);
+    assert_eq!(
+        Vec::<Vec<f64>>::from(&t),
+        [[0.0, 1.0, 4.0], [9.0, 16.0, 25.0]]
+    )
+}
+
+#[test]
 fn binary_ops() {
     let t = Tensor::float_vec(&[3.0, 1.0, 4.0, 1.0, 5.0]);
     let t = (&t * &t) + &t - 1.5;

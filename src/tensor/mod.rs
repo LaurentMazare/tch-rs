@@ -192,6 +192,24 @@ macro_rules! from_tensor {
             }
         }
 
+        impl From<&Tensor> for Vec<Vec<$typ>> {
+            fn from(tensor: &Tensor) -> Vec<Vec<$typ>> {
+                let first_dim = tensor.size()[0];
+                (0..first_dim)
+                    .map(|i| Vec::<$typ>::from(tensor.get(i)))
+                    .collect()
+            }
+        }
+
+        impl From<&Tensor> for Vec<Vec<Vec<$typ>>> {
+            fn from(tensor: &Tensor) -> Vec<Vec<Vec<$typ>>> {
+                let first_dim = tensor.size()[0];
+                (0..first_dim)
+                    .map(|i| Vec::<Vec<$typ>>::from(tensor.get(i)))
+                    .collect()
+            }
+        }
+
         impl From<&Tensor> for $typ {
             fn from(tensor: &Tensor) -> $typ {
                 let numel = tensor.numel();
@@ -205,6 +223,18 @@ macro_rules! from_tensor {
         impl From<Tensor> for Vec<$typ> {
             fn from(tensor: Tensor) -> Vec<$typ> {
                 Vec::<$typ>::from(&tensor)
+            }
+        }
+
+        impl From<Tensor> for Vec<Vec<$typ>> {
+            fn from(tensor: Tensor) -> Vec<Vec<$typ>> {
+                Vec::<Vec<$typ>>::from(&tensor)
+            }
+        }
+
+        impl From<Tensor> for Vec<Vec<Vec<$typ>>> {
+            fn from(tensor: Tensor) -> Vec<Vec<Vec<$typ>>> {
+                Vec::<Vec<Vec<$typ>>>::from(&tensor)
             }
         }
 
