@@ -83,20 +83,20 @@ This should print the top 5 imagenet categories for the image. The code for this
     // First the image is loaded and resized to 224x224.
     let image = imagenet::load_image_and_resize(image_file)?;
 
-    // A variable store is created to hold the model variable.
+    // A variable store is created to hold the model parameters.
     let vs = tch::nn::VarStore::new(tch::Device::Cpu);
 
     // Then the model is built on this variable store, and the weights are loaded.
     let resnet18 = tch::vision::resnet::resnet18(vs.root(), imagenet::CLASS_COUNT);
     vs.load(weight_file)?;
 
-    // We then apply the forward pass of the model to get the logits and convert
-    // them to probabilities via a softmax.
+    // Apply the forward pass of the model to get the logits and convert them
+    // to probabilities via a softmax.
     let output = resnet18
         .forward_t(&image.unsqueeze(0), /*train=*/ false)
         .softmax(-1);
 
-    // Finally we print the top 5 categories and their associated probabilities.
+    // Finally print the top 5 categories and their associated probabilities.
     for (probability, class) in imagenet::top(&output, 5).iter() {
         println!("{:50} {:5.2}%", class, 100.0 * probability)
     }
