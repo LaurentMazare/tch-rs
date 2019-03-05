@@ -19,7 +19,7 @@ pub fn main() -> failure::Fallible<()> {
 
     // Create a ResNet-18 model and load the weights from the file.
     let vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    let resnet18 = tch::vision::resnet::resnet18(vs.root(), imagenet::CLASS_COUNT);
+    let resnet18 = tch::vision::resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT);
     vs.load(weight_file)?;
 
     // Apply the forward pass of the model to get the logits.

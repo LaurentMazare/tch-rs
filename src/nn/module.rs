@@ -50,7 +50,22 @@ impl Tensor {
     pub fn apply<M: Module>(&self, m: &M) -> Tensor {
         m.forward(&self)
     }
+
     pub fn apply_t<M: ModuleT>(&self, m: &M, train: bool) -> Tensor {
         m.forward_t(&self, train)
+    }
+
+    pub fn apply_opt<M: Module>(&self, m: &Option<M>) -> Tensor {
+        match m {
+            Some(m) => m.forward(&self),
+            None => self.shallow_clone(),
+        }
+    }
+
+    pub fn apply_opt_t<M: ModuleT>(&self, m: &Option<M>, train: bool) -> Tensor {
+        match m {
+            Some(m) => m.forward_t(&self, train),
+            None => self.shallow_clone(),
+        }
     }
 }
