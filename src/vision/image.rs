@@ -1,9 +1,12 @@
-/// Utility functions to manipulate images.
-use crate::utils::path_to_cstring;
-use crate::Tensor;
+//! Utility functions to manipulate images.
+
+use std::path::Path;
+
 use failure::Fallible;
 use libc::c_int;
-use std::path::Path;
+
+use crate::utils::path_to_cstring;
+use crate::Tensor;
 
 /// On success returns a tensor of shape [width, height, channels].
 fn load_hwc<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {

@@ -1,11 +1,10 @@
 // This should rearch 97% accuracy.
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
-use tch::{
-    nn::{self, Module},
-    Device, Tensor,
-};
+use tch::nn::{self, Module};
+use tch::{Device, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static HIDDEN_NODES: i64 = 128;

@@ -1,9 +1,9 @@
 //! A simple dataset structure shared by various computer vision datasets.
 
 use failure::Fallible;
+use rand::Rng;
 
 use crate::{data::Iter2, Tensor};
-use rand::Rng;
 
 #[derive(Debug)]
 pub struct Dataset {

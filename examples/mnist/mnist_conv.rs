@@ -1,11 +1,10 @@
 // CNN model. This should rearch 99.1% accuracy.
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
-use tch::{
-    nn::{self, ModuleT},
-    Device, Tensor,
-};
+use tch::nn::{self, ModuleT};
+use tch::{Device, Tensor};
 
 struct Net {
     conv1: nn::Conv2D,

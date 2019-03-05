@@ -6,14 +6,13 @@
 
 extern crate tch;
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
-use tch::{
-    data::TextData,
-    kind,
-    nn::{self, Linear, Module, LSTM},
-    Device, Scalar, Tensor,
-};
+use tch::data::TextData;
+use tch::kind;
+use tch::nn::{self, Linear, Module, LSTM};
+use tch::{Device, Scalar, Tensor};
 
 static LEARNING_RATE: f64 = 0.01;
 static HIDDEN_SIZE: i64 = 256;

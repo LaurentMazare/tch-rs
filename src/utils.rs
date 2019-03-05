@@ -1,5 +1,6 @@
-use failure::Fallible;
 use std::convert::From;
+
+use failure::Fallible;
 
 #[derive(Fail, Debug)]
 #[fail(display = "Internal torch error: {}", c_error)]

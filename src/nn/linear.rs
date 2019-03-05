@@ -1,6 +1,6 @@
-/// A linear fully-connected layer.
-use crate::Tensor;
 use std::borrow::Borrow;
+
+use crate::Tensor;
 
 /// A linear fully-connected layer.
 #[derive(Debug)]

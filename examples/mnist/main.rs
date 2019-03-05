@@ -9,7 +9,8 @@
 
 extern crate tch;
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
 mod mnist_conv;
 mod mnist_linear;

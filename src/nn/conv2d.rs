@@ -1,6 +1,6 @@
-/// A two dimension convolution layer.
-use crate::Tensor;
 use std::borrow::Borrow;
+
+use crate::Tensor;
 
 #[derive(Builder, Debug, Clone, Copy)]
 #[builder(setter(into))]

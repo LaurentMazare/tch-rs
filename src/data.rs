@@ -1,10 +1,8 @@
 //! Dataset iterators.
 
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::{BufReader, Read, Result},
-};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufReader, Read, Result};
 
 use failure::Fallible;
 

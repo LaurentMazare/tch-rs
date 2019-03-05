@@ -1,9 +1,12 @@
-use crate::utils::path_to_cstring;
-use crate::{Device, Kind};
+use std::path::Path;
+
 use failure::Fallible;
 use libc::{c_char, c_void};
-use std::path::Path;
+
 use torch_sys::*;
+
+use crate::utils::path_to_cstring;
+use crate::{Device, Kind};
 
 /// A tensor object.
 pub struct Tensor {

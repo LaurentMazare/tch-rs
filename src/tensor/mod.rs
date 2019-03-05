@@ -1,7 +1,8 @@
 /// A Torch tensor.
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+
 use crate::scalar::Scalar;
 use crate::{Device, Kind};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 mod c_wrapper;
 mod c_wrapper_generated;

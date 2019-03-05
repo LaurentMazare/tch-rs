@@ -8,12 +8,11 @@
 
 extern crate tch;
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
-use tch::{
-    nn::{self, BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT},
-    Device,
-};
+use tch::nn::{self, BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
+use tch::Device;
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
     let conv2d_cfg = nn::Conv2DConfig {

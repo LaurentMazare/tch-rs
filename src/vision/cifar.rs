@@ -1,12 +1,14 @@
-/// The CIFAR-10 dataset.
-///
-/// The files can be downloaded from the following page:
-/// https://www.cs.toronto.edu/~kriz/cifar.html
-/// The binary version of the dataset is used.
-use super::dataset::Dataset;
-use crate::{kind, Tensor};
+//! The CIFAR-10 dataset.
+//!
+//! The files can be downloaded from the following page:
+//! https://www.cs.toronto.edu/~kriz/cifar.html
+//! The binary version of the dataset is used.
+
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
+
+use super::dataset::Dataset;
+use crate::{kind, Tensor};
 
 static W: i64 = 32;
 static H: i64 = 32;

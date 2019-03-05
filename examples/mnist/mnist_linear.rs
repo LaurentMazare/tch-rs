@@ -1,6 +1,7 @@
 // This should rearch 91.5% accuracy.
 
-use std::{error::Error, result::Result};
+use std::error::Error;
+use std::result::Result;
 
 use tch::{kind, no_grad, vision, Kind, Tensor};
 

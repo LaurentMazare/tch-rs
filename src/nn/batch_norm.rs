@@ -1,6 +1,6 @@
-use crate::Tensor;
-/// A batch-normalization layer.
 use std::borrow::Borrow;
+
+use crate::Tensor;
 
 #[derive(Builder, Debug, Clone, Copy)]
 #[builder(setter(into))]

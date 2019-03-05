@@ -1,9 +1,10 @@
 /// JIT interface to run model trained/saved using PyTorch Python API.
-use crate::utils::path_to_cstring;
-use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
 use torch_sys::*;
+
+use crate::utils::path_to_cstring;
+use crate::Tensor;
 
 /// Argument and output values for JIT models.
 #[derive(Debug)]

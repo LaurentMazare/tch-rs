@@ -1,4 +1,6 @@
-use std::{collections::HashMap, ops::Div, sync::Mutex};
+use std::collections::HashMap;
+use std::ops::Div;
+use std::sync::Mutex;
 
 use failure::Fallible;
 

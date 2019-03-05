@@ -1,11 +1,13 @@
-/// The MNIST hand-written digit dataset.
-///
-/// The files can be obtained from the following link:
-/// http://yann.lecun.com/exdb/mnist/
-use super::dataset::Dataset;
-use crate::{Kind, Tensor};
+//! The MNIST hand-written digit dataset.
+//!
+//! The files can be obtained from the following link:
+//! http://yann.lecun.com/exdb/mnist/
+
 use std::fs::File;
 use std::io::{self, BufReader, Read, Result};
+
+use super::dataset::Dataset;
+use crate::{Kind, Tensor};
 
 fn read_u32<T: Read>(reader: &mut T) -> Result<u32> {
     let mut b = vec![0u8; 4];
