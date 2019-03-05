@@ -244,7 +244,7 @@ impl Tensor {
     }
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
-        let len: i64 = self.size()[0].into();
+        let len: i64 = self.size()[0];
         let index = Tensor::randint(len, &[batch_size], crate::kind::INT64_CPU);
         self.index_select(0, &index)
     }
@@ -255,8 +255,8 @@ impl Tensor {
         batch_size: i64,
         device: Device,
     ) -> (Tensor, Tensor) {
-        let len1: i64 = t1.size()[0].into();
-        let len2: i64 = t2.size()[0].into();
+        let len1: i64 = t1.size()[0];
+        let len2: i64 = t2.size()[0];
         if len1 != len2 {
             panic!(
                 "random_batch2: shape mismatch {:?} {:?}",

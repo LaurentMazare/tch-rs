@@ -106,7 +106,7 @@ impl Tensor {
 
     /// Returns the total number of elements stored in a tensor.
     pub fn numel(&self) -> i64 {
-        self.size().iter().fold(1, |acc, &v| acc * i64::from(v))
+        self.size().iter().product()
     }
 
     // This is similar to vec_... but faster as it directly blits the data.

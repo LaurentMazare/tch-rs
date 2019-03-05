@@ -16,7 +16,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub(crate) fn c_int(&self) -> libc::c_int {
+    pub(crate) fn c_int(self) -> libc::c_int {
         match self {
             Kind::Uint8 => 0,
             Kind::Int8 => 1,
@@ -49,7 +49,7 @@ impl Kind {
         }
     }
 
-    pub(crate) fn elt_size_in_bytes(&self) -> libc::c_int {
+    pub(crate) fn elt_size_in_bytes(self) -> libc::c_int {
         match self {
             Kind::Uint8 => 1,
             Kind::Int8 => 1,

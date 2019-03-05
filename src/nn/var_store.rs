@@ -94,7 +94,7 @@ impl<'a> Path<'a> {
         if name.chars().any(|x| x == '.') {
             panic!("variable name cannot contain a dot {}", name);
         }
-        if self.path.len() == 0 {
+        if self.path.is_empty() {
             name.to_string()
         } else {
             format!("{}.{}", self.path.join("."), name)

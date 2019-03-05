@@ -80,7 +80,7 @@ impl Iterator for Iter2 {
         if size <= 0 || (!self.return_smaller_last_batch && size < self.batch_size) {
             None
         } else {
-            self.batch_index = self.batch_index + 1;
+            self.batch_index += 1;
             Some((
                 self.xs.narrow(0, start, size).to_device(self.device),
                 self.ys.narrow(0, start, size).to_device(self.device),
@@ -165,7 +165,7 @@ impl Iterator for TextDataIter {
         if size < self.batch_size {
             None
         } else {
-            self.batch_index = self.batch_index + 1;
+            self.batch_index += 1;
             let indexes = Vec::<i64>::from(&self.indexes.narrow(0, start, size));
             let batch: Vec<_> = indexes
                 .iter()
