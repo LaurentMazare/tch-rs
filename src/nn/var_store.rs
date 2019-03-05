@@ -1,6 +1,8 @@
-use crate::{tensor::Tensor, Device, Kind};
-use failure::Fallible;
 use std::{collections::HashMap, ops::Div, sync::Mutex};
+
+use failure::Fallible;
+
+use crate::{tensor::Tensor, Device, Kind};
 
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
@@ -47,18 +49,17 @@ impl VarStore {
         }
     }
 
-    pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
+    pub fn save<P: AsRef<std::path::Path>>(&self, path: P) -> Fallible<()> {
         let variables = self.variables.lock().expect("Poisoned MutexGuard");
-
         let named_tensors = variables
             .iter()
             .map(|(x, y)| (&x[..], y))
             .collect::<Vec<_>>();
-        Tensor::save_multi(named_tensors.as_slice(), path)
+        Tensor::save_multi(named_tensors.as_slice(), path.as_ref())
     }
 
-    pub fn load<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
-        let named_tensors = Tensor::load_multi(&path)?;
+    pub fn load<P: AsRef<std::path::Path>>(&self, path: P) -> Fallible<()> {
+        let named_tensors = Tensor::load_multi(path.as_ref())?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let variables = self.variables.lock().expect("Poisoned MutexGuard");
         for (name, tensor) in variables.iter() {

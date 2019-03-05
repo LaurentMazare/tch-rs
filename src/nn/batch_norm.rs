@@ -2,6 +2,8 @@ use crate::Tensor;
 /// A batch-normalization layer.
 use std::borrow::Borrow;
 
+#[derive(Builder, Debug, Clone, Copy)]
+#[builder(setter(into))]
 pub struct BatchNorm2DConfig {
     cudnn_enabled: bool,
     eps: f64,
@@ -19,6 +21,7 @@ impl Default for BatchNorm2DConfig {
 }
 
 /// A batch-normalization layer.
+#[derive(Debug)]
 pub struct BatchNorm2D {
     config: BatchNorm2DConfig,
     running_mean: Tensor,

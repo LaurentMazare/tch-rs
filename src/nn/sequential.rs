@@ -2,7 +2,7 @@
 use crate::tensor::Tensor;
 
 pub struct Sequential {
-    layers: Vec<Box<super::module::Module>>,
+    layers: Vec<Box<dyn super::module::Module>>,
 }
 
 impl Sequential {
@@ -43,7 +43,7 @@ impl Sequential {
 }
 
 pub struct SequentialT {
-    layers: Vec<Box<super::module::ModuleT>>,
+    layers: Vec<Box<dyn super::module::ModuleT>>,
 }
 
 impl SequentialT {

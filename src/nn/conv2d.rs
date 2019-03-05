@@ -2,6 +2,8 @@
 use crate::Tensor;
 use std::borrow::Borrow;
 
+#[derive(Builder, Debug, Clone, Copy)]
+#[builder(setter(into))]
 pub struct Conv2DConfig {
     pub stride: i64,
     pub padding: i64,

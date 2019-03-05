@@ -1,5 +1,6 @@
-use crate::Tensor;
 use libc::c_int;
+
+use crate::Tensor;
 
 pub struct COptimizer {
     c_optimizer: *mut torch_sys::C_optimizer,

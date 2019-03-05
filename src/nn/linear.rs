@@ -3,6 +3,7 @@ use crate::Tensor;
 use std::borrow::Borrow;
 
 /// A linear fully-connected layer.
+#[derive(Debug)]
 pub struct Linear {
     ws: Tensor,
     bs: Tensor,

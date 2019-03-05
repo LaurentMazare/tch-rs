@@ -4,6 +4,7 @@ use crate::{Device, Kind, Tensor};
 // TODO: define some traits for recurrent neural networks.
 
 /// A Long Short-Term Memory (LSTM) neural network.
+#[derive(Debug)]
 pub struct LSTM {
     w_ih: Tensor,
     w_hh: Tensor,
