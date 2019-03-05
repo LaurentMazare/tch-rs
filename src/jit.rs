@@ -3,6 +3,7 @@ use crate::utils::path_to_cstring;
 use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
+use std::borrow::Borrow;
 use torch_sys::*;
 
 /// Argument and output values for JIT models.
@@ -76,16 +77,16 @@ impl CModule {
     }
 
     /// Performs the forward pass for a model on some specified tensor input.
-    pub fn forward(&self, ts: &[&Tensor]) -> Fallible<Tensor> {
-        let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
+    pub fn forward<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
+        let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_tensor =
             unsafe_torch_err!({ atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         Ok(Tensor { c_tensor })
     }
 
     /// Performs the forward pass for a model on some specified ivalue input.
-    pub fn forward_(&self, ts: &[&IValue]) -> Fallible<IValue> {
-        let ts: Vec<_> = ts.iter().map(|x| x.to_c()).collect();
+    pub fn forward_<T: Borrow<IValue>>(&self, ts: &[T]) -> Fallible<IValue> {
+        let ts: Vec<_> = ts.iter().map(|x| x.borrow().to_c()).collect();
         let c_ivalue =
             unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         IValue::of_c(c_ivalue)
