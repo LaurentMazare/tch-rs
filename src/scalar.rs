@@ -1,5 +1,4 @@
 /// Scalar elements.
-
 pub struct Scalar {
     pub(crate) c_scalar: *mut torch_sys::C_scalar,
 }
