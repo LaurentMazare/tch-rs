@@ -59,3 +59,8 @@ pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Fallible<()> {
 pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Tensor {
     hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h))
 }
+
+pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+    let tensor = load_hwc(path)?;
+    Ok(hwc_to_chw(&resize_hwc(&tensor, out_w, out_h)))
+}

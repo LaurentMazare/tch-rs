@@ -5,8 +5,12 @@ use std::collections::HashMap;
 use std::ops::Div;
 use std::sync::Mutex;
 
+/// The separator is used to separate path elements in the tensor names.
+const SEP: char = '|';
+
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
+#[derive(Debug)]
 pub struct VarStore {
     variables: Mutex<HashMap<String, Tensor>>,
     device: Device,
@@ -75,8 +79,8 @@ impl VarStore {
 
 impl<'a> Path<'a> {
     pub fn sub(&'a self, s: &str) -> Path<'a> {
-        if s.chars().any(|x| x == '.') {
-            panic!("sub name cannot contain a dot {}", s);
+        if s.chars().any(|x| x == SEP) {
+            panic!("sub name cannot contain {} {}", SEP, s);
         }
         let mut path = self.path.clone();
         path.push(s.to_owned());
@@ -91,13 +95,13 @@ impl<'a> Path<'a> {
     }
 
     fn path(&self, name: &str) -> String {
-        if name.chars().any(|x| x == '.') {
-            panic!("variable name cannot contain a dot {}", name);
+        if name.chars().any(|x| x == SEP) {
+            panic!("variable name cannot contain {} {}", SEP, name);
         }
         if self.path.is_empty() {
             name.to_string()
         } else {
-            format!("{}.{}", self.path.join("."), name)
+            format!("{}{}{}", self.path.join(&SEP.to_string()), SEP, name)
         }
     }
 

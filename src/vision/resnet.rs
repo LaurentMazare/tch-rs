@@ -28,7 +28,7 @@ fn downsample(vs: nn::Path, c_in: i64, c_out: i64, stride: i64) -> impl ModuleT 
 fn basic_block(vs: nn::Path, c_in: i64, c_out: i64, stride: i64) -> impl ModuleT {
     let conv1 = conv2d(&vs / "conv1", c_in, c_out, 3, 1, stride);
     let bn1 = BatchNorm2D::new(&vs / "bn1", c_out, Default::default());
-    let conv2 = conv2d(&vs / "conv2", c_in, c_out, 3, 1, 1);
+    let conv2 = conv2d(&vs / "conv2", c_out, c_out, 3, 1, 1);
     let bn2 = BatchNorm2D::new(&vs / "bn2", c_out, Default::default());
     let downsample = downsample(&vs / "downsample", c_in, c_out, stride);
     FuncT::new(move |xs, train| {
@@ -43,9 +43,9 @@ fn basic_block(vs: nn::Path, c_in: i64, c_out: i64, stride: i64) -> impl ModuleT
 }
 
 fn make_layer(vs: nn::Path, c_in: i64, c_out: i64, stride: i64, cnt: i64) -> impl ModuleT {
-    let mut layer = SequentialT::new().add(basic_block(&vs / "0", stride, c_in, c_out));
+    let mut layer = SequentialT::new().add(basic_block(&vs / "0", c_in, c_out, stride));
     for block_index in 1..cnt {
-        layer = layer.add(basic_block(&vs / &block_index.to_string(), 1, c_out, c_out))
+        layer = layer.add(basic_block(&vs / &block_index.to_string(), c_out, c_out, 1))
     }
     layer
 }

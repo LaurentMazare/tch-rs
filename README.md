@@ -32,6 +32,8 @@ export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 
 ## Examples
 
+### Writing a Simple Neural Network
+
 The following code defines a simple model with one hidden layer.
 
 ```rust
@@ -63,6 +65,43 @@ cargo run --example mnist
 
 More details on the training loop can be found in the
 [detailed tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/mnist).
+
+### Using some Pre-Trained Model
+
+The [pretrained-models  example](https://github.com/LaurentMazare/tch-rs/tree/master/examples/pretrained-models/main.rs)
+illustrates how to use some pre-trained computer vision model on an image.
+The weights - which have been extracting from the PyTorch implementation - can be
+downloaded here [resnet18.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).
+
+Running the example can then be run via the following command:
+```bash
+cargo run --example pretrained-models -- resnet18.ot tiger.jpg
+```
+This should print the top 5 imagenet categories for the image. The code for this example is pretty simple.
+
+```rust
+    // First the image is loaded and resized to 224x224.
+    let image = imagenet::load_image_and_resize(image_file)?;
+
+    // A variable store is created to hold the model variable.
+    let vs = tch::nn::VarStore::new(tch::Device::Cpu);
+
+    // Then the model is built on this variable store, and the weights are loaded.
+    let resnet18 = tch::vision::resnet::resnet18(vs.root(), imagenet::CLASS_COUNT);
+    vs.load(weight_file)?;
+
+    // We then apply the forward pass of the model to get the logits and convert
+    // them to probabilities via a softmax.
+    let output = resnet18
+        .forward_t(&image.unsqueeze(0), /*train=*/ false)
+        .softmax(-1);
+
+    // Finally we print the top 5 categories and their associated probabilities.
+    for (probability, class) in imagenet::top(&output, 5).iter() {
+        println!("{:50} {:5.2}%", class, 100.0 * probability)
+    }
+```
+
 
 Further examples include:
 * A simplified version of
