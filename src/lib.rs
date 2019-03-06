@@ -11,8 +11,7 @@ pub use utils::manual_seed;
 
 pub mod data;
 
-mod device;
-mod device_wrapper;
+pub mod device;
 pub use device::{Cpu, Cuda, Device};
 
 pub mod kind;

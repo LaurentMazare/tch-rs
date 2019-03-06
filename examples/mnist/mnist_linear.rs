@@ -37,5 +37,6 @@ pub fn run() -> failure::Fallible<()> {
             100. * test_accuracy
         );
     }
+
     Ok(())
 }

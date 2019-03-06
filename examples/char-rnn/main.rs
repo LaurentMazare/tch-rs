@@ -5,6 +5,7 @@
 */
 
 extern crate tch;
+
 use tch::data::TextData;
 use tch::nn::{Linear, Module, LSTM, RNN};
 use tch::{kind, nn, Device, Scalar, Tensor};
@@ -34,7 +35,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
 }
 
 pub fn main() -> failure::Fallible<()> {
-    let device = Device::cuda_if_available();
+    let device = Device::cuda_if_available()?;
     let vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
@@ -60,5 +61,6 @@ pub fn main() -> failure::Fallible<()> {
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
         println!("Sample: {}", sample(&data, &lstm, &linear, device));
     }
+
     Ok(())
 }

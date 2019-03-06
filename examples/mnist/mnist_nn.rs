@@ -28,7 +28,7 @@ impl nn::Module for Net {
 
 pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
-    let vs = nn::VarStore::new(Device::Cpu);
+    let vs = nn::VarStore::new(Device::cuda_if_available()?);
     let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default())?;
     for epoch in 1..200 {
@@ -46,5 +46,6 @@ pub fn run() -> failure::Fallible<()> {
             100. * f64::from(&test_accuracy),
         );
     }
+
     Ok(())
 }

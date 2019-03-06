@@ -7,6 +7,7 @@
 */
 
 extern crate tch;
+
 use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 use tch::{nn, Device};
 
@@ -57,7 +58,7 @@ fn learning_rate(epoch: i64) -> f64 {
 
 pub fn main() -> failure::Fallible<()> {
     let m = tch::vision::cifar::load_dir("data")?;
-    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let vs = nn::VarStore::new(Device::cuda_if_available()?);
     let net = fast_resnet(&vs.root());
     let mut opt = nn::optimizer::sgd(&vs, 0., 0.9, 0., 5e-4, true)?;
     for epoch in 1..150 {
@@ -73,5 +74,6 @@ pub fn main() -> failure::Fallible<()> {
             net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 512);
         println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
+
     Ok(())
 }
