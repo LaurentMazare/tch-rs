@@ -1,7 +1,8 @@
-/// Optimizers to be used for gradient-descent based training.
+//! Optimizers to be used for gradient-descent based training.
 use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
 use crate::{Scalar, Tensor};
+use failure::Fallible;
 
 pub struct Optimizer {
     opt: COptimizer,
@@ -66,38 +67,38 @@ impl Default for RmsProp {
 }
 
 impl Optimizer {
-    pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Optimizer {
-        let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov);
+    pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Fallible<Optimizer> {
+        let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov)?;
         let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables);
-        Optimizer {
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
             opt,
             trainable_variables,
-        }
+        })
     }
 
-    pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Optimizer {
-        let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd);
+    pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Fallible<Optimizer> {
+        let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd)?;
         let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables);
-        Optimizer {
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
             opt,
             trainable_variables,
-        }
+        })
     }
 
-    pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Optimizer {
-        let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered);
+    pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Fallible<Optimizer> {
+        let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered)?;
         let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables);
-        Optimizer {
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
             opt,
             trainable_variables,
-        }
+        })
     }
 
     pub fn zero_grad(&self) {
-        self.opt.zero_grad()
+        self.opt.zero_grad().unwrap()
     }
 
     /// Clips gradient value at some specified maximum value.
@@ -110,7 +111,7 @@ impl Optimizer {
     }
 
     pub fn step(&self) {
-        self.opt.step()
+        self.opt.step().unwrap()
     }
 
     pub fn backward_step(&self, loss: &Tensor) {
@@ -128,12 +129,12 @@ impl Optimizer {
 
     /// Sets the optimizer learning rate.
     pub fn set_lr(&mut self, lr: f64) {
-        self.opt.set_learning_rate(lr)
+        self.opt.set_learning_rate(lr).unwrap()
     }
 
     /// Sets the optimizer momentum.
     pub fn set_momentum(&mut self, m: f64) {
-        self.opt.set_momentum(m)
+        self.opt.set_momentum(m).unwrap()
     }
 }
 
@@ -144,7 +145,7 @@ pub fn sgd(
     dampening: f64,
     wd: f64,
     nesterov: bool,
-) -> Optimizer {
+) -> Fallible<Optimizer> {
     let sgd = Sgd {
         momentum,
         dampening,
@@ -154,7 +155,7 @@ pub fn sgd(
     Optimizer::sgd(vs, lr, sgd)
 }
 
-pub fn adam(vs: &VarStore, lr: f64, beta1: f64, beta2: f64, wd: f64) -> Optimizer {
+pub fn adam(vs: &VarStore, lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<Optimizer> {
     let adam = Adam { beta1, beta2, wd };
     Optimizer::adam(vs, lr, adam)
 }
@@ -167,7 +168,7 @@ pub fn rms_prop(
     wd: f64,
     momentum: f64,
     centered: bool,
-) -> Optimizer {
+) -> Fallible<Optimizer> {
     let rmsprop = RmsProp {
         alpha,
         eps,

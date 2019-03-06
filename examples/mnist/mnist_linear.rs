@@ -5,8 +5,8 @@ use tch::{kind, no_grad, vision, Kind, Tensor};
 static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 10;
 
-pub fn run() {
-    let m = vision::mnist::load_dir("data").unwrap();
+pub fn run() -> failure::Fallible<()> {
+    let m = vision::mnist::load_dir("data")?;
     println!("train-images: {:?}", m.train_images.size());
     println!("train-labels: {:?}", m.train_labels.size());
     println!("test-images: {:?}", m.test_images.size());
@@ -37,4 +37,5 @@ pub fn run() {
             100. * test_accuracy
         );
     }
+    Ok(())
 }

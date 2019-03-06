@@ -1,4 +1,4 @@
-/// JIT interface to run model trained/saved using PyTorch Python API.
+//! JIT interface to run model trained/saved using PyTorch Python API.
 use crate::utils::path_to_cstring;
 use crate::Tensor;
 use failure::Fallible;
@@ -16,18 +16,19 @@ pub enum IValue {
 }
 
 impl IValue {
-    pub(super) fn to_c(&self) -> *mut CIValue {
-        unsafe_torch!({
+    pub(super) fn to_c(&self) -> Fallible<*mut CIValue> {
+        let c = unsafe_torch_err!({
             match self {
                 IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
                 IValue::Int(i) => ati_int(*i),
                 IValue::Double(f) => ati_double(*f),
                 IValue::Tuple(v) => {
-                    let v: Vec<_> = v.iter().map(|x| x.to_c()).collect();
+                    let v = v.iter().map(|x| x.to_c()).collect::<Fallible<Vec<_>>>()?;
                     ati_tuple(v.as_ptr(), v.len() as c_int)
                 }
             }
-        })
+        });
+        Ok(c)
     }
 
     // This consumes the pointer and frees the associated memory.
@@ -86,7 +87,10 @@ impl CModule {
 
     /// Performs the forward pass for a model on some specified ivalue input.
     pub fn forward_<T: Borrow<IValue>>(&self, ts: &[T]) -> Fallible<IValue> {
-        let ts: Vec<_> = ts.iter().map(|x| x.borrow().to_c()).collect();
+        let ts = ts
+            .iter()
+            .map(|x| x.borrow().to_c())
+            .collect::<Fallible<Vec<_>>>()?;
         let c_ivalue =
             unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         IValue::of_c(c_ivalue)
@@ -99,7 +103,7 @@ mod tests {
     #[test]
     fn ivalue() {
         let ivalue = IValue::Tuple(vec![IValue::Int(42), IValue::Double(3.1415)]);
-        let ivalue2 = IValue::of_c(ivalue.to_c()).unwrap();
+        let ivalue2 = IValue::of_c(ivalue.to_c().unwrap()).unwrap();
         assert_eq!(format!("{:?}", ivalue), format!("{:?}", ivalue2));
     }
 }

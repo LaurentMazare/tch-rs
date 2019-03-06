@@ -1,4 +1,5 @@
 use crate::Tensor;
+use failure::Fallible;
 use libc::c_int;
 
 pub struct COptimizer {
@@ -6,9 +7,9 @@ pub struct COptimizer {
 }
 
 impl COptimizer {
-    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> COptimizer {
-        let c_optimizer = unsafe_torch!({ torch_sys::ato_adam(lr, beta1, beta2, wd) });
-        COptimizer { c_optimizer }
+    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<COptimizer> {
+        let c_optimizer = unsafe_torch_err!({ torch_sys::ato_adam(lr, beta1, beta2, wd) });
+        Ok(COptimizer { c_optimizer })
     }
 
     // Maybe we should use the builder pattern to provide default values for these ?
@@ -19,41 +20,52 @@ impl COptimizer {
         wd: f64,
         momentum: f64,
         centered: bool,
-    ) -> COptimizer {
+    ) -> Fallible<COptimizer> {
         let centered = if centered { 1 } else { 0 };
         let c_optimizer =
-            unsafe_torch!({ torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
-        COptimizer { c_optimizer }
+            unsafe_torch_err!({ torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
+        Ok(COptimizer { c_optimizer })
     }
 
-    pub fn sgd(lr: f64, momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> COptimizer {
+    pub fn sgd(
+        lr: f64,
+        momentum: f64,
+        dampening: f64,
+        wd: f64,
+        nesterov: bool,
+    ) -> Fallible<COptimizer> {
         let nesterov = if nesterov { 1 } else { 0 };
         let c_optimizer =
-            unsafe_torch!({ torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov) });
-        COptimizer { c_optimizer }
+            unsafe_torch_err!({ torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov) });
+        Ok(COptimizer { c_optimizer })
     }
 
-    pub fn add_parameters(&mut self, ts: &[Tensor]) {
+    pub fn add_parameters(&mut self, ts: &[Tensor]) -> Fallible<()> {
         let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
-        unsafe_torch!({
+        unsafe_torch_err!({
             torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int)
-        })
+        });
+        Ok(())
     }
 
-    pub fn set_learning_rate(&mut self, lr: f64) {
-        unsafe_torch!({ torch_sys::ato_set_learning_rate(self.c_optimizer, lr) })
+    pub fn set_learning_rate(&mut self, lr: f64) -> Fallible<()> {
+        unsafe_torch_err!({ torch_sys::ato_set_learning_rate(self.c_optimizer, lr) });
+        Ok(())
     }
 
-    pub fn set_momentum(&mut self, m: f64) {
-        unsafe_torch!({ torch_sys::ato_set_momentum(self.c_optimizer, m) })
+    pub fn set_momentum(&mut self, m: f64) -> Fallible<()> {
+        unsafe_torch_err!({ torch_sys::ato_set_momentum(self.c_optimizer, m) });
+        Ok(())
     }
 
-    pub fn zero_grad(&self) {
-        unsafe_torch!({ torch_sys::ato_zero_grad(self.c_optimizer) })
+    pub fn zero_grad(&self) -> Fallible<()> {
+        unsafe_torch_err!({ torch_sys::ato_zero_grad(self.c_optimizer) });
+        Ok(())
     }
 
-    pub fn step(&self) {
-        unsafe_torch!({ torch_sys::ato_step(self.c_optimizer) })
+    pub fn step(&self) -> Fallible<()> {
+        unsafe_torch_err!({ torch_sys::ato_step(self.c_optimizer) });
+        Ok(())
     }
 }
 

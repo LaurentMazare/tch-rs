@@ -25,11 +25,11 @@ impl nn::Module for Net {
     }
 }
 
-pub fn run() {
-    let m = tch::vision::mnist::load_dir("data").unwrap();
+pub fn run() -> failure::Fallible<()> {
+    let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = Net::new(&vs.root());
-    let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default());
+    let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default())?;
     for epoch in 1..200 {
         let loss = net
             .forward(&m.train_images)
@@ -45,4 +45,5 @@ pub fn run() {
             100. * f64::from(&test_accuracy),
         );
     }
+    Ok(())
 }

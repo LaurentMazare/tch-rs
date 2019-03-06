@@ -33,15 +33,15 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     result
 }
 
-pub fn main() {
+pub fn main() -> failure::Fallible<()> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
-    let data = TextData::new("data/input.txt").unwrap();
+    let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
     println!("Dataset loaded, {} labels.", labels);
     let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE);
     let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels);
-    let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default());
+    let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
     for epoch in 1..(1 + EPOCHS) {
         let mut sum_loss = 0.;
         let mut cnt_loss = 0.;
@@ -60,4 +60,5 @@ pub fn main() {
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
         println!("Sample: {}", sample(&data, &lstm, &linear, device));
     }
+    Ok(())
 }
