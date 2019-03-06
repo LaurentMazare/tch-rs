@@ -14,7 +14,7 @@ The code generation part for the C api on top of libtorch comes from
 ## Getting Started
 
 This crate requires the C++ version of PyTorch (libtorch) to be available on
-your system. You can either install it manually and let the build script now about
+your system. You can either install it manually and let the build script know about
 it via the `LIBTORCH` environment variable. If not set, the build script will
 try downloading and extracting a pre-built binary version of libtorch.
 
@@ -70,10 +70,10 @@ More details on the training loop can be found in the
 
 The [pretrained-models  example](https://github.com/LaurentMazare/tch-rs/tree/master/examples/pretrained-models/main.rs)
 illustrates how to use some pre-trained computer vision model on an image.
-The weights - which have been extracting from the PyTorch implementation - can be
+The weights - which have been extracted from the PyTorch implementation - can be
 downloaded here [resnet18.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).
 
-Running the example can then be run via the following command:
+The example can then be run via the following command:
 ```bash
 cargo run --example pretrained-models -- resnet18.ot tiger.jpg
 ```
