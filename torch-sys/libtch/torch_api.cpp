@@ -454,6 +454,14 @@ scalar ats_float(double v) {
   PROTECT(return new torch::Scalar(v);)
 }
 
+int64_t ats_to_int(scalar s) {
+  PROTECT(return s->toLong();)
+}
+
+double ats_to_float(scalar s) {
+  PROTECT(return s->toDouble();)
+}
+
 void ats_free(scalar s) {
   delete(s);
 }

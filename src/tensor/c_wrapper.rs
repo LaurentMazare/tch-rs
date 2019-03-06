@@ -65,12 +65,24 @@ impl Tensor {
         unsafe_torch!({ at_print(self.c_tensor) })
     }
 
+    pub fn f_double_value(&self, idx: &[i32]) -> Fallible<f64> {
+        Ok(unsafe_torch_err!({
+            at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
+        }))
+    }
+
+    pub fn f_int64_value(&self, idx: &[i32]) -> Fallible<i64> {
+        Ok(unsafe_torch!({
+            at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
+        }))
+    }
+
     pub fn double_value(&self, idx: &[i32]) -> f64 {
-        unsafe_torch!({ at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) })
+        self.f_double_value(idx).unwrap()
     }
 
     pub fn int64_value(&self, idx: &[i32]) -> i64 {
-        unsafe_torch!({ at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32) })
+        self.f_int64_value(idx).unwrap()
     }
 
     pub fn requires_grad(&self) -> bool {
@@ -88,20 +100,30 @@ impl Tensor {
         }
     }
 
-    pub fn backward(&self) {
-        unsafe_torch!({ at_backward(self.c_tensor, 0, 0) })
+    pub fn f_backward(&self) -> Fallible<()> {
+        unsafe_torch_err!({ at_backward(self.c_tensor, 0, 0) });
+        Ok(())
     }
 
-    pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
+    pub fn backward(&self) {
+        self.f_backward().unwrap()
+    }
+
+    pub fn f_copy_data<T>(&self, dst: &mut [T], numel: i64) -> Fallible<()> {
         let kind = self.kind();
-        unsafe_torch!({
+        unsafe_torch_err!({
             at_copy_data(
                 self.c_tensor,
                 dst.as_mut_ptr() as *const c_void,
                 numel,
                 kind.elt_size_in_bytes(),
             )
-        })
+        });
+        Ok(())
+    }
+
+    pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
+        self.f_copy_data(dst, numel).unwrap()
     }
 
     /// Returns the total number of elements stored in a tensor.
@@ -110,10 +132,10 @@ impl Tensor {
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
-    pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
+    pub fn f_of_data(data: &[u8], kind: Kind) -> Fallible<Tensor> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
-        let c_tensor = unsafe_torch!({
+        let c_tensor = unsafe_torch_err!({
             at_tensor_of_data(
                 data,
                 [data_len as i64].as_ptr(),
@@ -122,7 +144,11 @@ impl Tensor {
                 kind.c_int(),
             )
         });
-        Tensor { c_tensor }
+        Ok(Tensor { c_tensor })
+    }
+
+    pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
+        Self::f_of_data(data, kind).unwrap()
     }
 
     /// Returns a new tensor that share storage with the input tensor.
@@ -131,14 +157,24 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
+    pub fn f_get(&self, index: i64) -> Fallible<Tensor> {
+        let c_tensor = unsafe_torch_err!({ at_get(self.c_tensor, index as c_int) });
+        Ok(Tensor { c_tensor })
+    }
+
     pub fn get(&self, index: i64) -> Tensor {
-        let c_tensor = unsafe_torch!({ at_get(self.c_tensor, index as c_int) });
-        Tensor { c_tensor }
+        self.f_get(index).unwrap()
+    }
+
+    /// Copies values from the argument tensor to the input tensor.
+    pub fn f_copy_(&self, src: &Tensor) -> Fallible<()> {
+        unsafe_torch_err!({ at_copy_(self.c_tensor, src.c_tensor) });
+        Ok(())
     }
 
     /// Copies values from the argument tensor to the input tensor.
     pub fn copy_(&self, src: &Tensor) {
-        unsafe_torch!({ at_copy_(self.c_tensor, src.c_tensor) })
+        self.f_copy_(src).unwrap()
     }
 
     /// Loads a tensor from a file.

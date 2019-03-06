@@ -8,6 +8,8 @@ pub struct C_scalar {
 extern "C" {
     pub fn ats_int(v: i64) -> *mut C_scalar;
     pub fn ats_float(v: f64) -> *mut C_scalar;
+    pub fn ats_to_int(arg: *mut C_scalar) -> i64;
+    pub fn ats_to_float(arg: *mut C_scalar) -> f64;
     pub fn ats_free(arg: *mut C_scalar);
 }
 
