@@ -1,8 +1,10 @@
-/// A Torch tensor.
+//! A Torch tensor.
 use crate::scalar::Scalar;
 use crate::{Device, Kind};
+use failure::Fallible;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
+mod c_fallible_wrapper_generated;
 mod c_wrapper;
 mod c_wrapper_generated;
 
@@ -175,6 +177,10 @@ impl Tensor {
         self.totype(kind)
     }
 
+    pub fn f_to_kind(&self, kind: Kind) -> Fallible<Tensor> {
+        self.f_totype(kind)
+    }
+
     pub fn nll_loss(&self, targets: &Tensor) -> Tensor {
         let weights = Tensor::new();
         self.g_nll_loss(targets, &weights, 1, -100)
@@ -268,11 +274,6 @@ impl Tensor {
             .mean()
     }
 
-    /// Moves a tensor to a specified device.
-    pub fn to_tensor(&self, device: Device) -> Tensor {
-        self.to_(device)
-    }
-
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
         let len: i64 = self.size()[0];
         let index = Tensor::randint(len, &[batch_size], crate::kind::INT64_CPU);
@@ -300,8 +301,13 @@ impl Tensor {
         (batch1, batch2)
     }
 
+    /// Moves a tensor to a specified device.
     pub fn to_device(&self, device: Device) -> Tensor {
         self.to_(device)
+    }
+
+    pub fn f_to_device(&self, device: Device) -> Fallible<Tensor> {
+        self.f_to_(device)
     }
 
     pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {

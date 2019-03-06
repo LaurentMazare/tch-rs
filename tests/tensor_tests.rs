@@ -159,3 +159,12 @@ fn onehot() {
     );
     assert_eq!(onehot.size(), vec![4, 4])
 }
+
+#[test]
+fn fallible() {
+    // Try to compare two tensors with incompatible dimensions and check that this returns an
+    // error.
+    let xs = Tensor::int_vec(&[0, 1, 2, 3]);
+    let ys = Tensor::int_vec(&[0, 1, 2, 3, 4]);
+    assert!(xs.f_eq1(&ys).is_err())
+}
