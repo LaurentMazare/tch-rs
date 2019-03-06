@@ -16,3 +16,4 @@ failure = "0.1"
 libc = "0.2.0"
 rand = "0.6.5"
 torch-sys = { version = "0.0.3", path = "torch-sys" }
+derive_builder = "0.7.1"

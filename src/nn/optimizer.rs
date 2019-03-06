@@ -1,15 +1,23 @@
 //! Optimizers to be used for gradient-descent based training.
+
+use failure::Fallible;
+
 use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
 use crate::{Scalar, Tensor};
-use failure::Fallible;
 
 pub struct Optimizer {
     opt: COptimizer,
     trainable_variables: Vec<Tensor>,
 }
 
+pub trait Optim<Config>: Sized {
+    fn register(variable_store: &VarStore, learning_rate: f64, config: Config) -> Fallible<Self>;
+}
+
 /// Parameters for the SGD optimizer.
+#[derive(Debug, Default, Builder, Clone, Copy)]
+#[builder(setter(into))]
 pub struct Sgd {
     pub momentum: f64,
     pub dampening: f64,
@@ -17,18 +25,27 @@ pub struct Sgd {
     pub nesterov: bool,
 }
 
-impl Default for Sgd {
-    fn default() -> Self {
-        Sgd {
-            momentum: 0.,
-            dampening: 0.,
-            wd: 0.,
-            nesterov: false,
-        }
+impl Optim<Sgd> for Optimizer {
+    fn register(variable_store: &VarStore, learning_rate: f64, config: Sgd) -> Fallible<Self> {
+        let mut opt = COptimizer::sgd(
+            learning_rate,
+            config.momentum,
+            config.dampening,
+            config.wd,
+            config.nesterov,
+        )?;
+        let trainable_variables = variable_store.trainable_variables();
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
+            opt,
+            trainable_variables,
+        })
     }
 }
 
 /// Parameters for the Adam optimizer.
+#[derive(Debug, Builder, Clone, Copy)]
+#[builder(setter(into))]
 pub struct Adam {
     pub beta1: f64,
     pub beta2: f64,
@@ -45,7 +62,21 @@ impl Default for Adam {
     }
 }
 
+impl Optim<Adam> for Optimizer {
+    fn register(variable_store: &VarStore, learning_rate: f64, config: Adam) -> Fallible<Self> {
+        let mut opt = COptimizer::adam(learning_rate, config.beta1, config.beta2, config.wd)?;
+        let trainable_variables = variable_store.trainable_variables();
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
+            opt,
+            trainable_variables,
+        })
+    }
+}
+
 /// Parameters for the RmsProp optimizer.
+#[derive(Debug, Builder, Clone, Copy)]
+#[builder(setter(into))]
 pub struct RmsProp {
     pub alpha: f64,
     pub eps: f64,
@@ -66,35 +97,36 @@ impl Default for RmsProp {
     }
 }
 
-impl Optimizer {
-    pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov)?;
-        let trainable_variables = vs.trainable_variables();
+impl Optim<RmsProp> for Optimizer {
+    fn register(variable_store: &VarStore, learning_rate: f64, config: RmsProp) -> Fallible<Self> {
+        let mut opt = COptimizer::rms_prop(
+            learning_rate,
+            config.alpha,
+            config.eps,
+            config.wd,
+            config.momentum,
+            config.centered,
+        )?;
+        let trainable_variables = variable_store.trainable_variables();
         opt.add_parameters(&trainable_variables)?;
         Ok(Optimizer {
             opt,
             trainable_variables,
         })
+    }
+}
+
+impl Optimizer {
+    pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Fallible<Optimizer> {
+        <Optimizer as Optim<Sgd>>::register(vs, lr, s)
     }
 
     pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
-        Ok(Optimizer {
-            opt,
-            trainable_variables,
-        })
+        <Optimizer as Optim<Adam>>::register(vs, lr, a)
     }
 
     pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
-        Ok(Optimizer {
-            opt,
-            trainable_variables,
-        })
+        <Optimizer as Optim<RmsProp>>::register(vs, lr, r)
     }
 
     pub fn zero_grad(&self) {
