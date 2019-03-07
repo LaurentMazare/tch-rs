@@ -4,6 +4,7 @@
 #[macro_use]
 extern crate failure;
 extern crate tch;
+
 use tch::vision::imagenet;
 
 pub fn main() -> failure::Fallible<()> {

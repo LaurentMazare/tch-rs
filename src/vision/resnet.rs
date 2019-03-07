@@ -2,6 +2,7 @@
 //!
 //! See "Deep Residual Learning for Image Recognition" He et al. 2015
 //! https://arxiv.org/abs/1512.03385
+
 use crate::nn;
 use crate::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 

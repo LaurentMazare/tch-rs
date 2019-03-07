@@ -1,6 +1,8 @@
-use crate::{Kind, Scalar, Tensor};
-use failure::Fallible;
 use std::path::Path;
+
+use failure::Fallible;
+
+use crate::{Kind, Scalar, Tensor};
 
 const IMAGENET_MEAN: [f64; 3] = [0.485, 0.456, 0.406];
 const IMAGENET_STD: [f64; 3] = [0.229, 0.224, 0.225];

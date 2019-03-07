@@ -8,6 +8,7 @@
 */
 
 extern crate tch;
+
 mod mnist_conv;
 mod mnist_linear;
 mod mnist_nn;

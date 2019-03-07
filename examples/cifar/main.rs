@@ -7,6 +7,7 @@
 */
 
 extern crate tch;
+
 use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 use tch::{nn, Device};
 

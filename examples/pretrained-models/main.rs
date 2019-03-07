@@ -5,6 +5,7 @@
 #[macro_use]
 extern crate failure;
 extern crate tch;
+
 use tch::nn::ModuleT;
 use tch::vision::imagenet;
 
