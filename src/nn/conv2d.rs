@@ -1,4 +1,4 @@
-/// A two dimension convolution layer.
+//! A two dimension convolution layer.
 use crate::Tensor;
 use std::borrow::Borrow;
 

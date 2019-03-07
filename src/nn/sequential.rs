@@ -1,4 +1,4 @@
-/// A sequential layer used to chain multiple layers and closures.
+//! A sequential layer used to chain multiple layers and closures.
 use crate::tensor::Tensor;
 
 pub struct Sequential {

@@ -1,8 +1,8 @@
-/// Devices on which tensor computations are run.
-///
-/// This currently represents a device type rather than a device
-/// which could be problematic in a multi-GPU setting.
-/// If needed, a device index should be added.
+//! Devices on which tensor computations are run.
+//!
+//! This currently represents a device type rather than a device
+//! which could be problematic in a multi-GPU setting.
+//! If needed, a device index should be added.
 
 /// A torch device.
 #[derive(Debug, Copy, Clone)]

@@ -1,4 +1,4 @@
-/// A linear fully-connected layer.
+//! A linear fully-connected layer.
 use crate::Tensor;
 use std::borrow::Borrow;
 

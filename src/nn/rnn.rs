@@ -1,4 +1,4 @@
-/// Recurrent Neural Networks
+//! Recurrent Neural Networks
 use crate::{Device, Kind, Tensor};
 
 // TODO: define some traits for recurrent neural networks.

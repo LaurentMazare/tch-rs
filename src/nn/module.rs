@@ -1,4 +1,4 @@
-/// Basic module traits defining the forward pass.
+//! Basic module traits defining the forward pass.
 use crate::data::Iter2;
 use crate::tensor::Tensor;
 use crate::Device;

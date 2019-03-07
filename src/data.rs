@@ -1,4 +1,4 @@
-/// Dataset iterators.
+//! Dataset iterators.
 use crate::{kind, Device, Tensor};
 use std::collections::HashMap;
 use std::fs::File;

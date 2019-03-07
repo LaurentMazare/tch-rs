@@ -1,4 +1,4 @@
-/// Layers defined by closures.
+//! Layers defined by closures.
 use crate::Tensor;
 
 /// A layer defined by a simple closure.

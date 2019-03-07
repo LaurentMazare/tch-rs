@@ -1,7 +1,7 @@
-/// A small neural-network library based on Torch.
-///
-/// This library tries to stay as close as possible to the original
-/// Python and C++ implementations.
+//! A small neural-network library based on Torch.
+//!
+//! This library tries to stay as close as possible to the original
+//! Python and C++ implementations.
 mod var_store;
 pub use var_store::Path;
 pub use var_store::VarStore;
