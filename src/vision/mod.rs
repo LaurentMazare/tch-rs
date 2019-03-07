@@ -10,4 +10,6 @@ pub mod cifar;
 
 pub mod resnet;
 
+pub mod densenet;
+
 pub mod imagenet;

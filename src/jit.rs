@@ -23,7 +23,7 @@ impl IValue {
                 IValue::Int(i) => ati_int(*i),
                 IValue::Double(f) => ati_double(*f),
                 IValue::Tuple(v) => {
-                    let v = v.iter().map(|x| x.to_c()).collect::<Fallible<Vec<_>>>()?;
+                    let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
                     ati_tuple(v.as_ptr(), v.len() as c_int)
                 }
             }

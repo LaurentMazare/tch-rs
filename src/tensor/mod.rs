@@ -310,6 +310,10 @@ impl Tensor {
         self.f_to_(device)
     }
 
+    pub fn avg_pool2d_default(&self, ksize: i64) -> Tensor {
+        self.avg_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], false, true)
+    }
+
     pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {
         self.max_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], &[1, 1], false)
     }
