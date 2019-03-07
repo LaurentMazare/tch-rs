@@ -1,7 +1,10 @@
 //! A simple dataset structure shared by various computer vision datasets.
+
+use failure::Fallible;
+use rand::Rng;
+
 use crate::data::Iter2;
 use crate::Tensor;
-use rand::Rng;
 
 #[derive(Debug)]
 pub struct Dataset {
@@ -13,11 +16,11 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn train_iter(&self, batch_size: i64) -> Iter2 {
+    pub fn train_iter(&self, batch_size: i64) -> Fallible<Iter2> {
         Iter2::new(&self.train_images, &self.train_labels, batch_size)
     }
 
-    pub fn test_iter(&self, batch_size: i64) -> Iter2 {
+    pub fn test_iter(&self, batch_size: i64) -> Fallible<Iter2> {
         Iter2::new(&self.test_images, &self.test_labels, batch_size)
     }
 }

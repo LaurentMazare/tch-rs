@@ -121,7 +121,7 @@ fn data() {
     let vs: Vec<i64> = (0..1337).collect();
     let xs = Tensor::int_vec(&vs);
     let ys = Tensor::int_vec(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
-    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64) {
+    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64).unwrap() {
         let xs = Vec::<i64>::from(&batch_xs);
         let ys = Vec::<i64>::from(&batch_ys);
         assert_eq!(xs.len(), bsize);
@@ -133,8 +133,12 @@ fn data() {
             }
         }
     }
+
     let mut all_in_order = true;
-    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64).shuffle() {
+    for (batch_xs, batch_ys) in tch::data::Iter2::new(&xs, &ys, bsize as i64)
+        .unwrap()
+        .shuffle()
+    {
         let xs = Vec::<i64>::from(&batch_xs);
         let ys = Vec::<i64>::from(&batch_ys);
         assert_eq!(xs.len(), bsize);

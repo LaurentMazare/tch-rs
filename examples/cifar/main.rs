@@ -62,7 +62,7 @@ pub fn main() -> failure::Fallible<()> {
     let mut opt = nn::optimizer::sgd(&vs, 0., 0.9, 0., 5e-4, true)?;
     for epoch in 1..150 {
         opt.set_lr(learning_rate(epoch));
-        for (bimages, blabels) in m.train_iter(64).shuffle().to_device(vs.device()) {
+        for (bimages, blabels) in m.train_iter(64)?.shuffle().to_device(vs.device()) {
             let bimages = tch::vision::dataset::augmentation(&bimages, true, 4, 8);
             let loss = net
                 .forward_t(&bimages, true)
@@ -70,7 +70,7 @@ pub fn main() -> failure::Fallible<()> {
             opt.backward_step(&loss);
         }
         let test_accuracy =
-            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 512);
+            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 512)?;
         println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
     Ok(())

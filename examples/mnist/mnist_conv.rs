@@ -45,14 +45,14 @@ pub fn run() -> failure::Fallible<()> {
     let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default())?;
     for epoch in 1..100 {
-        for (bimages, blabels) in m.train_iter(256).shuffle().to_device(vs.device()) {
+        for (bimages, blabels) in m.train_iter(256)?.shuffle().to_device(vs.device()) {
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
             opt.backward_step(&loss);
         }
         let test_accuracy =
-            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 1024);
+            net.batch_accuracy_for_logits(&m.test_images, &m.test_labels, vs.device(), 1024)?;
         println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
     Ok(())
