@@ -46,6 +46,20 @@ fn grad() {
 }
 
 #[test]
+fn grad_grad() {
+    // Compute a second order derivative using run_backward.
+    let mut x = Tensor::from(42.0).set_requires_grad(true);
+    let y = &x * &x * &x + &x + &x * &x;
+    x.zero_grad();
+    let dy_over_dx = Tensor::run_backward(&[y], &[&x], true, true);
+    assert_eq!(dy_over_dx.len(), 1);
+    let dy_over_dx = &dy_over_dx[0];
+    dy_over_dx.backward();
+    let dy_over_dx2 = x.grad();
+    assert_eq!(f64::from(&dy_over_dx2), 254.0);
+}
+
+#[test]
 fn cat_and_stack() {
     let t = Tensor::float_vec(&[13.0, 37.0]);
     let t = Tensor::cat(&[&t, &t, &t], 0);

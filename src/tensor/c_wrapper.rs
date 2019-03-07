@@ -2,6 +2,7 @@ use crate::utils::path_to_cstring;
 use crate::{Device, Kind};
 use failure::Fallible;
 use libc::{c_char, c_int, c_void};
+use std::borrow::Borrow;
 use std::path::Path;
 use torch_sys::*;
 
@@ -9,6 +10,8 @@ use torch_sys::*;
 pub struct Tensor {
     pub(crate) c_tensor: *mut C_tensor,
 }
+
+unsafe impl Sync for Tensor {}
 
 extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mut C_tensor) {
     let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
@@ -107,6 +110,49 @@ impl Tensor {
 
     pub fn backward(&self) {
         self.f_backward().unwrap()
+    }
+
+    pub fn f_run_backward<T1, T2>(
+        tensors: &[T1],
+        inputs: &[T2],
+        keep_graph: bool,
+        create_graph: bool,
+    ) -> Fallible<Vec<Tensor>>
+    where
+        T1: Borrow<Tensor>,
+        T2: Borrow<Tensor>,
+    {
+        let mut outputs = vec![std::ptr::null_mut(); inputs.len()];
+        let tensors: Vec<_> = tensors.iter().map(|x| x.borrow().c_tensor).collect();
+        let inputs: Vec<_> = inputs.iter().map(|x| x.borrow().c_tensor).collect();
+        unsafe_torch_err!({
+            at_run_backward(
+                tensors.as_ptr(),
+                tensors.len() as c_int,
+                inputs.as_ptr(),
+                inputs.len() as c_int,
+                outputs.as_mut_ptr(),
+                keep_graph as c_int,
+                create_graph as c_int,
+            )
+        });
+        Ok(outputs
+            .into_iter()
+            .map(|c_tensor| Tensor { c_tensor })
+            .collect())
+    }
+
+    pub fn run_backward<T1, T2>(
+        tensors: &[T1],
+        inputs: &[T2],
+        keep_graph: bool,
+        create_graph: bool,
+    ) -> Vec<Tensor>
+    where
+        T1: Borrow<Tensor>,
+        T2: Borrow<Tensor>,
+    {
+        Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
     }
 
     pub fn f_copy_data<T>(&self, dst: &mut [T], numel: i64) -> Fallible<()> {

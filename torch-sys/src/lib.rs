@@ -35,6 +35,15 @@ extern "C" {
         -> f64;
     pub fn at_int64_value_at_indexes(arg: *mut C_tensor, idx: *const c_int, idx_len: c_int) -> i64;
     pub fn at_free(arg: *mut C_tensor);
+    pub fn at_run_backward(
+        arg: *const *mut C_tensor,
+        ntensors: c_int,
+        inputs: *const *mut C_tensor,
+        ninputs: c_int,
+        outputs: *mut *mut C_tensor,
+        keep_graph: c_int,
+        create_graph: c_int,
+    );
     pub fn at_copy_data(
         arg: *mut C_tensor,
         vs: *const c_void,

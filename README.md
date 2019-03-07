@@ -5,7 +5,9 @@ possible to the original C++ api. More idiomatic rust bindings could then be
 developed on top of this. The [documentation](https://docs.rs/tch/) can be found on docs.rs.
 
 [![Build Status](https://travis-ci.org/LaurentMazare/tch-rs.svg?branch=master)](https://travis-ci.org/LaurentMazare/tch-rs)
-[![Crate](http://meritbadge.herokuapp.com/tch)](https://crates.io/crates/tch)
+[![Latest version](https://img.shields.io/crates/v/tch.svg)](https://crates.io/crates/tch)
+[![Documentation](https://docs.rs/tch/badge.svg)](https://docs.rs/tch)
+[![License](https://img.shields.io/crates/l/tch.svg)](https://github.com/LaurentMazare/tch-rs/blob/master/LICENSE)
 
 
 The code generation part for the C api on top of libtorch comes from
@@ -108,3 +110,6 @@ Further examples include:
   [char-rnn](https://github.com/LaurentMazare/tch-rs/blob/master/examples/char-rnn)
   illustrating character level language modeling using Recurrent Neural Networks.
 * Some [ResNet examples on CIFAR-10](https://github.com/LaurentMazare/tch-rs/tree/master/examples/cifar).
+* A [tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/jit)
+  showing how to deploy/run some Python trained models using
+  [TorchScript JIT](https://pytorch.org/docs/stable/jit.html).

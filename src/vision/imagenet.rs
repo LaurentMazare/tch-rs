@@ -2,33 +2,36 @@ use crate::{Kind, Scalar, Tensor};
 use failure::Fallible;
 use std::path::Path;
 
-const IMAGENET_MEAN: [f64; 3] = [0.485, 0.456, 0.406];
-const IMAGENET_STD: [f64; 3] = [0.229, 0.224, 0.225];
-
-fn normalize(tensor: &Tensor) -> Tensor {
-    let mean = Tensor::float_vec(&IMAGENET_MEAN).view(&[3, 1, 1]);
-    let std = Tensor::float_vec(&IMAGENET_STD).view(&[3, 1, 1]);
-    ((tensor.to_kind(Kind::Float) / 255.0) - mean) / std
+lazy_static! {
+    static ref IMAGENET_MEAN: Tensor =
+        { Tensor::float_vec(&[0.485, 0.456, 0.406]).view(&[3, 1, 1]) };
+    static ref IMAGENET_STD: Tensor =
+        { Tensor::float_vec(&[0.229, 0.224, 0.225]).view(&[3, 1, 1]) };
 }
 
-fn unnormalize(tensor: &Tensor) -> Tensor {
-    let mean = Tensor::float_vec(&IMAGENET_MEAN).view(&[3, 1, 1]);
-    let std = Tensor::float_vec(&IMAGENET_STD).view(&[3, 1, 1]);
-    ((tensor * std + mean) * 255.0)
+fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
+    (tensor.to_kind(Kind::Float) / 255.0)
+        .f_sub(&IMAGENET_MEAN)?
+        .f_div(&IMAGENET_STD)
+}
+
+fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
+    let tensor = (tensor.f_mul(&IMAGENET_STD)?.f_add(&IMAGENET_MEAN)? * 255.0)
         .clamp(&Scalar::from(0.), &Scalar::from(255.0))
-        .to_kind(Kind::Uint8)
+        .to_kind(Kind::Uint8);
+    Ok(tensor)
 }
 
 pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Fallible<()> {
-    super::image::save(&unnormalize(tensor), path)
+    super::image::save(&unnormalize(tensor)?, path)
 }
 
 pub fn load_image<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
-    Ok(normalize(&super::image::load(path)?))
+    normalize(&super::image::load(path)?)
 }
 
 pub fn load_image_and_resize<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
-    Ok(normalize(&super::image::load_and_resize(path, 224, 224)?))
+    normalize(&super::image::load_and_resize(path, 224, 224)?)
 }
 
 pub const CLASS_COUNT: i64 = 1000;
