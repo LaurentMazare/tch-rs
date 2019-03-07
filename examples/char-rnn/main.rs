@@ -6,7 +6,7 @@
 
 extern crate tch;
 use tch::data::TextData;
-use tch::nn::{Linear, Module, LSTM};
+use tch::nn::{Linear, Module, LSTM, RNN};
 use tch::{kind, nn, Device, Scalar, Tensor};
 
 static LEARNING_RATE: f64 = 0.01;

@@ -15,11 +15,14 @@ pub use linear::Linear;
 mod conv2d;
 pub use conv2d::{Conv2D, Conv2DConfig};
 
+mod conv_transpose2d;
+pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig};
+
 mod batch_norm;
 pub use batch_norm::BatchNorm2D;
 
 mod rnn;
-pub use rnn::LSTM;
+pub use rnn::{GRU, LSTM, RNN};
 
 mod func;
 pub use func::{Func, FuncT};
