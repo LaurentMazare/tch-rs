@@ -1,3 +1,4 @@
+//! Variable stores.
 use crate::tensor::Tensor;
 use crate::{Device, Kind};
 use failure::Fallible;
@@ -16,6 +17,7 @@ pub struct VarStore {
     device: Device,
 }
 
+/// A variable store with an associated path for variables naming.
 #[derive(Debug)]
 pub struct Path<'a> {
     path: Vec<String>,
@@ -23,6 +25,7 @@ pub struct Path<'a> {
 }
 
 impl VarStore {
+    /// Creates a new var-store located on the specified device.
     pub fn new(device: Device) -> VarStore {
         VarStore {
             variables: Mutex::new(HashMap::new()),
@@ -30,10 +33,12 @@ impl VarStore {
         }
     }
 
+    /// Gets the device for this var-store.
     pub fn device(&self) -> Device {
         self.device
     }
 
+    /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables.lock().unwrap();
         variables
@@ -55,6 +60,7 @@ impl VarStore {
         }
     }
 
+    /// Saves the var-store variable values to a file.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
         let variables = self.variables.lock().unwrap();
         let named_tensors = variables
@@ -64,6 +70,7 @@ impl VarStore {
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
 
+    /// Loads the var-store variable values from a file.
     pub fn load<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
@@ -75,6 +82,14 @@ impl VarStore {
             }
         }
         Ok(())
+    }
+
+    pub fn freeze(&mut self) {
+        // TODO
+    }
+
+    pub fn unfreeze(&mut self) {
+        // TODO
     }
 }
 

@@ -343,4 +343,11 @@ impl Tensor {
             &Tensor::ones(&[], crate::kind::FLOAT_CPU),
         )
     }
+
+    /// Copies a tensor to a newly allocated tensor using the same shape and device.
+    pub fn copy(&self) -> Tensor {
+        let result = self.zeros_like();
+        result.copy_(&self);
+        result
+    }
 }
