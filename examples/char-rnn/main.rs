@@ -39,7 +39,7 @@ pub fn main() -> failure::Fallible<()> {
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
     println!("Dataset loaded, {} labels.", labels);
-    let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE);
+    let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE, Default::default());
     let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels);
     let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
     for epoch in 1..(1 + EPOCHS) {

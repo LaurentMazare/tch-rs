@@ -1,8 +1,6 @@
 //! Recurrent Neural Networks
 use crate::{Device, Kind, Tensor};
 
-// TODO: add some config for the various LSTM/GRU options.
-
 pub trait RNN {
     type State;
 
@@ -32,6 +30,30 @@ impl LSTMState {
     }
 }
 
+// The GRU and LSTM layers share the same config.
+#[derive(Debug, Clone, Copy)]
+pub struct Config {
+    has_biases: bool,
+    num_layers: i64,
+    dropout: f64,
+    train: bool,
+    bidirectional: bool,
+    batch_first: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            has_biases: true,
+            num_layers: 1,
+            dropout: 0.,
+            train: false,
+            bidirectional: false,
+            batch_first: true,
+        }
+    }
+}
+
 /// A Long Short-Term Memory (LSTM) layer.
 ///
 /// https://en.wikipedia.org/wiki/Long_short-term_memory
@@ -42,11 +64,12 @@ pub struct LSTM {
     b_ih: Tensor,
     b_hh: Tensor,
     hidden_dim: i64,
+    config: Config,
     device: Device,
 }
 
 impl LSTM {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64) -> LSTM {
+    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: Config) -> LSTM {
         let gate_dim = 4 * hidden_dim;
         LSTM {
             w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
@@ -54,6 +77,7 @@ impl LSTM {
             b_ih: vs.zeros("b_ih", &[gate_dim]),
             b_hh: vs.zeros("b_hh", &[gate_dim]),
             hidden_dim,
+            config: c,
             device: vs.device(),
         }
     }
@@ -87,12 +111,12 @@ impl RNN for LSTM {
         let (output, h, c) = input.lstm(
             &[&zeros, &zeros],
             &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
-            /*has_biases=*/ true,
-            /*num_layers=*/ 1,
-            /*dropout=*/ 0.,
-            /*train=*/ false,
-            /*bidirectional=*/ false,
-            /*batch_first=*/ true,
+            self.config.has_biases,
+            self.config.num_layers,
+            self.config.dropout,
+            self.config.train,
+            self.config.bidirectional,
+            self.config.batch_first,
         );
         (output, LSTMState((h, c)))
     }
@@ -111,11 +135,12 @@ pub struct GRU {
     b_ih: Tensor,
     b_hh: Tensor,
     hidden_dim: i64,
+    config: Config,
     device: Device,
 }
 
 impl GRU {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64) -> GRU {
+    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: Config) -> GRU {
         let gate_dim = 3 * hidden_dim;
         GRU {
             w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
@@ -123,6 +148,7 @@ impl GRU {
             b_ih: vs.zeros("b_ih", &[gate_dim]),
             b_hh: vs.zeros("b_hh", &[gate_dim]),
             hidden_dim,
+            config: c,
             device: vs.device(),
         }
     }
@@ -155,12 +181,12 @@ impl RNN for GRU {
         let (output, h) = input.gru(
             &zeros,
             &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
-            /*has_biases=*/ true,
-            /*num_layers=*/ 1,
-            /*dropout=*/ 0.,
-            /*train=*/ false,
-            /*bidirectional=*/ false,
-            /*batch_first=*/ true,
+            self.config.has_biases,
+            self.config.num_layers,
+            self.config.dropout,
+            self.config.train,
+            self.config.bidirectional,
+            self.config.batch_first,
         );
         (output, GRUState(h))
     }
