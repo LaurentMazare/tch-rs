@@ -29,6 +29,25 @@ impl Scalar {
         let f = unsafe_torch_err!({ torch_sys::ats_to_float(self.c_scalar) });
         Ok(f)
     }
+
+    pub fn to_string(&self) -> Fallible<String> {
+        let s = unsafe_torch_err!({
+            super::utils::ptr_to_string(torch_sys::ats_to_string(self.c_scalar))
+        });
+        match s {
+            None => bail!("nullptr representation"),
+            Some(s) => Ok(s),
+        }
+    }
+}
+
+impl std::fmt::Debug for Scalar {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self.to_string() {
+            Err(_) => write!(f, "err"),
+            Ok(s) => write!(f, "scalar<{}>", s),
+        }
+    }
 }
 
 impl Drop for Scalar {
@@ -84,5 +103,6 @@ mod tests {
         let leet = Scalar::int(1337);
         assert_eq!(i64::from(&leet), 1337);
         assert_eq!(f64::from(&leet), 1337.);
+        assert_eq!(&format!("{:?}", pi), "scalar<3.14159>");
     }
 }

@@ -1,4 +1,5 @@
 use failure::Fallible;
+use libc::c_char;
 use std::convert::From;
 
 #[derive(Fail, Debug)]
@@ -15,17 +16,23 @@ impl From<std::ffi::NulError> for TorchError {
     }
 }
 
+// This returns None on the null pointer. If not null, the pointer gets
+// freed.
+pub(crate) unsafe fn ptr_to_string(ptr: *mut c_char) -> Option<String> {
+    if !ptr.is_null() {
+        let str = std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned();
+        libc::free(ptr as *mut libc::c_void);
+        Some(str)
+    } else {
+        None
+    }
+}
+
 pub(crate) fn read_and_clean_error() -> Result<(), TorchError> {
     unsafe {
-        let torch_last_err = torch_sys::get_and_reset_last_err();
-        if !torch_last_err.is_null() {
-            let c_error = std::ffi::CStr::from_ptr(torch_last_err)
-                .to_string_lossy()
-                .into_owned();
-            libc::free(torch_last_err as *mut libc::c_void);
-            Err(TorchError { c_error })
-        } else {
-            Ok(())
+        match ptr_to_string(torch_sys::get_and_reset_last_err()) {
+            None => Ok(()),
+            Some(c_error) => Err(TorchError { c_error }),
         }
     }
 }

@@ -1,8 +1,9 @@
 //! A sequential layer used to chain multiple layers and closures.
 use crate::tensor::Tensor;
 
+#[derive(Debug)]
 pub struct Sequential {
-    layers: Vec<Box<super::module::Module>>,
+    layers: Vec<Box<dyn super::module::Module>>,
 }
 
 impl Sequential {
@@ -42,6 +43,7 @@ impl Sequential {
     }
 }
 
+#[derive(Debug)]
 pub struct SequentialT {
     layers: Vec<Box<super::module::ModuleT>>,
 }

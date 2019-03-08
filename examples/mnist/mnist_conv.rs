@@ -2,6 +2,7 @@
 
 use tch::{nn, nn::ModuleT, Device, Tensor};
 
+#[derive(Debug)]
 struct Net {
     conv1: nn::Conv2D,
     conv2: nn::Conv2D,

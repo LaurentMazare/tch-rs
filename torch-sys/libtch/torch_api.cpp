@@ -462,6 +462,15 @@ double ats_to_float(scalar s) {
   PROTECT(return s->toDouble();)
 }
 
+char *ats_to_string(scalar s) {
+  PROTECT(
+    using namespace at;
+    std::ostringstream oss;
+    oss << (*s);
+    return strdup(oss.str().c_str());
+  )
+}
+
 void ats_free(scalar s) {
   delete(s);
 }

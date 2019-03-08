@@ -9,6 +9,7 @@ use std::io::{BufReader, Read, Result};
 /// The typical use case is to iterate over batches. Each batch is a pair
 /// containing a (potentially random) slice of each of the two input
 /// tensors.
+#[derive(Debug)]
 pub struct Iter2 {
     xs: Tensor,
     ys: Tensor,
@@ -90,11 +91,13 @@ impl Iterator for Iter2 {
 }
 
 /// Text data holder.
+#[derive(Debug)]
 pub struct TextData {
     data: Tensor,
     char_for_label: Vec<char>,
 }
 
+#[derive(Debug)]
 pub struct TextDataIter {
     data: Tensor,
     seq_len: i64,

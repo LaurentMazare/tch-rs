@@ -6,6 +6,12 @@ pub struct Func<'a> {
     f: Box<Fn(&Tensor) -> Tensor + 'a>,
 }
 
+impl<'a> std::fmt::Debug for Func<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "func")
+    }
+}
+
 impl<'a> Func<'a> {
     pub fn new<F>(f: F) -> Func<'a>
     where
@@ -25,6 +31,12 @@ impl<'a> super::module::Module for Func<'a> {
 /// A layer defined by a closure with an additional training parameter.
 pub struct FuncT<'a> {
     f: Box<Fn(&Tensor, bool) -> Tensor + 'a>,
+}
+
+impl<'a> std::fmt::Debug for FuncT<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "funcT")
+    }
 }
 
 impl<'a> FuncT<'a> {

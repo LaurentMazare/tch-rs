@@ -4,12 +4,14 @@ use super::var_store::VarStore;
 use crate::{Scalar, Tensor};
 use failure::Fallible;
 
+#[derive(Debug)]
 pub struct Optimizer {
     opt: COptimizer,
     trainable_variables: Vec<Tensor>,
 }
 
 /// Parameters for the SGD optimizer.
+#[derive(Debug, Copy, Clone)]
 pub struct Sgd {
     pub momentum: f64,
     pub dampening: f64,
@@ -29,6 +31,7 @@ impl Default for Sgd {
 }
 
 /// Parameters for the Adam optimizer.
+#[derive(Debug, Copy, Clone)]
 pub struct Adam {
     pub beta1: f64,
     pub beta2: f64,
@@ -46,6 +49,7 @@ impl Default for Adam {
 }
 
 /// Parameters for the RmsProp optimizer.
+#[derive(Debug, Copy, Clone)]
 pub struct RmsProp {
     pub alpha: f64,
     pub eps: f64,

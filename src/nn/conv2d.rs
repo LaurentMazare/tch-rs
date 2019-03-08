@@ -2,6 +2,7 @@
 use crate::Tensor;
 use std::borrow::Borrow;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Conv2DConfig {
     pub stride: i64,
     pub padding: i64,
@@ -23,6 +24,7 @@ impl Default for Conv2DConfig {
 }
 
 /// A two dimension convolution layer.
+#[derive(Debug)]
 pub struct Conv2D {
     ws: Tensor,
     bs: Tensor,

@@ -10,6 +10,7 @@ extern "C" {
     pub fn ats_float(v: f64) -> *mut C_scalar;
     pub fn ats_to_int(arg: *mut C_scalar) -> i64;
     pub fn ats_to_float(arg: *mut C_scalar) -> f64;
+    pub fn ats_to_string(arg: *mut C_scalar) -> *mut c_char;
     pub fn ats_free(arg: *mut C_scalar);
 }
 
@@ -27,6 +28,7 @@ extern "C" {
     pub fn at_defined(arg: *mut C_tensor) -> c_int;
     pub fn at_backward(arg: *mut C_tensor, keep_graph: c_int, create_graph: c_int);
     pub fn at_print(arg: *mut C_tensor);
+    pub fn at_to_string(arg: *mut C_tensor, line_size: c_int) -> *mut c_char;
     pub fn at_dim(arg: *mut C_tensor) -> c_int;
     pub fn at_get(arg: *mut C_tensor, index: c_int) -> *mut C_tensor;
     pub fn at_requires_grad(arg: *mut C_tensor) -> c_int;

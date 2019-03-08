@@ -16,6 +16,7 @@ pub struct VarStore {
     device: Device,
 }
 
+#[derive(Debug)]
 pub struct Path<'a> {
     path: Vec<String>,
     var_store: &'a VarStore,

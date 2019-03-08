@@ -6,6 +6,7 @@ static IMAGE_DIM: i64 = 784;
 static HIDDEN_NODES: i64 = 128;
 static LABELS: i64 = 10;
 
+#[derive(Debug)]
 struct Net {
     fc1: nn::Linear,
     fc2: nn::Linear,

@@ -1,4 +1,4 @@
-use crate::utils::path_to_cstring;
+use crate::utils::{path_to_cstring, ptr_to_string};
 use crate::{Device, Kind};
 use failure::Fallible;
 use libc::{c_char, c_int, c_void};
@@ -276,6 +276,20 @@ impl Tensor {
             at_load_callback(path.as_ptr(), &mut v as *mut _ as *mut c_void, add_callback)
         });
         Ok(v)
+    }
+
+    /// Returns a string representation for the tensor.
+    ///
+    /// The representation will contain all the tensor element hence may be huge for
+    /// large tensors.
+    pub fn to_string(&self, lw: i64) -> Fallible<String> {
+        let s = unsafe_torch_err!({
+            ptr_to_string(torch_sys::at_to_string(self.c_tensor, lw as c_int))
+        });
+        match s {
+            None => bail!("nullptr representation"),
+            Some(s) => Ok(s),
+        }
     }
 }
 

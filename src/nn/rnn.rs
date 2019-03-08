@@ -19,6 +19,7 @@ pub trait RNN {
     fn seq(&self, input: &Tensor) -> (Tensor, Self::State);
 }
 
+#[derive(Debug)]
 pub struct LSTMState((Tensor, Tensor));
 
 impl LSTMState {
@@ -34,6 +35,7 @@ impl LSTMState {
 /// A Long Short-Term Memory (LSTM) layer.
 ///
 /// https://en.wikipedia.org/wiki/Long_short-term_memory
+#[derive(Debug)]
 pub struct LSTM {
     w_ih: Tensor,
     w_hh: Tensor,
@@ -96,11 +98,13 @@ impl RNN for LSTM {
     }
 }
 
+#[derive(Debug)]
 pub struct GRUState(Tensor);
 
 /// A Gated Recurrent Unit (GRU) layer.
 ///
 /// https://en.wikipedia.org/wiki/Gated_recurrent_unit
+#[derive(Debug)]
 pub struct GRU {
     w_ih: Tensor,
     w_hh: Tensor,

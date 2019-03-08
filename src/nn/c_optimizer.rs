@@ -6,6 +6,12 @@ pub struct COptimizer {
     c_optimizer: *mut torch_sys::C_optimizer,
 }
 
+impl std::fmt::Debug for COptimizer {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "optimizer")
+    }
+}
+
 impl COptimizer {
     pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<COptimizer> {
         let c_optimizer = unsafe_torch_err!({ torch_sys::ato_adam(lr, beta1, beta2, wd) });

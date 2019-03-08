@@ -106,6 +106,7 @@ scalar ats_int(int64_t);
 scalar ats_float(double);
 int64_t ats_to_int(scalar);
 double ats_to_float(scalar);
+char *ats_to_string(scalar);
 void ats_free(scalar);
 
 int atc_cuda_device_count();
