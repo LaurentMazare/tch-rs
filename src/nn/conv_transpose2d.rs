@@ -59,7 +59,7 @@ impl ConvTranspose2D {
         } else {
             Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
         };
-        let ws = vs.kaiming_uniform("weight", &[out_dim, in_dim, ksize, ksize]);
+        let ws = vs.kaiming_uniform("weight", &[in_dim, out_dim, ksize, ksize]);
         ConvTranspose2D {
             ws,
             bs,
@@ -74,8 +74,7 @@ impl ConvTranspose2D {
 
 impl super::module::Module for ConvTranspose2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        Tensor::conv_transpose2d(
-            &xs,
+        xs.conv_transpose2d(
             &self.ws,
             &self.bs,
             &self.stride,

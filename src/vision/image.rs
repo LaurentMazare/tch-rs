@@ -65,3 +65,34 @@ pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Falli
     let tensor = load_hwc(path)?;
     Ok(hwc_to_chw(&resize_hwc(&tensor, out_w, out_h)?))
 }
+
+fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Fallible<()> {
+    if dir.is_dir() {
+        for entry in std::fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                visit_dirs(&path, files)?;
+            } else if entry
+                .file_name()
+                .to_str()
+                .map_or(false, |s| s.ends_with(".png") || s.ends_with(".jpg"))
+            {
+                files.push(entry);
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Loads all the images in a director.
+pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+    let mut files: Vec<std::fs::DirEntry> = vec![];
+    visit_dirs(&path.as_ref(), &mut files)?;
+    ensure!(!files.is_empty(), "no image found in {:?}", path.as_ref());
+    let v: Result<Vec<_>, _> = files
+        .iter()
+        .map(|x| load_and_resize(x.path(), out_w, out_h))
+        .collect();
+    Ok(Tensor::stack(&v?, 0))
+}

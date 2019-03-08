@@ -2,6 +2,8 @@
 // https://github.com/AlexiaJM/RelativisticGAN
 //
 // TODO: override the initializations if this does not converge well.
+#[macro_use]
+extern crate failure;
 extern crate tch;
 use tch::{kind, nn, Device, Kind, Scalar, Tensor};
 
@@ -69,18 +71,34 @@ fn discriminator(p: nn::Path) -> impl nn::ModuleT {
         .add(conv2d(&p / "conv5", 1024, 1, 0, 1))
 }
 
-fn rand_latent() -> Tensor {
-    Tensor::rand(&[BATCH_SIZE, LATENT_DIM], kind::FLOAT_CPU)
+pub fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
+    let diff = x - y;
+    (&diff * &diff).mean()
 }
 
 pub fn main() -> failure::Fallible<()> {
     let device = Device::cuda_if_available();
-    let images = Tensor::new(); // TODO: import some images.
+    let args: Vec<_> = std::env::args().collect();
+    let image_dir = match args.as_slice() {
+        [_, d] => d.to_owned(),
+        _ => bail!("usage: main image-dataset-dir"),
+    };
+    let images = tch::vision::image::load_dir(image_dir, IMG_SIZE, IMG_SIZE)?;
+    println!("loaded dataset: {:?}", images);
     let train_size = images.size()[0];
 
     let random_batch_images = || {
         let index = Tensor::randint(train_size, &[BATCH_SIZE], kind::INT64_CPU);
-        images.index_select(0, &index).to_kind(Kind::Float) / 127.5 - 1.
+        images
+            .index_select(0, &index)
+            .to_device(device)
+            .to_kind(Kind::Float)
+            / 127.5
+            - 1.
+    };
+    let rand_latent = || {
+        (Tensor::rand(&[BATCH_SIZE, LATENT_DIM, 1, 1], kind::FLOAT_CPU) * 2.0 - 1.0)
+            .to_device(device)
     };
 
     let mut generator_vs = nn::VarStore::new(device);
@@ -104,8 +122,8 @@ pub fn main() -> failure::Fallible<()> {
                 .copy()
                 .detach()
                 .apply_t(&discriminator, true);
-            y_pred.mse_loss(&(y_pred_fake.mean() + 1), 1)
-                + y_pred_fake.mse_loss(&(y_pred.mean() - 1), 1)
+            mse_loss(&y_pred, &(y_pred_fake.mean() + 1))
+                + mse_loss(&y_pred_fake, &(y_pred.mean() - 1))
         };
         opt_d.backward_step(&discriminator_loss);
 
@@ -118,12 +136,12 @@ pub fn main() -> failure::Fallible<()> {
             let y_pred_fake = rand_latent()
                 .apply_t(&generator, true)
                 .apply_t(&discriminator, true);
-            y_pred.mse_loss(&(y_pred_fake.mean() - 1), 1)
-                + y_pred_fake.mse_loss(&(y_pred.mean() + 1), 1)
+            mse_loss(&y_pred, &(y_pred_fake.mean() - 1))
+                + mse_loss(&y_pred_fake, &(y_pred.mean() + 1))
         };
         opt_g.backward_step(&generator_loss);
 
-        if index % 10000 == 0 {
+        if index % 1000 == 0 {
             let xs = fixed_noise
                 .apply_t(&generator, true)
                 .view(&[-1, 3, IMG_SIZE, IMG_SIZE])
@@ -140,8 +158,14 @@ pub fn main() -> failure::Fallible<()> {
                     2,
                 ))
             }
-            tch::vision::image::save(&Tensor::cat(&ys, 3), format!("relout{}.png", index))?
+            tch::vision::image::save(
+                &Tensor::cat(&ys, 3).squeeze1(0),
+                format!("relout{}.png", index),
+            )?
         }
+        if index % 100 == 0 {
+            println!("{}", index)
+        };
     }
 
     Ok(())
