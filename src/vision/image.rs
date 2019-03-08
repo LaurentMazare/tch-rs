@@ -90,9 +90,10 @@ pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Ten
     let mut files: Vec<std::fs::DirEntry> = vec![];
     visit_dirs(&path.as_ref(), &mut files)?;
     ensure!(!files.is_empty(), "no image found in {:?}", path.as_ref());
-    let v: Result<Vec<_>, _> = files
+    let v: Vec<_> = files
         .iter()
-        .map(|x| load_and_resize(x.path(), out_w, out_h))
+        // Silently discard image errors.
+        .filter_map(|x| load_and_resize(x.path(), out_w, out_h).ok())
         .collect();
-    Ok(Tensor::stack(&v?, 0))
+    Ok(Tensor::stack(&v, 0))
 }
