@@ -1,7 +1,9 @@
-// This example illustrates how to use a pre-trained ResNet-18 model to get
-// the imagenet label for some image.
-// The resnet18.ot file containing the pre-trained weights can be found here:
+// This example illustrates how to use a pre-trained ResNet-18 or ResNet-34
+// model to get the imagenet label for some image.
+// The resnet18.ot and resnet34.ot files containing the pre-trained weights can
+// be found here:
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot
 #[macro_use]
 extern crate failure;
 extern crate tch;
@@ -17,13 +19,19 @@ pub fn main() -> failure::Fallible<()> {
     // Load the image file and resize it to the usual imagenet dimension of 224x224.
     let image = imagenet::load_image_and_resize(image_file)?;
 
-    // Create a ResNet-18 model and load the weights from the file.
+    // Create a ResNet-18/34 model and load the weights from the file.
     let vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    let resnet18 = tch::vision::resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT);
+    let resnet = if weight_file.ends_with("resnet18.ot") {
+        tch::vision::resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT)
+    } else if weight_file.ends_with("resnet34.ot") {
+        tch::vision::resnet::resnet34(&vs.root(), imagenet::CLASS_COUNT)
+    } else {
+        bail!("the model weight should be named resnet18.ot or resnet34.ot")
+    };
     vs.load(weight_file)?;
 
     // Apply the forward pass of the model to get the logits.
-    let output = resnet18
+    let output = resnet
         .forward_t(&image.unsqueeze(0), /*train=*/ false)
         .softmax(-1); // Convert to probability.
 
