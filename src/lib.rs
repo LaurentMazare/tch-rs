@@ -7,6 +7,7 @@ extern crate libc;
 
 #[macro_use]
 mod utils;
+pub use utils::manual_seed;
 
 pub mod data;
 

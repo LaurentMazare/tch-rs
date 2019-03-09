@@ -147,7 +147,7 @@ pub fn main() -> failure::Fallible<()> {
                 .view(&[-1, 3, IMG_SIZE, IMG_SIZE])
                 .to_device(Device::Cpu);
             let xs = ((xs + 1.) * 127.5)
-                .clamp(&Scalar::float(0.), &Scalar::float(1.))
+                .clamp(&Scalar::float(0.), &Scalar::float(255.))
                 .to_kind(Kind::Uint8);
             let mut ys: Vec<Tensor> = vec![];
             for i in 0..4 {

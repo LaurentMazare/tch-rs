@@ -63,3 +63,7 @@ pub(crate) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<st
         None => Err(format_err!("path {:?} is none", path)),
     }
 }
+
+pub fn manual_seed(seed: i64) {
+    unsafe_torch!({ torch_sys::at_manual_seed(seed) })
+}

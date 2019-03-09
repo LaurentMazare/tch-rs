@@ -1,6 +1,4 @@
-use tch::nn::VarStore;
-use tch::Device;
-use tch::Tensor;
+use tch::{Device, Tensor};
 
 #[test]
 fn assign_ops() {
@@ -98,35 +96,6 @@ fn save_and_load_multi() {
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
     assert_eq!(i64::from(&named_tensors[1].1.sum()), 57);
-}
-
-#[test]
-fn save_and_load_var_store() {
-    let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
-    let add = |vs: &tch::nn::Path| {
-        let v = vs.sub("a").sub("b").ones("t2", &[3]);
-        let u = vs.zeros("t1", &[4]);
-        let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
-        let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
-        (u, v)
-    };
-    let vs1 = VarStore::new(Device::Cpu);
-    let vs2 = VarStore::new(Device::Cpu);
-    let (mut u1, mut v1) = add(&vs1.root());
-    let (u2, v2) = add(&vs2.root());
-    tch::no_grad(|| {
-        u1 += 42.0;
-        v1 *= 2.0;
-    });
-    assert_eq!(f64::from(&u1.mean()), 42.0);
-    assert_eq!(f64::from(&v1.mean()), 2.0);
-    assert_eq!(f64::from(&u2.mean()), 0.0);
-    assert_eq!(f64::from(&v2.mean()), 1.0);
-    vs1.save(&filename).unwrap();
-    vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean()), 42.0);
-    assert_eq!(f64::from(&u2.mean()), 42.0);
-    assert_eq!(f64::from(&v2.mean()), 2.0);
 }
 
 #[test]
