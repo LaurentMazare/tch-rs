@@ -71,9 +71,26 @@ fn discriminator(p: nn::Path) -> impl nn::ModuleT {
         .add(conv2d(&p / "conv5", 1024, 1, 0, 1))
 }
 
-pub fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
+fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
     let diff = x - y;
     (&diff * &diff).mean()
+}
+
+// Generate a 2D matrix of images from a tensor with multiple images.
+fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
+    let imgs = ((imgs + 1.) * 127.5)
+        .clamp(&Scalar::float(0.), &Scalar::float(255.))
+        .to_kind(Kind::Uint8);
+    let mut ys: Vec<Tensor> = vec![];
+    for i in 0..sz {
+        ys.push(Tensor::cat(
+            &(0..sz)
+                .map(|j| imgs.narrow(0, 4 * i + j, 1))
+                .collect::<Vec<_>>(),
+            2,
+        ))
+    }
+    Ok(Tensor::cat(&ys, 3).squeeze1(0))
 }
 
 pub fn main() -> failure::Fallible<()> {
@@ -142,26 +159,11 @@ pub fn main() -> failure::Fallible<()> {
         opt_g.backward_step(&generator_loss);
 
         if index % 1000 == 0 {
-            let xs = fixed_noise
+            let imgs = fixed_noise
                 .apply_t(&generator, true)
                 .view(&[-1, 3, IMG_SIZE, IMG_SIZE])
                 .to_device(Device::Cpu);
-            let xs = ((xs + 1.) * 127.5)
-                .clamp(&Scalar::float(0.), &Scalar::float(255.))
-                .to_kind(Kind::Uint8);
-            let mut ys: Vec<Tensor> = vec![];
-            for i in 0..4 {
-                ys.push(Tensor::cat(
-                    &(0..4)
-                        .map(|j| xs.narrow(0, 4 * i + j, 1))
-                        .collect::<Vec<_>>(),
-                    2,
-                ))
-            }
-            tch::vision::image::save(
-                &Tensor::cat(&ys, 3).squeeze1(0),
-                format!("relout{}.png", index),
-            )?
+            tch::vision::image::save(&image_matrix(&imgs, 4)?, format!("relout{}.png", index))?
         }
         if index % 100 == 0 {
             println!("{}", index)
