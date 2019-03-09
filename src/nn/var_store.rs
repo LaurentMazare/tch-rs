@@ -9,11 +9,19 @@ use std::sync::Mutex;
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '|';
 
+// When the variable store is frozen, trainable still is set to tree,
+// however the tensor is not set to require gradients.
+#[derive(Debug)]
+struct Variable {
+    tensor: Tensor,
+    trainable: bool,
+}
+
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
 #[derive(Debug)]
 pub struct VarStore {
-    variables: Mutex<HashMap<String, Tensor>>,
+    variables: Mutex<HashMap<String, Variable>>,
     device: Device,
 }
 
@@ -43,9 +51,9 @@ impl VarStore {
         let variables = self.variables.lock().unwrap();
         variables
             .values()
-            .filter_map(|x| {
-                if x.requires_grad() {
-                    Some(x.shallow_clone())
+            .filter_map(|v| {
+                if v.trainable {
+                    Some(v.tensor.shallow_clone())
                 } else {
                     None
                 }
@@ -65,7 +73,7 @@ impl VarStore {
         let variables = self.variables.lock().unwrap();
         let named_tensors = variables
             .iter()
-            .map(|(x, y)| (&x[..], y))
+            .map(|(x, y)| (&x[..], &y.tensor))
             .collect::<Vec<_>>();
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
@@ -75,9 +83,9 @@ impl VarStore {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let variables = self.variables.lock().unwrap();
-        for (name, tensor) in variables.iter() {
+        for (name, var) in variables.iter() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| tensor.copy_(src)),
+                Some(src) => crate::no_grad(|| var.tensor.copy_(src)),
                 None => Err(format_err!("cannot find {} in {:?}", name, path.as_ref()))?,
             }
         }
@@ -85,11 +93,21 @@ impl VarStore {
     }
 
     pub fn freeze(&mut self) {
-        // TODO
+        let variables = self.variables.lock().unwrap();
+        for variable in variables.values() {
+            if variable.trainable {
+                let _v = variable.tensor.set_requires_grad(false);
+            }
+        }
     }
 
     pub fn unfreeze(&mut self) {
-        // TODO
+        let variables = self.variables.lock().unwrap();
+        for variable in variables.values() {
+            if variable.trainable {
+                let _v = variable.tensor.set_requires_grad(true);
+            }
+        }
     }
 }
 
@@ -121,7 +139,7 @@ impl<'a> Path<'a> {
         }
     }
 
-    fn add(&self, name: &str, tensor: Tensor) -> Tensor {
+    fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
         let mut variables = self.var_store.variables.lock().unwrap();
         let path = if variables.contains_key(&path) {
@@ -129,46 +147,52 @@ impl<'a> Path<'a> {
         } else {
             path
         };
-        variables.insert(path, tensor.shallow_clone());
+        let tensor = if trainable {
+            tensor.set_requires_grad(true)
+        } else {
+            tensor
+        };
+        let var = Variable {
+            tensor: tensor.shallow_clone(),
+            trainable,
+        };
+        variables.insert(path, var);
         tensor
     }
 
     pub fn zeros_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.device()));
-        self.add(name, z)
+        self.add(name, z, false)
     }
 
     pub fn ones_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::ones(dims, (Kind::Float, self.device()));
-        self.add(name, z)
+        self.add(name, z, false)
     }
 
     pub fn zeros(&self, name: &str, dims: &[i64]) -> Tensor {
-        let z = Tensor::zeros(dims, (Kind::Float, self.device())).set_requires_grad(true);
-        self.add(name, z)
+        let z = Tensor::zeros(dims, (Kind::Float, self.device()));
+        self.add(name, z, true)
     }
 
     pub fn ones(&self, name: &str, dims: &[i64]) -> Tensor {
-        let z = Tensor::ones(dims, (Kind::Float, self.device())).set_requires_grad(true);
-        self.add(name, z)
+        let z = Tensor::ones(dims, (Kind::Float, self.device()));
+        self.add(name, z, true)
     }
 
     pub fn randn_standard(&self, name: &str, dims: &[i64]) -> Tensor {
-        let z = Tensor::randn(dims, (Kind::Float, self.device())).set_requires_grad(true);
-        self.add(name, z)
+        let z = Tensor::randn(dims, (Kind::Float, self.device()));
+        self.add(name, z, true)
     }
 
     pub fn randn(&self, name: &str, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
         let z = Tensor::randn(dims, (Kind::Float, self.device()));
-        let z = (z * stdev + mean).set_requires_grad(true);
-        self.add(name, z)
+        self.add(name, z * stdev + mean, true)
     }
 
     pub fn uniform(&self, name: &str, dims: &[i64], lo: f64, up: f64) -> Tensor {
-        let z = Tensor::zeros(dims, (Kind::Float, self.device()))
-            .uniform_(lo, up)
-            .set_requires_grad(true);
-        self.add(name, z)
+        let z = Tensor::zeros(dims, (Kind::Float, self.device())).uniform_(lo, up);
+        self.add(name, z, true)
     }
 
     pub fn kaiming_uniform(&self, name: &str, dims: &[i64]) -> Tensor {
