@@ -47,7 +47,8 @@ fn optimizer_test() {
         let predicted_ys = xs.apply(&linear);
         ((&ys - &predicted_ys) * (&ys - &predicted_ys)).mean()
     };
-    assert!(f64::from(loss()) > 1.0);
+    let initial_loss = f64::from(loss());
+    assert!(initial_loss > 1.0, "{}", initial_loss);
 
     // Optimization loop.
     for _idx in 1..50 {
@@ -55,5 +56,5 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let final_loss = f64::from(loss());
-    assert!(final_loss < 0.1)
+    assert!(final_loss < 0.1, "{}", final_loss)
 }

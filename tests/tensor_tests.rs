@@ -1,4 +1,4 @@
-use tch::{Device, Tensor};
+use tch::Tensor;
 
 #[test]
 fn assign_ops() {

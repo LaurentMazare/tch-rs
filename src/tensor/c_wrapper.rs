@@ -11,7 +11,7 @@ pub struct Tensor {
     pub(crate) c_tensor: *mut C_tensor,
 }
 
-unsafe impl Sync for Tensor {}
+unsafe impl Send for Tensor {}
 
 extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mut C_tensor) {
     let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };

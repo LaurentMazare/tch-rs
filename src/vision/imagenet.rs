@@ -1,22 +1,27 @@
 use crate::{Kind, Scalar, Tensor};
 use failure::Fallible;
 use std::path::Path;
+use std::sync::Mutex;
 
 lazy_static! {
-    static ref IMAGENET_MEAN: Tensor =
-        { Tensor::float_vec(&[0.485, 0.456, 0.406]).view(&[3, 1, 1]) };
-    static ref IMAGENET_STD: Tensor =
-        { Tensor::float_vec(&[0.229, 0.224, 0.225]).view(&[3, 1, 1]) };
+    static ref IMAGENET_MEAN: Mutex<Tensor> =
+        { Mutex::new(Tensor::float_vec(&[0.485, 0.456, 0.406]).view(&[3, 1, 1])) };
+    static ref IMAGENET_STD: Mutex<Tensor> =
+        { Mutex::new(Tensor::float_vec(&[0.229, 0.224, 0.225]).view(&[3, 1, 1])) };
 }
 
 fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
+    let mean = IMAGENET_MEAN.lock().unwrap();
+    let std = IMAGENET_STD.lock().unwrap();
     (tensor.to_kind(Kind::Float) / 255.0)
-        .f_sub(&IMAGENET_MEAN)?
-        .f_div(&IMAGENET_STD)
+        .f_sub(&mean)?
+        .f_div(&std)
 }
 
 fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
-    let tensor = (tensor.f_mul(&IMAGENET_STD)?.f_add(&IMAGENET_MEAN)? * 255.0)
+    let mean = IMAGENET_MEAN.lock().unwrap();
+    let std = IMAGENET_STD.lock().unwrap();
+    let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0)
         .clamp(&Scalar::from(0.), &Scalar::from(255.0))
         .to_kind(Kind::Uint8);
     Ok(tensor)
