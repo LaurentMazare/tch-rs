@@ -48,7 +48,7 @@ fn optimizer_test() {
         ((&ys - &predicted_ys) * (&ys - &predicted_ys)).mean()
     };
     let initial_loss = f64::from(loss());
-    assert!(initial_loss > 1.0, "{}", initial_loss);
+    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
     for _idx in 1..50 {
@@ -56,7 +56,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let final_loss = f64::from(loss());
-    assert!(final_loss < 0.1, "{}", final_loss)
+    assert!(final_loss < 1.0, "final loss {}", final_loss)
 }
 
 #[test]
@@ -70,4 +70,17 @@ fn var_store_test() {
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
     let forty_two = vs.root().var("t4", &[2], nn::Init::Const(42.));
     assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
+    let uniform = vs
+        .root()
+        .var("t5", &[100], nn::Init::Uniform { lo: 1.0, up: 2.0 });
+    let uniform_min = f64::from(&uniform.min());
+    let uniform_max = f64::from(&uniform.max());
+    assert!(uniform_min >= 1., "min {}", uniform_min);
+    assert!(uniform_max <= 2., "max {}", uniform_max);
+    let uniform_std = f64::from(&uniform.std(true));
+    assert!(
+        uniform_std > 0.15 && uniform_std < 0.35,
+        "std {}",
+        uniform_std
+    );
 }

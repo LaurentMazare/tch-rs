@@ -2,8 +2,11 @@
 //!
 //! This library tries to stay as close as possible to the original
 //! Python and C++ implementations.
+mod init;
+pub use init::{init, Init};
+
 mod var_store;
-pub use var_store::{Init, Path, VarStore};
+pub use var_store::{Path, VarStore};
 
 mod module;
 pub use module::{Module, ModuleT};
