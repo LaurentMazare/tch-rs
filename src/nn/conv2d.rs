@@ -30,8 +30,8 @@ impl Default for Conv2DConfig {
 /// A two dimension convolution layer.
 #[derive(Debug)]
 pub struct Conv2D {
-    ws: Tensor,
-    bs: Tensor,
+    pub ws: Tensor,
+    pub bs: Tensor,
     stride: [i64; 2],
     padding: [i64; 2],
     dilation: [i64; 2],

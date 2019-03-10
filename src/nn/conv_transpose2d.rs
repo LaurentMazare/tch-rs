@@ -32,8 +32,8 @@ impl Default for ConvTranspose2DConfig {
 /// A two dimension transposed convolution layer.
 #[derive(Debug)]
 pub struct ConvTranspose2D {
-    ws: Tensor,
-    bs: Tensor,
+    pub ws: Tensor,
+    pub bs: Tensor,
     stride: [i64; 2],
     padding: [i64; 2],
     output_padding: [i64; 2],

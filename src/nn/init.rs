@@ -1,5 +1,5 @@
 //! Variable initialization.
-use crate::{Device, Kind, Tensor};
+use crate::{Device, Kind, Scalar, Tensor};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Init {
@@ -34,5 +34,32 @@ pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
             let bound = (1.0 / fan_in as f64).sqrt();
             Tensor::zeros(dims, (Kind::Float, device)).uniform_(-bound, bound)
         }
+    }
+}
+
+impl Init {
+    pub fn set(self, tensor: &mut Tensor) {
+        match self {
+            Init::Const(cst) => {
+                let _ = tensor.fill_(&Scalar::float(cst));
+            }
+            Init::Uniform { lo, up } => {
+                let _ = tensor.uniform_(lo, up);
+            }
+            Init::KaimingUniform => {
+                let fan_in: i64 = tensor.size().iter().skip(1).product();
+                let bound = (1.0 / fan_in as f64).sqrt();
+                let _ = tensor.uniform_(-bound, bound);
+            }
+            Init::Randn { mean, stdev } => {
+                tensor.copy_(&(tensor.randn_like() * stdev + mean));
+            }
+        }
+    }
+}
+
+impl Tensor {
+    pub fn init(&mut self, i: Init) {
+        let _ = i.set(self);
     }
 }

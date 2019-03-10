@@ -27,10 +27,10 @@ impl Default for BatchNorm2DConfig {
 #[derive(Debug)]
 pub struct BatchNorm2D {
     config: BatchNorm2DConfig,
-    running_mean: Tensor,
-    running_var: Tensor,
-    ws: Tensor,
-    bs: Tensor,
+    pub running_mean: Tensor,
+    pub running_var: Tensor,
+    pub ws: Tensor,
+    pub bs: Tensor,
 }
 
 impl BatchNorm2D {

@@ -44,23 +44,29 @@ fn optimizer_test() {
         ws_init: nn::Init::Const(0.),
         bs_init: Some(nn::Init::Const(0.)),
     };
-    let linear = nn::Linear::new(vs.root(), 1, 1, cfg);
+    let mut linear = nn::Linear::new(vs.root(), 1, 1, cfg);
     let opt = nn::Optimizer::sgd(&vs, 1e-2, Default::default()).unwrap();
 
-    let loss = || {
-        let predicted_ys = xs.apply(&linear);
-        ((&ys - &predicted_ys) * (&ys - &predicted_ys)).mean()
-    };
-    let initial_loss = f64::from(loss());
+    let loss = xs.apply(&linear).mse_loss(&ys, 1);
+    let initial_loss = f64::from(&loss);
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
     for _idx in 1..50 {
-        let loss = loss();
+        let loss = xs.apply(&linear).mse_loss(&ys, 1);
         opt.backward_step(&loss);
     }
-    let final_loss = f64::from(loss());
-    assert!(final_loss < 0.25, "final loss {}", final_loss)
+    let loss = xs.apply(&linear).mse_loss(&ys, 1);
+    let final_loss = f64::from(loss);
+    assert!(final_loss < 0.25, "final loss {}", final_loss);
+
+    // Reset the weights to their initial values.
+    tch::no_grad(|| {
+        linear.ws.init(nn::Init::Const(0.));
+        linear.bs.init(nn::Init::Const(0.));
+    });
+    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, 1));
+    assert_eq!(initial_loss, initial_loss2)
 }
 
 #[test]

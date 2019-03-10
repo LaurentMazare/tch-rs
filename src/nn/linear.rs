@@ -20,8 +20,8 @@ impl Default for LinearConfig {
 /// A linear fully-connected layer.
 #[derive(Debug)]
 pub struct Linear {
-    ws: Tensor,
-    bs: Tensor,
+    pub ws: Tensor,
+    pub bs: Tensor,
 }
 
 impl Linear {
