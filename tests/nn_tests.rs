@@ -38,10 +38,14 @@ fn optimizer_test() {
         .view(&[-1, 1]);
     let ys = &xs * 0.42 + 1.337;
 
-    // Fit a linear model on the data.
+    // Fit a linear model (with deterministic initialization) on the data.
     let vs = nn::VarStore::new(Device::Cpu);
-    let linear = nn::Linear::new(vs.root(), 1, 1);
-    let opt = nn::Optimizer::sgd(&vs, 1e-3, Default::default()).unwrap();
+    let cfg = nn::LinearConfig {
+        ws_init: nn::Init::Const(0.),
+        bs_init: Some(nn::Init::Const(0.)),
+    };
+    let linear = nn::Linear::new(vs.root(), 1, 1, cfg);
+    let opt = nn::Optimizer::sgd(&vs, 1e-2, Default::default()).unwrap();
 
     let loss = || {
         let predicted_ys = xs.apply(&linear);
@@ -56,7 +60,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let final_loss = f64::from(loss());
-    assert!(final_loss < 1.0, "final loss {}", final_loss)
+    assert!(final_loss < 0.25, "final loss {}", final_loss)
 }
 
 #[test]

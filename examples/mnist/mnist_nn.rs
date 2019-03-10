@@ -14,8 +14,8 @@ struct Net {
 
 impl Net {
     fn new(vs: &nn::Path) -> Net {
-        let fc1 = nn::Linear::new(vs, IMAGE_DIM, HIDDEN_NODES);
-        let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS);
+        let fc1 = nn::Linear::new(vs, IMAGE_DIM, HIDDEN_NODES, Default::default());
+        let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS, Default::default());
         Net { fc1, fc2 }
     }
 }

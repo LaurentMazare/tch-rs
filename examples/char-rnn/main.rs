@@ -40,7 +40,7 @@ pub fn main() -> failure::Fallible<()> {
     let labels = data.labels();
     println!("Dataset loaded, {} labels.", labels);
     let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE, Default::default());
-    let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels);
+    let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels, Default::default());
     let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
     for epoch in 1..(1 + EPOCHS) {
         let mut sum_loss = 0.;

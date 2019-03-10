@@ -4,9 +4,11 @@ use std::borrow::Borrow;
 
 #[derive(Debug, Clone, Copy)]
 pub struct BatchNorm2DConfig {
-    cudnn_enabled: bool,
-    eps: f64,
-    momentum: f64,
+    pub cudnn_enabled: bool,
+    pub eps: f64,
+    pub momentum: f64,
+    pub ws_init: super::Init,
+    pub bs_init: super::Init,
 }
 
 impl Default for BatchNorm2DConfig {
@@ -15,6 +17,8 @@ impl Default for BatchNorm2DConfig {
             cudnn_enabled: true,
             eps: 1e-5,
             momentum: 0.1,
+            ws_init: super::Init::Uniform { lo: 0., up: 1. },
+            bs_init: super::Init::Const(0.),
         }
     }
 }
@@ -40,8 +44,8 @@ impl BatchNorm2D {
             config,
             running_mean: vs.zeros_no_train("running_mean", &[out_dim]),
             running_var: vs.ones_no_train("running_var", &[out_dim]),
-            ws: vs.uniform("weight", &[out_dim], 0.0, 1.0),
-            bs: vs.zeros("bias", &[out_dim]),
+            ws: vs.var("weight", &[out_dim], config.ws_init),
+            bs: vs.var("bias", &[out_dim], config.bs_init),
         }
     }
 }

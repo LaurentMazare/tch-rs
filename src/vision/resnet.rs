@@ -64,7 +64,7 @@ fn resnet(
     let layer2 = basic_layer(p / "layer2", 64, 128, 2, c2);
     let layer3 = basic_layer(p / "layer3", 128, 256, 2, c3);
     let layer4 = basic_layer(p / "layer4", 256, 512, 2, c4);
-    let fc = nclasses.map(|n| Linear::new(p / "fc", 512, n));
+    let fc = nclasses.map(|n| Linear::new(p / "fc", 512, n, Default::default()));
     FuncT::new(move |xs, train| {
         xs.apply(&conv1)
             .apply_t(&bn1, train)
@@ -157,7 +157,7 @@ fn bottleneck_resnet(
     let layer2 = bottleneck_layer(p / "layer2", 4 * 64, 128, 2, c2);
     let layer3 = bottleneck_layer(p / "layer3", 4 * 128, 256, 2, c3);
     let layer4 = bottleneck_layer(p / "layer4", 4 * 256, 512, 2, c4);
-    let fc = nclasses.map(|n| Linear::new(p / "fc", 4 * 512, n));
+    let fc = nclasses.map(|n| Linear::new(p / "fc", 4 * 512, n, Default::default()));
     FuncT::new(move |xs, train| {
         xs.apply(&conv1)
             .apply_t(&bn1, train)

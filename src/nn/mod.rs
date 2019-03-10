@@ -12,7 +12,7 @@ mod module;
 pub use module::{Module, ModuleT};
 
 mod linear;
-pub use linear::Linear;
+pub use linear::{Linear, LinearConfig};
 
 mod conv2d;
 pub use conv2d::{Conv2D, Conv2DConfig};

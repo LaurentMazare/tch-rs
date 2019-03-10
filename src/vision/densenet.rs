@@ -103,7 +103,12 @@ fn densenet(
             .avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true)
             .flat_view()
     })
-    .add(Linear::new(p / "classifier", nfeatures, nclasses))
+    .add(Linear::new(
+        p / "classifier",
+        nfeatures,
+        nclasses,
+        Default::default(),
+    ))
 }
 
 pub fn densenet121(p: &nn::Path, nclasses: i64) -> impl ModuleT {

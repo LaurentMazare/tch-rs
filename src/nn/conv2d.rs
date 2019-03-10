@@ -9,6 +9,8 @@ pub struct Conv2DConfig {
     pub dilation: i64,
     pub groups: i64,
     pub bias: bool,
+    pub ws_init: super::Init,
+    pub bs_init: super::Init,
 }
 
 impl Default for Conv2DConfig {
@@ -19,6 +21,8 @@ impl Default for Conv2DConfig {
             dilation: 1,
             groups: 1,
             bias: true,
+            ws_init: super::Init::KaimingUniform,
+            bs_init: super::Init::Const(0.),
         }
     }
 }
@@ -49,13 +53,15 @@ impl Conv2D {
             dilation,
             groups,
             bias,
+            ws_init,
+            bs_init,
         } = config;
         let bs = if bias {
-            vs.zeros("bias", &[out_dim])
+            vs.var("bias", &[out_dim], bs_init)
         } else {
             Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
         };
-        let ws = vs.kaiming_uniform("weight", &[out_dim, in_dim, ksize, ksize]);
+        let ws = vs.var("weight", &[out_dim, in_dim, ksize, ksize], ws_init);
         Conv2D {
             ws,
             bs,
