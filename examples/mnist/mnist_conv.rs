@@ -42,7 +42,7 @@ impl nn::ModuleT for Net {
 
 pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
-    let vs = nn::VarStore::new(Device::cuda_if_available()?);
+    let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default())?;
     for epoch in 1..100 {

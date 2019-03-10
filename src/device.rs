@@ -4,8 +4,6 @@
 //! which could be problematic in a multi-GPU setting.
 //! If needed, a device index should be added.
 
-use failure::Fallible;
-
 /// A torch device.
 #[repr(u32)]
 #[derive(Debug, Copy, Clone)]
@@ -33,38 +31,38 @@ impl Device {
     }
 
     /// Returns a GPU device if available, else default to CPU.
-    pub fn cuda_if_available() -> Fallible<Self> {
-        if Cuda.cuda_is_available()? {
-            Ok(Device::Cuda)
+    pub fn cuda_if_available() -> Self {
+        if Cuda.cuda_is_available() {
+            Device::Cuda
         } else {
-            Ok(Device::Cpu)
+            Device::Cpu
         }
     }
 }
 
 pub trait TorchDevice: Sized {
-    fn get_num_threads(&self) -> Fallible<Option<i64>> {
-        Ok(None)
+    fn get_num_threads(&self) -> Option<i64> {
+        None
     }
 
-    fn set_num_threads(&self, _num_threads: i64) -> Fallible<()> {
-        Ok(())
+    fn set_num_threads(&self, _num_threads: i64) {
+        ()
     }
 
-    fn device_count(&self) -> Fallible<i64> {
-        Ok(0)
+    fn device_count(&self) -> i64 {
+        0
     }
 
-    fn cuda_is_available(&self) -> Fallible<bool> {
-        Ok(false)
+    fn cuda_is_available(&self) -> bool {
+        false
     }
 
-    fn cudnn_is_available(&self) -> Fallible<bool> {
-        Ok(false)
+    fn cudnn_is_available(&self) -> bool {
+        false
     }
 
-    fn set_benchmark_cudnn(&self, _b: bool) -> Fallible<()> {
-        Ok(())
+    fn set_benchmark_cudnn(&self, _b: bool) {
+        ()
     }
 }
 
@@ -73,15 +71,14 @@ pub struct Cpu;
 
 impl TorchDevice for Cpu {
     /// Gets the current number of allowed threads for parallel computations.
-    fn get_num_threads(&self) -> Fallible<Option<i64>> {
-        let res = unsafe_torch_err!({ torch_sys::atc_get_num_threads() });
-        Ok(Some(res.into()))
+    fn get_num_threads(&self) -> Option<i64> {
+        let res = unsafe_torch!({ torch_sys::atc_get_num_threads() });
+        Some(res.into())
     }
 
     /// Sets the number of allowed threads for parallel computations.
-    fn set_num_threads(&self, num_threads: i64) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::atc_set_num_threads(num_threads as i32) });
-        Ok(())
+    fn set_num_threads(&self, num_threads: i64) {
+        unsafe_torch!({ torch_sys::atc_set_num_threads(num_threads as i32) });
     }
 }
 
@@ -90,21 +87,21 @@ pub struct Cuda;
 
 impl TorchDevice for Cuda {
     /// Returns the number of GPU that can be used.
-    fn device_count(&self) -> Fallible<i64> {
-        let res = unsafe_torch_err!({ torch_sys::atc_cuda_device_count() });
-        Ok(res.into())
+    fn device_count(&self) -> i64 {
+        let res = unsafe_torch!({ torch_sys::atc_cuda_device_count() });
+        res.into()
     }
 
     /// Returns true if cuda support is available.
-    fn cuda_is_available(&self) -> Fallible<bool> {
-        let ret = unsafe_torch_err!({ torch_sys::atc_cuda_is_available() });
-        Ok(ret != 0)
+    fn cuda_is_available(&self) -> bool {
+        let ret = unsafe_torch!({ torch_sys::atc_cuda_is_available() });
+        ret != 0
     }
 
     /// Returns true if cudnn support is available.
-    fn cudnn_is_available(&self) -> Fallible<bool> {
-        let ret = unsafe_torch_err!({ torch_sys::atc_cudnn_is_available() });
-        Ok(ret != 0)
+    fn cudnn_is_available(&self) -> bool {
+        let ret = unsafe_torch!({ torch_sys::atc_cudnn_is_available() });
+        ret != 0
     }
 
     /// Sets cudnn benchmark mode.
@@ -113,9 +110,8 @@ impl TorchDevice for Cuda {
     /// the first network runs and then use the optimized architecture
     /// in the following runs. This can result in significant performance
     /// improvements.
-    fn set_benchmark_cudnn(&self, b: bool) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::atc_set_benchmark_cudnn(b as i32) });
-        Ok(())
+    fn set_benchmark_cudnn(&self, b: bool) {
+        unsafe_torch!({ torch_sys::atc_set_benchmark_cudnn(b as i32) });
     }
 }
 
@@ -126,10 +122,10 @@ mod tests {
     #[test]
     fn device_attributes() {
         let cpu = Cpu;
-        assert_eq!(cpu.get_num_threads().unwrap(), Some(-1));
-        assert!(cpu.set_num_threads(1).is_ok());
-        assert_eq!(cpu.get_num_threads().unwrap(), Some(1));
-        assert!(!cpu.cuda_is_available().unwrap());
-        assert!(!cpu.cudnn_is_available().unwrap());
+        assert_eq!(cpu.get_num_threads(), Some(-1));
+        cpu.set_num_threads(1);
+        assert_eq!(cpu.get_num_threads(), Some(1));
+        assert!(!cpu.cuda_is_available());
+        assert!(!cpu.cudnn_is_available());
     }
 }
