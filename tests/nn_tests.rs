@@ -58,3 +58,16 @@ fn optimizer_test() {
     let final_loss = f64::from(loss());
     assert!(final_loss < 0.1, "{}", final_loss)
 }
+
+#[test]
+fn var_store_test() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let zeros = vs.root().zeros("t1", &[3]);
+    assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
+    let zeros = vs.root().var("t2", &[3], nn::Init::Const(0.));
+    assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
+    let ones = vs.root().var("t3", &[3], nn::Init::Const(1.));
+    assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    let forty_two = vs.root().var("t4", &[2], nn::Init::Const(42.));
+    assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
+}

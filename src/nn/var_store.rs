@@ -9,6 +9,14 @@ use std::sync::Mutex;
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '|';
 
+#[derive(Debug, Copy, Clone)]
+pub enum Init {
+    Const(f64),
+    Randn { mean: f64, std: f64 },
+    Uniform { lo: f64, up: f64 },
+    KaimingUniform,
+}
+
 // When the variable store is frozen, trainable still is set to tree,
 // however the tensor is not set to require gradients.
 #[derive(Debug)]
@@ -199,6 +207,30 @@ impl<'a> Path<'a> {
         let fan_in: i64 = dims.iter().skip(1).product();
         let bound = (1.0 / fan_in as f64).sqrt();
         self.uniform(name, dims, -bound, bound)
+    }
+
+    pub fn var(&self, name: &str, dims: &[i64], init: Init) -> Tensor {
+        match init {
+            Init::Const(cst) => {
+                // Optimize the case for which a single C++ code can be done.
+                if cst == 0. {
+                    self.zeros(name, dims)
+                } else if cst == 1. {
+                    self.ones(name, dims)
+                } else {
+                    self.ones(name, dims) * cst
+                }
+            }
+            Init::Uniform { lo, up } => self.uniform(name, dims, lo, up),
+            Init::Randn { mean, std } => {
+                if mean == 0. && std == 1. {
+                    self.randn_standard(name, dims)
+                } else {
+                    self.randn(name, dims, mean, std)
+                }
+            }
+            Init::KaimingUniform => self.kaiming_uniform(name, dims),
+        }
     }
 }
 
