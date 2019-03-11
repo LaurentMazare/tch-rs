@@ -7,7 +7,7 @@
 extern crate tch;
 use tch::data::TextData;
 use tch::nn::{Linear, Module, LSTM, RNN};
-use tch::{kind, nn, Device, Scalar, Tensor};
+use tch::{kind, nn, Device, Tensor};
 
 static LEARNING_RATE: f64 = 0.01;
 static HIDDEN_SIZE: i64 = 256;
@@ -24,7 +24,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     let mut result = String::new();
     for _index in 0..SAMPLING_LEN {
         let input = Tensor::zeros(&[1, labels], (kind::Kind::Float, device));
-        input.narrow(1, last_label, 1).fill_(&Scalar::float(1.0));
+        input.narrow(1, last_label, 1).fill_(1.0);
         state = lstm.step(&input, &state);
         let sampled_y = linear.forward(&state.h()).softmax(-1).multinomial(1, false);
         last_label = i64::from(sampled_y);

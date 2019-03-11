@@ -1,4 +1,4 @@
-use crate::{Kind, Scalar, Tensor};
+use crate::{Kind, Tensor};
 use failure::Fallible;
 use std::path::Path;
 use std::sync::Mutex;
@@ -22,7 +22,7 @@ fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
     let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0)
-        .clamp(&Scalar::from(0.), &Scalar::from(255.0))
+        .clamp(0., 255.0)
         .to_kind(Kind::Uint8);
     Ok(tensor)
 }

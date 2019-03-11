@@ -1,7 +1,5 @@
 //! Basic module traits defining the forward pass.
-use crate::data::Iter2;
-use crate::tensor::Tensor;
-use crate::Device;
+use crate::{data::Iter2, Device, Tensor};
 
 /// The simplest module trait, defining a forward function.
 pub trait Module: std::fmt::Debug {

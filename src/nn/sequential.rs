@@ -1,9 +1,10 @@
 //! A sequential layer used to chain multiple layers and closures.
-use crate::tensor::Tensor;
+use super::{Module, ModuleT};
+use crate::Tensor;
 
 #[derive(Debug)]
 pub struct Sequential {
-    layers: Vec<Box<dyn super::module::Module>>,
+    layers: Vec<Box<dyn Module>>,
 }
 
 impl Sequential {
@@ -12,7 +13,7 @@ impl Sequential {
     }
 }
 
-impl super::module::Module for Sequential {
+impl Module for Sequential {
     fn forward(&self, xs: &Tensor) -> Tensor {
         if self.layers.is_empty() {
             xs.shallow_clone()
@@ -28,7 +29,7 @@ impl super::module::Module for Sequential {
 
 impl Sequential {
     /// Appends a layer after all the current layers.
-    pub fn add<M: super::module::Module + 'static>(mut self, layer: M) -> Self {
+    pub fn add<M: Module + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }
@@ -45,7 +46,7 @@ impl Sequential {
 
 #[derive(Debug)]
 pub struct SequentialT {
-    layers: Vec<Box<super::module::ModuleT>>,
+    layers: Vec<Box<dyn ModuleT>>,
 }
 
 impl SequentialT {
@@ -54,7 +55,7 @@ impl SequentialT {
     }
 }
 
-impl super::module::ModuleT for SequentialT {
+impl ModuleT for SequentialT {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         if self.layers.is_empty() {
             xs.shallow_clone()
@@ -70,7 +71,7 @@ impl super::module::ModuleT for SequentialT {
 
 impl SequentialT {
     /// Appends a layer after all the current layers.
-    pub fn add<M: super::module::ModuleT + 'static>(mut self, layer: M) -> Self {
+    pub fn add<M: ModuleT + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }

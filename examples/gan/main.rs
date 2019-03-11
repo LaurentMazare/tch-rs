@@ -5,7 +5,7 @@
 #[macro_use]
 extern crate failure;
 extern crate tch;
-use tch::{kind, nn, Device, Kind, Scalar, Tensor};
+use tch::{kind, nn, Device, Kind, Tensor};
 
 static IMG_SIZE: i64 = 64;
 static LATENT_DIM: i64 = 128;
@@ -78,9 +78,7 @@ fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
 
 // Generate a 2D matrix of images from a tensor with multiple images.
 fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
-    let imgs = ((imgs + 1.) * 127.5)
-        .clamp(&Scalar::float(0.), &Scalar::float(255.))
-        .to_kind(Kind::Uint8);
+    let imgs = ((imgs + 1.) * 127.5).clamp(0., 255.).to_kind(Kind::Uint8);
     let mut ys: Vec<Tensor> = vec![];
     for i in 0..sz {
         ys.push(Tensor::cat(

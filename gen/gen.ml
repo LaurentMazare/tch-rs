@@ -184,21 +184,29 @@ module Func = struct
     | _ -> false
 
   let type_parameters t =
+    let needs_scalar_parameter =
+      List.exists t.args ~f:(fun arg ->
+          match arg.arg_type with Scalar -> true | _ -> false )
+    in
     let needs_type_parameter =
       List.exists t.args ~f:(fun arg ->
           match arg.arg_type with
           | TensorList | TensorOption -> true
           | _ -> false )
     in
-    if needs_type_parameter then "<T: Borrow<Tensor>>" else ""
+    if needs_type_parameter && needs_scalar_parameter then
+      "<T: Borrow<Tensor>, S: AsScalar>"
+    else if needs_type_parameter then "<T: Borrow<Tensor>>"
+    else if needs_scalar_parameter then "<S: AsScalar>"
+    else ""
 
   let rust_args_list t =
     match List.partition_tf t.args ~f:self_tensor with
-    | [self], args_list -> Some self, args_list
-    | _, _ ->
+    | [self], args_list -> (Some self, args_list)
+    | _, _ -> (
       match List.partition_tf t.args ~f:input_tensor with
-      | [self], args_list -> Some self, args_list
-      | _, _ -> None, t.args
+      | [self], args_list -> (Some self, args_list)
+      | _, _ -> (None, t.args) )
 
   let rust_typed_args_list t =
     let to_string args =
@@ -213,7 +221,7 @@ module Func = struct
             | IntList -> "&[i64]"
             | TensorList -> "&[T]"
             | TensorOptions -> "(Kind, Device)"
-            | Scalar -> "&Scalar"
+            | Scalar -> "S"
             | ScalarType -> "Kind"
             | Device -> "Device"
           in
@@ -255,7 +263,7 @@ module Func = struct
         in
         match arg.arg_type with
         | Tensor -> Printf.sprintf "%s.c_tensor" name
-        | Scalar -> Printf.sprintf "%s.c_scalar" name
+        | Scalar -> Printf.sprintf "%s.as_scalar().c_scalar" name
         | Bool -> Printf.sprintf "if %s { 1 } else { 0 }" name
         | ScalarType -> Printf.sprintf "%s.c_int()" name
         | Device -> Printf.sprintf "%s.c_int()" name
@@ -409,7 +417,7 @@ let write_fallible_wrapper funcs filename =
       pm "use torch_sys::c_generated::*;" ;
       pm "use crate::device::Device;" ;
       pm "use crate::kind::Kind;" ;
-      pm "use crate::scalar::Scalar;" ;
+      pm "use crate::scalar::AsScalar;" ;
       pm "use std::borrow::Borrow;" ;
       pm "use super::c_wrapper::Tensor;" ;
       pm "" ;
@@ -436,7 +444,7 @@ let write_fallible_wrapper funcs filename =
           pm "    )%s {" (Func.rust_return_type func ~fallible:true) ;
           pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
             func.returns ;
-          pm "        unsafe_torch_err!({";
+          pm "        unsafe_torch_err!({" ;
           pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name ;
           pm "                %s" (Func.rust_binding_args func ~self) ;
           pm "            ) });" ;
@@ -451,7 +459,7 @@ let write_wrapper funcs filename =
       pm "#[allow(clippy::all)]" ;
       pm "use crate::device::Device;" ;
       pm "use crate::kind::Kind;" ;
-      pm "use crate::scalar::Scalar;" ;
+      pm "use crate::scalar::AsScalar;" ;
       pm "use std::borrow::Borrow;" ;
       pm "use super::c_wrapper::Tensor;" ;
       pm "" ;
@@ -459,8 +467,9 @@ let write_wrapper funcs filename =
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:(func : Func.t) ->
           let rust_name = Func.rust_name exported_name in
           let rust_name, fallible_rust_name =
-            if Set.mem prefixed_functions func.name then "g_" ^ rust_name, "f_" ^ rust_name
-            else rust_name, "f_" ^ rust_name
+            if Set.mem prefixed_functions func.name then
+              ("g_" ^ rust_name, "f_" ^ rust_name)
+            else (rust_name, "f_" ^ rust_name)
           in
           pm "" ;
           pm "    pub fn %s%s(" rust_name (Func.type_parameters func) ;
@@ -470,10 +479,11 @@ let write_wrapper funcs filename =
           let self, rust_args_list = Func.rust_args_list func in
           let self = if Option.is_some self then "self." else "Tensor::" in
           let rust_args_list =
-            List.map rust_args_list ~f:(fun arg -> Func.rust_name arg.Func.arg_name)
+            List.map rust_args_list ~f:(fun arg ->
+                Func.rust_name arg.Func.arg_name )
             |> String.concat ~sep:", "
           in
-          pm "        %s%s(%s).unwrap()" self fallible_rust_name rust_args_list;
+          pm "        %s%s(%s).unwrap()" self fallible_rust_name rust_args_list ;
           pm "    }" ) ;
       pm "}" )
 
@@ -523,7 +533,7 @@ let run ~yaml_filename ~cpp_filename ~ffi_filename ~wrapper_filename
   in
   write_cpp funcs cpp_filename ;
   write_ffi funcs ffi_filename ;
-  write_wrapper funcs wrapper_filename;
+  write_wrapper funcs wrapper_filename ;
   write_fallible_wrapper funcs fallible_wrapper_filename
 
 let () =

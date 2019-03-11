@@ -92,6 +92,28 @@ impl From<&Scalar> for f64 {
     }
 }
 
+pub trait AsScalar {
+    fn as_scalar(self) -> Scalar;
+}
+
+impl AsScalar for Scalar {
+    fn as_scalar(self) -> Scalar {
+        self
+    }
+}
+
+impl AsScalar for i64 {
+    fn as_scalar(self) -> Scalar {
+        Scalar::int(self)
+    }
+}
+
+impl AsScalar for f64 {
+    fn as_scalar(self) -> Scalar {
+        Scalar::float(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Scalar;

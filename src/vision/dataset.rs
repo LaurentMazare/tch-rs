@@ -83,7 +83,7 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
             .narrow(0, batch_index, 1)
             .narrow(2, start_h, sz)
             .narrow(3, start_w, sz)
-            .fill_(&crate::Scalar::from(0.0));
+            .fill_(0.0);
     }
     output
 }

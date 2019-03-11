@@ -1,7 +1,7 @@
 //! Optimizers to be used for gradient-descent based training.
 use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
-use crate::{Scalar, Tensor};
+use crate::Tensor;
 use failure::Fallible;
 
 #[derive(Debug)]
@@ -108,9 +108,7 @@ impl Optimizer {
     /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
         for tensor in self.trainable_variables.iter() {
-            let _t = tensor
-                .grad()
-                .clamp_(&Scalar::float(-max), &Scalar::float(max));
+            let _t = tensor.grad().clamp_(-max, max);
         }
     }
 

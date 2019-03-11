@@ -1,5 +1,5 @@
 //! Variable initialization.
-use crate::{Device, Kind, Scalar, Tensor};
+use crate::{Device, Kind, Tensor};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Init {
@@ -41,7 +41,7 @@ impl Init {
     pub fn set(self, tensor: &mut Tensor) {
         match self {
             Init::Const(cst) => {
-                let _ = tensor.fill_(&Scalar::float(cst));
+                let _ = tensor.fill_(cst);
             }
             Init::Uniform { lo, up } => {
                 let _ = tensor.uniform_(lo, up);
