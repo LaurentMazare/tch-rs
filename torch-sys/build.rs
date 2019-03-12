@@ -2,6 +2,9 @@
 // where libtorch has been installed.
 // When not specified this script downloads the cpu version for libtorch
 // and extracts it in OUT_DIR.
+//
+// On Linux, the TORCH_CUDA_VERSION environment variable can be used,
+// like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 #[macro_use]
 extern crate failure;
 
@@ -64,17 +67,33 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
 }
 
 fn prepare_libtorch_dir() -> PathBuf {
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+
+    let device = match env::var("TORCH_CUDA_VERSION") {
+        Ok(cuda_env) => match os.as_str() {
+            "linux" => match cuda_env.trim_start() {
+                "9.0" | "90" | "cu90" => "cu90",
+                version => panic!("Unsupported CUDA version specified: {}", version),
+            },
+            os_str => panic!(
+                "CUDA was specified with `TORCH_CUDA_VERSION`, but pre-built \
+                 binaries with CUDA are only available for Linux, not: {}.",
+                os_str
+            ),
+        },
+        Err(_) => "cpu",
+    };
+
     if let Ok(libtorch) = env::var("LIBTORCH") {
         PathBuf::from(libtorch)
     } else {
         let libtorch_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtorch");
         if !libtorch_dir.exists() {
             fs::create_dir(&libtorch_dir).unwrap_or_default();
-            let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
             let libtorch_url = match os.as_str() {
                 "linux" => format!(
-                    "https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-{}.zip",
-                    TORCH_VERSION
+                    "https://download.pytorch.org/libtorch/{}/libtorch-shared-with-deps-{}.zip",
+                    device, TORCH_VERSION
                 ),
                 "macos" => format!(
                     "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
