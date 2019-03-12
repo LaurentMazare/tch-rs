@@ -150,7 +150,7 @@ fn bottleneck_resnet(
     c2: i64,
     c3: i64,
     c4: i64,
-) -> FuncT<'static> {
+) -> impl ModuleT {
     let conv1 = conv2d(p / "conv1", 3, 64, 7, 3, 2);
     let bn1 = BatchNorm2D::new(p / "bn1", 64, Default::default());
     let layer1 = bottleneck_layer(p / "layer1", 64, 64, 1, c1);
@@ -173,26 +173,26 @@ fn bottleneck_resnet(
     })
 }
 
-pub fn resnet50(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
+pub fn resnet50(p: &nn::Path, num_classes: i64) -> impl ModuleT {
     bottleneck_resnet(p, Some(num_classes), 3, 4, 6, 3)
 }
 
-pub fn resnet50_no_final_layer(p: &nn::Path) -> FuncT<'static> {
+pub fn resnet50_no_final_layer(p: &nn::Path) -> impl ModuleT {
     bottleneck_resnet(p, None, 3, 4, 6, 3)
 }
 
-pub fn resnet101(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
+pub fn resnet101(p: &nn::Path, num_classes: i64) -> impl ModuleT {
     bottleneck_resnet(p, Some(num_classes), 3, 4, 23, 3)
 }
 
-pub fn resnet101_no_final_layer(p: &nn::Path) -> FuncT<'static> {
+pub fn resnet101_no_final_layer(p: &nn::Path) -> impl ModuleT {
     bottleneck_resnet(p, None, 3, 4, 23, 3)
 }
 
-pub fn resnet152(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
+pub fn resnet152(p: &nn::Path, num_classes: i64) -> impl ModuleT {
     bottleneck_resnet(p, Some(num_classes), 3, 8, 36, 3)
 }
 
-pub fn resnet150_no_final_layer(p: &nn::Path) -> FuncT<'static> {
+pub fn resnet150_no_final_layer(p: &nn::Path) -> impl ModuleT {
     bottleneck_resnet(p, None, 3, 8, 36, 3)
 }

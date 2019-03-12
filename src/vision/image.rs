@@ -61,9 +61,33 @@ pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
     Ok(hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h)?))
 }
 
+/// Loads and resize an image, preserve the aspect ratio by taking a center crop.
 pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
     let tensor = load_hwc(path)?;
-    Ok(hwc_to_chw(&resize_hwc(&tensor, out_w, out_h)?))
+    let tensor_size = tensor.size();
+    let (w, h) = (tensor_size[0], tensor_size[1]);
+    if w * out_h == h * out_w {
+        Ok(hwc_to_chw(&resize_hwc(&tensor, out_w, out_h)?))
+    } else {
+        let (resize_w, resize_h) = {
+            let ratio_w = out_w as f64 / w as f64;
+            let ratio_h = out_h as f64 / h as f64;
+            let ratio = ratio_w.max(ratio_h);
+            ((ratio * h as f64) as i64, (ratio * w as f64) as i64)
+        };
+        let tensor = hwc_to_chw(&resize_hwc(&tensor, resize_w, resize_h)?);
+        let tensor = if resize_w == out_w {
+            tensor
+        } else {
+            tensor.f_narrow(2, (resize_w - out_w) / 2, out_w)?
+        };
+        let tensor = if resize_h == out_h {
+            tensor
+        } else {
+            tensor.f_narrow(2, (resize_h - out_h) / 2, out_h)?
+        };
+        Ok(tensor)
+    }
 }
 
 fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Fallible<()> {
