@@ -2,6 +2,9 @@
 //!
 //! See "Densely Connected Convolutional Networks", Huang et al 2016.
 //! https://arxiv.org/abs/1608.06993
+//!
+//! Pre-trained weights for the densenet-121 variants can be found here:
+//! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/densenet121.ot
 use crate::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
 use crate::{nn, Tensor};
 
@@ -50,65 +53,57 @@ fn transition(p: nn::Path, c_in: i64, c_out: i64) -> impl ModuleT {
     SequentialT::new()
         .add(BatchNorm2D::new(&p / "norm", c_in, Default::default()))
         .add_fn(|xs| xs.relu())
-        .add(conv2d(&p / "conv1", c_in, c_out, 1, 0, 1))
+        .add(conv2d(&p / "conv", c_in, c_out, 1, 0, 1))
         .add_fn(|xs| xs.avg_pool2d_default(2))
 }
 
 fn densenet(
     p: &nn::Path,
-    init_dim: i64,
+    c_in: i64,
     bn_size: i64,
     growth: i64,
     block_config: &[i64],
-    nclasses: i64,
+    c_out: i64,
 ) -> impl ModuleT {
-    let features_p = p / "features";
+    let fp = p / "features";
     let mut seq = SequentialT::new()
-        .add(conv2d(&features_p / "conv0", 3, init_dim, 7, 3, 2))
-        .add(BatchNorm2D::new(
-            &features_p / "norm0",
-            init_dim,
-            Default::default(),
-        ))
+        .add(conv2d(&fp / "conv0", 3, c_in, 7, 3, 2))
+        .add(BatchNorm2D::new(&fp / "norm0", c_in, Default::default()))
         .add_fn(|xs| {
             xs.relu()
                 .max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false)
         });
-    let mut nfeatures = init_dim;
+    let mut nfeat = c_in;
     for (i, &nlayers) in block_config.iter().enumerate() {
         seq = seq.add(dense_block(
-            &features_p / &format!("denseblock{}", 1 + i),
-            nfeatures,
+            &fp / &format!("denseblock{}", 1 + i),
+            nfeat,
             bn_size,
             growth,
             nlayers,
         ));
-        nfeatures += nlayers * growth;
+        nfeat += nlayers * growth;
         if i + 1 != block_config.len() {
             seq = seq.add(transition(
-                &features_p / &format!("transition{}", 1 + i),
-                nfeatures,
-                nfeatures / 2,
+                &fp / &format!("transition{}", 1 + i),
+                nfeat,
+                nfeat / 2,
             ));
-            nfeatures /= 2
+            nfeat /= 2
         }
     }
-    seq.add(BatchNorm2D::new(
-        &features_p / "norm5",
-        init_dim,
-        Default::default(),
-    ))
-    .add_fn(|xs| {
-        xs.relu()
-            .avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true)
-            .flat_view()
-    })
-    .add(Linear::new(
-        p / "classifier",
-        nfeatures,
-        nclasses,
-        Default::default(),
-    ))
+    seq.add(BatchNorm2D::new(&fp / "norm5", nfeat, Default::default()))
+        .add_fn(|xs| {
+            xs.relu()
+                .avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true)
+                .flat_view()
+        })
+        .add(Linear::new(
+            p / "classifier",
+            nfeat,
+            c_out,
+            Default::default(),
+        ))
 }
 
 pub fn densenet121(p: &nn::Path, nclasses: i64) -> impl ModuleT {

@@ -302,13 +302,14 @@ impl Drop for Tensor {
 fn grad_set_enabled(b: bool) -> bool {
     unsafe_torch!({ at_grad_set_enabled(if b { 1 } else { 0 }) != 0 })
 }
-pub fn no_grad<F>(f: F)
+pub fn no_grad<T, F>(f: F) -> T
 where
-    F: FnOnce(),
+    F: FnOnce() -> T,
 {
     let prev = grad_set_enabled(false);
-    f();
+    let result = f();
     let _false = grad_set_enabled(prev);
+    result
 }
 
 pub struct NoGradGuard {

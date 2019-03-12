@@ -86,8 +86,12 @@ impl VarStore {
         let variables = self.variables.lock().unwrap();
         for (name, var) in variables.iter() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.tensor.copy_(src)),
-                None => Err(format_err!("cannot find {} in {:?}", name, path.as_ref()))?,
+                Some(src) => crate::no_grad(|| {
+                    var.tensor
+                        .f_copy_(src)
+                        .map_err(|e| format_err!("{}: {}", name, e))
+                })?,
+                None => return Err(format_err!("cannot find {} in {:?}", name, path.as_ref())),
             }
         }
         Ok(())
