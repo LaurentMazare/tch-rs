@@ -11,6 +11,10 @@ impl Sequential {
     pub fn new() -> Sequential {
         Sequential { layers: vec![] }
     }
+
+    pub fn len(&self) -> i64 {
+        self.layers.len() as i64
+    }
 }
 
 impl Module for Sequential {
@@ -52,6 +56,10 @@ pub struct SequentialT {
 impl SequentialT {
     pub fn new() -> SequentialT {
         SequentialT { layers: vec![] }
+    }
+
+    pub fn len(&self) -> i64 {
+        self.layers.len() as i64
     }
 }
 

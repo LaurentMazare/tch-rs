@@ -12,4 +12,6 @@ pub mod resnet;
 
 pub mod densenet;
 
+pub mod vgg;
+
 pub mod imagenet;
