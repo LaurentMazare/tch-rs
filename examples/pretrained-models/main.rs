@@ -21,7 +21,7 @@ pub fn main() -> failure::Fallible<()> {
     let image = imagenet::load_image_and_resize(image)?;
 
     // Create the model and load the weights from the file.
-    let vs = tch::nn::VarStore::new(tch::Device::Cpu);
+    let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
     let net: Box<dyn ModuleT> = match weights.file_name().unwrap().to_str().unwrap() {
         "resnet18.ot" => Box::new(resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT)),
         "resnet34.ot" => Box::new(resnet::resnet34(&vs.root(), imagenet::CLASS_COUNT)),

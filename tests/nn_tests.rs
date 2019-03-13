@@ -11,7 +11,7 @@ fn save_and_load_var_store() {
         (u, v)
     };
     let vs1 = nn::VarStore::new(Device::Cpu);
-    let vs2 = nn::VarStore::new(Device::Cpu);
+    let mut vs2 = nn::VarStore::new(Device::Cpu);
     let (mut u1, mut v1) = add(&vs1.root());
     let (u2, v2) = add(&vs2.root());
     tch::no_grad(|| {

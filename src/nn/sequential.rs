@@ -46,6 +46,23 @@ impl Sequential {
     {
         self.add(super::func::Func::new(f))
     }
+
+    /// Applies the forward pass and returns the output for each layer.
+    pub fn forward_all(&self, xs: &Tensor) -> Vec<Tensor> {
+        if self.layers.is_empty() {
+            vec![xs.shallow_clone()]
+        } else {
+            let xs = self.layers[0].forward(xs);
+            let mut vec = vec![];
+            let out = self.layers.iter().skip(1).fold(xs, |xs, layer| {
+                let out = layer.forward(&xs);
+                vec.push(xs);
+                out
+            });
+            vec.push(out);
+            vec
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -100,5 +117,22 @@ impl SequentialT {
         F: Fn(&Tensor, bool) -> Tensor,
     {
         self.add(super::func::FuncT::new(f))
+    }
+
+    /// Applies the forward pass and returns the output for each layer.
+    pub fn forward_all_t(&self, xs: &Tensor, train: bool) -> Vec<Tensor> {
+        if self.layers.is_empty() {
+            vec![xs.shallow_clone()]
+        } else {
+            let xs = self.layers[0].forward_t(xs, train);
+            let mut vec = vec![];
+            let out = self.layers.iter().skip(1).fold(xs, |xs, layer| {
+                let out = layer.forward_t(&xs, train);
+                vec.push(xs);
+                out
+            });
+            vec.push(out);
+            vec
+        }
     }
 }

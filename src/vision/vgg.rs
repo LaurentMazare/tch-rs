@@ -74,7 +74,7 @@ fn make(p: nn::Path, layers: Vec<Vec<i64>>, batch_norm: bool) -> impl ModuleT {
     seq
 }
 
-fn vgg(p: nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> impl ModuleT {
+fn vgg(p: nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {
     let c = &p / "classifier";
     SequentialT::new()
         .add(make(&p / "features", cfg, batch_norm))
@@ -88,34 +88,34 @@ fn vgg(p: nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> impl
         .add(Linear::new(&c / "6", 4096, nclasses, Default::default()))
 }
 
-pub fn vgg11(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg11(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_a(), nclasses, false)
 }
 
-pub fn vgg11_bn(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg11_bn(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_a(), nclasses, true)
 }
 
-pub fn vgg13(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg13(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_b(), nclasses, false)
 }
 
-pub fn vgg13_bn(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg13_bn(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_b(), nclasses, true)
 }
 
-pub fn vgg16(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg16(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_d(), nclasses, false)
 }
 
-pub fn vgg16_bn(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg16_bn(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_d(), nclasses, true)
 }
 
-pub fn vgg19(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg19(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_e(), nclasses, false)
 }
 
-pub fn vgg19_bn(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn vgg19_bn(p: nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_e(), nclasses, true)
 }

@@ -48,6 +48,34 @@ impl Tensor {
         sz
     }
 
+    pub fn size1(&self) -> Fallible<i64> {
+        match self.size().as_slice() {
+            &[s0] => Ok(s0),
+            size => bail!("expected one dim, got {:?}", size),
+        }
+    }
+
+    pub fn size2(&self) -> Fallible<(i64, i64)> {
+        match self.size().as_slice() {
+            &[s0, s1] => Ok((s0, s1)),
+            size => bail!("expected two dims, got {:?}", size),
+        }
+    }
+
+    pub fn size3(&self) -> Fallible<(i64, i64, i64)> {
+        match self.size().as_slice() {
+            &[s0, s1, s2] => Ok((s0, s1, s2)),
+            size => bail!("expected three dims, got {:?}", size),
+        }
+    }
+
+    pub fn size4(&self) -> Fallible<(i64, i64, i64, i64)> {
+        match self.size().as_slice() {
+            &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
+            size => bail!("expected four dims, got {:?}", size),
+        }
+    }
+
     /// Returns the kind of elements stored in the input tensor.
     pub fn kind(&self) -> Kind {
         let kind = unsafe_torch!({ at_scalar_type(self.c_tensor) });
