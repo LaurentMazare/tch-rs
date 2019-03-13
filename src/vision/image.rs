@@ -50,7 +50,7 @@ pub fn load<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
 /// The image format is based on the filename suffix, supported suffixes
 /// are jpg, png, tga, and bmp.
 pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Fallible<()> {
-    save_hwc(&chw_to_hwc(t), path)
+    save_hwc(&chw_to_hwc(&t), path)
 }
 
 /// Resizes an image.

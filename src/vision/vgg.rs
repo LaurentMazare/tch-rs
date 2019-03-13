@@ -3,7 +3,7 @@
 //! Pre-trained weights for the vgg-16 models can be found here:
 //! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
 use crate::nn;
-use crate::nn::{BatchNorm2D, Conv2D, Linear, ModuleT, SequentialT};
+use crate::nn::{BatchNorm2D, Conv2D, Linear, SequentialT};
 
 // Each list element contains multiple convolutions with some specified number
 // of features followed by a single max-pool layer.
@@ -54,17 +54,19 @@ fn conv2d(p: nn::Path, c_in: i64, c_out: i64) -> Conv2D {
     Conv2D::new(&p, c_in, c_out, 3, conv2d_cfg)
 }
 
-fn make(p: nn::Path, layers: Vec<Vec<i64>>, batch_norm: bool) -> impl ModuleT {
+fn vgg(p: &nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {
+    let c = p / "classifier";
     let mut seq = SequentialT::new();
+    let f = p / "features";
     let mut c_in = 3;
-    for channels in layers.into_iter() {
+    for channels in cfg.into_iter() {
         for &c_out in channels.iter() {
             let l = seq.len();
-            seq = seq.add(conv2d(&p / &l.to_string(), c_in, c_out));
+            seq = seq.add(conv2d(&f / &l.to_string(), c_in, c_out));
             if batch_norm {
                 let l = seq.len();
                 seq = seq.add(BatchNorm2D::new(
-                    &p / &l.to_string(),
+                    &f / &l.to_string(),
                     c_out,
                     Default::default(),
                 ));
@@ -74,14 +76,7 @@ fn make(p: nn::Path, layers: Vec<Vec<i64>>, batch_norm: bool) -> impl ModuleT {
         }
         seq = seq.add_fn(|xs| xs.max_pool2d_default(2));
     }
-    seq
-}
-
-fn vgg(p: &nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {
-    let c = p / "classifier";
-    SequentialT::new()
-        .add(make(p / "features", cfg, batch_norm))
-        .add_fn(|xs| xs.flat_view())
+    seq.add_fn(|xs| xs.flat_view())
         .add(Linear::new(&c / "0", 512 * 7 * 7, 4096, Default::default()))
         .add_fn(|xs| xs.relu())
         .add_fn_t(|xs, train| xs.dropout(0.5, train))

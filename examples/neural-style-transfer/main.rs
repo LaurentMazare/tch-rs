@@ -42,27 +42,32 @@ pub fn main() -> failure::Fallible<()> {
     let content_img = imagenet::load_image(content_img)?
         .unsqueeze(0)
         .to_device(device);
-    let style_layers = net.forward_all_t(&style_img, false);
-    let content_layers = net.forward_all_t(&content_img, false);
+    let max_layer = STYLE_INDEXES.iter().max().unwrap() + 1;
+    let style_layers = net.forward_all_t(&style_img, false, Some(max_layer));
+    let content_layers = net.forward_all_t(&content_img, false, Some(max_layer));
 
     let vs = nn::VarStore::new(device);
     let input_var = vs.root().var_copy("img", &content_img);
     let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
-        let input_layers = net.forward_all_t(&input_var, false);
-        let mut sloss = Tensor::new();
+        let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));
+        let mut sloss = Tensor::float_vec(&[0.]).to_device(device);
         for &i in STYLE_INDEXES.iter() {
             sloss = sloss + style_loss(&input_layers[i], &style_layers[i]);
         }
-        let mut closs = Tensor::new();
+        let mut closs = Tensor::float_vec(&[0.]).to_device(device);
         for &i in CONTENT_INDEXES.iter() {
             closs = closs + input_layers[i].mse_loss(&content_layers[i], 1);
         }
         let loss = sloss * STYLE_WEIGHT + closs;
         opt.backward_step(&loss);
-        if step_idx % 10 == 0 {
-            imagenet::save_image(&input_var, &format!("out{}.png", step_idx))?;
+        if step_idx % 1000 == 0 {
+            println!("{} {}", step_idx, f64::from(loss));
+            imagenet::save_image(
+                &input_var.to_device(Device::Cpu).squeeze1(0),
+                &format!("out{}.jpg", step_idx),
+            )?;
         }
     }
 

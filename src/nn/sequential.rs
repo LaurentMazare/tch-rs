@@ -48,13 +48,14 @@ impl Sequential {
     }
 
     /// Applies the forward pass and returns the output for each layer.
-    pub fn forward_all(&self, xs: &Tensor) -> Vec<Tensor> {
+    pub fn forward_all(&self, xs: &Tensor, n: Option<usize>) -> Vec<Tensor> {
         if self.layers.is_empty() {
             vec![xs.shallow_clone()]
         } else {
+            let n = n.unwrap_or(self.layers.len());
             let xs = self.layers[0].forward(xs);
             let mut vec = vec![];
-            let out = self.layers.iter().skip(1).fold(xs, |xs, layer| {
+            let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
                 let out = layer.forward(&xs);
                 vec.push(xs);
                 out
@@ -120,13 +121,14 @@ impl SequentialT {
     }
 
     /// Applies the forward pass and returns the output for each layer.
-    pub fn forward_all_t(&self, xs: &Tensor, train: bool) -> Vec<Tensor> {
+    pub fn forward_all_t(&self, xs: &Tensor, train: bool, n: Option<usize>) -> Vec<Tensor> {
         if self.layers.is_empty() {
             vec![xs.shallow_clone()]
         } else {
+            let n = n.unwrap_or(self.layers.len());
             let xs = self.layers[0].forward_t(xs, train);
             let mut vec = vec![];
-            let out = self.layers.iter().skip(1).fold(xs, |xs, layer| {
+            let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
                 let out = layer.forward_t(&xs, train);
                 vec.push(xs);
                 out
