@@ -1,4 +1,7 @@
 //! VGG models.
+//!
+//! Pre-trained weights for the vgg-16 models can be found here:
+//! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
 use crate::nn;
 use crate::nn::{BatchNorm2D, Conv2D, Linear, ModuleT, SequentialT};
 
@@ -74,10 +77,10 @@ fn make(p: nn::Path, layers: Vec<Vec<i64>>, batch_norm: bool) -> impl ModuleT {
     seq
 }
 
-fn vgg(p: nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {
-    let c = &p / "classifier";
+fn vgg(p: &nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {
+    let c = p / "classifier";
     SequentialT::new()
-        .add(make(&p / "features", cfg, batch_norm))
+        .add(make(p / "features", cfg, batch_norm))
         .add_fn(|xs| xs.flat_view())
         .add(Linear::new(&c / "0", 512 * 7 * 7, 4096, Default::default()))
         .add_fn(|xs| xs.relu())
@@ -88,34 +91,34 @@ fn vgg(p: nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> Sequ
         .add(Linear::new(&c / "6", 4096, nclasses, Default::default()))
 }
 
-pub fn vgg11(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg11(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_a(), nclasses, false)
 }
 
-pub fn vgg11_bn(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg11_bn(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_a(), nclasses, true)
 }
 
-pub fn vgg13(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg13(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_b(), nclasses, false)
 }
 
-pub fn vgg13_bn(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg13_bn(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_b(), nclasses, true)
 }
 
-pub fn vgg16(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg16(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_d(), nclasses, false)
 }
 
-pub fn vgg16_bn(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg16_bn(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_d(), nclasses, true)
 }
 
-pub fn vgg19(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg19(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_e(), nclasses, false)
 }
 
-pub fn vgg19_bn(p: nn::Path, nclasses: i64) -> SequentialT {
+pub fn vgg19_bn(p: &nn::Path, nclasses: i64) -> SequentialT {
     vgg(p, layers_e(), nclasses, true)
 }
