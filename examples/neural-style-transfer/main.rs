@@ -3,7 +3,8 @@
 #[macro_use]
 extern crate failure;
 extern crate tch;
-use tch::{nn, vision, Device, Tensor};
+use tch::vision::{imagenet, vgg};
+use tch::{nn, Device, Tensor};
 
 static STYLE_WEIGHT: f64 = 1e-6;
 static LEARNING_RATE: f64 = 1e-1;
@@ -31,12 +32,16 @@ pub fn main() -> failure::Fallible<()> {
     };
 
     let mut net_vs = tch::nn::VarStore::new(device);
-    let net = vision::vgg::vgg16(net_vs.root(), 1);
+    let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
     net_vs.load(weights)?;
     net_vs.freeze();
 
-    let style_img = vision::imagenet::load_image(style_img)?.to_device(device);
-    let content_img = vision::imagenet::load_image(content_img)?.to_device(device);
+    let style_img = imagenet::load_image(style_img)?
+        .unsqueeze(0)
+        .to_device(device);
+    let content_img = imagenet::load_image(content_img)?
+        .unsqueeze(0)
+        .to_device(device);
     let style_layers = net.forward_all_t(&style_img, false);
     let content_layers = net.forward_all_t(&content_img, false);
 
@@ -57,7 +62,7 @@ pub fn main() -> failure::Fallible<()> {
         let loss = sloss * STYLE_WEIGHT + closs;
         opt.backward_step(&loss);
         if step_idx % 10 == 0 {
-            vision::imagenet::save_image(&input_var, &format!("out{}.png", step_idx))?;
+            imagenet::save_image(&input_var, &format!("out{}.png", step_idx))?;
         }
     }
 
