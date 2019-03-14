@@ -1,4 +1,4 @@
-use crate::{Kind, Tensor};
+use crate::{Device, Kind, Tensor};
 use failure::Fallible;
 use std::path::Path;
 use std::sync::Mutex;
@@ -28,7 +28,7 @@ fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
 }
 
 pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Fallible<()> {
-    super::image::save(&unnormalize(tensor)?, path)
+    super::image::save(&unnormalize(&tensor.to_device(Device::Cpu))?, path)
 }
 
 pub fn load_image<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {

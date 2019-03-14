@@ -52,22 +52,19 @@ pub fn main() -> failure::Fallible<()> {
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
         let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));
-        let sloss: Tensor = STYLE_INDEXES
+        let style_loss: Tensor = STYLE_INDEXES
             .iter()
             .map(|&i| style_loss(&input_layers[i], &style_layers[i]))
             .sum();
-        let closs: Tensor = CONTENT_INDEXES
+        let content_loss: Tensor = CONTENT_INDEXES
             .iter()
             .map(|&i| input_layers[i].mse_loss(&content_layers[i], 1))
             .sum();
-        let loss = sloss * STYLE_WEIGHT + closs;
+        let loss = style_loss * STYLE_WEIGHT + content_loss;
         opt.backward_step(&loss);
         if step_idx % 1000 == 0 {
             println!("{} {}", step_idx, f64::from(loss));
-            imagenet::save_image(
-                &input_var.to_device(Device::Cpu).squeeze1(0),
-                &format!("out{}.jpg", step_idx),
-            )?;
+            imagenet::save_image(&input_var, &format!("out{}.jpg", step_idx))?;
         }
     }
 
