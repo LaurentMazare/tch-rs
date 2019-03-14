@@ -342,3 +342,21 @@ impl Tensor {
         result
     }
 }
+
+impl std::iter::Sum for Tensor {
+    fn sum<I: Iterator<Item = Tensor>>(mut iter: I) -> Tensor {
+        match iter.next() {
+            None => Tensor::from(0.),
+            Some(t) => iter.fold(t, |acc, x| x + acc),
+        }
+    }
+}
+
+impl<'a> std::iter::Sum<&'a Tensor> for Tensor {
+    fn sum<I: Iterator<Item = &'a Tensor>>(mut iter: I) -> Tensor {
+        match iter.next() {
+            None => Tensor::from(0.),
+            Some(t) => iter.fold(t.shallow_clone(), |acc, x| x + acc),
+        }
+    }
+}

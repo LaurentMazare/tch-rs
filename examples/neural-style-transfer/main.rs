@@ -52,14 +52,14 @@ pub fn main() -> failure::Fallible<()> {
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
         let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));
-        let mut sloss = Tensor::float_vec(&[0.]).to_device(device);
-        for &i in STYLE_INDEXES.iter() {
-            sloss = sloss + style_loss(&input_layers[i], &style_layers[i]);
-        }
-        let mut closs = Tensor::float_vec(&[0.]).to_device(device);
-        for &i in CONTENT_INDEXES.iter() {
-            closs = closs + input_layers[i].mse_loss(&content_layers[i], 1);
-        }
+        let sloss: Tensor = STYLE_INDEXES
+            .iter()
+            .map(|&i| style_loss(&input_layers[i], &style_layers[i]))
+            .sum();
+        let closs: Tensor = CONTENT_INDEXES
+            .iter()
+            .map(|&i| input_layers[i].mse_loss(&content_layers[i], 1))
+            .sum();
         let loss = sloss * STYLE_WEIGHT + closs;
         opt.backward_step(&loss);
         if step_idx % 1000 == 0 {
