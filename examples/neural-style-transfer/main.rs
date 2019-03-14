@@ -6,7 +6,7 @@ extern crate tch;
 use tch::vision::{imagenet, vgg};
 use tch::{nn, Device, Tensor};
 
-static STYLE_WEIGHT: f64 = 1e-6;
+static STYLE_WEIGHT: f64 = 1e6;
 static LEARNING_RATE: f64 = 1e-1;
 static TOTAL_STEPS: i64 = 3000;
 static STYLE_INDEXES: [usize; 5] = [0, 2, 5, 7, 10];
