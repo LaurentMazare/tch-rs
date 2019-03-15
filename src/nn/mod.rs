@@ -33,7 +33,6 @@ mod sequential;
 pub use sequential::Sequential;
 pub use sequential::SequentialT;
 
-mod c_optimizer;
 pub mod optimizer;
 pub use optimizer::Optimizer;
 

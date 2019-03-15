@@ -3,11 +3,7 @@ use crate::{Device, Kind};
 use failure::Fallible;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
-mod c_fallible_wrapper_generated;
-mod c_wrapper;
-mod c_wrapper_generated;
-
-pub use c_wrapper::{no_grad, NoGradGuard, Tensor};
+pub use super::wrappers::tensor::{no_grad, NoGradGuard, Tensor};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
@@ -267,7 +263,7 @@ impl Tensor {
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
         let len: i64 = self.size()[0];
-        let index = Tensor::randint(len, &[batch_size], crate::kind::INT64_CPU);
+        let index = Tensor::randint(len, &[batch_size], crate::wrappers::kind::INT64_CPU);
         self.index_select(0, &index)
     }
 
@@ -286,7 +282,7 @@ impl Tensor {
                 t2.size()
             )
         }
-        let index = Tensor::randint(len1, &[batch_size], crate::kind::INT64_CPU);
+        let index = Tensor::randint(len1, &[batch_size], crate::wrappers::kind::INT64_CPU);
         let batch1 = t1.index_select(0, &index).to_device(device);
         let batch2 = t2.index_select(0, &index).to_device(device);
         (batch1, batch2)
@@ -326,12 +322,12 @@ impl Tensor {
     pub fn onehot(&self, labels: i64) -> Tensor {
         Tensor::zeros(
             &[self.size(), vec![labels]].concat(),
-            crate::kind::FLOAT_CPU,
+            crate::wrappers::kind::FLOAT_CPU,
         )
         .scatter_(
             -1,
             &self.unsqueeze(-1).to_kind(Kind::Int64),
-            &Tensor::ones(&[], crate::kind::FLOAT_CPU),
+            &Tensor::ones(&[], crate::wrappers::kind::FLOAT_CPU),
         )
     }
 

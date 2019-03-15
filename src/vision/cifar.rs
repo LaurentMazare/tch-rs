@@ -4,7 +4,7 @@
 //! https://www.cs.toronto.edu/~kriz/cifar.html
 //! The binary version of the dataset is used.
 use super::dataset::Dataset;
-use crate::{kind, Tensor};
+use crate::{kind, Kind, Tensor};
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
 
@@ -18,7 +18,7 @@ fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     let mut data = vec![0u8; (SAMPLES_PER_FILE * BYTES_PER_IMAGE) as usize];
     buf_reader.read_exact(&mut data)?;
-    let content = Tensor::of_data(&data, kind::Kind::Uint8);
+    let content = Tensor::of_data(&data, Kind::Uint8);
     let images = Tensor::zeros(&[SAMPLES_PER_FILE, C, H, W], kind::FLOAT_CPU);
     let labels = Tensor::zeros(&[SAMPLES_PER_FILE], kind::INT64_CPU);
     for index in 0..SAMPLES_PER_FILE {
@@ -30,10 +30,10 @@ fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
             &content
                 .narrow(0, 1 + content_offset, BYTES_PER_IMAGE - 1)
                 .view(&[1, C, H, W])
-                .to_kind(kind::Kind::Float),
+                .to_kind(Kind::Float),
         );
     }
-    Ok((images.to_kind(kind::Kind::Float) / 255.0, labels))
+    Ok((images.to_kind(Kind::Float) / 255.0, labels))
 }
 
 fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {

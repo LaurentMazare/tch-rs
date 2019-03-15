@@ -110,6 +110,9 @@ Further examples include:
 * A simplified version of
   [char-rnn](https://github.com/LaurentMazare/tch-rs/blob/master/examples/char-rnn)
   illustrating character level language modeling using Recurrent Neural Networks.
+* [Neural style transfer](https://github.com/LaurentMazare/tch-rs/blob/master/examples/neural-style-transfer)
+  uses a pre-trained VGG-16 model to compose an image in the style of another image (pre-trained weights:
+  [vgg16.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot)).
 * Some [ResNet examples on CIFAR-10](https://github.com/LaurentMazare/tch-rs/tree/master/examples/cifar).
 * A [tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/jit)
   showing how to deploy/run some Python trained models using

@@ -1,5 +1,5 @@
 //! JIT interface to run model trained/saved using PyTorch Python API.
-use crate::utils::path_to_cstring;
+use super::utils::path_to_cstring;
 use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
@@ -60,7 +60,7 @@ impl IValue {
 }
 
 pub struct CModule {
-    pub(crate) c_module: *mut CModule_,
+    pub(super) c_module: *mut CModule_,
 }
 
 impl Drop for CModule {

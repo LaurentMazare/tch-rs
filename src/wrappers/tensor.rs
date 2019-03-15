@@ -1,5 +1,5 @@
-use crate::utils::{path_to_cstring, ptr_to_string};
-use crate::{Device, Kind};
+use super::utils::{path_to_cstring, ptr_to_string};
+use super::{device::Device, kind::Kind};
 use failure::Fallible;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
@@ -8,7 +8,7 @@ use torch_sys::*;
 
 /// A tensor object.
 pub struct Tensor {
-    pub(crate) c_tensor: *mut C_tensor,
+    pub(super) c_tensor: *mut C_tensor,
 }
 
 unsafe impl Send for Tensor {}

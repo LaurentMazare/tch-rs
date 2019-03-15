@@ -7,7 +7,7 @@
 extern crate tch;
 use tch::data::TextData;
 use tch::nn::{Linear, Module, LSTM, RNN};
-use tch::{kind, nn, Device, Tensor};
+use tch::{nn, Device, Kind, Tensor};
 
 static LEARNING_RATE: f64 = 0.01;
 static HIDDEN_SIZE: i64 = 256;
@@ -23,7 +23,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     let mut last_label = 0i64;
     let mut result = String::new();
     for _index in 0..SAMPLING_LEN {
-        let input = Tensor::zeros(&[1, labels], (kind::Kind::Float, device));
+        let input = Tensor::zeros(&[1, labels], (Kind::Float, device));
         input.narrow(1, last_label, 1).fill_(1.0);
         state = lstm.step(&input, &state);
         let sampled_y = linear.forward(&state.h()).softmax(-1).multinomial(1, false);
@@ -47,7 +47,7 @@ pub fn main() -> failure::Fallible<()> {
         let mut cnt_loss = 0.;
         for batch in data.iter_shuffle(SEQ_LEN + 1, BATCH_SIZE) {
             let xs_onehot = batch.narrow(1, 0, SEQ_LEN).onehot(labels);
-            let ys = batch.narrow(1, 1, SEQ_LEN).to_kind(kind::Kind::Int64);
+            let ys = batch.narrow(1, 1, SEQ_LEN).to_kind(Kind::Int64);
             let (lstm_out, _) = lstm.seq(&xs_onehot.to_device(device));
             let logits = linear.forward(&lstm_out);
             let loss = logits

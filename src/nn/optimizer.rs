@@ -1,6 +1,6 @@
 //! Optimizers to be used for gradient-descent based training.
-use super::c_optimizer::COptimizer;
 use super::var_store::VarStore;
+use crate::wrappers::optimizer::COptimizer;
 use crate::Tensor;
 use failure::Fallible;
 

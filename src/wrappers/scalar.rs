@@ -2,7 +2,7 @@
 use failure::Fallible;
 
 pub struct Scalar {
-    pub(crate) c_scalar: *mut torch_sys::C_scalar,
+    pub(super) c_scalar: *mut torch_sys::C_scalar,
 }
 
 impl Scalar {

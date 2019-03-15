@@ -2,11 +2,11 @@
 #[allow(clippy::all)]
 use torch_sys::*;
 use torch_sys::c_generated::*;
-use crate::device::Device;
-use crate::kind::Kind;
-use crate::scalar::AsScalar;
+use super::device::Device;
+use super::kind::Kind;
+use super::scalar::AsScalar;
 use std::borrow::Borrow;
-use super::c_wrapper::Tensor;
+use super::tensor::Tensor;
 
 fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {
     l.iter().map(|x| x.borrow().c_tensor).collect()

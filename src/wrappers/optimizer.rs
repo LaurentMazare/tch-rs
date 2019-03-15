@@ -1,4 +1,4 @@
-use crate::Tensor;
+use super::tensor::Tensor;
 use failure::Fallible;
 use libc::c_int;
 

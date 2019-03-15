@@ -1,5 +1,5 @@
 //! Dataset iterators.
-use crate::{kind, Device, Tensor};
+use crate::{kind, Device, Kind, Tensor};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
@@ -125,7 +125,7 @@ impl TextData {
         }
 
         Ok(TextData {
-            data: Tensor::of_data(&buffer, kind::Kind::Uint8),
+            data: Tensor::of_data(&buffer, Kind::Uint8),
             char_for_label,
         })
     }

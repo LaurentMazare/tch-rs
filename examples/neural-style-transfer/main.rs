@@ -1,5 +1,7 @@
 // This is inspired by the Neural Style tutorial from PyTorch.org
 //   https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+// The pre-trained weights for the VGG16 model can be downloaded from:
+//   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
 #[macro_use]
 extern crate failure;
 extern crate tch;

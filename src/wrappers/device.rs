@@ -17,12 +17,13 @@ pub enum Cpu {}
 impl Cpu {
     /// Gets the current number of allowed threads for parallel computations.
     pub fn get_num_threads() -> i64 {
-        super::device_wrapper::get_num_threads()
+        let res = unsafe_torch!({ torch_sys::atc_get_num_threads() });
+        i64::from(res)
     }
 
     /// Sets the number of allowed threads for parallel computations.
     pub fn set_num_threads(n: i64) {
-        super::device_wrapper::set_num_threads(n)
+        unsafe_torch!({ torch_sys::atc_set_num_threads(n as i32) })
     }
 }
 
@@ -30,17 +31,18 @@ pub enum Cuda {}
 impl Cuda {
     /// Returns the number of GPU that can be used.
     pub fn device_count() -> i64 {
-        super::device_wrapper::cuda_device_count()
+        let res = unsafe_torch!({ torch_sys::atc_cuda_device_count() });
+        i64::from(res)
     }
 
     /// Returns true if cuda support is available.
     pub fn is_available() -> bool {
-        super::device_wrapper::cuda_is_available()
+        unsafe_torch!({ torch_sys::atc_cuda_is_available() }) != 0
     }
 
     /// Returns true if cudnn support is available.
     pub fn cudnn_is_available() -> bool {
-        super::device_wrapper::cudnn_is_available()
+        unsafe_torch!({ torch_sys::atc_cudnn_is_available() }) != 0
     }
 
     /// Sets cudnn benchmark mode.
@@ -50,19 +52,19 @@ impl Cuda {
     /// in the following runs. This can result in significant performance
     /// improvements.
     pub fn cudnn_set_benchmark(b: bool) {
-        super::device_wrapper::set_benchmark_cudnn(b)
+        unsafe_torch!({ torch_sys::atc_set_benchmark_cudnn(if b { 1 } else { 0 }) })
     }
 }
 
 impl Device {
-    pub(crate) fn c_int(self) -> libc::c_int {
+    pub(super) fn c_int(self) -> libc::c_int {
         match self {
             Device::Cpu => 0,
             Device::Cuda => 1,
         }
     }
 
-    pub(crate) fn of_c_int(v: libc::c_int) -> Self {
+    pub(super) fn of_c_int(v: libc::c_int) -> Self {
         match v {
             0 => Device::Cpu,
             1 => Device::Cuda,
