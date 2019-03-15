@@ -11,11 +11,10 @@ produces some new images looking similar to the content image but using the styl
 from the second image.
 
 ### Running the Code
-This example uses a pre-trained VGG-16 convolutional network, the weights can be found in
+We use a pre-trained VGG-16 convolutional network, the weights can be found in
 [vgg16.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot).
-
-Then the example can be run with the following command, this will create some new images in
-the current directory.
+Running the example can be done with the following command, this will create
+some new images in the current directory.
 
 ```bash
 cargo run --example neural-style-transfer style.jpg content.jpg vgg16.ot
@@ -31,29 +30,43 @@ as a style image.
 
 ### Neural Style Transfer
 
-The Neural Style Transfer algorithm works by gradient descent starting from
-an initial image (we use the content image as a starting point but could also
-use random noise).
+The Neural Style Transfer algorithm works by gradient descent starting from an
+initial image -- we use the content image as a starting point but could also
+use random noise.
 
-This gradient descent aims at minimizing a loss composed of two parts: a style loss and a
-content loss. The style loss evaluates how much our current image is similar to the style
-image in terms of style, whereas the content loss focuses on whether our current image
-has a content close to the reference content image.
+This gradient descent aims at minimizing a loss composed of two parts: the
+style loss evaluates how much our current image is similar to the style image
+in terms of style; the content loss focuses on whether our current
+image has a content close to the reference content image.
 
-In order to define `being similar` we use a pre-trained convolutional neural
+In order to define these distances we use a pre-trained convolutional neural
 network. This network is run on the current image as well as on the style and
 content images.  Intuitively the features extracted by the lower layers are
-more about style and the features extracted by the upper layers about contents.
+more about style and the features extracted by the upper layers about content.
 
-The content loss is then computed using MSE on the extracted features for some
-upper layers.  MSE helps ensuring that the extracted features are similar between
-the two images at the same on-screen locations.
+The content loss is computed using the mean-square error on the extracted
+features for some upper layers.  This error helps ensuring that the extracted
+features happen at the same on-screen places between the content and the
+current images.
 
-For the style loss we do not really care about spatial location of the features
-in the style image. So rather than MSE we use some Gram matrix to define a loss
-that is location independent.
+For the style loss we do not really care about spatial location of the style
+features. So rather than the mean-square error we use some Gram matrix to
+define a loss that is location independent.
 
-### Implementation 1: Loading the Model and Images
+```rust
+fn gram_matrix(m: &Tensor) -> Tensor {
+    let (a, b, c, d) = m.size4().unwrap();
+    let m = m.view(&[a * b, c * d]);
+    let g = m.matmul(&m.tr());
+    g / (a * b * c * d)
+}
+
+fn style_loss(m1: &Tensor, m2: &Tensor) -> Tensor {
+    gram_matrix(m1).mse_loss(&gram_matrix(m2), 1)
+}
+```
+
+### Loading the Model and Images
 
 Let's have a look at how we can code this in rust.
 The first thing we do is create a device which can be either a cpu or a gpu depending on what is
@@ -89,7 +102,7 @@ the model can be run on these images.
         .to_device(device);
 ```
 
-### Implementation 2: Running the Model on the Content and Style Images
+### Running the Model on the Content and Style Images
 
 We now run the model on the style and content images. These calls returns some
 vector containing the extracted features for each of the model layers.
@@ -107,7 +120,7 @@ variable is obtained by copying the content image.
     let input_var = vs.root().var_copy("img", &content_img);
 ```
 
-### Implementation 3: Gradient Descent Loop
+### Gradient Descent Loop
 
 We use Adam for optimization: creating an optimizer requires to pass it the
 variable store that we want to optimize on.
