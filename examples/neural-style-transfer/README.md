@@ -68,19 +68,18 @@ fn style_loss(m1: &Tensor, m2: &Tensor) -> Tensor {
 
 ### Loading the Model and Images
 
-Let's have a look at how we can code this in rust.
-The first thing we do is create a device which can be either a cpu or a gpu depending on what is
-available.
+We start by creating a *device* which can be either a cpu or a gpu depending on
+what is available.
 
 ```rust
     let device = Device::cuda_if_available();
 ```
 
-We then create a variable store on this device, this variable store will be used to hold
-the pre-trained variables for the VGG-16 model.
-Using this variable store we create the model and load the weights from the weight file
-on disk. Finally we *freeze* the variable store ensuring that the model weights are
-not modified when running some gradient descent later in the process.
+Then we create a variable store on this device, this variable store will be
+used to hold the pre-trained variables for the VGG-16 model.  Using this
+variable store we create the model and load the weights from the weight file.
+Finally we *freeze* the variable store ensuring that the model weights are not
+modified when running the optimizer later in the process.
 
 ```rust
     let mut net_vs = tch::nn::VarStore::new(device);
@@ -89,8 +88,8 @@ not modified when running some gradient descent later in the process.
     net_vs.freeze();
 ```
 
-Next we load the style and content image, and move them to the device.
-Note that the `unsqueeze` method is used to add a batch-dimension of size 1 so that
+Next we load the style and content image, and move them to the device.  Note
+that the `unsqueeze` method is used to add a batch-dimension of size 1 so that
 the model can be run on these images.
 
 ```rust
@@ -129,11 +128,10 @@ variable store that we want to optimize on.
     let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
 ```
 
-Then we run our gradient descent loop. In this loop we compute the style
-and content losses, sum them, and run an optimization step.
-
-We also regularly print the current loss value and write a file containing the
-optimized image.
+In the gradient descent loop the style and content losses are computed,
+summed together, and run an Adam optimization step is performed.
+We also regularly print the current loss value and write the current image
+to a file.
 
 ```rust
     for step_idx in 1..(1 + TOTAL_STEPS) {
@@ -147,7 +145,7 @@ optimized image.
     }
 ```
 
-In order to compute the losses, we first evaluate our model on the current image.
+In order to compute the losses, the model is evaluated on the current image.
 The style loss is then extracted from the style layers and the content loss from
 the content layers.
 
