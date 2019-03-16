@@ -30,7 +30,8 @@ where
 }
 
 /// Parameters for the SGD optimizer.
-#[derive(Debug, Copy, Clone)]
+#[derive(Builder, Debug, Copy, Clone)]
+#[builder(default)]
 pub struct Sgd {
     pub momentum: f64,
     pub dampening: f64,
@@ -56,7 +57,8 @@ impl OptimizerConfig for Sgd {
 }
 
 /// Parameters for the Adam optimizer.
-#[derive(Debug, Copy, Clone)]
+#[derive(Builder, Debug, Copy, Clone)]
+#[builder(default)]
 pub struct Adam {
     pub beta1: f64,
     pub beta2: f64,
@@ -80,7 +82,8 @@ impl OptimizerConfig for Adam {
 }
 
 /// Parameters for the RmsProp optimizer.
-#[derive(Debug, Copy, Clone)]
+#[derive(Builder, Debug, Copy, Clone)]
+#[builder(default)]
 pub struct RmsProp {
     pub alpha: f64,
     pub eps: f64,

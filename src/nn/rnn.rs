@@ -31,7 +31,8 @@ impl LSTMState {
 }
 
 // The GRU and LSTM layers share the same config.
-#[derive(Debug, Clone, Copy)]
+#[derive(Builder, Debug, Clone, Copy)]
+#[builder(default)]
 pub struct Config {
     has_biases: bool,
     num_layers: i64,

@@ -2,7 +2,8 @@
 use crate::Tensor;
 use std::borrow::Borrow;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Builder, Debug, Clone, Copy)]
+#[builder(default)]
 pub struct BatchNorm2DConfig {
     pub cudnn_enabled: bool,
     pub eps: f64,
