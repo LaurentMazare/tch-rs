@@ -93,5 +93,18 @@ And finally we print the 5 classes with the highest probabilities.
 
 Cargo can be used to run this example.
 ```bash
-cargo run --example jit -- model.pt image.jpg
+cargo run --example jit model.pt image.jpg
 ```
+
+This results in the Rust code printing the top 5 predicted labels
+as well as the associated probabilities.
+
+```
+tiger, Panthera tigris                             96.33%
+tiger cat                                           3.56%
+zebra                                               0.09%
+jaguar, panther, Panthera onca, Felis onca          0.01%
+tabby, tabby cat                                    0.01%
+```
+
+![tiger](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Royal_Bengal_Tiger_at_Kanha_National_Park.jpg/800px-Royal_Bengal_Tiger_at_Kanha_National_Park.jpg)
