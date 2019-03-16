@@ -5,9 +5,28 @@ use crate::Tensor;
 use failure::Fallible;
 
 #[derive(Debug)]
-pub struct Optimizer {
+pub struct Optimizer<T> {
     opt: COptimizer,
     trainable_variables: Vec<Tensor>,
+    config: T,
+}
+
+pub trait OptimizerConfig
+where
+    Self: std::marker::Sized,
+{
+    fn build_copt(&self, lr: f64) -> Fallible<COptimizer>;
+
+    fn build(self, vs: &VarStore, lr: f64) -> Fallible<Optimizer<Self>> {
+        let mut opt = self.build_copt(lr)?;
+        let trainable_variables = vs.trainable_variables();
+        opt.add_parameters(&trainable_variables)?;
+        Ok(Optimizer {
+            opt,
+            trainable_variables,
+            config: self,
+        })
+    }
 }
 
 /// Parameters for the SGD optimizer.
@@ -30,6 +49,12 @@ impl Default for Sgd {
     }
 }
 
+impl OptimizerConfig for Sgd {
+    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+        COptimizer::sgd(lr, self.momentum, self.dampening, self.wd, self.nesterov)
+    }
+}
+
 /// Parameters for the Adam optimizer.
 #[derive(Debug, Copy, Clone)]
 pub struct Adam {
@@ -45,6 +70,12 @@ impl Default for Adam {
             beta2: 0.999,
             wd: 0.,
         }
+    }
+}
+
+impl OptimizerConfig for Adam {
+    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+        COptimizer::adam(lr, self.beta1, self.beta2, self.wd)
     }
 }
 
@@ -70,37 +101,20 @@ impl Default for RmsProp {
     }
 }
 
-impl Optimizer {
-    pub fn sgd(vs: &VarStore, lr: f64, s: Sgd) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::sgd(lr, s.momentum, s.dampening, s.wd, s.nesterov)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
-        Ok(Optimizer {
-            opt,
-            trainable_variables,
-        })
+impl OptimizerConfig for RmsProp {
+    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+        COptimizer::rms_prop(
+            lr,
+            self.alpha,
+            self.eps,
+            self.wd,
+            self.momentum,
+            self.centered,
+        )
     }
+}
 
-    pub fn adam(vs: &VarStore, lr: f64, a: Adam) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::adam(lr, a.beta1, a.beta2, a.wd)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
-        Ok(Optimizer {
-            opt,
-            trainable_variables,
-        })
-    }
-
-    pub fn rms_prop(vs: &VarStore, lr: f64, r: RmsProp) -> Fallible<Optimizer> {
-        let mut opt = COptimizer::rms_prop(lr, r.alpha, r.eps, r.wd, r.momentum, r.centered)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
-        Ok(Optimizer {
-            opt,
-            trainable_variables,
-        })
-    }
-
+impl<T> Optimizer<T> {
     pub fn zero_grad(&self) {
         self.opt.zero_grad().unwrap()
     }
@@ -138,45 +152,4 @@ impl Optimizer {
     pub fn set_momentum(&mut self, m: f64) {
         self.opt.set_momentum(m).unwrap()
     }
-}
-
-pub fn sgd(
-    vs: &VarStore,
-    lr: f64,
-    momentum: f64,
-    dampening: f64,
-    wd: f64,
-    nesterov: bool,
-) -> Fallible<Optimizer> {
-    let sgd = Sgd {
-        momentum,
-        dampening,
-        wd,
-        nesterov,
-    };
-    Optimizer::sgd(vs, lr, sgd)
-}
-
-pub fn adam(vs: &VarStore, lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<Optimizer> {
-    let adam = Adam { beta1, beta2, wd };
-    Optimizer::adam(vs, lr, adam)
-}
-
-pub fn rms_prop(
-    vs: &VarStore,
-    lr: f64,
-    alpha: f64,
-    eps: f64,
-    wd: f64,
-    momentum: f64,
-    centered: bool,
-) -> Fallible<Optimizer> {
-    let rmsprop = RmsProp {
-        alpha,
-        eps,
-        wd,
-        momentum,
-        centered,
-    };
-    Optimizer::rms_prop(vs, lr, rmsprop)
 }

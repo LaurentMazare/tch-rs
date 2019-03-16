@@ -1,6 +1,6 @@
 // This should rearch 97% accuracy.
 
-use tch::{nn, nn::Module, Device, Tensor};
+use tch::{nn, nn::Module, nn::OptimizerConfig, Device, Tensor};
 
 static IMAGE_DIM: i64 = 784;
 static HIDDEN_NODES: i64 = 128;
@@ -30,7 +30,7 @@ pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = Net::new(&vs.root());
-    let opt = nn::Optimizer::adam(&vs, 1e-3, Default::default())?;
+    let opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..200 {
         let loss = net
             .forward(&m.train_images)

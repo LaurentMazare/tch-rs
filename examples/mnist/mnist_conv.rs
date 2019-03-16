@@ -1,6 +1,6 @@
 // CNN model. This should rearch 99.1% accuracy.
 
-use tch::{nn, nn::ModuleT, Device, Tensor};
+use tch::{nn, nn::ModuleT, nn::OptimizerConfig, Device, Tensor};
 
 #[derive(Debug)]
 struct Net {
@@ -44,7 +44,7 @@ pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());
-    let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default())?;
+    let opt = nn::Adam::default().build(&vs, 1e-4)?;
     for epoch in 1..100 {
         for (bimages, blabels) in m.train_iter(256).shuffle().to_device(vs.device()) {
             let loss = net

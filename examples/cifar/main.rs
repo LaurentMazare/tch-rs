@@ -7,7 +7,7 @@
 */
 
 extern crate tch;
-use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
+use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, OptimizerConfig, SequentialT};
 use tch::{nn, Device};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
@@ -59,7 +59,13 @@ pub fn main() -> failure::Fallible<()> {
     let m = tch::vision::cifar::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = fast_resnet(&vs.root());
-    let mut opt = nn::optimizer::sgd(&vs, 0., 0.9, 0., 5e-4, true)?;
+    let mut opt = nn::Sgd {
+        momentum: 0.9,
+        dampening: 0.,
+        wd: 5e-4,
+        nesterov: true,
+    }
+    .build(&vs, 0.)?;
     for epoch in 1..150 {
         opt.set_lr(learning_rate(epoch));
         for (bimages, blabels) in m.train_iter(64).shuffle().to_device(vs.device()) {

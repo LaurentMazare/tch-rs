@@ -5,7 +5,7 @@
 #[macro_use]
 extern crate failure;
 extern crate tch;
-use tch::{kind, nn, Device, Kind, Tensor};
+use tch::{kind, nn, nn::OptimizerConfig, Device, Kind, Tensor};
 
 static IMG_SIZE: i64 = 64;
 static LATENT_DIM: i64 = 128;
@@ -116,13 +116,18 @@ pub fn main() -> failure::Fallible<()> {
             .to_device(device)
     };
 
+    let adam = nn::Adam {
+        beta1: 0.5,
+        beta2: 0.999,
+        wd: 0.,
+    };
     let mut generator_vs = nn::VarStore::new(device);
     let generator = generator(generator_vs.root());
-    let opt_g = nn::optimizer::adam(&generator_vs, LEARNING_RATE, 0.5, 0.999, 0.)?;
+    let opt_g = adam.build(&generator_vs, LEARNING_RATE)?;
 
     let mut discriminator_vs = nn::VarStore::new(device);
     let discriminator = discriminator(discriminator_vs.root());
-    let opt_d = nn::optimizer::adam(&discriminator_vs, LEARNING_RATE, 0.5, 0.999, 0.)?;
+    let opt_d = adam.build(&discriminator_vs, LEARNING_RATE)?;
 
     let fixed_noise = rand_latent();
 

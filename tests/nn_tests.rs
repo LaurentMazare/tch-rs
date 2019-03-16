@@ -1,4 +1,4 @@
-use tch::{nn, Device, Kind, Tensor};
+use tch::{nn, nn::OptimizerConfig, Device, Kind, Tensor};
 
 #[test]
 fn save_and_load_var_store() {
@@ -45,7 +45,7 @@ fn optimizer_test() {
         bs_init: Some(nn::Init::Const(0.)),
     };
     let mut linear = nn::Linear::new(vs.root(), 1, 1, cfg);
-    let opt = nn::Optimizer::sgd(&vs, 1e-2, Default::default()).unwrap();
+    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
 
     let loss = xs.apply(&linear).mse_loss(&ys, 1);
     let initial_loss = f64::from(&loss);

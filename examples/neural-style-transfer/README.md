@@ -125,7 +125,7 @@ We use Adam for optimization: creating an optimizer requires to pass it the
 variable store that we want to optimize on.
 
 ```rust
-    let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
+    let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
 ```
 
 In the gradient descent loop the style and content losses are computed,

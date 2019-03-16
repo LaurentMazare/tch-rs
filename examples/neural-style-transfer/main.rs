@@ -6,7 +6,7 @@
 extern crate failure;
 extern crate tch;
 use tch::vision::{imagenet, vgg};
-use tch::{nn, Device, Tensor};
+use tch::{nn, nn::OptimizerConfig, Device, Tensor};
 
 static STYLE_WEIGHT: f64 = 1e6;
 static LEARNING_RATE: f64 = 1e-1;
@@ -50,7 +50,7 @@ pub fn main() -> failure::Fallible<()> {
 
     let vs = nn::VarStore::new(device);
     let input_var = vs.root().var_copy("img", &content_img);
-    let opt = nn::Optimizer::adam(&vs, LEARNING_RATE, Default::default())?;
+    let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
         let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));

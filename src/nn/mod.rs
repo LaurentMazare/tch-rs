@@ -34,7 +34,7 @@ pub use sequential::Sequential;
 pub use sequential::SequentialT;
 
 pub mod optimizer;
-pub use optimizer::Optimizer;
+pub use optimizer::{Adam, Optimizer, OptimizerConfig, RmsProp, Sgd};
 
 #[derive(Debug)]
 pub struct Id();
