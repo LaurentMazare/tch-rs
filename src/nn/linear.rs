@@ -2,8 +2,7 @@
 use crate::Tensor;
 use std::borrow::Borrow;
 
-#[derive(Builder, Debug, Clone, Copy)]
-#[builder(default)]
+#[derive(Debug, Clone, Copy)]
 pub struct LinearConfig {
     pub ws_init: super::Init,
     pub bs_init: Option<super::Init>,

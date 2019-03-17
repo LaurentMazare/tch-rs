@@ -12,19 +12,19 @@ mod module;
 pub use module::{Module, ModuleT};
 
 mod linear;
-pub use linear::{Linear, LinearConfig, LinearConfigBuilder};
+pub use linear::{Linear, LinearConfig};
 
 mod conv2d;
-pub use conv2d::{Conv2D, Conv2DConfig, Conv2DConfigBuilder};
+pub use conv2d::{Conv2D, Conv2DConfig};
 
 mod conv_transpose2d;
-pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig, ConvTranspose2DConfigBuilder};
+pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig};
 
 mod batch_norm;
-pub use batch_norm::{BatchNorm2D, BatchNorm2DConfig, BatchNorm2DConfigBuilder};
+pub use batch_norm::{BatchNorm2D, BatchNorm2DConfig};
 
 mod rnn;
-pub use rnn::{Config, ConfigBuilder, GRU, LSTM, RNN};
+pub use rnn::{Config, GRU, LSTM, RNN};
 
 mod func;
 pub use func::{Func, FuncT};
@@ -34,9 +34,7 @@ pub use sequential::Sequential;
 pub use sequential::SequentialT;
 
 mod optimizer;
-pub use optimizer::{
-    Adam, AdamBuilder, Optimizer, OptimizerConfig, RmsProp, RmsPropBuilder, Sgd, SgdBuilder,
-};
+pub use optimizer::{Adam, Optimizer, OptimizerConfig, RmsProp, Sgd};
 
 #[derive(Debug)]
 pub struct Id();
