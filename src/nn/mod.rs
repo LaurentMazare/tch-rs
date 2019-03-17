@@ -14,8 +14,8 @@ pub use module::{Module, ModuleT};
 mod linear;
 pub use linear::{Linear, LinearConfig};
 
-mod conv2d;
-pub use conv2d::{Conv2D, Conv2DConfig};
+mod conv;
+pub use conv::{Conv1D, Conv2D, Conv3D, ConvConfig};
 
 mod conv_transpose2d;
 pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig};

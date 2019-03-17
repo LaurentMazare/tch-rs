@@ -11,7 +11,7 @@ use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, OptimizerConfig, Sequ
 use tch::{nn, Device};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
-    let conv2d_cfg = nn::Conv2DConfig {
+    let conv2d_cfg = nn::ConvConfig {
         padding: 1,
         bias: false,
         ..Default::default()

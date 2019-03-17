@@ -46,7 +46,7 @@ fn layers_e() -> Vec<Vec<i64>> {
 }
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64) -> Conv2D {
-    let conv2d_cfg = nn::Conv2DConfig {
+    let conv2d_cfg = nn::ConvConfig {
         stride: 1,
         padding: 1,
         ..Default::default()

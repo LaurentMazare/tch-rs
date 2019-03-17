@@ -24,7 +24,7 @@ fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Co
 }
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Conv2D {
-    let cfg = nn::Conv2DConfig {
+    let cfg = nn::ConvConfig {
         stride,
         padding,
         bias: false,
