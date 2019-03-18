@@ -209,12 +209,13 @@ impl Tensor {
     pub fn f_of_data(data: &[u8], kind: Kind) -> Fallible<Tensor> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
+        let elt_size_in_bytes = kind.elt_size_in_bytes();
         let c_tensor = unsafe_torch_err!({
             at_tensor_of_data(
                 data,
-                [data_len as i64].as_ptr(),
+                [data_len as i64 / elt_size_in_bytes as i64].as_ptr(),
                 1,
-                kind.elt_size_in_bytes(),
+                elt_size_in_bytes,
                 kind.c_int(),
             )
         });
@@ -223,6 +224,25 @@ impl Tensor {
 
     pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
         Self::f_of_data(data, kind).unwrap()
+    }
+
+    pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Fallible<Tensor> {
+        let data = data.as_ptr() as *const c_void;
+        let elt_size_in_bytes = kind.elt_size_in_bytes();
+        let c_tensor = unsafe_torch_err!({
+            at_tensor_of_data(
+                data,
+                size.as_ptr(),
+                size.len() as i64,
+                elt_size_in_bytes,
+                kind.c_int(),
+            )
+        });
+        Ok(Tensor { c_tensor })
+    }
+
+    pub fn of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Tensor {
+        Self::f_of_data_size(data, size, kind).unwrap()
     }
 
     /// Returns a new tensor that share storage with the input tensor.
