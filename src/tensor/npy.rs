@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 
 static NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
+static NPY_SUFFIX: &str = ".npy";
 
 fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];
@@ -112,7 +113,7 @@ impl Header {
                 let shape = shape.trim_matches(|c: char| c == '(' || c == ')' || c == ',');
                 shape
                     .split(',')
-                    .map(|v| v.parse::<i64>())
+                    .map(|v| v.trim().parse::<i64>())
                     .collect::<Result<Vec<_>, _>>()?
             }
         };
@@ -129,10 +130,35 @@ impl crate::Tensor {
         let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
         let header = read_header(&mut buf_reader)?;
         let header = Header::parse(&header)?;
-        println!("{:?}", header);
         ensure!(!header.fortran_order, "fortran order not supported");
         let mut data: Vec<u8> = vec![];
         buf_reader.read_to_end(&mut data)?;
         Tensor::f_of_data_size(&data, &header.shape, header.descr)
+    }
+
+    pub fn read_npz<T: AsRef<std::path::Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
+        let zip_reader = BufReader::new(File::open(path.as_ref())?);
+        let mut zip = zip::ZipArchive::new(zip_reader)?;
+        let mut result = vec![];
+        for i in 0..zip.len() {
+            let file = zip.by_index(i).unwrap();
+            let name = {
+                let name = file.name();
+                if name.ends_with(NPY_SUFFIX) {
+                    name[..name.len() - NPY_SUFFIX.len()].to_owned()
+                } else {
+                    name.to_owned()
+                }
+            };
+            let mut buf_reader = BufReader::new(file);
+            let header = read_header(&mut buf_reader)?;
+            let header = Header::parse(&header)?;
+            ensure!(!header.fortran_order, "fortran order not supported");
+            let mut data: Vec<u8> = vec![];
+            buf_reader.read_to_end(&mut data)?;
+            let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
+            result.push((name, tensor))
+        }
+        Ok(result)
     }
 }

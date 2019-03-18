@@ -4,6 +4,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate failure;
 extern crate libc;
+extern crate zip;
 
 pub mod data;
 

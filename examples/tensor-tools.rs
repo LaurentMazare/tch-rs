@@ -9,8 +9,17 @@ pub fn main() -> failure::Fallible<()> {
         _ => bail!("usage: main file.npy"),
     };
 
-    let tensor = tch::Tensor::read_npy(filename)?;
-    println!("loaded: {:?}", tensor);
+    if filename.ends_with(".npy") {
+        let tensor = tch::Tensor::read_npy(filename)?;
+        println!("loaded: {:?}", tensor);
+    } else if filename.ends_with(".npz") {
+        let tensors = tch::Tensor::read_npz(filename)?;
+        for (name, tensor) in tensors.iter() {
+            println!("{}: {:?}", name, tensor)
+        }
+    } else {
+        bail!("unhandled file {}", filename);
+    }
 
     Ok(())
 }
