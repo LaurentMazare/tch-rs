@@ -220,14 +220,17 @@ impl crate::Tensor {
         self.write(&mut f)
     }
 
-    pub fn write_npz<T: AsRef<Path>>(ts: &[(String, Tensor)], path: T) -> Fallible<()> {
+    pub fn write_npz<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
+        ts: &[(S, T)],
+        path: P,
+    ) -> Fallible<()> {
         let mut zip = zip::ZipWriter::new(File::create(path.as_ref())?);
         let options =
             zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
 
         for (name, tensor) in ts.iter() {
-            zip.start_file(format!("{}.npy", name), options)?;
-            tensor.write(&mut zip)?
+            zip.start_file(format!("{}.npy", name.as_ref()), options)?;
+            tensor.as_ref().write(&mut zip)?
         }
         Ok(())
     }

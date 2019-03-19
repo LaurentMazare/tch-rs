@@ -292,15 +292,18 @@ impl Tensor {
     /// Saves some named tensors to a file
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn save_multi<T: AsRef<Path>>(named_tensors: &[(&str, &Tensor)], path: T) -> Fallible<()> {
+    pub fn save_multi<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
+        named_tensors: &[(S, T)],
+        path: P,
+    ) -> Fallible<()> {
         let path = path_to_cstring(path)?;
         let c_tensors = named_tensors
             .iter()
-            .map(|nt| nt.1.c_tensor)
+            .map(|nt| nt.1.as_ref().c_tensor)
             .collect::<Vec<_>>();
         let names = named_tensors
             .iter()
-            .map(|nt| std::ffi::CString::new(nt.0))
+            .map(|nt| std::ffi::CString::new(nt.0.as_ref()))
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
         unsafe_torch_err!({
@@ -369,6 +372,12 @@ impl NoGradGuard {
         NoGradGuard {
             enabled: grad_set_enabled(false),
         }
+    }
+}
+
+impl std::convert::AsRef<Tensor> for Tensor {
+    fn as_ref(&self) -> &Self {
+        return &self;
     }
 }
 
