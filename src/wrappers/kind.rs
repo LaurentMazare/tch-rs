@@ -1,6 +1,6 @@
 //! The different kind of elements supported in Torch.
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Kind {
     Uint8,
     Int8,

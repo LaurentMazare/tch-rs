@@ -5,7 +5,7 @@
 //! If needed, a device index should be added.
 
 /// A torch device.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Device {
     /// The main CPU device.
     Cpu,

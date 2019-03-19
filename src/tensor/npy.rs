@@ -33,7 +33,7 @@ fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
     Ok(String::from_utf8_lossy(&header).to_string())
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Header {
     descr: Kind,
     fortran_order: bool,
@@ -160,5 +160,32 @@ impl crate::Tensor {
             result.push((name, tensor))
         }
         Ok(result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Header;
+
+    #[test]
+    fn parse() {
+        let h = "{'descr': '<f8', 'fortran_order': False, 'shape': (128,), }";
+        assert_eq!(
+            Header::parse(h).unwrap(),
+            Header {
+                descr: crate::Kind::Double,
+                fortran_order: false,
+                shape: vec![128]
+            }
+        );
+        let h = "{'descr': '<f4', 'fortran_order': True, 'shape': (256,1,128), }";
+        assert_eq!(
+            Header::parse(h).unwrap(),
+            Header {
+                descr: crate::Kind::Float,
+                fortran_order: true,
+                shape: vec![256, 1, 128]
+            }
+        )
     }
 }
