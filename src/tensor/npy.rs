@@ -6,7 +6,8 @@ use crate::{Kind, Tensor};
 use failure::Fallible;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Read, Write};
+use std::path::Path;
 
 static NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
 static NPY_SUFFIX: &str = ".npy";
@@ -41,6 +42,30 @@ struct Header {
 }
 
 impl Header {
+    fn to_string(&self) -> Fallible<String> {
+        let fortran_order = if self.fortran_order { "True" } else { "False" };
+        let shape = self
+            .shape
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        let descr = match self.descr {
+            Kind::Float => "f4",
+            Kind::Double => "f8",
+            Kind::Int => "i4",
+            Kind::Int64 => "i8",
+            Kind::Int16 => "i2",
+            Kind::Int8 => "i1",
+            Kind::Uint8 => "u1",
+            descr => bail!("unsupported kind {:?}", descr),
+        };
+        Ok(format!(
+            "{{'descr': '<{}', 'fortran_order': {}, 'shape': ({},), }}",
+            descr, fortran_order, shape
+        ))
+    }
+
     // Hacky parser for the npy header, a typical example would be:
     // {'descr': '<f8', 'fortran_order': False, 'shape': (128,), }
     fn parse(header: &str) -> Fallible<Header> {
@@ -126,7 +151,8 @@ impl Header {
 }
 
 impl crate::Tensor {
-    pub fn read_npy<T: AsRef<std::path::Path>>(path: T) -> Fallible<Tensor> {
+    /// Reads a npy file and return the stored tensor.
+    pub fn read_npy<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
         let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
         let header = read_header(&mut buf_reader)?;
         let header = Header::parse(&header)?;
@@ -136,7 +162,8 @@ impl crate::Tensor {
         Tensor::f_of_data_size(&data, &header.shape, header.descr)
     }
 
-    pub fn read_npz<T: AsRef<std::path::Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
+    /// Reads a npz file and returns some named tensors.
+    pub fn read_npz<T: AsRef<Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
         let zip_reader = BufReader::new(File::open(path.as_ref())?);
         let mut zip = zip::ZipArchive::new(zip_reader)?;
         let mut result = vec![];
@@ -160,6 +187,49 @@ impl crate::Tensor {
             result.push((name, tensor))
         }
         Ok(result)
+    }
+
+    fn write<T: Write>(&self, f: &mut T) -> Fallible<()> {
+        f.write_all(NPY_MAGIC_STRING)?;
+        f.write_all(&[1u8, 0u8])?;
+        let kind = self.kind();
+        let header = Header {
+            descr: kind,
+            fortran_order: false,
+            shape: self.size(),
+        };
+        let mut header = header.to_string()?;
+        let pad = 16 - (NPY_MAGIC_STRING.len() + 5 + header.len()) % 16;
+        for _ in 0..pad % 16 {
+            header.push(' ')
+        }
+        header.push('\n');
+        f.write_all(&[(header.len() % 256) as u8, (header.len() / 256) as u8])?;
+        f.write_all(header.as_bytes())?;
+        let numel = self.numel();
+        let elt_size_in_bytes = kind.elt_size_in_bytes() as i64;
+        let mut content = vec![0u8; (numel * elt_size_in_bytes) as usize];
+        self.f_copy_data(&mut content, numel)?;
+        f.write_all(&content)?;
+        Ok(())
+    }
+
+    /// Writes a tensor in the npy format so that it can be read using python.
+    pub fn write_npy<T: AsRef<Path>>(&self, path: T) -> Fallible<()> {
+        let mut f = File::create(path.as_ref())?;
+        self.write(&mut f)
+    }
+
+    pub fn write_npz<T: AsRef<Path>>(ts: &[(String, Tensor)], path: T) -> Fallible<()> {
+        let mut zip = zip::ZipWriter::new(File::create(path.as_ref())?);
+        let options =
+            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
+
+        for (name, tensor) in ts.iter() {
+            zip.start_file(format!("{}.npy", name), options)?;
+            tensor.write(&mut zip)?
+        }
+        Ok(())
     }
 }
 
