@@ -44,7 +44,7 @@ struct Header {
 impl Header {
     fn to_string(&self) -> Fallible<String> {
         let fortran_order = if self.fortran_order { "True" } else { "False" };
-        let shape = self
+        let mut shape = self
             .shape
             .iter()
             .map(|x| x.to_string())
@@ -60,8 +60,11 @@ impl Header {
             Kind::Uint8 => "u1",
             descr => bail!("unsupported kind {:?}", descr),
         };
+        if !shape.is_empty() {
+            shape.push(',')
+        }
         Ok(format!(
-            "{{'descr': '<{}', 'fortran_order': {}, 'shape': ({},), }}",
+            "{{'descr': '<{}', 'fortran_order': {}, 'shape': ({}), }}",
             descr, fortran_order, shape
         ))
     }
@@ -136,10 +139,14 @@ impl Header {
             None => bail!("no shape in header"),
             Some(shape) => {
                 let shape = shape.trim_matches(|c: char| c == '(' || c == ')' || c == ',');
-                shape
-                    .split(',')
-                    .map(|v| v.trim().parse::<i64>())
-                    .collect::<Result<Vec<_>, _>>()?
+                if shape.is_empty() {
+                    vec![]
+                } else {
+                    shape
+                        .split(',')
+                        .map(|v| v.trim().parse::<i64>())
+                        .collect::<Result<Vec<_>, _>>()?
+                }
             }
         };
         Ok(Header {
@@ -252,13 +259,28 @@ mod tests {
             }
         );
         let h = "{'descr': '<f4', 'fortran_order': True, 'shape': (256,1,128), }";
+        let h = Header::parse(h).unwrap();
         assert_eq!(
-            Header::parse(h).unwrap(),
+            h,
             Header {
                 descr: crate::Kind::Float,
                 fortran_order: true,
                 shape: vec![256, 1, 128]
             }
-        )
+        );
+        assert_eq!(
+            h.to_string().unwrap(),
+            "{'descr': '<f4', 'fortran_order': True, 'shape': (256,1,128,), }"
+        );
+
+        let h = Header {
+            descr: crate::Kind::Int64,
+            fortran_order: false,
+            shape: vec![],
+        };
+        assert_eq!(
+            h.to_string().unwrap(),
+            "{'descr': '<i8', 'fortran_order': False, 'shape': (), }"
+        );
     }
 }
