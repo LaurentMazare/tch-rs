@@ -14,4 +14,6 @@ pub mod densenet;
 
 pub mod vgg;
 
+pub mod squeezenet;
+
 pub mod imagenet;
