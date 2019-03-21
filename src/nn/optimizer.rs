@@ -49,6 +49,15 @@ impl Default for Sgd {
     }
 }
 
+pub fn sgd(momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> Sgd {
+    Sgd {
+        momentum,
+        dampening,
+        wd,
+        nesterov,
+    }
+}
+
 impl OptimizerConfig for Sgd {
     fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
         COptimizer::sgd(lr, self.momentum, self.dampening, self.wd, self.nesterov)
@@ -71,6 +80,10 @@ impl Default for Adam {
             wd: 0.,
         }
     }
+}
+
+pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
+    Adam { beta1, beta2, wd }
 }
 
 impl OptimizerConfig for Adam {
@@ -98,6 +111,16 @@ impl Default for RmsProp {
             momentum: 0.,
             centered: false,
         }
+    }
+}
+
+pub fn rms_prop(alpha: f64, eps: f64, wd: f64, momentum: f64, centered: bool) -> RmsProp {
+    RmsProp {
+        alpha,
+        eps,
+        wd,
+        momentum,
+        centered,
     }
 }
 
