@@ -10,34 +10,15 @@
 extern crate cpython;
 extern crate tch;
 
-use cpython::{NoArgs, ObjectProtocol, PyObject, PyResult, Python};
-use tch::nn::OptimizerConfig;
-use tch::{nn, Tensor};
+mod gym_env;
+use gym_env::{GymEnv, Step};
+use tch::{nn, nn::OptimizerConfig, Tensor};
 
 fn model(p: &nn::Path) -> impl nn::Module {
     nn::Sequential::new()
         .add(nn::Linear::new(p / "lin1", 4, 32, Default::default()))
         .add_fn(|xs| xs.tanh())
         .add(nn::Linear::new(p / "lin2", 32, 2, Default::default()))
-}
-
-#[derive(Debug)]
-struct Step {
-    obs: Tensor,
-    action: i64,
-    reward: f64,
-    is_done: bool,
-}
-
-impl Step {
-    fn copy_with_obs(&self, obs: &Tensor) -> Step {
-        Step {
-            obs: obs.copy(),
-            action: self.action,
-            reward: self.reward,
-            is_done: self.is_done,
-        }
-    }
 }
 
 fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
@@ -53,44 +34,12 @@ fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
     rewards
 }
 
-struct GymEnv<'a> {
-    py: Python<'a>,
-    env: PyObject,
-}
-
-impl<'a> GymEnv<'a> {
-    fn new(gil: &cpython::GILGuard) -> PyResult<GymEnv> {
-        let py = gil.python();
-        let gym = py.import("gym")?;
-        let env = gym.call(py, "make", ("CartPole-v0",), None)?;
-        let _ = env.call_method(py, "seed", (42,), None)?;
-        Ok(GymEnv { py, env })
-    }
-
-    fn reset(&self) -> PyResult<Tensor> {
-        let obs = self.env.call_method(self.py, "reset", NoArgs, None)?;
-        Ok(Tensor::float_vec(&obs.extract::<Vec<f64>>(self.py)?))
-    }
-
-    fn step(&self, action: i64) -> PyResult<Step> {
-        let py = self.py;
-        let step = self.env.call_method(py, "step", (action,), None)?;
-        Ok(Step {
-            obs: Tensor::float_vec(&step.get_item(py, 0)?.extract::<Vec<f64>>(py)?),
-            reward: step.get_item(py, 1)?.extract(py)?,
-            is_done: step.get_item(py, 2)?.extract(py)?,
-            action,
-        })
-    }
-}
-
-fn main() -> PyResult<()> {
+fn main() -> cpython::PyResult<()> {
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let model = model(&vs.root());
     let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
-    let gil = Python::acquire_gil();
-    let env = GymEnv::new(&gil)?;
+    let env = GymEnv::new()?;
 
     for epoch_idx in 0..50 {
         let mut obs = env.reset()?;

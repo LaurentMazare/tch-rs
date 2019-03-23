@@ -60,6 +60,6 @@ impl Init {
 
 impl Tensor {
     pub fn init(&mut self, i: Init) {
-        let _ = i.set(self);
+        i.set(self)
     }
 }

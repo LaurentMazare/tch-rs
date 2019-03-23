@@ -95,7 +95,7 @@ impl Header {
         let mut part_map: HashMap<String, String> = HashMap::new();
         for part in parts.iter() {
             let part = part.trim();
-            if part.len() > 0 {
+            if !part.is_empty() {
                 match part.split(':').collect::<Vec<_>>().as_slice() {
                     [key, value] => {
                         let key = key.trim_matches(|c: char| c == '\'' || c.is_whitespace());
@@ -118,11 +118,7 @@ impl Header {
             None => bail!("no descr in header"),
             Some(descr) => {
                 ensure!(!descr.is_empty(), "empty descr");
-                ensure!(
-                    descr.chars().next().unwrap() != '>',
-                    "little-endian descr {}",
-                    descr
-                );
+                ensure!(!descr.starts_with('>'), "little-endian descr {}", descr);
                 match descr.trim_matches(|c: char| c == '=' || c == '<') {
                     "f4" => Kind::Float,
                     "f8" => Kind::Double,
@@ -214,7 +210,7 @@ impl crate::Tensor {
         f.write_all(&[(header.len() % 256) as u8, (header.len() / 256) as u8])?;
         f.write_all(header.as_bytes())?;
         let numel = self.numel();
-        let elt_size_in_bytes = kind.elt_size_in_bytes() as i64;
+        let elt_size_in_bytes = i64::from(kind.elt_size_in_bytes());
         let mut content = vec![0u8; (numel * elt_size_in_bytes) as usize];
         self.f_copy_data(&mut content, numel)?;
         f.write_all(&content)?;

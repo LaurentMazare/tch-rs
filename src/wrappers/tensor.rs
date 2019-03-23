@@ -213,7 +213,7 @@ impl Tensor {
         let c_tensor = unsafe_torch_err!({
             at_tensor_of_data(
                 data,
-                [data_len as i64 / elt_size_in_bytes as i64].as_ptr(),
+                [data_len as i64 / i64::from(elt_size_in_bytes)].as_ptr(),
                 1,
                 elt_size_in_bytes,
                 kind.c_int(),
@@ -377,7 +377,7 @@ impl NoGradGuard {
 
 impl std::convert::AsRef<Tensor> for Tensor {
     fn as_ref(&self) -> &Self {
-        return &self;
+        &self
     }
 }
 
