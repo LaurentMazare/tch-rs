@@ -27,11 +27,23 @@ pub struct GymEnv {
 }
 
 impl GymEnv {
-    pub fn new() -> PyResult<GymEnv> {
+    pub fn new(name: &str, nprocesses: Option<i64>) -> PyResult<GymEnv> {
         let gil = Python::acquire_gil();
         let py = gil.python();
-        let gym = py.import("gym")?;
-        let env = gym.call(py, "make", ("CartPole-v0",), None)?;
+        let env = match nprocesses {
+            None => {
+                let gym = py.import("gym")?;
+                gym.call(py, "make", (name,), None)?
+            }
+            Some(nprocesses) => {
+                let sys = py.import("sys")?;
+                let path = sys.get(py, "path")?;
+                let _ =
+                    path.call_method(py, "append", ("examples/reinforcement-learning",), None)?;
+                let gym = py.import("atari_wrappers")?;
+                gym.call(py, "make", (name, nprocesses), None)?
+            }
+        };
         let _ = env.call_method(py, "seed", (42,), None)?;
         let action_space = env.getattr(py, "action_space")?;
         let action_space = action_space.getattr(py, "n")?.extract(py)?;
