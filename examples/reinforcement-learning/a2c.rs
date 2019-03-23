@@ -70,32 +70,34 @@ pub fn run() -> cpython::PyResult<()> {
     let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
     let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
-    let mut obs = env.reset()?;
-    let _ = frame_stack.update(&obs);
+    let _ = frame_stack.update(&env.reset()?);
     let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
     let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
     let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
     let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
     let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    for i in 0..UPDATES {
+    for _update_index in 0..UPDATES {
         for s in 0..NSTEPS {
-            let (critic, actor) = tch::no_grad(|| model(&obs));
+            let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1);
             let actions = probs.multinomial(1, true).squeeze1(-1);
             let step = env.step(Vec::<i64>::from(&actions)[0])?; // TODO
+            let obs = Tensor::from(42.0); // TODO: obs/frame-stack
+            let is_done = Tensor::from(42.0); // TODO
+            let masks = Tensor::from(1.) - is_done;
             s_actions.get(s).copy_(&actions);
             s_values.get(s).copy_(&critic.squeeze1(-1));
             s_states.get(s + 1).copy_(&obs);
-            // TODO: s_rewards
-            // TODO: s_masks
+            s_rewards.get(s).copy_(&Tensor::float_vec(&[0.0])); // TODO
+            s_masks.get(s).copy_(&masks);
         }
         let s_returns = {
             let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
             let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
             r.get(-1).copy_(&critic.view(&[NPROCS]));
             for s in (0..NSTEPS - 1).rev() {
-                r.get(s)
-                    .copy_(&(s_rewards.get(s) + r.get(s + 1) * s_masks.get(s) * 0.99))
+                let r_s = s_rewards.get(s) + r.get(s + 1) * s_masks.get(s) * 0.99;
+                r.get(s).copy_(&r_s);
             }
             r
         };
