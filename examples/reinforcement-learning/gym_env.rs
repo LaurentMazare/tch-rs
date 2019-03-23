@@ -22,6 +22,8 @@ impl Step {
 
 pub struct GymEnv {
     env: PyObject,
+    action_space: i64,
+    observation_space: Vec<i64>,
 }
 
 impl GymEnv {
@@ -31,7 +33,15 @@ impl GymEnv {
         let gym = py.import("gym")?;
         let env = gym.call(py, "make", ("CartPole-v0",), None)?;
         let _ = env.call_method(py, "seed", (42,), None)?;
-        Ok(GymEnv { env })
+        let action_space = env.getattr(py, "action_space")?;
+        let action_space = action_space.getattr(py, "n")?.extract(py)?;
+        let observation_space = env.getattr(py, "observation_space")?;
+        let observation_space = observation_space.getattr(py, "shape")?.extract(py)?;
+        Ok(GymEnv {
+            env,
+            action_space,
+            observation_space,
+        })
     }
 
     pub fn reset(&self) -> PyResult<Tensor> {
@@ -51,5 +61,13 @@ impl GymEnv {
             is_done: step.get_item(py, 2)?.extract(py)?,
             action,
         })
+    }
+
+    pub fn action_space(&self) -> i64 {
+        self.action_space
+    }
+
+    pub fn observation_space(&self) -> &[i64] {
+        &self.observation_space
     }
 }

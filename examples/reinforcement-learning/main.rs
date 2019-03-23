@@ -1,7 +1,5 @@
 // Policy gradient example.
 // This uses OpenAI Gym environment through rust-cpython.
-// For now this uses the CartPole-v0 environment and hardcodes the number
-// of observations (4) and actions (2).
 //
 // This is adapted from OpenAI Spinning Up series:
 // https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html
@@ -14,11 +12,12 @@ mod gym_env;
 use gym_env::{GymEnv, Step};
 use tch::{nn, nn::OptimizerConfig, Tensor};
 
-fn model(p: &nn::Path) -> impl nn::Module {
+fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
+    let nin = input_shape.iter().fold(1, |acc, x| acc * x);
     nn::Sequential::new()
-        .add(nn::Linear::new(p / "lin1", 4, 32, Default::default()))
+        .add(nn::Linear::new(p / "lin1", nin, 32, Default::default()))
         .add_fn(|xs| xs.tanh())
-        .add(nn::Linear::new(p / "lin2", 32, 2, Default::default()))
+        .add(nn::Linear::new(p / "lin2", 32, nact, Default::default()))
 }
 
 fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
@@ -35,11 +34,13 @@ fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
 }
 
 fn main() -> cpython::PyResult<()> {
-    let vs = nn::VarStore::new(tch::Device::Cpu);
-    let model = model(&vs.root());
-    let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
-
     let env = GymEnv::new()?;
+    println!("action space: {}", env.action_space());
+    println!("observation space: {:?}", env.observation_space());
+
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let model = model(&vs.root(), env.observation_space(), env.action_space());
+    let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
     for epoch_idx in 0..50 {
         let mut obs = env.reset()?;
