@@ -7,6 +7,8 @@ fn assign_ops() {
     t *= 2;
     t -= 1;
     assert_eq!(Vec::<i64>::from(&t), [7, 3, 9, 3, 11]);
+    t = -t;
+    assert_eq!(Vec::<i64>::from(&t), [-7, -3, -9, -3, -11]);
 }
 
 #[test]

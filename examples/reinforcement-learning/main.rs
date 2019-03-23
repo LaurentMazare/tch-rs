@@ -1,8 +1,12 @@
 // Policy gradient example.
 // This uses OpenAI Gym environment through rust-cpython.
-//
 // For now this uses the CartPole-v0 environment and hardcodes the number
 // of observations (4) and actions (2).
+//
+// This is adapted from OpenAI Spinning Up series:
+// https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html
+// A TensorFlow Python implementation can be found here:
+// https://github.com/openai/spinningup/blob/master/spinup/examples/pg_math/2_rtg_pg.py
 extern crate cpython;
 extern crate tch;
 
@@ -34,6 +38,19 @@ impl Step {
             is_done: self.is_done,
         }
     }
+}
+
+fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
+    let mut rewards: Vec<f64> = steps.iter().map(|s| s.reward).collect();
+    let mut acc_reward = 0f64;
+    for (i, reward) in rewards.iter_mut().enumerate() {
+        if steps[i].is_done {
+            acc_reward = 0.0;
+        }
+        acc_reward += *reward;
+        *reward = acc_reward;
+    }
+    rewards
 }
 
 struct GymEnv<'a> {
@@ -84,19 +101,13 @@ fn main() -> PyResult<()> {
                     .apply(&model)
                     .softmax(1)
                     .multinomial(1, true)
-                    .view(&[])
             });
             let action = i64::from(action);
             let step = env.step(action)?;
             steps.push(step.copy());
-            if step.is_done {
-                if steps.len() > 5000 {
-                    break;
-                } else {
-                    obs = env.reset()?;
-                }
-            } else {
-                obs = step.obs;
+            obs = if step.is_done { env.reset()? } else { step.obs };
+            if step.is_done && steps.len() > 5000 {
+                break;
             }
         }
         let sum_r: f64 = steps.iter().map(|s| s.reward).sum();
@@ -107,7 +118,7 @@ fn main() -> PyResult<()> {
         let batch_size = steps.len() as i64;
         let actions: Vec<i64> = steps.iter().map(|s| s.action).collect();
         let actions = Tensor::int_vec(&actions).unsqueeze(1);
-        let rewards: Vec<f64> = steps.iter().map(|s| s.reward).collect();
+        let rewards = accumulate_rewards(&steps);
         let rewards = Tensor::float_vec(&rewards);
         let action_mask = Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter_(
             1,
@@ -117,7 +128,8 @@ fn main() -> PyResult<()> {
         let obs: Vec<Tensor> = steps.into_iter().map(|s| s.obs).collect();
         let logits = Tensor::stack(&obs, 0).apply(&model);
         let log_probs = (action_mask * logits.log_softmax(1)).sum2(&[1], false);
-        let loss = (rewards * log_probs).mean();
+        let loss = -(rewards * log_probs).mean();
+        loss.print();
         opt.backward_step(&loss)
     }
     Ok(())

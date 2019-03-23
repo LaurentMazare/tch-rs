@@ -1,7 +1,7 @@
 //! A Torch tensor.
 use crate::{Device, Kind};
 use failure::Fallible;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 mod npy;
 
@@ -129,6 +129,22 @@ impl_op!(Sub, Tensor, sub, g_sub);
 impl_op_basic!(Sub, sub, g_sub1);
 impl_op_assign!(SubAssign, Tensor, sub_assign, g_sub_);
 impl_op_assign_basic!(SubAssign, sub_assign, g_sub_1);
+
+impl Neg for Tensor {
+    type Output = Tensor;
+
+    fn neg(self) -> Tensor {
+        self.f_neg().unwrap()
+    }
+}
+
+impl Neg for &Tensor {
+    type Output = Tensor;
+
+    fn neg(self) -> Tensor {
+        self.f_neg().unwrap()
+    }
+}
 
 impl From<&[i64]> for Tensor {
     fn from(v: &[i64]) -> Tensor {
