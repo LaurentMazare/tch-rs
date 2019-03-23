@@ -33,7 +33,9 @@ impl GymEnv {
         let env = match nprocesses {
             None => {
                 let gym = py.import("gym")?;
-                gym.call(py, "make", (name,), None)?
+                let env = gym.call(py, "make", (name,), None)?;
+                let _ = env.call_method(py, "seed", (42,), None)?;
+                env
             }
             Some(nprocesses) => {
                 let sys = py.import("sys")?;
@@ -44,7 +46,6 @@ impl GymEnv {
                 gym.call(py, "make", (name, nprocesses), None)?
             }
         };
-        let _ = env.call_method(py, "seed", (42,), None)?;
         let action_space = env.getattr(py, "action_space")?;
         let action_space = action_space.getattr(py, "n")?.extract(py)?;
         let observation_space = env.getattr(py, "observation_space")?;

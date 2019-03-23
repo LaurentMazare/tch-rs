@@ -6,88 +6,119 @@
    python implementation.
 */
 use super::gym_env::{GymEnv, Step};
-use tch::{nn, nn::OptimizerConfig, Tensor};
+use tch::kind::{FLOAT_CPU, INT64_CPU};
+use tch::{nn, nn::OptimizerConfig, Device, Tensor};
 
-static ENV: &'static str = "SpaceInvadersNoFrameskip-v4";
+static ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
 static NPROCS: i64 = 16;
 static NSTEPS: i64 = 5;
 static NSTACK: i64 = 4;
 static UPDATES: i64 = 1000000;
 
-fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
-    let nin = input_shape.iter().fold(1, |acc, x| acc * x);
-    nn::Sequential::new()
-        .add(nn::Linear::new(p / "lin1", nin, 32, Default::default()))
-        .add_fn(|xs| xs.tanh())
-        .add(nn::Linear::new(p / "lin2", 32, nact, Default::default()))
+fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
+    let stride = |s| nn::ConvConfig {
+        stride: s,
+        ..Default::default()
+    };
+    let seq = nn::Sequential::new()
+        .add(nn::Conv2D::new(p / "c1", NSTACK, 32, 8, stride(4)))
+        .add(nn::Conv2D::new(p / "c2", 32, 64, 4, stride(2)))
+        .add(nn::Conv2D::new(p / "c3", 64, 64, 3, stride(1)))
+        .add(nn::Linear::new(p / "l1", 3136, 512, Default::default()));
+    let critic = nn::Linear::new(p / "cl", 512, 1, Default::default());
+    let actor = nn::Linear::new(p / "al", 512, nact, Default::default());
+    Box::new(move |xs: &Tensor| {
+        let xs = xs.apply(&seq);
+        (xs.apply(&critic), xs.apply(&actor))
+    })
 }
 
-fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
-    let mut rewards: Vec<f64> = steps.iter().map(|s| s.reward).collect();
-    let mut acc_reward = 0f64;
-    for (i, reward) in rewards.iter_mut().enumerate().rev() {
-        if steps[i].is_done {
-            acc_reward = 0.0;
+#[derive(Debug)]
+struct FrameStack {
+    data: Tensor,
+    nprocs: i64,
+    nstack: i64,
+}
+
+impl FrameStack {
+    fn new(nprocs: i64, nstack: i64) -> FrameStack {
+        FrameStack {
+            data: Tensor::zeros(&[nprocs, nstack, 84, 84], FLOAT_CPU),
+            nprocs,
+            nstack,
         }
-        acc_reward += *reward;
-        *reward = acc_reward;
     }
-    rewards
+
+    fn update<'a>(&'a mut self, img: &Tensor) -> &'a Tensor {
+        let slice = |i| self.data.narrow(1, i, 1);
+        for i in 1..self.nstack {
+            slice(i - 1).copy_(&slice(i))
+        }
+        slice(self.nstack - 1).copy_(img);
+        &self.data
+    }
 }
 
 pub fn run() -> cpython::PyResult<()> {
-    let env = GymEnv::new(ENV, Some(NPROCS))?;
+    let env = GymEnv::new(ENV_NAME, Some(NPROCS))?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
-    let vs = nn::VarStore::new(tch::Device::Cpu);
-    let model = model(&vs.root(), env.observation_space(), env.action_space());
+    let device = tch::Device::cuda_if_available();
+    let vs = nn::VarStore::new(device);
+    let model = model(&vs.root(), env.action_space());
     let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
-    for epoch_idx in 0..50 {
-        let mut obs = env.reset()?;
-        let mut steps: Vec<Step> = vec![];
-        // Perform some rollouts with the current model.
-        loop {
-            let action = tch::no_grad(|| {
-                obs.unsqueeze(0)
-                    .apply(&model)
-                    .softmax(1)
-                    .multinomial(1, true)
-            });
-            let action = i64::from(action);
-            let step = env.step(action)?;
-            steps.push(step.copy_with_obs(&obs));
-            obs = if step.is_done { env.reset()? } else { step.obs };
-            if step.is_done && steps.len() > 5000 {
-                break;
-            }
+    let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
+    let mut obs = env.reset()?;
+    let _ = frame_stack.update(&obs);
+    let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
+    let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+    let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+    let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
+    let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+    for i in 0..UPDATES {
+        for s in 0..NSTEPS {
+            let (critic, actor) = tch::no_grad(|| model(&obs));
+            let probs = actor.softmax(-1);
+            let actions = probs.multinomial(1, true).squeeze1(-1);
+            let step = env.step(Vec::<i64>::from(&actions)[0])?; // TODO
+            s_actions.get(s).copy_(&actions);
+            s_values.get(s).copy_(&critic.squeeze1(-1));
+            s_states.get(s + 1).copy_(&obs);
+            // TODO: s_rewards
+            // TODO: s_masks
         }
-        let sum_r: f64 = steps.iter().map(|s| s.reward).sum();
-        let episodes: i64 = steps.iter().map(|s| s.is_done as i64).sum();
-        println!(
-            "epoch: {:<3} episodes: {:<5} avg reward per episode: {:.2}",
-            epoch_idx,
-            episodes,
-            sum_r / episodes as f64
-        );
-
-        // Train the model via policy gradient on the rollout data.
-        let batch_size = steps.len() as i64;
-        let actions: Vec<i64> = steps.iter().map(|s| s.action).collect();
-        let actions = Tensor::int_vec(&actions).unsqueeze(1);
-        let rewards = accumulate_rewards(&steps);
-        let rewards = Tensor::float_vec(&rewards);
-        let action_mask = Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter_(
-            1,
-            &actions,
-            &Tensor::from(1.),
-        );
-        let obs: Vec<Tensor> = steps.into_iter().map(|s| s.obs).collect();
-        let logits = Tensor::stack(&obs, 0).apply(&model);
-        let log_probs = (action_mask * logits.log_softmax(1)).sum2(&[1], false);
-        let loss = -(rewards * log_probs).mean();
-        opt.backward_step(&loss)
+        let s_returns = {
+            let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
+            let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
+            r.get(-1).copy_(&critic.view(&[NPROCS]));
+            for s in (0..NSTEPS - 1).rev() {
+                r.get(s)
+                    .copy_(&(s_rewards.get(s) + r.get(s + 1) * s_masks.get(s) * 0.99))
+            }
+            r
+        };
+        let (critic, actor) =
+            model(
+                &s_states
+                    .narrow(0, 0, NSTEPS)
+                    .view(&[NSTEPS * NPROCS, NSTACK, 84, 84]),
+            );
+        let critic = critic.view(&[NSTEPS, NPROCS]);
+        let actor = actor.view(&[NSTEPS, NPROCS, -1]);
+        let log_probs = actor.log_softmax(-1);
+        let probs = actor.softmax(-1);
+        let action_log_probs = {
+            let index = s_actions.unsqueeze(-1).to_device(device);
+            log_probs.gather(2, &index).squeeze1(-1)
+        };
+        let dist_entropy = (-log_probs * probs).sum2(&[-1], false).mean();
+        let advantages = s_returns.narrow(0, 0, NSTEPS).to_device(device) - critic;
+        let value_loss = (&advantages * &advantages).mean();
+        let action_loss = (-advantages.detach() * action_log_probs).mean();
+        let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
+        opt.backward_step(&loss); // TODO: clip gradient to 0.5
     }
     Ok(())
 }
