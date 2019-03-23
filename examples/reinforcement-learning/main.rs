@@ -30,9 +30,9 @@ struct Step {
 }
 
 impl Step {
-    fn copy(&self) -> Step {
+    fn copy_with_obs(&self, obs: &Tensor) -> Step {
         Step {
-            obs: self.obs.copy(),
+            obs: obs.copy(),
             action: self.action,
             reward: self.reward,
             is_done: self.is_done,
@@ -43,7 +43,7 @@ impl Step {
 fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
     let mut rewards: Vec<f64> = steps.iter().map(|s| s.reward).collect();
     let mut acc_reward = 0f64;
-    for (i, reward) in rewards.iter_mut().enumerate() {
+    for (i, reward) in rewards.iter_mut().enumerate().rev() {
         if steps[i].is_done {
             acc_reward = 0.0;
         }
@@ -63,6 +63,7 @@ impl<'a> GymEnv<'a> {
         let py = gil.python();
         let gym = py.import("gym")?;
         let env = gym.call(py, "make", ("CartPole-v0",), None)?;
+        let _ = env.call_method(py, "seed", (42,), None)?;
         Ok(GymEnv { py, env })
     }
 
@@ -104,7 +105,7 @@ fn main() -> PyResult<()> {
             });
             let action = i64::from(action);
             let step = env.step(action)?;
-            steps.push(step.copy());
+            steps.push(step.copy_with_obs(&obs));
             obs = if step.is_done { env.reset()? } else { step.obs };
             if step.is_done && steps.len() > 5000 {
                 break;
@@ -112,7 +113,12 @@ fn main() -> PyResult<()> {
         }
         let sum_r: f64 = steps.iter().map(|s| s.reward).sum();
         let episodes: i64 = steps.iter().map(|s| s.is_done as i64).sum();
-        println!("{} {} {}", epoch_idx, episodes, sum_r / episodes as f64);
+        println!(
+            "epoch: {:<3} episodes: {:<5} avg reward per episode: {:.2}",
+            epoch_idx,
+            episodes,
+            sum_r / episodes as f64
+        );
 
         // Train the model via policy gradient on the rollout data.
         let batch_size = steps.len() as i64;
@@ -129,7 +135,6 @@ fn main() -> PyResult<()> {
         let logits = Tensor::stack(&obs, 0).apply(&model);
         let log_probs = (action_mask * logits.log_softmax(1)).sum2(&[1], false);
         let loss = -(rewards * log_probs).mean();
-        loss.print();
         opt.backward_step(&loss)
     }
     Ok(())
