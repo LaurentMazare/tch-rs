@@ -31,7 +31,7 @@ fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
 }
 
 pub fn run() -> cpython::PyResult<()> {
-    let env = GymEnv::new("CartPole-v0", None)?;
+    let env = GymEnv::new("CartPole-v0")?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 

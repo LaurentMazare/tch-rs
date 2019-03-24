@@ -5,9 +5,9 @@
    See https://blog.openai.com/baselines-acktr-a2c/ for a reference
    python implementation.
 */
-use super::gym_env::{GymEnv, Step};
+use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
-use tch::{nn, nn::OptimizerConfig, Device, Tensor};
+use tch::{nn, nn::OptimizerConfig, Tensor};
 
 static ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
 static NPROCS: i64 = 16;
@@ -22,13 +22,18 @@ fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
     };
     let seq = nn::Sequential::new()
         .add(nn::Conv2D::new(p / "c1", NSTACK, 32, 8, stride(4)))
+        .add_fn(|xs| xs.relu())
         .add(nn::Conv2D::new(p / "c2", 32, 64, 4, stride(2)))
+        .add_fn(|xs| xs.relu())
         .add(nn::Conv2D::new(p / "c3", 64, 64, 3, stride(1)))
-        .add(nn::Linear::new(p / "l1", 3136, 512, Default::default()));
+        .add_fn(|xs| xs.relu().flat_view())
+        .add(nn::Linear::new(p / "l1", 3136, 512, Default::default()))
+        .add_fn(|xs| xs.relu());
     let critic = nn::Linear::new(p / "cl", 512, 1, Default::default());
     let actor = nn::Linear::new(p / "al", 512, nact, Default::default());
+    let device = p.device();
     Box::new(move |xs: &Tensor| {
-        let xs = xs.apply(&seq);
+        let xs = xs.to_device(device).apply(&seq);
         (xs.apply(&critic), xs.apply(&actor))
     })
 }
@@ -49,7 +54,11 @@ impl FrameStack {
         }
     }
 
-    fn update<'a>(&'a mut self, img: &Tensor) -> &'a Tensor {
+    fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
+        match masks {
+            None => {}
+            Some(masks) => self.data *= masks.view(&[self.nprocs, 1, 1, 1]),
+        };
         let slice = |i| self.data.narrow(1, i, 1);
         for i in 1..self.nstack {
             slice(i - 1).copy_(&slice(i))
@@ -60,7 +69,7 @@ impl FrameStack {
 }
 
 pub fn run() -> cpython::PyResult<()> {
-    let env = GymEnv::new(ENV_NAME, Some(NPROCS))?;
+    let env = VecGymEnv::new(ENV_NAME, NPROCS)?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
@@ -70,7 +79,7 @@ pub fn run() -> cpython::PyResult<()> {
     let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
     let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
-    let _ = frame_stack.update(&env.reset()?);
+    let _ = frame_stack.update(&env.reset()?, None);
     let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
     let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
     let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
@@ -81,14 +90,13 @@ pub fn run() -> cpython::PyResult<()> {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1);
             let actions = probs.multinomial(1, true).squeeze1(-1);
-            let step = env.step(Vec::<i64>::from(&actions)[0])?; // TODO
-            let obs = Tensor::from(42.0); // TODO: obs/frame-stack
-            let is_done = Tensor::from(42.0); // TODO
-            let masks = Tensor::from(1.) - is_done;
+            let step = env.step(Vec::<i64>::from(&actions))?;
+            let masks = Tensor::from(1.) - step.is_done;
+            let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
             s_values.get(s).copy_(&critic.squeeze1(-1));
             s_states.get(s + 1).copy_(&obs);
-            s_rewards.get(s).copy_(&Tensor::float_vec(&[0.0])); // TODO
+            s_rewards.get(s).copy_(&step.reward);
             s_masks.get(s).copy_(&masks);
         }
         let s_returns = {

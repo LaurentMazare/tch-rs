@@ -4,6 +4,7 @@ extern crate tch;
 mod a2c;
 mod gym_env;
 mod policy_gradient;
+mod vec_gym_env;
 
 fn main() -> cpython::PyResult<()> {
     let a: Vec<String> = std::env::args().collect();
