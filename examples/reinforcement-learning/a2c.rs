@@ -78,19 +78,27 @@ pub fn run() -> cpython::PyResult<()> {
     let model = model(&vs.root(), env.action_space());
     let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
-    let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
-    let _ = frame_stack.update(&env.reset()?, None);
-    let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
-    let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
-    let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    for _update_index in 0..UPDATES {
+    let mut sum_rewards = Tensor::zeros(&[NPROCS], FLOAT_CPU);
+    let mut total_rewards = 0f64;
+    let mut total_episodes = 0f64;
+    for update_index in 0..UPDATES {
+        let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
+        let _ = frame_stack.update(&env.reset()?, None);
+        let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
+        let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
+        let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1);
             let actions = probs.multinomial(1, true).squeeze1(-1);
             let step = env.step(Vec::<i64>::from(&actions))?;
+
+            sum_rewards += &step.reward;
+            total_rewards += f64::from((&sum_rewards * &step.is_done).sum());
+            total_episodes += f64::from(step.is_done.sum());
+
             let masks = Tensor::from(1.) - step.is_done;
             let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
@@ -129,6 +137,22 @@ pub fn run() -> cpython::PyResult<()> {
         let action_loss = (-advantages.detach() * action_log_probs).mean();
         let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
         opt.backward_step(&loss); // TODO: clip gradient to 0.5
+        if (update_index + 1) % 50 == 0 {
+            println!(
+                "{} {:.0} {}",
+                update_index,
+                total_episodes,
+                total_rewards / total_episodes
+            );
+            total_rewards = 0.;
+            total_episodes = 0.;
+        }
+        if (update_index + 1) % 1000 == 0 {
+            match vs.save(format!("a2c{}.ot", update_index)) {
+                Ok(()) => {}
+                Err(err) => println!("error while saving {}", err),
+            }
+        }
     }
     Ok(())
 }
