@@ -55,9 +55,14 @@ class EpisodicLifeEnv(gym.Wrapper):
         gym.Wrapper.__init__(self, env)
         self.lives = 0
         self.was_real_done  = True
+        self.cnt = 0
 
     def _step(self, action):
         obs, reward, done, info = self.env.step(action)
+        #print(obs.shape)
+        #img = Image.fromarray(obs, 'RGB')
+        #img.save('/dev/shm/out%05d.png' % self.cnt)
+        self.cnt += 1
         self.was_real_done = done
         # check current lives, make loss of life terminal,
         # then update lives to handle bonus lives

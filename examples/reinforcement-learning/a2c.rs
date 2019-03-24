@@ -55,9 +55,8 @@ impl FrameStack {
     }
 
     fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
-        match masks {
-            None => {}
-            Some(masks) => self.data *= masks.view(&[self.nprocs, 1, 1, 1]),
+        if let Some(masks) = masks {
+            self.data *= masks.view(&[self.nprocs, 1, 1, 1])
         };
         let slice = |i| self.data.narrow(1, i, 1);
         for i in 1..self.nstack {
@@ -76,7 +75,7 @@ pub fn train() -> cpython::PyResult<()> {
     let device = tch::Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let model = model(&vs.root(), env.action_space());
-    let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
+    let opt = nn::Adam::default().build(&vs, 1e-4).unwrap();
 
     let mut sum_rewards = Tensor::zeros(&[NPROCS], FLOAT_CPU);
     let mut total_rewards = 0f64;
@@ -101,6 +100,7 @@ pub fn train() -> cpython::PyResult<()> {
             total_episodes += f64::from(step.is_done.sum());
 
             let masks = Tensor::from(1.) - step.is_done;
+            sum_rewards *= &masks;
             let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
             s_values.get(s).copy_(&critic.squeeze1(-1));
@@ -137,7 +137,7 @@ pub fn train() -> cpython::PyResult<()> {
         let value_loss = (&advantages * &advantages).mean();
         let action_loss = (-advantages.detach() * action_log_probs).mean();
         let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
-        opt.backward_step(&loss); // TODO: clip gradient to 0.5
+        opt.backward_step_clip(&loss, 0.5);
         if (update_index + 1) % 50 == 0 {
             println!(
                 "{} {:.0} {}",
@@ -149,9 +149,8 @@ pub fn train() -> cpython::PyResult<()> {
             total_episodes = 0.;
         }
         if (update_index + 1) % 1000 == 0 {
-            match vs.save(format!("a2c{}.ot", update_index)) {
-                Ok(()) => {}
-                Err(err) => println!("error while saving {}", err),
+            if let Err(err) = vs.save(format!("a2c{}.ot", update_index)) {
+                println!("error while saving {}", err)
             }
         }
     }
