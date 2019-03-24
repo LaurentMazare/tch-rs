@@ -163,12 +163,11 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
-    let device = tch::Device::cuda_if_available();
-    let mut vs = nn::VarStore::new(device);
+    let mut vs = nn::VarStore::new(tch::Device::Cpu);
     let model = model(&vs.root(), env.action_space());
     vs.load(weight_file).unwrap();
 
-    let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
+    let mut frame_stack = FrameStack::new(1, NSTACK);
     let mut obs = frame_stack.update(&env.reset()?, None);
 
     for _index in 0..5000 {
