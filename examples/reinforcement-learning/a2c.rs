@@ -84,11 +84,12 @@ pub fn train() -> cpython::PyResult<()> {
     let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
     let _ = frame_stack.update(&env.reset()?, None);
     let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
-    let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-    let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
-    let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
     for update_index in 0..UPDATES {
+        s_states.get(0).copy_(&s_states.get(-1));
+        let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
+        let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1);
@@ -112,7 +113,7 @@ pub fn train() -> cpython::PyResult<()> {
             let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
             let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
             r.get(-1).copy_(&critic.view(&[NPROCS]));
-            for s in (0..NSTEPS - 1).rev() {
+            for s in (0..NSTEPS).rev() {
                 let r_s = s_rewards.get(s) + r.get(s + 1) * s_masks.get(s) * 0.99;
                 r.get(s).copy_(&r_s);
             }
