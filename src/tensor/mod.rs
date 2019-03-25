@@ -146,27 +146,15 @@ impl Neg for &Tensor {
     }
 }
 
-impl From<&[i64]> for Tensor {
-    fn from(v: &[i64]) -> Tensor {
-        Tensor::int_vec(v)
+impl<T: crate::kind::T> From<&[T]> for Tensor {
+    fn from(v: &[T]) -> Tensor {
+        Tensor::of_slice(v)
     }
 }
 
-impl From<&[f64]> for Tensor {
-    fn from(v: &[f64]) -> Tensor {
-        Tensor::float_vec(v)
-    }
-}
-
-impl From<i64> for Tensor {
-    fn from(v: i64) -> Tensor {
-        Tensor::int_vec(&[v]).view(&[])
-    }
-}
-
-impl From<f64> for Tensor {
-    fn from(v: f64) -> Tensor {
-        Tensor::float_vec(&[v]).view(&[])
+impl<T: crate::kind::T> From<T> for Tensor {
+    fn from(v: T) -> Tensor {
+        Tensor::of_slice(&[v]).view(&[])
     }
 }
 

@@ -1,5 +1,5 @@
 // Vectorized version of the gym environment.
-use cpython::{NoArgs, ObjectProtocol, PyObject, PyResult, Python};
+use cpython::{buffer::PyBuffer, NoArgs, ObjectProtocol, PyObject, PyResult, Python};
 use tch::Tensor;
 
 #[derive(Debug)]
@@ -42,7 +42,7 @@ impl VecGymEnv {
         let py = gil.python();
         let obs = self.env.call_method(py, "reset", NoArgs, None)?;
         let obs = obs.call_method(py, "flatten", NoArgs, None)?;
-        let obs = Tensor::float_vec(&obs.extract::<Vec<f64>>(py)?);
+        let obs = Tensor::of_slice(&obs.extract::<Vec<f32>>(py)?);
         Ok(obs.view(&self.observation_space))
     }
 
@@ -53,10 +53,13 @@ impl VecGymEnv {
         let obs = step
             .get_item(py, 0)?
             .call_method(py, "flatten", NoArgs, None)?;
-        let obs = Tensor::float_vec(&obs.extract::<Vec<f64>>(py)?);
-        let obs = obs.view(&self.observation_space);
-        let reward = Tensor::float_vec(&step.get_item(py, 1)?.extract::<Vec<f64>>(py)?);
-        let is_done = Tensor::float_vec(&step.get_item(py, 2)?.extract::<Vec<f64>>(py)?);
+        let obs_buffer = PyBuffer::get(py, &obs)?;
+        let obs_vec: Vec<u8> = obs_buffer.to_vec(py)?;
+        let obs = Tensor::of_slice(&obs_vec)
+            .view(&self.observation_space)
+            .to_kind(tch::Kind::Float);
+        let reward = Tensor::of_slice(&step.get_item(py, 1)?.extract::<Vec<f32>>(py)?);
+        let is_done = Tensor::of_slice(&step.get_item(py, 2)?.extract::<Vec<f32>>(py)?);
         Ok(Step {
             obs,
             reward,

@@ -33,7 +33,7 @@ fn save_and_load_var_store() {
 fn optimizer_test() {
     tch::manual_seed(42);
     // Create some linear data.
-    let xs = Tensor::int_vec(&(1..15).collect::<Vec<_>>())
+    let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>())
         .to_kind(Kind::Float)
         .view(&[-1, 1]);
     let ys = &xs * 0.42 + 1.337;

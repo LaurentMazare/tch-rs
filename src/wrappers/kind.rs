@@ -68,3 +68,35 @@ impl Kind {
 
 pub static FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
 pub static INT64_CPU: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cpu);
+
+pub trait T {
+    const KIND: Kind;
+}
+
+impl T for u8 {
+    const KIND: Kind = Kind::Uint8;
+}
+
+impl T for i8 {
+    const KIND: Kind = Kind::Int8;
+}
+
+impl T for i16 {
+    const KIND: Kind = Kind::Int16;
+}
+
+impl T for i32 {
+    const KIND: Kind = Kind::Int;
+}
+
+impl T for i64 {
+    const KIND: Kind = Kind::Int64;
+}
+
+impl T for f32 {
+    const KIND: Kind = Kind::Float;
+}
+
+impl T for f64 {
+    const KIND: Kind = Kind::Double;
+}

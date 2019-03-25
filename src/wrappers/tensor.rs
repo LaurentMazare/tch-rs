@@ -1,5 +1,5 @@
 use super::utils::{path_to_cstring, ptr_to_string};
-use super::{device::Device, kind::Kind};
+use super::{device::Device, kind, kind::Kind};
 use failure::Fallible;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
@@ -206,24 +206,23 @@ impl Tensor {
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
-    pub fn f_of_data(data: &[u8], kind: Kind) -> Fallible<Tensor> {
+    pub fn f_of_slice<T: kind::T>(data: &[T]) -> Fallible<Tensor> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
-        let elt_size_in_bytes = kind.elt_size_in_bytes();
         let c_tensor = unsafe_torch_err!({
             at_tensor_of_data(
                 data,
-                [data_len as i64 / i64::from(elt_size_in_bytes)].as_ptr(),
+                [data_len as i64].as_ptr(),
                 1,
-                elt_size_in_bytes,
-                kind.c_int(),
+                T::KIND.elt_size_in_bytes(),
+                T::KIND.c_int(),
             )
         });
         Ok(Tensor { c_tensor })
     }
 
-    pub fn of_data(data: &[u8], kind: Kind) -> Tensor {
-        Self::f_of_data(data, kind).unwrap()
+    pub fn of_slice<T: kind::T>(data: &[T]) -> Tensor {
+        Self::f_of_slice(data).unwrap()
     }
 
     pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Fallible<Tensor> {

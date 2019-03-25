@@ -22,5 +22,6 @@ pub mod nn;
 pub mod vision;
 
 pub mod kind {
+    pub(crate) use super::wrappers::kind::T;
     pub use super::wrappers::kind::{FLOAT_CPU, INT64_CPU};
 }

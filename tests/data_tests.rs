@@ -5,8 +5,8 @@ use tch::{data, Tensor};
 fn iter2() {
     let bsize: usize = 4;
     let vs: Vec<i64> = (0..1337).collect();
-    let xs = Tensor::int_vec(&vs);
-    let ys = Tensor::int_vec(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
+    let xs = Tensor::of_slice(&vs);
+    let ys = Tensor::of_slice(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
     for (batch_xs, batch_ys) in data::Iter2::new(&xs, &ys, bsize as i64) {
         let xs = Vec::<i64>::from(&batch_xs);
         let ys = Vec::<i64>::from(&batch_ys);

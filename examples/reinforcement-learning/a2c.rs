@@ -100,7 +100,7 @@ pub fn train() -> cpython::PyResult<()> {
             total_rewards += f64::from((&sum_rewards * &step.is_done).sum());
             total_episodes += f64::from(step.is_done.sum());
 
-            let masks = Tensor::from(1.) - step.is_done;
+            let masks = Tensor::from(1f32) - step.is_done;
             sum_rewards *= &masks;
             let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
@@ -139,7 +139,7 @@ pub fn train() -> cpython::PyResult<()> {
         let action_loss = (-advantages.detach() * action_log_probs).mean();
         let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
         opt.backward_step_clip(&loss, 0.5);
-        if (update_index + 1) % 50 == 0 {
+        if (update_index + 1) % 500 == 0 {
             println!(
                 "{} {:.0} {}",
                 update_index,
@@ -176,7 +176,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
         let actions = probs.multinomial(1, true).squeeze1(-1);
         let step = env.step(Vec::<i64>::from(&actions))?;
 
-        let masks = Tensor::from(1.) - step.is_done;
+        let masks = Tensor::from(1f32) - step.is_done;
         obs = frame_stack.update(&step.obs, Some(&masks));
     }
     Ok(())
