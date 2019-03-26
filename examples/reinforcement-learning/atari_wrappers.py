@@ -47,6 +47,21 @@ class FireResetEnv(gym.Wrapper):
             self.env.reset()
         return obs
 
+class ImageSaver(gym.Wrapper):
+    def __init__(self, env, img_path, rank):
+        gym.Wrapper.__init__(self, env)
+        self._cnt = 0
+        self._img_path = img_path
+        self._rank = rank
+
+    def _step(self, action):
+        step_result = self.env.step(action)
+        obs, _, _, _ = step_result
+        img = Image.fromarray(obs, 'RGB')
+        img.save('%s/out%d-%05d.png' % (self._img_path, self._rank, self._cnt))
+        self._cnt += 1
+        return step_result
+
 class EpisodicLifeEnv(gym.Wrapper):
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game over.
@@ -55,14 +70,9 @@ class EpisodicLifeEnv(gym.Wrapper):
         gym.Wrapper.__init__(self, env)
         self.lives = 0
         self.was_real_done  = True
-        self.cnt = 0
 
     def _step(self, action):
         obs, reward, done, info = self.env.step(action)
-        #print(obs.shape)
-        #img = Image.fromarray(obs, 'RGB')
-        #img.save('/dev/shm/out%05d.png' % self.cnt)
-        self.cnt += 1
         self.was_real_done = done
         # check current lives, make loss of life terminal,
         # then update lives to handle bonus lives
@@ -177,10 +187,12 @@ def wrap_deepmind(env, episode_life=True, clip_rewards=True):
     return env
 
 # envs.py
-def make_env(env_id, seed, rank):
+def make_env(env_id, img_dir, seed, rank):
     def _thunk():
         env = gym.make(env_id)
         env.seed(seed + rank)
+        if img_dir is not None:
+            env = ImageSaver(env, img_dir, rank)
         env = wrap_deepmind(env)
         env = WrapPyTorch(env)
         return env
@@ -289,8 +301,8 @@ class SubprocVecEnv(VecEnv):
         return len(self.remotes)
 
 # Create the environment.
-def make(env_name, num_processes):
+def make(env_name, img_dir, num_processes):
     envs = SubprocVecEnv([
-        make_env(env_name, 1337, i) for i in range(num_processes)
+        make_env(env_name, img_dir, 1337, i) for i in range(num_processes)
     ])
     return envs

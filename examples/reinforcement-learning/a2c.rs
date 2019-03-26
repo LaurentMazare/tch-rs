@@ -68,7 +68,7 @@ impl FrameStack {
 }
 
 pub fn train() -> cpython::PyResult<()> {
-    let env = VecGymEnv::new(ENV_NAME, NPROCS)?;
+    let env = VecGymEnv::new(ENV_NAME, None, NPROCS)?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
@@ -139,7 +139,7 @@ pub fn train() -> cpython::PyResult<()> {
         let action_loss = (-advantages.detach() * action_log_probs).mean();
         let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
         opt.backward_step_clip(&loss, 0.5);
-        if (update_index + 1) % 500 == 0 {
+        if update_index > 0 && update_index % 500 == 0 {
             println!(
                 "{} {:.0} {}",
                 update_index,
@@ -149,7 +149,7 @@ pub fn train() -> cpython::PyResult<()> {
             total_rewards = 0.;
             total_episodes = 0.;
         }
-        if (update_index + 1) % 1000 == 0 {
+        if update_index > 0 && update_index % 10000 == 0 {
             if let Err(err) = vs.save(format!("a2c{}.ot", update_index)) {
                 println!("error while saving {}", err)
             }
@@ -159,7 +159,7 @@ pub fn train() -> cpython::PyResult<()> {
 }
 
 pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()> {
-    let env = VecGymEnv::new(ENV_NAME, 1)?;
+    let env = VecGymEnv::new(ENV_NAME, Some("/dev/shm"), 1)?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 

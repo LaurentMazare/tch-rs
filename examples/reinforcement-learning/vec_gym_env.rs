@@ -16,14 +16,14 @@ pub struct VecGymEnv {
 }
 
 impl VecGymEnv {
-    pub fn new(name: &str, nprocesses: i64) -> PyResult<VecGymEnv> {
+    pub fn new(name: &str, img_dir: Option<&str>, nprocesses: i64) -> PyResult<VecGymEnv> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let sys = py.import("sys")?;
         let path = sys.get(py, "path")?;
         let _ = path.call_method(py, "append", ("examples/reinforcement-learning",), None)?;
         let gym = py.import("atari_wrappers")?;
-        let env = gym.call(py, "make", (name, nprocesses), None)?;
+        let env = gym.call(py, "make", (name, img_dir, nprocesses), None)?;
         let action_space = env.getattr(py, "action_space")?;
         let action_space = action_space.getattr(py, "n")?.extract(py)?;
         let observation_space = env.getattr(py, "observation_space")?;
