@@ -8,7 +8,6 @@ fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: 
     let conv2d_cfg = nn::ConvConfig {
         stride,
         padding,
-        bias: false,
         ..Default::default()
     };
     Conv2D::new(&p, c_in, c_out, ksize, conv2d_cfg)
