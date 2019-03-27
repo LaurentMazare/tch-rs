@@ -14,11 +14,7 @@ extern crate tch;
 
 pub fn main() -> failure::Fallible<()> {
     let args: Vec<_> = std::env::args().collect();
-    ensure!(
-        args.len() >= 2,
-        "usage: {} (ls|npz-to-ot|ot-to-npz) ...",
-        args[0]
-    );
+    ensure!(args.len() >= 2, "usage: {} (ls|cp) ...", args[0]);
     match args[1].as_str() {
         "ls" => {
             for filename in args.iter().skip(2) {
@@ -56,13 +52,13 @@ pub fn main() -> failure::Fallible<()> {
             }
             if dst_filename.ends_with(".npz") {
                 tch::Tensor::write_npz(&tensors, dst_filename)?
-            } else if dst_filename.ends_with(".npz") {
+            } else if dst_filename.ends_with(".ot") {
                 tch::Tensor::save_multi(&tensors, dst_filename)?
             } else {
                 bail!("unhandled file {}", dst_filename)
             };
         }
-        _ => bail!("usage: {} (ls|npz-to-ot|ot-to-npz) ...", args[0]),
+        _ => bail!("usage: {} (ls|cp) ...", args[0]),
     }
 
     Ok(())

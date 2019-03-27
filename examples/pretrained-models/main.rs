@@ -8,11 +8,12 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_0.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_1.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot
 #[macro_use]
 extern crate failure;
 extern crate tch;
 use tch::nn::ModuleT;
-use tch::vision::{densenet, imagenet, resnet, squeezenet, vgg};
+use tch::vision::{alexnet, densenet, imagenet, resnet, squeezenet, vgg};
 
 pub fn main() -> failure::Fallible<()> {
     let args: Vec<_> = std::env::args().collect();
@@ -32,6 +33,7 @@ pub fn main() -> failure::Fallible<()> {
         "vgg16.ot" => Box::new(vgg::vgg16(&vs.root(), imagenet::CLASS_COUNT)),
         "squeezenet1_0.ot" => Box::new(squeezenet::v1_0(&vs.root(), imagenet::CLASS_COUNT)),
         "squeezenet1_1.ot" => Box::new(squeezenet::v1_1(&vs.root(), imagenet::CLASS_COUNT)),
+        "alexnet.ot" => Box::new(alexnet::alexnet(&vs.root(), imagenet::CLASS_COUNT)),
         _ => bail!("unknown model, use a weight file named e.g. resnet18.ot"),
     };
     vs.load(weights)?;

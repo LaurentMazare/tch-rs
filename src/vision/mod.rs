@@ -8,6 +8,8 @@ pub mod mnist;
 
 pub mod cifar;
 
+pub mod alexnet;
+
 pub mod resnet;
 
 pub mod densenet;

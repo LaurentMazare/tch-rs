@@ -117,3 +117,6 @@ Further examples include:
 * A [tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/jit)
   showing how to deploy/run some Python trained models using
   [TorchScript JIT](https://pytorch.org/docs/stable/jit.html).
+* Some [Reinforcement Learning](https://github.com/LaurentMazare/tch-rs/blob/master/examples/reinforcement-learning)
+  examples using the [OpenAI Gymi](https://github.com/openai/gym) environment. This includes a policy gradient
+  example as well as an A2C implementation that can run on Atari games.
