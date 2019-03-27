@@ -67,22 +67,6 @@ void at_copy_data(tensor tensor, void *vs, int64_t numel, int elt_size_in_bytes)
   )
 }
 
-tensor at_float_vec(double *vs, int len, int type) {
-  PROTECT(
-    torch::Tensor tensor = torch::empty({len}, torch::ScalarType(type));
-    for (int i = 0; i < len; ++i) tensor[i] = vs[i];
-    return new torch::Tensor(tensor);
-  )
-}
-
-tensor at_int_vec(int64_t *vs, int len, int type) {
-  PROTECT(
-    torch::Tensor tensor = torch::empty({len}, torch::ScalarType(type));
-    for (int i = 0; i < len; ++i) tensor[i] = vs[i];
-    return new torch::Tensor(tensor);
-  )
-}
-
 tensor at_shallow_clone(tensor t) {
     PROTECT(return new torch::Tensor(*t);)
 }

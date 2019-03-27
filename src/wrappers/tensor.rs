@@ -26,20 +26,6 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
-    /// Creates a one-dimension tensor using some integer values.
-    pub fn int_vec(v: &[i64]) -> Tensor {
-        let c_tensor =
-            unsafe_torch!({ at_int_vec(v.as_ptr(), v.len() as i32, Kind::Int64.c_int()) });
-        Tensor { c_tensor }
-    }
-
-    /// Creates a one-dimension tensor using some float values.
-    pub fn float_vec(v: &[f64]) -> Tensor {
-        let c_tensor =
-            unsafe_torch!({ at_float_vec(v.as_ptr(), v.len() as i32, Kind::Float.c_int()) });
-        Tensor { c_tensor }
-    }
-
     /// Returns the shape of the input tensor.
     pub fn size(&self) -> Vec<i64> {
         let dim = unsafe_torch!({ at_dim(self.c_tensor) as usize });

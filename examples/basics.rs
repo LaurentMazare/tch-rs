@@ -12,13 +12,13 @@ fn grad_example() {
 }
 
 fn main() {
-    let t = Tensor::int_vec(&[3, 1, 4, 1, 5]);
+    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
     t.print();
     let t = Tensor::randn(&[5, 4], kind::FLOAT_CPU);
     t.print();
     (&t + 1.5).print();
     (&t + 2.5).print();
-    let mut t = Tensor::float_vec(&[1.1, 2.1, 3.1]);
+    let mut t = Tensor::of_slice(&[1.1f32, 2.1, 3.1]);
     t += 42;
     t.print();
     println!("{:?} {}", t.size(), t.double_value(&[1]));

@@ -72,7 +72,7 @@ pub fn run() -> cpython::PyResult<()> {
         let actions: Vec<i64> = steps.iter().map(|s| s.action).collect();
         let actions = Tensor::of_slice(&actions).unsqueeze(1);
         let rewards = accumulate_rewards(&steps);
-        let rewards = Tensor::float_vec(&rewards);
+        let rewards = Tensor::of_slice(&rewards).to_kind(tch::Kind::Float);
         let action_mask = Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter_(
             1,
             &actions,
