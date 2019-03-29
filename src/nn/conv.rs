@@ -49,9 +49,8 @@ pub type Conv2D = Conv<[i64; 2]>;
 /// Three dimensions convolution layer.
 pub type Conv3D = Conv<[i64; 3]>;
 
-trait Create: std::marker::Sized {
+trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
     fn make_array(i: i64) -> Self;
-    fn weight_size(out_dim: i64, in_dim: i64, ksize: i64) -> Vec<i64>;
 
     fn conv<'a, T: Borrow<super::Path<'a>>>(
         vs: T,
@@ -75,7 +74,8 @@ trait Create: std::marker::Sized {
         } else {
             Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
         };
-        let weight_size = Self::weight_size(out_dim, in_dim, ksize);
+        let mut weight_size = vec![out_dim, in_dim];
+        weight_size.extend(Self::make_array(ksize).as_ref().into_iter());
         let ws = vs.var("weight", weight_size.as_slice(), ws_init);
         Conv {
             ws,
@@ -92,29 +92,17 @@ impl Create for [i64; 1] {
     fn make_array(i: i64) -> Self {
         [i]
     }
-
-    fn weight_size(out_dim: i64, in_dim: i64, ksize: i64) -> Vec<i64> {
-        vec![out_dim, in_dim, ksize]
-    }
 }
 
 impl Create for [i64; 2] {
     fn make_array(i: i64) -> Self {
         [i, i]
     }
-
-    fn weight_size(out_dim: i64, in_dim: i64, ksize: i64) -> Vec<i64> {
-        vec![out_dim, in_dim, ksize, ksize]
-    }
 }
 
 impl Create for [i64; 3] {
     fn make_array(i: i64) -> Self {
         [i, i, i]
-    }
-
-    fn weight_size(out_dim: i64, in_dim: i64, ksize: i64) -> Vec<i64> {
-        vec![out_dim, in_dim, ksize, ksize, ksize]
     }
 }
 

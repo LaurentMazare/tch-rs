@@ -39,6 +39,10 @@ pub fn load_image_and_resize<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
     normalize(&super::image::load_and_resize(path, 224, 224)?)
 }
 
+pub fn load_image_and_resize_<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Fallible<Tensor> {
+    normalize(&super::image::load_and_resize(path, w, h)?)
+}
+
 pub const CLASS_COUNT: i64 = 1000;
 
 pub const CLASSES: [&str; 1000] = [

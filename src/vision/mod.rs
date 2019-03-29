@@ -10,6 +10,8 @@ pub mod cifar;
 
 pub mod alexnet;
 
+pub mod inception;
+
 pub mod resnet;
 
 pub mod densenet;
