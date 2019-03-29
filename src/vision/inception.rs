@@ -36,7 +36,7 @@ fn conv_bn2(p: nn::Path, c_in: i64, c_out: i64, ksize: [i64; 2], pad: [i64; 2]) 
         .add_fn(|xs| xs.relu())
 }
 
-fn max_pool2d(xs: Tensor, ksize: i64, stride: i64) -> Tensor {
+fn max_pool2d(xs: &Tensor, ksize: i64, stride: i64) -> Tensor {
     xs.max_pool2d(&[ksize, ksize], &[stride, stride], &[0, 0], &[1, 1], false)
 }
 
@@ -67,7 +67,7 @@ fn inception_b(p: nn::Path, c_in: i64) -> impl ModuleT {
     FuncT::new(move |xs, tr| {
         let b1 = xs.apply_t(&b1, tr);
         let b2 = xs.apply_t(&b2_1, tr).apply_t(&b2_2, tr).apply_t(&b2_3, tr);
-        let bpool = xs.avg_pool2d(&[3, 3], &[2, 2], &[0, 0], false, true);
+        let bpool = max_pool2d(xs, 3, 2);
         Tensor::cat(&[b1, b2, bpool], 1)
     })
 }
@@ -119,7 +119,7 @@ fn inception_d(p: nn::Path, c_in: i64) -> impl ModuleT {
             .apply_t(&b2_2, tr)
             .apply_t(&b2_3, tr)
             .apply_t(&b2_4, tr);
-        let bpool = xs.max_pool2d(&[3, 3], &[2, 2], &[0, 0], &[1, 1], false);
+        let bpool = max_pool2d(xs, 3, 2);
         Tensor::cat(&[b1, b2, bpool], 1)
     })
 }
@@ -160,10 +160,10 @@ pub fn v3(p: &nn::Path, nclasses: i64) -> impl ModuleT {
         .add(conv_bn(p / "Conv2d_1a_3x3", 3, 32, 3, 0, 2))
         .add(conv_bn(p / "Conv2d_2a_3x3", 32, 32, 3, 0, 1))
         .add(conv_bn(p / "Conv2d_2b_3x3", 32, 64, 3, 1, 1))
-        .add_fn(|xs| max_pool2d(xs.relu(), 3, 2))
+        .add_fn(|xs| max_pool2d(&xs.relu(), 3, 2))
         .add(conv_bn(p / "Conv2d_3b_1x1", 64, 80, 1, 0, 1))
         .add(conv_bn(p / "Conv2d_4a_3x3", 80, 192, 3, 0, 1))
-        .add_fn(|xs| max_pool2d(xs.relu(), 3, 2))
+        .add_fn(|xs| max_pool2d(&xs.relu(), 3, 2))
         .add(inception_a(p / "Mixed_5b", 192, 32))
         .add(inception_a(p / "Mixed_5c", 256, 64))
         .add(inception_a(p / "Mixed_5d", 288, 64))

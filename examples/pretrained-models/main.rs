@@ -9,6 +9,7 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_0.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_1.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/inception-v3.ot
 #[macro_use]
 extern crate failure;
 extern crate tch;
