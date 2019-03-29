@@ -4,15 +4,17 @@ use crate::Tensor;
 use std::borrow::Borrow;
 
 #[derive(Debug, Clone, Copy)]
-pub struct ConvConfig {
-    pub stride: i64,
-    pub padding: i64,
-    pub dilation: i64,
+pub struct ConvConfigND<ND> {
+    pub stride: ND,
+    pub padding: ND,
+    pub dilation: ND,
     pub groups: i64,
     pub bias: bool,
     pub ws_init: super::Init,
     pub bs_init: super::Init,
 }
+
+pub type ConvConfig = ConvConfigND<i64>;
 
 impl Default for ConvConfig {
     fn default() -> Self {
@@ -28,16 +30,27 @@ impl Default for ConvConfig {
     }
 }
 
+impl Default for ConvConfigND<[i64; 2]> {
+    fn default() -> Self {
+        ConvConfigND::<[i64; 2]> {
+            stride: [1, 1],
+            padding: [0, 0],
+            dilation: [1, 1],
+            groups: 1,
+            bias: true,
+            ws_init: super::Init::KaimingUniform,
+            bs_init: super::Init::Const(0.),
+        }
+    }
+}
+
 // Use const generics when they have landed in stable rust.
 /// A N-dimensional convolution layer.
 #[derive(Debug)]
 pub struct Conv<ND> {
     pub ws: Tensor,
     pub bs: Tensor,
-    stride: ND,
-    padding: ND,
-    dilation: ND,
-    groups: i64,
+    config: ConvConfigND<ND>,
 }
 
 /// One dimension convolution layer.
@@ -52,6 +65,25 @@ pub type Conv3D = Conv<[i64; 3]>;
 trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
     fn make_array(i: i64) -> Self;
 
+    fn conv_nd<'a, T: Borrow<super::Path<'a>>>(
+        vs: T,
+        in_dim: i64,
+        out_dim: i64,
+        ksizes: Self,
+        config: ConvConfigND<Self>,
+    ) -> Conv<Self> {
+        let vs = vs.borrow();
+        let bs = if config.bias {
+            vs.var("bias", &[out_dim], config.bs_init)
+        } else {
+            Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
+        };
+        let mut weight_size = vec![out_dim, in_dim];
+        weight_size.extend(ksizes.as_ref().into_iter());
+        let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
+        Conv { ws, bs, config }
+    }
+
     fn conv<'a, T: Borrow<super::Path<'a>>>(
         vs: T,
         in_dim: i64,
@@ -59,32 +91,16 @@ trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
         ksize: i64,
         config: ConvConfig,
     ) -> Conv<Self> {
-        let vs = vs.borrow();
-        let ConvConfig {
-            stride,
-            padding,
-            dilation,
-            groups,
-            bias,
-            ws_init,
-            bs_init,
-        } = config;
-        let bs = if bias {
-            vs.var("bias", &[out_dim], bs_init)
-        } else {
-            Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
+        let config = ConvConfigND::<Self> {
+            stride: Self::make_array(config.stride),
+            padding: Self::make_array(config.padding),
+            dilation: Self::make_array(config.dilation),
+            groups: config.groups,
+            bias: config.bias,
+            ws_init: config.ws_init,
+            bs_init: config.bs_init,
         };
-        let mut weight_size = vec![out_dim, in_dim];
-        weight_size.extend(Self::make_array(ksize).as_ref().into_iter());
-        let ws = vs.var("weight", weight_size.as_slice(), ws_init);
-        Conv {
-            ws,
-            bs,
-            stride: Self::make_array(stride),
-            padding: Self::make_array(padding),
-            dilation: Self::make_array(dilation),
-            groups,
-        }
+        Self::conv_nd(vs, in_dim, out_dim, Self::make_array(ksize), config)
     }
 }
 
@@ -116,11 +132,31 @@ impl Conv2D {
     pub fn new<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Self {
         <[i64; 2]>::conv(vs, i, o, k, c)
     }
+
+    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
+        vs: T,
+        i: i64,
+        o: i64,
+        k: [i64; 2],
+        c: ConvConfigND<[i64; 2]>,
+    ) -> Self {
+        <[i64; 2]>::conv_nd(vs, i, o, k, c)
+    }
 }
 
 impl Conv3D {
     pub fn new<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Self {
         <[i64; 3]>::conv(vs, i, o, k, c)
+    }
+
+    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
+        vs: T,
+        i: i64,
+        o: i64,
+        k: [i64; 3],
+        c: ConvConfigND<[i64; 3]>,
+    ) -> Self {
+        <[i64; 3]>::conv_nd(vs, i, o, k, c)
     }
 }
 
@@ -130,10 +166,10 @@ impl super::module::Module for Conv1D {
             &xs,
             &self.ws,
             &self.bs,
-            &self.stride,
-            &self.padding,
-            &self.dilation,
-            self.groups,
+            &self.config.stride,
+            &self.config.padding,
+            &self.config.dilation,
+            self.config.groups,
         )
     }
 }
@@ -144,10 +180,10 @@ impl super::module::Module for Conv2D {
             &xs,
             &self.ws,
             &self.bs,
-            &self.stride,
-            &self.padding,
-            &self.dilation,
-            self.groups,
+            &self.config.stride,
+            &self.config.padding,
+            &self.config.dilation,
+            self.config.groups,
         )
     }
 }
@@ -158,10 +194,10 @@ impl super::module::Module for Conv3D {
             &xs,
             &self.ws,
             &self.bs,
-            &self.stride,
-            &self.padding,
-            &self.dilation,
-            self.groups,
+            &self.config.stride,
+            &self.config.padding,
+            &self.config.dilation,
+            self.config.groups,
         )
     }
 }

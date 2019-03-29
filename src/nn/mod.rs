@@ -15,7 +15,7 @@ mod linear;
 pub use linear::{Linear, LinearConfig};
 
 mod conv;
-pub use conv::{Conv1D, Conv2D, Conv3D, ConvConfig};
+pub use conv::{Conv1D, Conv2D, Conv3D, ConvConfig, ConvConfigND};
 
 mod conv_transpose2d;
 pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig};
