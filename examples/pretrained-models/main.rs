@@ -23,7 +23,7 @@ pub fn main() -> failure::Fallible<()> {
         _ => bail!("usage: main resnet18.ot image.jpg"),
     };
     // Load the image file and resize it to the usual imagenet dimension of 224x224.
-    let image = imagenet::load_image_and_resize(image)?;
+    let image = imagenet::load_image_and_resize224(image)?;
 
     // Create the model and load the weights from the file.
     let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);

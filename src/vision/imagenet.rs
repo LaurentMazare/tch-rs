@@ -1,4 +1,6 @@
-use crate::{Device, Kind, Tensor};
+//! Helper functions for ImageNet like datasets.
+use super::dataset::Dataset;
+use crate::{kind, Device, Kind, Tensor};
 use failure::Fallible;
 use std::path::Path;
 use std::sync::Mutex;
@@ -27,20 +29,99 @@ fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
     Ok(tensor)
 }
 
+/// Saves an image to a path.
+/// This unapplies the ImageNet normalization.
 pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Fallible<()> {
     super::image::save(&unnormalize(&tensor.to_device(Device::Cpu))?, path)
 }
 
+/// Loads an image from a file and applies the ImageNet normalization.
 pub fn load_image<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
     normalize(&super::image::load(path)?)
 }
 
-pub fn load_image_and_resize<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+/// Loads an image from a file and resize it to 224x224.
+/// This applies the ImageNet normalization.
+pub fn load_image_and_resize224<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
     normalize(&super::image::load_and_resize(path, 224, 224)?)
 }
 
-pub fn load_image_and_resize_<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Fallible<Tensor> {
+/// Loads an image from a file and resize it to the specified width and height.
+/// This applies the ImageNet normalization.
+pub fn load_image_and_resize<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Fallible<Tensor> {
     normalize(&super::image::load_and_resize(path, w, h)?)
+}
+
+fn has_image_suffix<T: AsRef<Path>>(path: T) -> bool {
+    match path.as_ref().extension() {
+        None => false,
+        Some(extension) => match extension.to_str() {
+            Some("jpg") | Some("jpeg") | Some("png") | Some("JPG") | Some("JPEG") | Some("PNG") => {
+                true
+            }
+            Some(_) | None => false,
+        },
+    }
+}
+
+fn load_images_from_dir(dir: std::path::PathBuf) -> Fallible<Tensor> {
+    let mut images: Vec<Tensor> = vec![];
+    for image in std::fs::read_dir(&dir)? {
+        match image {
+            Err(_) => {}
+            Ok(image) => {
+                let image = image.path();
+                if !has_image_suffix(&image) {
+                    continue;
+                }
+                match load_image_and_resize224(image) {
+                    Err(_) => {}
+                    Ok(image) => images.push(image),
+                }
+            }
+        }
+    }
+    ensure!(images.len() > 0, "no image found in {:?}", dir);
+    Tensor::f_stack(&images, 0)
+}
+
+/// Loads a dataset from a directory.
+///
+/// This assumes that the directory contains two subdirectories named train and val.
+/// In each of these datasets, there should be a subdirectory per class named
+/// in the same way.
+/// The ImageNet normalization is applied, image are resized to 224x224.
+pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Fallible<Dataset> {
+    let train_path = dir.as_ref().join("train");
+    let valid_path = dir.as_ref().join("val");
+    let classes = std::fs::read_dir(&valid_path)?
+        .filter_map(|d| d.ok().map(|d| d.path()))
+        .filter(|d| d.is_dir())
+        .filter_map(|d| d.file_name().map(|d| d.to_os_string()))
+        .collect::<Vec<_>>();
+    println!("classes: {:?}", classes);
+    let mut train_images: Vec<Tensor> = vec![];
+    let mut train_labels: Vec<Tensor> = vec![];
+    let mut test_images: Vec<Tensor> = vec![];
+    let mut test_labels: Vec<Tensor> = vec![];
+    for (label_index, label_dir) in classes.iter().enumerate() {
+        let label_index = label_index as i64;
+        let images = load_images_from_dir(train_path.join(label_dir))?;
+        let nimages = images.size()[0];
+        train_images.push(images);
+        train_labels.push(Tensor::ones(&[nimages], kind::INT64_CPU) * label_index);
+        let images = load_images_from_dir(valid_path.join(label_dir))?;
+        let nimages = images.size()[0];
+        test_images.push(images);
+        test_labels.push(Tensor::ones(&[nimages], kind::INT64_CPU) * label_index);
+    }
+    Ok(Dataset {
+        train_images: Tensor::f_cat(&train_images, 0)?,
+        train_labels: Tensor::f_cat(&train_labels, 0)?,
+        test_images: Tensor::f_cat(&test_images, 0)?,
+        test_labels: Tensor::f_cat(&test_labels, 0)?,
+        labels: classes.len() as i64,
+    })
 }
 
 pub const CLASS_COUNT: i64 = 1000;

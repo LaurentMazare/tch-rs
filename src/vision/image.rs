@@ -55,6 +55,8 @@ pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Falli
             let ratio = ratio_w.max(ratio_h);
             ((ratio * h as f64) as i64, (ratio * w as f64) as i64)
         };
+        let resize_w = i64::max(resize_w, out_w);
+        let resize_h = i64::max(resize_h, out_h);
         let tensor = hwc_to_chw(&resize_hwc(&tensor, resize_w, resize_h)?);
         let tensor = if resize_w == out_w {
             tensor

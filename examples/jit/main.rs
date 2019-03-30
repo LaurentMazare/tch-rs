@@ -13,7 +13,7 @@ pub fn main() -> failure::Fallible<()> {
         _ => bail!("usage: main model.pt image.jpg"),
     };
     // Load the image file and resize it to the usual imagenet dimension of 224x224.
-    let image = imagenet::load_image_and_resize(image_file)?;
+    let image = imagenet::load_image_and_resize224(image_file)?;
 
     // Load the Python saved module.
     let model = tch::CModule::load(model_file)?;
