@@ -120,5 +120,5 @@ Further examples include:
 * Some [Reinforcement Learning](https://github.com/LaurentMazare/tch-rs/blob/master/examples/reinforcement-learning)
   examples using the [OpenAI Gym](https://github.com/openai/gym) environment. This includes a policy gradient
   example as well as an A2C implementation that can run on Atari games.
-* A [Transfer Learning Tutorial]((https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
+* A [Transfer Learning Tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
   shows how to finetune a pre-trained ResNet model on a very small dataset.
