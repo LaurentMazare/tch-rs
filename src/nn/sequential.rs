@@ -15,6 +15,10 @@ impl Sequential {
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.layers.is_empty()
+    }
 }
 
 impl Module for Sequential {
@@ -78,6 +82,10 @@ impl SequentialT {
 
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.layers.is_empty()
     }
 }
 

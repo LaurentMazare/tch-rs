@@ -15,7 +15,7 @@ pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
             // Optimize the case for which a single C++ code can be done.
             if cst == 0. {
                 Tensor::zeros(dims, (Kind::Float, device))
-            } else if cst == 1. {
+            } else if (cst - 1.) <= std::f64::EPSILON {
                 Tensor::ones(dims, (Kind::Float, device))
             } else {
                 Tensor::ones(dims, (Kind::Float, device)) * cst
@@ -23,7 +23,7 @@ pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
         }
         Init::Uniform { lo, up } => Tensor::zeros(dims, (Kind::Float, device)).uniform_(lo, up),
         Init::Randn { mean, stdev } => {
-            if mean == 0. && stdev == 1. {
+            if mean == 0. && (stdev - 1.) <= std::f64::EPSILON {
                 Tensor::randn(dims, (Kind::Float, device))
             } else {
                 Tensor::randn(dims, (Kind::Float, device)) * stdev + mean

@@ -81,7 +81,7 @@ fn load_images_from_dir(dir: std::path::PathBuf) -> Fallible<Tensor> {
             }
         }
     }
-    ensure!(images.len() > 0, "no image found in {:?}", dir);
+    ensure!(!images.is_empty(), "no image found in {:?}", dir);
     Tensor::f_stack(&images, 0)
 }
 
