@@ -119,7 +119,7 @@ tensor at_get(tensor t, int index) {
 }
 
 template<typename T>
-T at_value_at_indexes(tensor t, int *indexes, int indexes_len) {
+T at_value_at_indexes(tensor t, int64_t *indexes, int indexes_len) {
   PROTECT(
     torch::Tensor tensor = *t;
     for (int i = 0; i < indexes_len; ++i) {
@@ -129,11 +129,11 @@ T at_value_at_indexes(tensor t, int *indexes, int indexes_len) {
   )
 }
 
-double at_double_value_at_indexes(tensor t, int *indexes, int indexes_len) {
+double at_double_value_at_indexes(tensor t, int64_t *indexes, int indexes_len) {
   return at_value_at_indexes<double>(t, indexes, indexes_len);
 }
 
-int64_t at_int64_value_at_indexes(tensor t, int *indexes, int indexes_len) {
+int64_t at_int64_value_at_indexes(tensor t, int64_t *indexes, int indexes_len) {
   return at_value_at_indexes<int64_t>(t, indexes, indexes_len);
 }
 

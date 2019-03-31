@@ -45,8 +45,8 @@ tensor at_get(tensor, int index);
 void at_fill_double(tensor, double);
 void at_fill_int64(tensor, int64_t);
 
-double at_double_value_at_indexes(tensor, int *indexes, int indexes_len);
-int64_t at_int64_value_at_indexes(tensor, int *indexes, int indexes_len);
+double at_double_value_at_indexes(tensor, int64_t *indexes, int indexes_len);
+int64_t at_int64_value_at_indexes(tensor, int64_t *indexes, int indexes_len);
 void at_set_double_value_at_indexes(tensor, int *indexes, int indexes_len, double v);
 void at_set_int64_value_at_indexes(tensor, int *indexes, int indexes_len, int64_t v);
 

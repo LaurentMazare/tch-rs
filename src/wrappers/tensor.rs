@@ -82,23 +82,23 @@ impl Tensor {
         unsafe_torch!({ at_print(self.c_tensor) })
     }
 
-    pub fn f_double_value(&self, idx: &[i32]) -> Fallible<f64> {
+    pub fn f_double_value(&self, idx: &[i64]) -> Fallible<f64> {
         Ok(unsafe_torch_err!({
             at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
 
-    pub fn f_int64_value(&self, idx: &[i32]) -> Fallible<i64> {
+    pub fn f_int64_value(&self, idx: &[i64]) -> Fallible<i64> {
         Ok(unsafe_torch!({
             at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
 
-    pub fn double_value(&self, idx: &[i32]) -> f64 {
+    pub fn double_value(&self, idx: &[i64]) -> f64 {
         self.f_double_value(idx).unwrap()
     }
 
-    pub fn int64_value(&self, idx: &[i32]) -> i64 {
+    pub fn int64_value(&self, idx: &[i64]) -> i64 {
         self.f_int64_value(idx).unwrap()
     }
 
