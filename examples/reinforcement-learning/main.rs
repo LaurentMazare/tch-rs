@@ -4,6 +4,7 @@ extern crate tch;
 mod a2c;
 mod gym_env;
 mod policy_gradient;
+mod ppo;
 mod vec_gym_env;
 
 fn main() -> cpython::PyResult<()> {
@@ -12,7 +13,9 @@ fn main() -> cpython::PyResult<()> {
         [_, "a2c"] => a2c::train()?,
         [_, "a2c-sample", weight_file] => a2c::sample(weight_file)?,
         [_, "pg"] => policy_gradient::run()?,
-        _ => println!("usage: main pg|a2c|a2c-sample"),
+        [_, "ppo"] => ppo::train()?,
+        [_, "ppo-sample", weight_file] => ppo::sample(weight_file)?,
+        _ => println!("usage: main pg|a2c|a2c-sample|ppo|ppo-sample"),
     }
     Ok(())
 }
