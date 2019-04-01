@@ -1,6 +1,6 @@
 [package]
 name = "torch-sys"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 build = "build.rs"
@@ -10,7 +10,7 @@ description = "Low-level FFI bindings for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "ffi", "deep-learning", "machine-learning"]
 categories = ["external-ffi-bindings", "science"]
-license = "Apache-2.0"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 libc = "0.2.0"

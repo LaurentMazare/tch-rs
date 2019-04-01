@@ -122,3 +122,10 @@ Further examples include:
   example as well as an A2C implementation that can run on Atari games.
 * A [Transfer Learning Tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
   shows how to finetune a pre-trained ResNet model on a very small dataset.
+
+## License
+`tch-rs` is distributed under the terms of both the MIT license
+and the Apache license (version 2.0), at your option.
+
+See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT) for more
+details.
