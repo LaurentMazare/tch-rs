@@ -7,8 +7,21 @@ fn assign_ops() {
     t *= 2;
     t -= 1;
     assert_eq!(Vec::<i64>::from(&t), [7, 3, 9, 3, 11]);
+}
+
+#[test]
+fn constant_ops() {
+    let mut t = Tensor::of_slice(&[7i64, 3, 9, 3, 11]);
     t = -t;
     assert_eq!(Vec::<i64>::from(&t), [-7, -3, -9, -3, -11]);
+    t = 1 - t;
+    assert_eq!(Vec::<i64>::from(&t), [8, 4, 10, 4, 12]);
+    t = 2 * t;
+    assert_eq!(Vec::<i64>::from(&t), [16, 8, 20, 8, 24]);
+
+    let mut t = Tensor::of_slice(&[0.2f64, 0.1]);
+    t = 2 / t;
+    assert_eq!(Vec::<f64>::from(&t), [10.0, 20.0]);
 }
 
 #[test]
