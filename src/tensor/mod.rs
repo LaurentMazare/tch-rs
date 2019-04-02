@@ -3,6 +3,7 @@ use crate::{Device, Kind};
 use failure::Fallible;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+mod iter;
 mod npy;
 
 pub use super::wrappers::tensor::{no_grad, NoGradGuard, Tensor};

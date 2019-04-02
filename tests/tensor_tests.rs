@@ -25,6 +25,16 @@ fn constant_ops() {
 }
 
 #[test]
+fn iter() {
+    let t = Tensor::of_slice(&[7i64, 3, 9, 3, 11]);
+    let v = t.iter::<i64>().unwrap().collect::<Vec<_>>();
+    assert_eq!(v, [7, 3, 9, 3, 11]);
+    let t = Tensor::of_slice(&[3.14, 15.926, 5.3589, 79.0]);
+    let v = t.iter::<f64>().unwrap().collect::<Vec<_>>();
+    assert_eq!(v, [3.14, 15.926, 5.3589, 79.0]);
+}
+
+#[test]
 fn array_conversion() {
     let vec: Vec<_> = (0..6).map(|x| (x * x) as f64).collect();
     let t = Tensor::of_slice(&vec);
