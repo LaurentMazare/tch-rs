@@ -44,6 +44,13 @@ impl Default for ConvConfigND<[i64; 2]> {
     }
 }
 
+pub fn no_bias() -> ConvConfig {
+    ConvConfig {
+        bias: false,
+        ..Default::default()
+    }
+}
+
 // Use const generics when they have landed in stable rust.
 /// A N-dimensional convolution layer.
 #[derive(Debug)]
