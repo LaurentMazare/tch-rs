@@ -17,8 +17,8 @@ pub use linear::{Linear, LinearConfig};
 mod conv;
 pub use conv::{no_bias, Conv1D, Conv2D, Conv3D, ConvConfig, ConvConfigND};
 
-mod conv_transpose2d;
-pub use conv_transpose2d::{ConvTranspose2D, ConvTranspose2DConfig};
+mod conv_transpose;
+pub use conv_transpose::{ConvTranspose1D, ConvTranspose2D, ConvTranspose3D, ConvTransposeConfig};
 
 mod batch_norm;
 pub use batch_norm::{BatchNorm2D, BatchNorm2DConfig};

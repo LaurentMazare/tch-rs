@@ -7,5 +7,5 @@ fn mobilenet() {
     let net = vision::mobilenet::v2(&vs.root(), 1000);
     let img = Tensor::zeros(&[1, 3, 224, 224], tch::kind::FLOAT_CPU);
     let logits = img.apply_t(&net, false);
-    println!("{:?}", logits);
+    assert_eq!(logits.size(), [1, 1000]);
 }

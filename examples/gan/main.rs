@@ -14,7 +14,7 @@ static LEARNING_RATE: f64 = 1e-4;
 static BATCHES: i64 = 100000000;
 
 fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::ConvTranspose2D {
-    let cfg = nn::ConvTranspose2DConfig {
+    let cfg = nn::ConvTransposeConfig {
         stride,
         padding,
         bias: false,
