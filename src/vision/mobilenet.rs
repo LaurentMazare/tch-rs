@@ -56,8 +56,8 @@ pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
         for i in 0..n {
             let stride = if i == 0 { stride } else { 1 };
             features = features.add(inv(&f_p / "1", c_in, c_out, stride, er));
+            c_in = c_out;
         }
-        c_in = c_out;
     }
     features = features.add(cbr(&f_p / "x", c_in, 1280, 1, 1, 1));
     let classifier = SequentialT::new()

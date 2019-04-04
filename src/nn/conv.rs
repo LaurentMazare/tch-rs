@@ -85,7 +85,7 @@ trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
         } else {
             Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
         };
-        let mut weight_size = vec![out_dim, in_dim];
+        let mut weight_size = vec![out_dim, in_dim / config.groups];
         weight_size.extend(ksizes.as_ref().iter());
         let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
         Conv { ws, bs, config }
