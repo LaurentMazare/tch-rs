@@ -24,7 +24,7 @@ mod batch_norm;
 pub use batch_norm::{BatchNorm2D, BatchNorm2DConfig};
 
 mod rnn;
-pub use rnn::{Config, GRU, LSTM, RNN};
+pub use rnn::{RNNConfig, GRU, LSTM, RNN};
 
 mod func;
 pub use func::{Func, FuncT};

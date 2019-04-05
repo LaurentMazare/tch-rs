@@ -32,18 +32,18 @@ impl LSTMState {
 
 // The GRU and LSTM layers share the same config.
 #[derive(Debug, Clone, Copy)]
-pub struct Config {
-    has_biases: bool,
-    num_layers: i64,
-    dropout: f64,
-    train: bool,
-    bidirectional: bool,
-    batch_first: bool,
+pub struct RNNConfig {
+    pub has_biases: bool,
+    pub num_layers: i64,
+    pub dropout: f64,
+    pub train: bool,
+    pub bidirectional: bool,
+    pub batch_first: bool,
 }
 
-impl Default for Config {
+impl Default for RNNConfig {
     fn default() -> Self {
-        Config {
+        RNNConfig {
             has_biases: true,
             num_layers: 1,
             dropout: 0.,
@@ -64,12 +64,12 @@ pub struct LSTM {
     b_ih: Tensor,
     b_hh: Tensor,
     hidden_dim: i64,
-    config: Config,
+    config: RNNConfig,
     device: Device,
 }
 
 impl LSTM {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: Config) -> LSTM {
+    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> LSTM {
         let gate_dim = 4 * hidden_dim;
         LSTM {
             w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
@@ -135,12 +135,12 @@ pub struct GRU {
     b_ih: Tensor,
     b_hh: Tensor,
     hidden_dim: i64,
-    config: Config,
+    config: RNNConfig,
     device: Device,
 }
 
 impl GRU {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: Config) -> GRU {
+    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
         let gate_dim = 3 * hidden_dim;
         GRU {
             w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
