@@ -7,11 +7,11 @@ extern crate failure;
 extern crate tch;
 use tch::{kind, nn, nn::OptimizerConfig, Device, Kind, Tensor};
 
-static IMG_SIZE: i64 = 64;
-static LATENT_DIM: i64 = 128;
-static BATCH_SIZE: i64 = 32;
-static LEARNING_RATE: f64 = 1e-4;
-static BATCHES: i64 = 100000000;
+const IMG_SIZE: i64 = 64;
+const LATENT_DIM: i64 = 128;
+const BATCH_SIZE: i64 = 32;
+const LEARNING_RATE: f64 = 1e-4;
+const BATCHES: i64 = 100000000;
 
 fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::ConvTranspose2D {
     let cfg = nn::ConvTransposeConfig {

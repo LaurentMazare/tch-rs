@@ -1,5 +1,6 @@
 //! Dataset iterators.
 use crate::{kind, Device, Tensor};
+use failure::Fallible;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
@@ -21,6 +22,25 @@ pub struct Iter2 {
 }
 
 impl Iter2 {
+    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Fallible<Iter2> {
+        let total_size = xs.size()[0];
+        ensure!(
+            ys.size()[0] == total_size,
+            "different dimension for the two inputs {:?} {:?}",
+            xs,
+            ys
+        );
+        Ok(Iter2 {
+            xs: xs.shallow_clone(),
+            ys: ys.shallow_clone(),
+            batch_index: 0,
+            batch_size,
+            total_size,
+            device: Device::Cpu,
+            return_smaller_last_batch: false,
+        })
+    }
+
     /// Returns a new iterator.
     ///
     /// This takes as input two tensors which first dimension must match. The
@@ -33,19 +53,7 @@ impl Iter2 {
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
     pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Iter2 {
-        let total_size = xs.size()[0];
-        if ys.size()[0] != total_size {
-            panic!("different dimension for the two inputs {:?} {:?}", xs, ys)
-        }
-        Iter2 {
-            xs: xs.shallow_clone(),
-            ys: ys.shallow_clone(),
-            batch_index: 0,
-            batch_size,
-            total_size,
-            device: Device::Cpu,
-            return_smaller_last_batch: false,
-        }
+        Iter2::f_new(xs, ys, batch_size).unwrap()
     }
 
     /// Shuffles the dataset.

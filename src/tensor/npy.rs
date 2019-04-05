@@ -9,8 +9,8 @@ use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
-static NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
-static NPY_SUFFIX: &str = ".npy";
+const NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
+const NPY_SUFFIX: &str = ".npy";
 
 fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];

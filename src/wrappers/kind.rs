@@ -66,8 +66,8 @@ impl Kind {
     }
 }
 
-pub static FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
-pub static INT64_CPU: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cpu);
+pub const FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
+pub const INT64_CPU: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cpu);
 
 pub trait T {
     const KIND: Kind;

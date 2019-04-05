@@ -2,9 +2,9 @@
 
 use tch::{nn, nn::Module, nn::OptimizerConfig, Device, Tensor};
 
-static IMAGE_DIM: i64 = 784;
-static HIDDEN_NODES: i64 = 128;
-static LABELS: i64 = 10;
+const IMAGE_DIM: i64 = 784;
+const HIDDEN_NODES: i64 = 128;
+const LABELS: i64 = 10;
 
 #[derive(Debug)]
 struct Net {

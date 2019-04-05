@@ -9,11 +9,11 @@ use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
 use tch::{nn, nn::OptimizerConfig, Tensor};
 
-static ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
-static NPROCS: i64 = 16;
-static NSTEPS: i64 = 5;
-static NSTACK: i64 = 4;
-static UPDATES: i64 = 1000000;
+const ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
+const NPROCS: i64 = 16;
+const NSTEPS: i64 = 5;
+const NSTACK: i64 = 4;
+const UPDATES: i64 = 1000000;
 
 fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
     let stride = |s| nn::ConvConfig {

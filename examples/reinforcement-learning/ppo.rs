@@ -10,13 +10,13 @@ use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
 use tch::{nn, nn::OptimizerConfig, Tensor};
 
-static ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
-static NPROCS: i64 = 8;
-static NSTEPS: i64 = 256;
-static NSTACK: i64 = 4;
-static UPDATES: i64 = 1000000;
-static OPTIM_BATCHSIZE: i64 = 64;
-static OPTIM_EPOCHS: i64 = 4;
+const ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
+const NPROCS: i64 = 8;
+const NSTEPS: i64 = 256;
+const NSTACK: i64 = 4;
+const UPDATES: i64 = 1000000;
+const OPTIM_BATCHSIZE: i64 = 64;
+const OPTIM_EPOCHS: i64 = 4;
 
 fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
     let stride = |s| nn::ConvConfig {

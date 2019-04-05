@@ -8,11 +8,11 @@ extern crate tch;
 use tch::vision::{imagenet, vgg};
 use tch::{nn, nn::OptimizerConfig, Device, Tensor};
 
-static STYLE_WEIGHT: f64 = 1e6;
-static LEARNING_RATE: f64 = 1e-1;
-static TOTAL_STEPS: i64 = 3000;
-static STYLE_INDEXES: [usize; 5] = [0, 2, 5, 7, 10];
-static CONTENT_INDEXES: [usize; 1] = [7];
+const STYLE_WEIGHT: f64 = 1e6;
+const LEARNING_RATE: f64 = 1e-1;
+const TOTAL_STEPS: i64 = 3000;
+const STYLE_INDEXES: [usize; 5] = [0, 2, 5, 7, 10];
+const CONTENT_INDEXES: [usize; 1] = [7];
 
 fn gram_matrix(m: &Tensor) -> Tensor {
     let (a, b, c, d) = m.size4().unwrap();

@@ -9,12 +9,12 @@ use tch::data::TextData;
 use tch::nn::{Linear, Module, OptimizerConfig, LSTM, RNN};
 use tch::{nn, Device, Kind, Tensor};
 
-static LEARNING_RATE: f64 = 0.01;
-static HIDDEN_SIZE: i64 = 256;
-static SEQ_LEN: i64 = 180;
-static BATCH_SIZE: i64 = 256;
-static EPOCHS: i64 = 100;
-static SAMPLING_LEN: i64 = 1024;
+const LEARNING_RATE: f64 = 0.01;
+const HIDDEN_SIZE: i64 = 256;
+const SEQ_LEN: i64 = 180;
+const BATCH_SIZE: i64 = 256;
+const EPOCHS: i64 = 100;
+const SAMPLING_LEN: i64 = 1024;
 
 /// Generates some sample string using the LSTM + Linear model.
 fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> String {
