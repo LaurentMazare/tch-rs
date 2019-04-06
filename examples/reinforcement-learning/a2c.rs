@@ -20,17 +20,17 @@ fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
         stride: s,
         ..Default::default()
     };
-    let seq = nn::Sequential::new()
-        .add(nn::Conv2D::new(p / "c1", NSTACK, 32, 8, stride(4)))
+    let seq = nn::seq()
+        .add(nn::conv2d(p / "c1", NSTACK, 32, 8, stride(4)))
         .add_fn(|xs| xs.relu())
-        .add(nn::Conv2D::new(p / "c2", 32, 64, 4, stride(2)))
+        .add(nn::conv2d(p / "c2", 32, 64, 4, stride(2)))
         .add_fn(|xs| xs.relu())
-        .add(nn::Conv2D::new(p / "c3", 64, 64, 3, stride(1)))
+        .add(nn::conv2d(p / "c3", 64, 64, 3, stride(1)))
         .add_fn(|xs| xs.relu().flat_view())
-        .add(nn::Linear::new(p / "l1", 3136, 512, Default::default()))
+        .add(nn::linear(p / "l1", 3136, 512, Default::default()))
         .add_fn(|xs| xs.relu());
-    let critic = nn::Linear::new(p / "cl", 512, 1, Default::default());
-    let actor = nn::Linear::new(p / "al", 512, nact, Default::default());
+    let critic = nn::linear(p / "cl", 512, 1, Default::default());
+    let actor = nn::linear(p / "al", 512, nact, Default::default());
     let device = p.device();
     Box::new(move |xs: &Tensor| {
         let xs = xs.to_device(device).apply(&seq);
