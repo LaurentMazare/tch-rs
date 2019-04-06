@@ -96,7 +96,7 @@ trainable variables.
 
 ```rust
 let vs = tch::nn::VarStore::new(tch::Device::Cpu);
-let linear = nn::Linear::new(vs.root(), 512, dataset.labels, Default::default());
+let linear = nn::linear(vs.root(), 512, dataset.labels, Default::default());
 ```
 
 We will use stochastic gradient descent to minimize the cross-entropy loss
