@@ -44,27 +44,27 @@ pub type ConvTranspose1D = ConvTransposeND<[i64; 1]>;
 pub type ConvTranspose2D = ConvTransposeND<[i64; 2]>;
 pub type ConvTranspose3D = ConvTransposeND<[i64; 3]>;
 
+fn conv_transpose<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    out_dim: i64,
+    ksizes: ND,
+    config: ConvTransposeConfigND<ND>,
+) -> ConvTransposeND<ND> {
+    let vs = vs.borrow();
+    let bs = if config.bias {
+        vs.var("bias", &[out_dim], config.bs_init)
+    } else {
+        Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
+    };
+    let mut weight_size = vec![in_dim, out_dim / config.groups];
+    weight_size.extend(ksizes.as_ref().iter());
+    let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
+    ConvTransposeND { ws, bs, config }
+}
+
 trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
     fn make_array(i: i64) -> Self;
-
-    fn conv_transpose_nd<'a, T: Borrow<super::Path<'a>>>(
-        vs: T,
-        in_dim: i64,
-        out_dim: i64,
-        ksizes: Self,
-        config: ConvTransposeConfigND<Self>,
-    ) -> ConvTransposeND<Self> {
-        let vs = vs.borrow();
-        let bs = if config.bias {
-            vs.var("bias", &[out_dim], config.bs_init)
-        } else {
-            Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
-        };
-        let mut weight_size = vec![in_dim, out_dim / config.groups];
-        weight_size.extend(ksizes.as_ref().iter());
-        let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
-        ConvTransposeND { ws, bs, config }
-    }
 
     fn conv_transpose<'a, T: Borrow<super::Path<'a>>>(
         vs: T,
@@ -83,7 +83,7 @@ trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
             ws_init: config.ws_init,
             bs_init: config.bs_init,
         };
-        Self::conv_transpose_nd(vs, in_dim, out_dim, Self::make_array(ksize), config)
+        conv_transpose(vs, in_dim, out_dim, Self::make_array(ksize), config)
     }
 }
 
@@ -125,16 +125,6 @@ pub fn conv_transpose2d<'a, T: Borrow<Path<'a>>>(
     <[i64; 2]>::conv_transpose(vs, i, o, k, c)
 }
 
-pub fn conv_transpose2d_n<'a, T: Borrow<Path<'a>>>(
-    vs: T,
-    i: i64,
-    o: i64,
-    k: [i64; 2],
-    c: ConvTransposeConfigND<[i64; 2]>,
-) -> ConvTranspose2D {
-    <[i64; 2]>::conv_transpose_nd(vs, i, o, k, c)
-}
-
 pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
     vs: T,
     i: i64,
@@ -143,16 +133,6 @@ pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
     c: ConvTransposeConfig,
 ) -> ConvTranspose3D {
     <[i64; 3]>::conv_transpose(vs, i, o, k, c)
-}
-
-pub fn conv_transpose3d_n<'a, T: Borrow<Path<'a>>>(
-    vs: T,
-    i: i64,
-    o: i64,
-    k: [i64; 3],
-    c: ConvTransposeConfigND<[i64; 3]>,
-) -> ConvTranspose3D {
-    <[i64; 3]>::conv_transpose_nd(vs, i, o, k, c)
 }
 
 impl super::module::Module for ConvTranspose1D {

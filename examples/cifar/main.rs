@@ -7,7 +7,7 @@
 */
 
 extern crate tch;
-use tch::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, OptimizerConfig, SequentialT};
+use tch::nn::{FuncT, ModuleT, OptimizerConfig, SequentialT};
 use tch::{nn, Device};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {

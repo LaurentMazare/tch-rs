@@ -29,7 +29,7 @@ fn conv_bn2(p: nn::Path, c_in: i64, c_out: i64, ksize: [i64; 2], pad: [i64; 2]) 
         ..Default::default()
     };
     nn::seq_t()
-        .add(nn::conv2d_nd(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
+        .add(nn::conv(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
         .add(nn::batch_norm2d(&p / "bn", c_out, bn_cfg))
         .add_fn(|xs| xs.relu())
 }
