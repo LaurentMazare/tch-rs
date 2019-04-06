@@ -68,18 +68,16 @@ pub struct LSTM {
     device: Device,
 }
 
-impl LSTM {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> LSTM {
-        let gate_dim = 4 * hidden_dim;
-        LSTM {
-            w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
-            w_hh: vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]),
-            b_ih: vs.zeros("b_ih", &[gate_dim]),
-            b_hh: vs.zeros("b_hh", &[gate_dim]),
-            hidden_dim,
-            config: c,
-            device: vs.device(),
-        }
+pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> LSTM {
+    let gate_dim = 4 * hidden_dim;
+    LSTM {
+        w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
+        w_hh: vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]),
+        b_ih: vs.zeros("b_ih", &[gate_dim]),
+        b_hh: vs.zeros("b_hh", &[gate_dim]),
+        hidden_dim,
+        config: c,
+        device: vs.device(),
     }
 }
 
@@ -139,18 +137,16 @@ pub struct GRU {
     device: Device,
 }
 
-impl GRU {
-    pub fn new(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
-        let gate_dim = 3 * hidden_dim;
-        GRU {
-            w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
-            w_hh: vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]),
-            b_ih: vs.zeros("b_ih", &[gate_dim]),
-            b_hh: vs.zeros("b_hh", &[gate_dim]),
-            hidden_dim,
-            config: c,
-            device: vs.device(),
-        }
+pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
+    let gate_dim = 3 * hidden_dim;
+    GRU {
+        w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
+        w_hh: vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]),
+        b_ih: vs.zeros("b_ih", &[gate_dim]),
+        b_hh: vs.zeros("b_hh", &[gate_dim]),
+        hidden_dim,
+        config: c,
+        device: vs.device(),
     }
 }
 

@@ -12,14 +12,12 @@ impl<'a> std::fmt::Debug for Func<'a> {
     }
 }
 
-impl<'a> Func<'a> {
-    pub fn new<F>(f: F) -> Func<'a>
-    where
-        F: 'a,
-        F: Fn(&Tensor) -> Tensor,
-    {
-        Func { f: Box::new(f) }
-    }
+pub fn func<'a, F>(f: F) -> Func<'a>
+where
+    F: 'a,
+    F: Fn(&Tensor) -> Tensor,
+{
+    Func { f: Box::new(f) }
 }
 
 impl<'a> super::module::Module for Func<'a> {
@@ -39,14 +37,12 @@ impl<'a> std::fmt::Debug for FuncT<'a> {
     }
 }
 
-impl<'a> FuncT<'a> {
-    pub fn new<F>(f: F) -> FuncT<'a>
-    where
-        F: 'a,
-        F: Fn(&Tensor, bool) -> Tensor,
-    {
-        FuncT { f: Box::new(f) }
-    }
+pub fn func_t<'a, F>(f: F) -> FuncT<'a>
+where
+    F: 'a,
+    F: Fn(&Tensor, bool) -> Tensor,
+{
+    FuncT { f: Box::new(f) }
 }
 
 impl<'a> super::module::ModuleT for FuncT<'a> {

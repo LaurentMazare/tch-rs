@@ -129,42 +129,36 @@ impl Create for [i64; 3] {
     }
 }
 
-impl Conv1D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Self {
-        <[i64; 1]>::conv(vs, i, o, k, c)
-    }
+pub fn conv1d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv1D {
+    <[i64; 1]>::conv(vs, i, o, k, c)
 }
 
-impl Conv2D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Self {
-        <[i64; 2]>::conv(vs, i, o, k, c)
-    }
-
-    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: [i64; 2],
-        c: ConvConfigND<[i64; 2]>,
-    ) -> Self {
-        <[i64; 2]>::conv_nd(vs, i, o, k, c)
-    }
+pub fn conv2d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv2D {
+    <[i64; 2]>::conv(vs, i, o, k, c)
 }
 
-impl Conv3D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Self {
-        <[i64; 3]>::conv(vs, i, o, k, c)
-    }
+pub fn conv2d_nd<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: [i64; 2],
+    c: ConvConfigND<[i64; 2]>,
+) -> Conv2D {
+    <[i64; 2]>::conv_nd(vs, i, o, k, c)
+}
 
-    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: [i64; 3],
-        c: ConvConfigND<[i64; 3]>,
-    ) -> Self {
-        <[i64; 3]>::conv_nd(vs, i, o, k, c)
-    }
+pub fn conv3d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv3D {
+    <[i64; 3]>::conv(vs, i, o, k, c)
+}
+
+pub fn conv3d_nd<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: [i64; 3],
+    c: ConvConfigND<[i64; 3]>,
+) -> Conv3D {
+    <[i64; 3]>::conv_nd(vs, i, o, k, c)
 }
 
 impl super::module::Module for Conv1D {

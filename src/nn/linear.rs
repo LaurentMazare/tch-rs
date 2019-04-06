@@ -24,25 +24,23 @@ pub struct Linear {
     pub bs: Tensor,
 }
 
-impl Linear {
-    pub fn new<'a, T: Borrow<super::Path<'a>>>(
-        vs: T,
-        in_dim: i64,
-        out_dim: i64,
-        c: LinearConfig,
-    ) -> Linear {
-        let vs = vs.borrow();
-        let bs_init = c.bs_init.unwrap_or_else(|| {
-            let bound = 1.0 / (in_dim as f64).sqrt();
-            super::Init::Uniform {
-                lo: -bound,
-                up: bound,
-            }
-        });
-        Linear {
-            ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
-            bs: vs.var("bias", &[out_dim], bs_init),
+pub fn linear<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    out_dim: i64,
+    c: LinearConfig,
+) -> Linear {
+    let vs = vs.borrow();
+    let bs_init = c.bs_init.unwrap_or_else(|| {
+        let bound = 1.0 / (in_dim as f64).sqrt();
+        super::Init::Uniform {
+            lo: -bound,
+            up: bound,
         }
+    });
+    Linear {
+        ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
+        bs: vs.var("bias", &[out_dim], bs_init),
     }
 }
 

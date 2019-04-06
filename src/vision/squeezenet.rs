@@ -1,7 +1,6 @@
 //! SqueezeNet implementation.
 
-use crate::nn::{Conv2D, Func, Module, ModuleT, SequentialT};
-use crate::{nn, Tensor};
+use crate::{nn, nn::Module, nn::ModuleT, Tensor};
 
 fn max_pool2d(xs: &Tensor) -> Tensor {
     xs.max_pool2d(&[3, 3], &[2, 2], &[0, 0], &[1, 1], true)
@@ -12,10 +11,10 @@ fn fire(p: nn::Path, c_in: i64, c_squeeze: i64, c_exp1: i64, c_exp3: i64) -> imp
         padding: 1,
         ..Default::default()
     };
-    let squeeze = Conv2D::new(&p / "squeeze", c_in, c_squeeze, 1, Default::default());
-    let exp1 = Conv2D::new(&p / "expand1x1", c_squeeze, c_exp1, 1, Default::default());
-    let exp3 = Conv2D::new(&p / "expand3x3", c_squeeze, c_exp3, 3, cfg3);
-    Func::new(move |xs| {
+    let squeeze = nn::conv2d(&p / "squeeze", c_in, c_squeeze, 1, Default::default());
+    let exp1 = nn::conv2d(&p / "expand1x1", c_squeeze, c_exp1, 1, Default::default());
+    let exp3 = nn::conv2d(&p / "expand3x3", c_squeeze, c_exp3, 3, cfg3);
+    nn::func(move |xs| {
         let xs = xs.apply(&squeeze).relu();
         Tensor::cat(&[xs.apply(&exp1).relu(), xs.apply(&exp3).relu()], 1)
     })
@@ -33,8 +32,8 @@ fn squeezenet(p: &nn::Path, v1_0: bool, nclasses: i64) -> impl ModuleT {
         ..Default::default()
     };
     let features = if v1_0 {
-        SequentialT::new()
-            .add(Conv2D::new(&f_p / "0", 3, 96, 7, initial_conv_cfg))
+        nn::seq_t()
+            .add(nn::conv2d(&f_p / "0", 3, 96, 7, initial_conv_cfg))
             .add_fn(|xs| xs.relu())
             .add_fn(|xs| max_pool2d(&xs))
             .add(fire(&f_p / "3", 96, 16, 64, 64))
@@ -48,8 +47,8 @@ fn squeezenet(p: &nn::Path, v1_0: bool, nclasses: i64) -> impl ModuleT {
             .add_fn(|xs| max_pool2d(&xs))
             .add(fire(&f_p / "12", 512, 64, 256, 256))
     } else {
-        SequentialT::new()
-            .add(Conv2D::new(&f_p / "0", 3, 64, 3, initial_conv_cfg))
+        nn::seq_t()
+            .add(nn::conv2d(&f_p / "0", 3, 64, 3, initial_conv_cfg))
             .add_fn(|xs| xs.relu())
             .add_fn(|xs| max_pool2d(&xs))
             .add(fire(&f_p / "3", 64, 16, 64, 64))
@@ -65,7 +64,7 @@ fn squeezenet(p: &nn::Path, v1_0: bool, nclasses: i64) -> impl ModuleT {
     };
     features
         .add_fn_t(|xs, train| xs.dropout(0.5, train))
-        .add(Conv2D::new(&c_p / "1", 512, nclasses, 1, final_conv_cfg))
+        .add(nn::conv2d(&c_p / "1", 512, nclasses, 1, final_conv_cfg))
         .add_fn(|xs| xs.relu().adaptive_avg_pool2d(&[1, 1]).flat_view())
 }
 

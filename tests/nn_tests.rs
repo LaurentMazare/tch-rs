@@ -44,7 +44,7 @@ fn optimizer_test() {
         ws_init: nn::Init::Const(0.),
         bs_init: Some(nn::Init::Const(0.)),
     };
-    let mut linear = nn::Linear::new(vs.root(), 1, 1, cfg);
+    let mut linear = nn::linear(vs.root(), 1, 1, cfg);
     let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
 
     let loss = xs.apply(&linear).mse_loss(&ys, 1);

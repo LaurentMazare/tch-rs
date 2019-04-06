@@ -28,8 +28,8 @@ pub fn main() -> failure::Fallible<()> {
     let train_images = tch::no_grad(|| dataset.train_images.apply_t(&net, false));
     let test_images = tch::no_grad(|| dataset.test_images.apply_t(&net, false));
 
-    let vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    let linear = nn::Linear::new(vs.root(), 512, dataset.labels, Default::default());
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let linear = nn::linear(vs.root(), 512, dataset.labels, Default::default());
     let sgd = nn::Sgd::default().build(&vs, 1e-3)?;
 
     for epoch_idx in 1..1001 {

@@ -7,11 +7,11 @@ pub struct Sequential {
     layers: Vec<Box<dyn Module>>,
 }
 
-impl Sequential {
-    pub fn new() -> Sequential {
-        Sequential { layers: vec![] }
-    }
+pub fn seq() -> Sequential {
+    Sequential { layers: vec![] }
+}
 
+impl Sequential {
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
     }
@@ -48,7 +48,7 @@ impl Sequential {
         F: 'static,
         F: Fn(&Tensor) -> Tensor,
     {
-        self.add(super::func::Func::new(f))
+        self.add(super::func(f))
     }
 
     /// Applies the forward pass and returns the output for each layer.
@@ -75,11 +75,11 @@ pub struct SequentialT {
     layers: Vec<Box<dyn ModuleT>>,
 }
 
-impl SequentialT {
-    pub fn new() -> SequentialT {
-        SequentialT { layers: vec![] }
-    }
+pub fn seq_t() -> SequentialT {
+    SequentialT { layers: vec![] }
+}
 
+impl SequentialT {
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
     }
@@ -116,7 +116,7 @@ impl SequentialT {
         F: 'static,
         F: Fn(&Tensor) -> Tensor,
     {
-        self.add(super::func::Func::new(f))
+        self.add(super::func(f))
     }
 
     /// Appends a closure after all the current layers.
@@ -125,7 +125,7 @@ impl SequentialT {
         F: 'static,
         F: Fn(&Tensor, bool) -> Tensor,
     {
-        self.add(super::func::FuncT::new(f))
+        self.add(super::func_t(f))
     }
 
     /// Applies the forward pass and returns the output for each layer.

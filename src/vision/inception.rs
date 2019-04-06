@@ -1,7 +1,5 @@
 //! InceptionV3.
-use crate::nn;
-use crate::nn::{BatchNorm2D, Conv2D, FuncT, Linear, ModuleT, SequentialT};
-use crate::Tensor;
+use crate::{nn, nn::ModuleT, Tensor};
 
 fn conv_bn(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, pad: i64, stride: i64) -> impl ModuleT {
     let conv2d_cfg = nn::ConvConfig {
@@ -14,9 +12,9 @@ fn conv_bn(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, pad: i64, stride: i64
         eps: 0.001,
         ..Default::default()
     };
-    SequentialT::new()
-        .add(Conv2D::new(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
-        .add(BatchNorm2D::new(&p / "bn", c_out, bn_cfg))
+    nn::seq_t()
+        .add(nn::conv2d(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
+        .add(nn::batch_norm2d(&p / "bn", c_out, bn_cfg))
         .add_fn(|xs| xs.relu())
 }
 
@@ -30,9 +28,9 @@ fn conv_bn2(p: nn::Path, c_in: i64, c_out: i64, ksize: [i64; 2], pad: [i64; 2]) 
         eps: 0.001,
         ..Default::default()
     };
-    SequentialT::new()
-        .add(Conv2D::new_nd(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
-        .add(BatchNorm2D::new(&p / "bn", c_out, bn_cfg))
+    nn::seq_t()
+        .add(nn::conv2d_nd(&p / "conv", c_in, c_out, ksize, conv2d_cfg))
+        .add(nn::batch_norm2d(&p / "bn", c_out, bn_cfg))
         .add_fn(|xs| xs.relu())
 }
 
@@ -48,7 +46,7 @@ fn inception_a(p: nn::Path, c_in: i64, c_pool: i64) -> impl ModuleT {
     let b3_2 = conv_bn(&p / "branch3x3dbl_2", 64, 96, 3, 1, 1);
     let b3_3 = conv_bn(&p / "branch3x3dbl_3", 96, 96, 3, 1, 1);
     let bpool = conv_bn(&p / "branch_pool", c_in, c_pool, 1, 0, 1);
-    FuncT::new(move |xs, tr| {
+    nn::func_t(move |xs, tr| {
         let b1 = xs.apply_t(&b1, tr);
         let b2 = xs.apply_t(&b2_1, tr).apply_t(&b2_2, tr);
         let b3 = xs.apply_t(&b3_1, tr).apply_t(&b3_2, tr).apply_t(&b3_3, tr);
@@ -64,7 +62,7 @@ fn inception_b(p: nn::Path, c_in: i64) -> impl ModuleT {
     let b2_1 = conv_bn(&p / "branch3x3dbl_1", c_in, 64, 1, 0, 1);
     let b2_2 = conv_bn(&p / "branch3x3dbl_2", 64, 96, 3, 1, 1);
     let b2_3 = conv_bn(&p / "branch3x3dbl_3", 96, 96, 3, 0, 2);
-    FuncT::new(move |xs, tr| {
+    nn::func_t(move |xs, tr| {
         let b1 = xs.apply_t(&b1, tr);
         let b2 = xs.apply_t(&b2_1, tr).apply_t(&b2_2, tr).apply_t(&b2_3, tr);
         let bpool = max_pool2d(xs, 3, 2);
@@ -87,7 +85,7 @@ fn inception_c(p: nn::Path, c_in: i64, c7: i64) -> impl ModuleT {
 
     let bpool = conv_bn(&p / "branch_pool", c_in, 192, 1, 0, 1);
 
-    FuncT::new(move |xs, tr| {
+    nn::func_t(move |xs, tr| {
         let b1 = xs.apply_t(&b1, tr);
         let b2 = xs.apply_t(&b2_1, tr).apply_t(&b2_2, tr).apply_t(&b2_3, tr);
         let b3 = xs
@@ -112,7 +110,7 @@ fn inception_d(p: nn::Path, c_in: i64) -> impl ModuleT {
     let b2_3 = conv_bn2(&p / "branch7x7x3_3", 192, 192, [7, 1], [3, 0]);
     let b2_4 = conv_bn(&p / "branch7x7x3_4", 192, 192, 3, 0, 2);
 
-    FuncT::new(move |xs, tr| {
+    nn::func_t(move |xs, tr| {
         let b1 = xs.apply_t(&b1_1, tr).apply_t(&b1_2, tr);
         let b2 = xs
             .apply_t(&b2_1, tr)
@@ -138,7 +136,7 @@ fn inception_e(p: nn::Path, c_in: i64) -> impl ModuleT {
 
     let bpool = conv_bn(&p / "branch_pool", c_in, 192, 1, 0, 1);
 
-    FuncT::new(move |xs, tr| {
+    nn::func_t(move |xs, tr| {
         let b1 = xs.apply_t(&b1, tr);
 
         let b2 = xs.apply_t(&b2_1, tr);
@@ -156,7 +154,7 @@ fn inception_e(p: nn::Path, c_in: i64) -> impl ModuleT {
 }
 
 pub fn v3(p: &nn::Path, nclasses: i64) -> impl ModuleT {
-    SequentialT::new()
+    nn::seq_t()
         .add(conv_bn(p / "Conv2d_1a_3x3", 3, 32, 3, 0, 2))
         .add(conv_bn(p / "Conv2d_2a_3x3", 32, 32, 3, 0, 1))
         .add(conv_bn(p / "Conv2d_2b_3x3", 32, 64, 3, 1, 1))
@@ -180,5 +178,5 @@ pub fn v3(p: &nn::Path, nclasses: i64) -> impl ModuleT {
                 .dropout(0.5, train)
                 .flat_view()
         })
-        .add(Linear::new(p / "fc", 2048, nclasses, Default::default()))
+        .add(nn::linear(p / "fc", 2048, nclasses, Default::default()))
 }

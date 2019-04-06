@@ -39,8 +39,8 @@ pub fn main() -> failure::Fallible<()> {
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
     println!("Dataset loaded, {} labels.", labels);
-    let lstm = nn::LSTM::new(&vs.root(), labels, HIDDEN_SIZE, Default::default());
-    let linear = nn::Linear::new(&vs.root(), HIDDEN_SIZE, labels, Default::default());
+    let lstm = nn::lstm(&vs.root(), labels, HIDDEN_SIZE, Default::default());
+    let linear = nn::linear(&vs.root(), HIDDEN_SIZE, labels, Default::default());
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     for epoch in 1..(1 + EPOCHS) {
         let mut sum_loss = 0.;

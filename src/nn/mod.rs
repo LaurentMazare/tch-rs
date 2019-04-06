@@ -12,26 +12,25 @@ mod module;
 pub use module::{Module, ModuleT};
 
 mod linear;
-pub use linear::{Linear, LinearConfig};
+pub use linear::*;
 
 mod conv;
-pub use conv::{no_bias, Conv1D, Conv2D, Conv3D, ConvConfig, ConvConfigND};
+pub use conv::*;
 
 mod conv_transpose;
-pub use conv_transpose::{ConvTranspose1D, ConvTranspose2D, ConvTranspose3D, ConvTransposeConfig};
+pub use conv_transpose::*;
 
 mod batch_norm;
-pub use batch_norm::{BatchNorm2D, BatchNorm2DConfig};
+pub use batch_norm::*;
 
 mod rnn;
-pub use rnn::{RNNConfig, GRU, LSTM, RNN};
+pub use rnn::*;
 
 mod func;
-pub use func::{Func, FuncT};
+pub use func::*;
 
 mod sequential;
-pub use sequential::Sequential;
-pub use sequential::SequentialT;
+pub use sequential::*;
 
 mod optimizer;
 pub use optimizer::{adam, rms_prop, sgd, Adam, Optimizer, OptimizerConfig, RmsProp, Sgd};

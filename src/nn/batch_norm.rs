@@ -33,20 +33,18 @@ pub struct BatchNorm2D {
     pub bs: Tensor,
 }
 
-impl BatchNorm2D {
-    pub fn new<'a, T: Borrow<super::Path<'a>>>(
-        vs: T,
-        out_dim: i64,
-        config: BatchNorm2DConfig,
-    ) -> BatchNorm2D {
-        let vs = vs.borrow();
-        BatchNorm2D {
-            config,
-            running_mean: vs.zeros_no_train("running_mean", &[out_dim]),
-            running_var: vs.ones_no_train("running_var", &[out_dim]),
-            ws: vs.var("weight", &[out_dim], config.ws_init),
-            bs: vs.var("bias", &[out_dim], config.bs_init),
-        }
+pub fn batch_norm2d<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    out_dim: i64,
+    config: BatchNorm2DConfig,
+) -> BatchNorm2D {
+    let vs = vs.borrow();
+    BatchNorm2D {
+        config,
+        running_mean: vs.zeros_no_train("running_mean", &[out_dim]),
+        running_var: vs.ones_no_train("running_var", &[out_dim]),
+        ws: vs.var("weight", &[out_dim], config.ws_init),
+        bs: vs.var("bias", &[out_dim], config.bs_init),
     }
 }
 

@@ -20,7 +20,7 @@ fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Co
         bias: false,
         ..Default::default()
     };
-    nn::ConvTranspose2D::new(&p, c_in, c_out, 4, cfg)
+    nn::conv_transpose2d(&p, c_in, c_out, 4, cfg)
 }
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Conv2D {
@@ -30,22 +30,22 @@ fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::
         bias: false,
         ..Default::default()
     };
-    nn::Conv2D::new(&p, c_in, c_out, 4, cfg)
+    nn::conv2d(&p, c_in, c_out, 4, cfg)
 }
 
 fn generator(p: nn::Path) -> impl nn::ModuleT {
-    nn::SequentialT::new()
+    nn::seq_t()
         .add(tr2d(&p / "tr1", LATENT_DIM, 1024, 0, 1))
-        .add(nn::BatchNorm2D::new(&p / "bn1", 1024, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn1", 1024, Default::default()))
         .add_fn(|xs| xs.relu())
         .add(tr2d(&p / "tr2", 1024, 512, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn2", 512, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn2", 512, Default::default()))
         .add_fn(|xs| xs.relu())
         .add(tr2d(&p / "tr3", 512, 256, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn3", 256, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn3", 256, Default::default()))
         .add_fn(|xs| xs.relu())
         .add(tr2d(&p / "tr4", 256, 128, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn4", 128, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn4", 128, Default::default()))
         .add_fn(|xs| xs.relu())
         .add(tr2d(&p / "tr5", 128, 3, 1, 2))
         .add_fn(|xs| xs.tanh())
@@ -56,17 +56,17 @@ fn leaky_relu(xs: &Tensor) -> Tensor {
 }
 
 fn discriminator(p: nn::Path) -> impl nn::ModuleT {
-    nn::SequentialT::new()
+    nn::seq_t()
         .add(conv2d(&p / "conv1", 3, 128, 1, 2))
         .add_fn(leaky_relu)
         .add(conv2d(&p / "conv2", 128, 256, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn2", 256, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn2", 256, Default::default()))
         .add_fn(leaky_relu)
         .add(conv2d(&p / "conv3", 256, 512, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn3", 512, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn3", 512, Default::default()))
         .add_fn(leaky_relu)
         .add(conv2d(&p / "conv4", 512, 1024, 1, 2))
-        .add(nn::BatchNorm2D::new(&p / "bn4", 1024, Default::default()))
+        .add(nn::batch_norm2d(&p / "bn4", 1024, Default::default()))
         .add_fn(leaky_relu)
         .add(conv2d(&p / "conv5", 1024, 1, 0, 1))
 }

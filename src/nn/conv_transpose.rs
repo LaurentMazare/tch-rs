@@ -105,60 +105,54 @@ impl Create for [i64; 3] {
     }
 }
 
-impl ConvTranspose1D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: i64,
-        c: ConvTransposeConfig,
-    ) -> Self {
-        <[i64; 1]>::conv_transpose(vs, i, o, k, c)
-    }
+pub fn conv_transpose1d<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: i64,
+    c: ConvTransposeConfig,
+) -> ConvTranspose1D {
+    <[i64; 1]>::conv_transpose(vs, i, o, k, c)
 }
 
-impl ConvTranspose2D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: i64,
-        c: ConvTransposeConfig,
-    ) -> Self {
-        <[i64; 2]>::conv_transpose(vs, i, o, k, c)
-    }
-
-    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: [i64; 2],
-        c: ConvTransposeConfigND<[i64; 2]>,
-    ) -> Self {
-        <[i64; 2]>::conv_transpose_nd(vs, i, o, k, c)
-    }
+pub fn conv_transpose2d<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: i64,
+    c: ConvTransposeConfig,
+) -> ConvTranspose2D {
+    <[i64; 2]>::conv_transpose(vs, i, o, k, c)
 }
 
-impl ConvTranspose3D {
-    pub fn new<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: i64,
-        c: ConvTransposeConfig,
-    ) -> Self {
-        <[i64; 3]>::conv_transpose(vs, i, o, k, c)
-    }
+pub fn conv_transpose2d_n<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: [i64; 2],
+    c: ConvTransposeConfigND<[i64; 2]>,
+) -> ConvTranspose2D {
+    <[i64; 2]>::conv_transpose_nd(vs, i, o, k, c)
+}
 
-    pub fn new_nd<'a, T: Borrow<Path<'a>>>(
-        vs: T,
-        i: i64,
-        o: i64,
-        k: [i64; 3],
-        c: ConvTransposeConfigND<[i64; 3]>,
-    ) -> Self {
-        <[i64; 3]>::conv_transpose_nd(vs, i, o, k, c)
-    }
+pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: i64,
+    c: ConvTransposeConfig,
+) -> ConvTranspose3D {
+    <[i64; 3]>::conv_transpose(vs, i, o, k, c)
+}
+
+pub fn conv_transpose3d_n<'a, T: Borrow<Path<'a>>>(
+    vs: T,
+    i: i64,
+    o: i64,
+    k: [i64; 3],
+    c: ConvTransposeConfigND<[i64; 3]>,
+) -> ConvTranspose3D {
+    <[i64; 3]>::conv_transpose_nd(vs, i, o, k, c)
 }
 
 impl super::module::Module for ConvTranspose1D {
