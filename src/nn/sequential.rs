@@ -37,6 +37,7 @@ impl Module for Sequential {
 
 impl Sequential {
     /// Appends a layer after all the current layers.
+    #[allow(clippy::should_implement_trait)]
     pub fn add<M: Module + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
@@ -105,6 +106,7 @@ impl ModuleT for SequentialT {
 
 impl SequentialT {
     /// Appends a layer after all the current layers.
+    #[allow(clippy::should_implement_trait)]
     pub fn add<M: ModuleT + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self

@@ -137,7 +137,6 @@ void atg_clamp_min(tensor *, tensor self, scalar min);
 void atg_clamp_min_(tensor *, tensor self, scalar min);
 void atg_clamp_min_out(tensor *, tensor result, tensor self, scalar min);
 void atg_clamp_out(tensor *, tensor result, tensor self, scalar min, scalar max);
-void atg_clone(tensor *, tensor self);
 void atg_coalesce(tensor *, tensor self);
 void atg_constant_pad_nd(tensor *, tensor self, int64_t *pad_data, int pad_len);
 void atg_contiguous(tensor *, tensor self);

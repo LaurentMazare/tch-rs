@@ -329,6 +329,12 @@ impl Tensor {
     }
 }
 
+impl Default for Tensor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for Tensor {
     fn drop(&mut self) {
         unsafe_torch!({ at_free(self.c_tensor) })
@@ -352,11 +358,9 @@ pub struct NoGradGuard {
     enabled: bool,
 }
 
-impl NoGradGuard {
-    pub fn new() -> NoGradGuard {
-        NoGradGuard {
-            enabled: grad_set_enabled(false),
-        }
+pub fn no_grad_guard() -> NoGradGuard {
+    NoGradGuard {
+        enabled: grad_set_enabled(false),
     }
 }
 

@@ -141,7 +141,6 @@ extern "C" {
     pub fn atg_clamp_min_(out__: *mut *mut C_tensor, self_: *mut C_tensor, min_: *mut C_scalar);
     pub fn atg_clamp_min_out(out__: *mut *mut C_tensor, result_: *mut C_tensor, self_: *mut C_tensor, min_: *mut C_scalar);
     pub fn atg_clamp_out(out__: *mut *mut C_tensor, result_: *mut C_tensor, self_: *mut C_tensor, min_: *mut C_scalar, max_: *mut C_scalar);
-    pub fn atg_clone(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_coalesce(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_constant_pad_nd(out__: *mut *mut C_tensor, self_: *mut C_tensor, pad_data: *const i64, pad_len: c_int);
     pub fn atg_contiguous(out__: *mut *mut C_tensor, self_: *mut C_tensor);

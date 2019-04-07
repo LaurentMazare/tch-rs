@@ -68,6 +68,7 @@ impl Iter2 {
     }
 
     /// Transfers the mini-batches to a specified device.
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_device(&mut self, device: Device) -> &mut Iter2 {
         self.device = device;
         self

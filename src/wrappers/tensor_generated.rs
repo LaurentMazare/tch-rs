@@ -828,12 +828,6 @@ impl Tensor {
         self.f_clamp_out(result, min, max).unwrap()
     }
 
-    pub fn clone(
-        &self, 
-    ) -> Tensor {
-        self.f_clone().unwrap()
-    }
-
     pub fn coalesce(
         &self, 
     ) -> Tensor {

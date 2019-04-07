@@ -13,7 +13,8 @@ let excluded_functions =
     [ "multi_margin_loss"
     ; "multi_margin_loss_out"
     ; "log_softmax_backward_data"
-    ; "softmax_backward_data" ]
+    ; "softmax_backward_data"
+    ; "clone" ]
 
 let prefixed_functions =
   Set.of_list

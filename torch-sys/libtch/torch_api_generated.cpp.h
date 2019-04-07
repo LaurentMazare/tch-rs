@@ -970,13 +970,6 @@ void atg_clamp_out(tensor *out__, tensor result, tensor self, scalar min, scalar
   )
 }
 
-void atg_clone(tensor *out__, tensor self) {
-  PROTECT(
-    auto outputs__ = torch::clone(*self);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
 void atg_coalesce(tensor *out__, tensor self) {
   PROTECT(
     auto outputs__ = self->coalesce();

@@ -6,7 +6,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 mod iter;
 mod npy;
 
-pub use super::wrappers::tensor::{no_grad, NoGradGuard, Tensor};
+pub use super::wrappers::tensor::{no_grad, no_grad_guard, NoGradGuard, Tensor};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
