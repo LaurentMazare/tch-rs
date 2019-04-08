@@ -22,6 +22,19 @@ pub struct Iter2 {
 }
 
 impl Iter2 {
+    /// Returns a new iterator.
+    ///
+    /// This takes as input two tensors which first dimension must match. The
+    /// returned iterator can be used to range over mini-batches of data of
+    /// specified size.
+    /// An error is returned if `xs` and `ys` have different first dimension
+    /// sizes.
+    ///
+    /// # Arguments
+    ///
+    /// * `xs` - the features to be used by the model.
+    /// * `ys` - the targets that the model attempts to predict.
+    /// * `batch_size` - the size of batches to be returned.
     pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Fallible<Iter2> {
         let total_size = xs.size()[0];
         ensure!(
@@ -46,6 +59,7 @@ impl Iter2 {
     /// This takes as input two tensors which first dimension must match. The
     /// returned iterator can be used to range over mini-batches of data of
     /// specified size.
+    /// Panics if `xs` and `ys` have different first dimension sizes.
     ///
     /// # Arguments
     ///
@@ -106,6 +120,7 @@ pub struct TextData {
     char_for_label: Vec<char>,
 }
 
+/// Text data iterator.
 #[derive(Debug)]
 pub struct TextDataIter {
     data: Tensor,

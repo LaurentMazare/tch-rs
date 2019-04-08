@@ -1,6 +1,8 @@
+//! Wrappers around the Python API of the OpenAI gym.
 use cpython::{NoArgs, ObjectProtocol, PyObject, PyResult, Python};
 use tch::Tensor;
 
+/// The return value for a step.
 #[derive(Debug)]
 pub struct Step {
     pub obs: Tensor,
@@ -10,6 +12,7 @@ pub struct Step {
 }
 
 impl Step {
+    /// Returns a copy of this step changing the observation tensor.
     pub fn copy_with_obs(&self, obs: &Tensor) -> Step {
         Step {
             obs: obs.copy(),
@@ -20,6 +23,7 @@ impl Step {
     }
 }
 
+/// An OpenAI Gym session.
 pub struct GymEnv {
     env: PyObject,
     action_space: i64,
@@ -27,6 +31,7 @@ pub struct GymEnv {
 }
 
 impl GymEnv {
+    /// Creates a new session of the specified OpenAI Gym environment.
     pub fn new(name: &str) -> PyResult<GymEnv> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -44,6 +49,7 @@ impl GymEnv {
         })
     }
 
+    /// Resets the environment, returning the observation tensor.
     pub fn reset(&self) -> PyResult<Tensor> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -51,6 +57,7 @@ impl GymEnv {
         Ok(Tensor::of_slice(&obs.extract::<Vec<f32>>(py)?))
     }
 
+    /// Applies an environment step using the specified action.
     pub fn step(&self, action: i64) -> PyResult<Step> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -63,10 +70,12 @@ impl GymEnv {
         })
     }
 
+    /// Returns the number of allowed actions for this environment.
     pub fn action_space(&self) -> i64 {
         self.action_space
     }
 
+    /// Returns the shape of the observation tensors.
     pub fn observation_space(&self) -> &[i64] {
         &self.observation_space
     }

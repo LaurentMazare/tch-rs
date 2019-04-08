@@ -30,6 +30,7 @@ fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
     rewards
 }
 
+/// Trains an agent using the policy gradient algorithm.
 pub fn run() -> cpython::PyResult<()> {
     let env = GymEnv::new("CartPole-v0")?;
     println!("action space: {}", env.action_space());

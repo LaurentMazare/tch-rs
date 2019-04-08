@@ -67,6 +67,7 @@ impl FrameStack {
     }
 }
 
+/// Trains an agent using A2C.
 pub fn train() -> cpython::PyResult<()> {
     let env = VecGymEnv::new(ENV_NAME, None, NPROCS)?;
     println!("action space: {}", env.action_space());
@@ -158,6 +159,7 @@ pub fn train() -> cpython::PyResult<()> {
     Ok(())
 }
 
+/// Samples some trajectory for a trained agent, the observation frames are stored in /dev/shm.
 pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()> {
     let env = VecGymEnv::new(ENV_NAME, Some("/dev/shm"), 1)?;
     println!("action space: {}", env.action_space());
