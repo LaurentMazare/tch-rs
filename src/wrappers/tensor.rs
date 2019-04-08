@@ -34,6 +34,7 @@ impl Tensor {
         sz
     }
 
+    /// Returns the tensor size for single dimension tensors.
     pub fn size1(&self) -> Fallible<i64> {
         match self.size().as_slice() {
             &[s0] => Ok(s0),
@@ -41,6 +42,7 @@ impl Tensor {
         }
     }
 
+    /// Returns the tensor sizes for two dimension tensors.
     pub fn size2(&self) -> Fallible<(i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
@@ -48,6 +50,7 @@ impl Tensor {
         }
     }
 
+    /// Returns the tensor sizes for three dimension tensors.
     pub fn size3(&self) -> Fallible<(i64, i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
@@ -55,6 +58,7 @@ impl Tensor {
         }
     }
 
+    /// Returns the tensor sizes for four dimension tensors.
     pub fn size4(&self) -> Fallible<(i64, i64, i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
@@ -82,34 +86,43 @@ impl Tensor {
         unsafe_torch!({ at_print(self.c_tensor) })
     }
 
+    /// Returns a double value on tensors holding a single element. An error is
+    /// returned otherwise.
     pub fn f_double_value(&self, idx: &[i64]) -> Fallible<f64> {
         Ok(unsafe_torch_err!({
             at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
 
+    /// Returns an int value on tensors holding a single element. An error is
+    /// returned otherwise.
     pub fn f_int64_value(&self, idx: &[i64]) -> Fallible<i64> {
         Ok(unsafe_torch!({
             at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
 
+    /// Returns a double value on tensors holding a single element. Panics otherwise.
     pub fn double_value(&self, idx: &[i64]) -> f64 {
         self.f_double_value(idx).unwrap()
     }
 
+    /// Returns an int value on tensors holding a single element. Panics otherwise.
     pub fn int64_value(&self, idx: &[i64]) -> i64 {
         self.f_int64_value(idx).unwrap()
     }
 
+    /// Returns true if gradient are currently tracked for this tensor.
     pub fn requires_grad(&self) -> bool {
         unsafe_torch!({ at_requires_grad(self.c_tensor) }) != 0
     }
 
+    /// Returns true is the tensor is defined.
     pub fn defined(&self) -> bool {
         unsafe_torch!({ at_defined(self.c_tensor) != 0 })
     }
 
+    /// Zeroes the gradient tensor attached to this tensor if defined.
     pub fn zero_grad(&mut self) {
         let grad = self.grad();
         if grad.defined() {
@@ -117,11 +130,20 @@ impl Tensor {
         }
     }
 
+    /// Runs the backward pass, populating the gradient tensors for tensors
+    /// which gradients are tracked.
+    ///
+    /// Gradients tracking can be turned on via `set_requires_grad`.
     pub fn f_backward(&self) -> Fallible<()> {
         unsafe_torch_err!({ at_backward(self.c_tensor, 0, 0) });
         Ok(())
     }
 
+    /// Runs the backward pass, populating the gradient tensors for tensors
+    /// which gradients are tracked.
+    ///
+    /// Gradients tracking can be turned on via `set_requires_grad`.
+    /// Panics if the C++ api returns an exception.
     pub fn backward(&self) {
         self.f_backward().unwrap()
     }
@@ -169,6 +191,7 @@ impl Tensor {
         Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
     }
 
+    /// Copies `numel` elements from `src` to this tensor.
     pub fn f_copy_data<T>(&self, dst: &mut [T], numel: i64) -> Fallible<()> {
         let kind = self.kind();
         unsafe_torch_err!({
@@ -182,6 +205,7 @@ impl Tensor {
         Ok(())
     }
 
+    /// Copies `numel` elements from `src` to this tensor.
     pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
         self.f_copy_data(dst, numel).unwrap()
     }
@@ -192,6 +216,7 @@ impl Tensor {
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
+    /// Converts a slice to a tensor.
     pub fn f_of_slice<T: kind::T>(data: &[T]) -> Fallible<Tensor> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
@@ -207,10 +232,12 @@ impl Tensor {
         Ok(Tensor { c_tensor })
     }
 
+    /// Converts a slice to a tensor.
     pub fn of_slice<T: kind::T>(data: &[T]) -> Tensor {
         Self::f_of_slice(data).unwrap()
     }
 
+    /// Converts some byte data to a tensor with some specified kind and shape.
     pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Fallible<Tensor> {
         let data = data.as_ptr() as *const c_void;
         let elt_size_in_bytes = kind.elt_size_in_bytes();
@@ -226,6 +253,7 @@ impl Tensor {
         Ok(Tensor { c_tensor })
     }
 
+    /// Converts some byte data to a tensor with some specified kind and shape.
     pub fn of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Tensor {
         Self::f_of_data_size(data, size, kind).unwrap()
     }
@@ -236,11 +264,13 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
+    /// Gets the sub-tensor at the given index.
     pub fn f_get(&self, index: i64) -> Fallible<Tensor> {
         let c_tensor = unsafe_torch_err!({ at_get(self.c_tensor, index as c_int) });
         Ok(Tensor { c_tensor })
     }
 
+    /// Gets the sub-tensor at the given index.
     pub fn get(&self, index: i64) -> Tensor {
         self.f_get(index).unwrap()
     }
@@ -344,6 +374,8 @@ impl Drop for Tensor {
 fn grad_set_enabled(b: bool) -> bool {
     unsafe_torch!({ at_grad_set_enabled(if b { 1 } else { 0 }) != 0 })
 }
+
+/// Runs a closure without keeping track of gradients.
 pub fn no_grad<T, F>(f: F) -> T
 where
     F: FnOnce() -> T,
@@ -354,10 +386,13 @@ where
     result
 }
 
+/// A RAII guard that prevents gradient tracking until deallocated.
 pub struct NoGradGuard {
     enabled: bool,
 }
 
+/// Disables gradient tracking, this will be enabled back when the
+/// returned value gets deallocated.
 pub fn no_grad_guard() -> NoGradGuard {
     NoGradGuard {
         enabled: grad_set_enabled(false),

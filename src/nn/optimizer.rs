@@ -4,6 +4,7 @@ use crate::wrappers::optimizer::COptimizer;
 use crate::Tensor;
 use failure::Fallible;
 
+/// An optimizer to run gradient descent.
 #[derive(Debug)]
 pub struct Optimizer<T> {
     opt: COptimizer,
@@ -11,12 +12,14 @@ pub struct Optimizer<T> {
     config: T,
 }
 
+/// Optimizer configurations. These configs can be used to build optimizer.
 pub trait OptimizerConfig
 where
     Self: std::marker::Sized,
 {
     fn build_copt(&self, lr: f64) -> Fallible<COptimizer>;
 
+    /// Builds an optimizer with the specified learning rate handling variables stored in `vs`.
     fn build(self, vs: &VarStore, lr: f64) -> Fallible<Optimizer<Self>> {
         let mut opt = self.build_copt(lr)?;
         let trainable_variables = vs.trainable_variables();
@@ -49,6 +52,7 @@ impl Default for Sgd {
     }
 }
 
+/// Creates the configuration for a Stochastic Gradient Descent (SGD) optimizer.
 pub fn sgd(momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> Sgd {
     Sgd {
         momentum,
@@ -82,6 +86,7 @@ impl Default for Adam {
     }
 }
 
+/// Creates the configuration for the Adam optimizer.
 pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
     Adam { beta1, beta2, wd }
 }
@@ -114,6 +119,7 @@ impl Default for RmsProp {
     }
 }
 
+/// Creates the configuration for the RmsProp optimizer.
 pub fn rms_prop(alpha: f64, eps: f64, wd: f64, momentum: f64, centered: bool) -> RmsProp {
     RmsProp {
         alpha,
@@ -138,6 +144,7 @@ impl OptimizerConfig for RmsProp {
 }
 
 impl<T> Optimizer<T> {
+    /// Zeroes the gradient for the tensors tracked by this optimizer.
     pub fn zero_grad(&self) {
         self.opt.zero_grad().unwrap()
     }
@@ -149,16 +156,21 @@ impl<T> Optimizer<T> {
         }
     }
 
+    /// Performs an optimization step, updating the tracked tensors based on their gradients.
     pub fn step(&self) {
         self.opt.step().unwrap()
     }
 
+    /// Applies a backward step pass, update the gradients, and performs an optimization step.
     pub fn backward_step(&self, loss: &Tensor) {
         self.zero_grad();
         loss.backward();
         self.step();
     }
 
+    /// Applies a backward step pass, update the gradients, and performs an optimization step.
+    ///
+    /// The gradients are clipped based on `max` before being applied.
     pub fn backward_step_clip(&self, loss: &Tensor, max: f64) {
         self.zero_grad();
         loss.backward();

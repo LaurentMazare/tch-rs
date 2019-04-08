@@ -13,6 +13,7 @@ pub enum Device {
     Cuda,
 }
 
+/// Cpu related helper functions.
 pub enum Cpu {}
 impl Cpu {
     /// Gets the current number of allowed threads for parallel computations.
@@ -27,6 +28,7 @@ impl Cpu {
     }
 }
 
+/// Cuda related helper functions.
 pub enum Cuda {}
 impl Cuda {
     /// Returns the number of GPU that can be used.

@@ -3,6 +3,7 @@ use super::Path;
 use crate::Tensor;
 use std::borrow::Borrow;
 
+/// A generic transposed convolution configuration.
 #[derive(Debug, Clone, Copy)]
 pub struct ConvTransposeConfigND<ND> {
     pub stride: ND,
@@ -15,6 +16,7 @@ pub struct ConvTransposeConfigND<ND> {
     pub bs_init: super::Init,
 }
 
+/// A transposed convolution configuration using the same values on each dimension.
 pub type ConvTransposeConfig = ConvTransposeConfigND<i64>;
 
 impl Default for ConvTransposeConfig {
@@ -32,7 +34,7 @@ impl Default for ConvTransposeConfig {
     }
 }
 
-/// A two dimension transposed convolution layer.
+/// A generic transposed convolution layer.
 #[derive(Debug)]
 pub struct ConvTransposeND<ND> {
     pub ws: Tensor,
@@ -40,8 +42,13 @@ pub struct ConvTransposeND<ND> {
     config: ConvTransposeConfigND<ND>,
 }
 
+/// A one dimension transposed convolution layer.
 pub type ConvTranspose1D = ConvTransposeND<[i64; 1]>;
+
+/// A two dimension transposed convolution layer.
 pub type ConvTranspose2D = ConvTransposeND<[i64; 2]>;
+
+/// A three dimension transposed convolution layer.
 pub type ConvTranspose3D = ConvTransposeND<[i64; 3]>;
 
 fn conv_transpose<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
@@ -105,6 +112,7 @@ impl Create for [i64; 3] {
     }
 }
 
+/// Creates a one dimension transposed convolution layer.
 pub fn conv_transpose1d<'a, T: Borrow<Path<'a>>>(
     vs: T,
     i: i64,
@@ -115,6 +123,7 @@ pub fn conv_transpose1d<'a, T: Borrow<Path<'a>>>(
     <[i64; 1]>::conv_transpose(vs, i, o, k, c)
 }
 
+/// Creates a two dimension transposed convolution layer.
 pub fn conv_transpose2d<'a, T: Borrow<Path<'a>>>(
     vs: T,
     i: i64,
@@ -125,6 +134,7 @@ pub fn conv_transpose2d<'a, T: Borrow<Path<'a>>>(
     <[i64; 2]>::conv_transpose(vs, i, o, k, c)
 }
 
+/// Creates a three dimension transposed convolution layer.
 pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
     vs: T,
     i: i64,

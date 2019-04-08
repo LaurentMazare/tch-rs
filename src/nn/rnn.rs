@@ -1,9 +1,11 @@
 //! Recurrent Neural Networks
 use crate::{Device, Kind, Tensor};
 
+/// Trait for Recurrent Neural Networks.
 pub trait RNN {
     type State;
 
+    /// A zero state from which the recurrent network is usually initialized.
     fn zero_state(&self, batch_dim: i64) -> Self::State;
 
     /// Applies a single step of the recurrent network.
@@ -17,20 +19,24 @@ pub trait RNN {
     fn seq(&self, input: &Tensor) -> (Tensor, Self::State);
 }
 
+/// The state for a LSTM network, this contains two tensors.
 #[derive(Debug)]
 pub struct LSTMState((Tensor, Tensor));
 
 impl LSTMState {
+    /// The hidden state vector, which is also the output of the LSTM.
     pub fn h(&self) -> Tensor {
         (self.0).0.shallow_clone()
     }
 
+    /// The cell state vector.
     pub fn c(&self) -> Tensor {
         (self.0).1.shallow_clone()
     }
 }
 
 // The GRU and LSTM layers share the same config.
+/// Configuration for the GRU and LSTM layers.
 #[derive(Debug, Clone, Copy)]
 pub struct RNNConfig {
     pub has_biases: bool,
@@ -68,6 +74,7 @@ pub struct LSTM {
     device: Device,
 }
 
+/// Creates a LSTM layer.
 pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> LSTM {
     let gate_dim = 4 * hidden_dim;
     LSTM {
@@ -120,6 +127,7 @@ impl RNN for LSTM {
     }
 }
 
+/// A GRU state, this contains a single tensor.
 #[derive(Debug)]
 pub struct GRUState(Tensor);
 
@@ -137,6 +145,7 @@ pub struct GRU {
     device: Device,
 }
 
+/// Creates a new GRU layer.
 pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
     let gate_dim = 3 * hidden_dim;
     GRU {

@@ -2,6 +2,7 @@ use failure::Fallible;
 use libc::c_char;
 use std::convert::From;
 
+/// Errors returned by the torch C++ api.
 #[derive(Fail, Debug)]
 #[fail(display = "Internal torch error: {}", c_error)]
 pub struct TorchError {
@@ -64,6 +65,7 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<st
     }
 }
 
+/// Sets the random seed used by torch.
 pub fn manual_seed(seed: i64) {
     unsafe_torch!({ torch_sys::at_manual_seed(seed) })
 }

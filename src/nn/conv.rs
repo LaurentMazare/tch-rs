@@ -3,6 +3,7 @@ use super::Path;
 use crate::Tensor;
 use std::borrow::Borrow;
 
+/// Generic convolution config.
 #[derive(Debug, Clone, Copy)]
 pub struct ConvConfigND<ND> {
     pub stride: ND,
@@ -14,6 +15,7 @@ pub struct ConvConfigND<ND> {
     pub bs_init: super::Init,
 }
 
+/// Convolution config using the same parameters on all dimensions.
 pub type ConvConfig = ConvConfigND<i64>;
 
 impl Default for ConvConfig {
@@ -44,6 +46,7 @@ impl Default for ConvConfigND<[i64; 2]> {
     }
 }
 
+/// The default convolution config without bias.
 pub fn no_bias() -> ConvConfig {
     ConvConfig {
         bias: false,
@@ -69,6 +72,7 @@ pub type Conv2D = Conv<[i64; 2]>;
 /// Three dimensions convolution layer.
 pub type Conv3D = Conv<[i64; 3]>;
 
+/// Creates a new convolution layer for any number of dimensions.
 pub fn conv<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
     vs: T,
     in_dim: i64,
@@ -129,14 +133,17 @@ impl Create for [i64; 3] {
     }
 }
 
+/// Creates a new one dimension convolution layer.
 pub fn conv1d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv1D {
     <[i64; 1]>::conv(vs, i, o, k, c)
 }
 
+/// Creates a new two dimension convolution layer.
 pub fn conv2d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv2D {
     <[i64; 2]>::conv(vs, i, o, k, c)
 }
 
+/// Creates a new three dimension convolution layer.
 pub fn conv3d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvConfig) -> Conv3D {
     <[i64; 3]>::conv(vs, i, o, k, c)
 }

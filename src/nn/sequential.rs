@@ -2,20 +2,24 @@
 use super::{Module, ModuleT};
 use crate::Tensor;
 
+/// A sequential layer combining multiple other layers.
 #[derive(Debug)]
 pub struct Sequential {
     layers: Vec<Box<dyn Module>>,
 }
 
+/// Creates a new empty sequential layer.
 pub fn seq() -> Sequential {
     Sequential { layers: vec![] }
 }
 
 impl Sequential {
+    /// The number of sub-layers embedded in this layer.
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
     }
 
+    /// Returns true if this layer does not have any sub-layer.
     pub fn is_empty(&self) -> bool {
         self.layers.is_empty()
     }
@@ -71,20 +75,24 @@ impl Sequential {
     }
 }
 
+/// A sequential layer combining new layers with support for a training mode.
 #[derive(Debug)]
 pub struct SequentialT {
     layers: Vec<Box<dyn ModuleT>>,
 }
 
+/// Creates a new empty sequential layer.
 pub fn seq_t() -> SequentialT {
     SequentialT { layers: vec![] }
 }
 
 impl SequentialT {
+    /// The number of sub-layers embedded in this layer.
     pub fn len(&self) -> i64 {
         self.layers.len() as i64
     }
 
+    /// Returns true if this layer does not have any sub-layer.
     pub fn is_empty(&self) -> bool {
         self.layers.is_empty()
     }

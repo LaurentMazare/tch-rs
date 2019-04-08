@@ -1,5 +1,6 @@
 //! The different kind of elements supported in Torch.
 
+/// The different kind of elements that a Tensor can hold.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Kind {
     Uint8,
@@ -67,7 +68,12 @@ impl Kind {
 }
 
 pub const FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
+pub const DOUBLE_CPU: (Kind, crate::Device) = (Kind::Double, crate::Device::Cpu);
 pub const INT64_CPU: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cpu);
+
+pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda);
+pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda);
+pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda);
 
 pub trait T {
     const KIND: Kind;

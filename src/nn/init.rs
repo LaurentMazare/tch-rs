@@ -1,14 +1,23 @@
 //! Variable initialization.
 use crate::{Device, Kind, Tensor};
 
+/// Variable initializations.
 #[derive(Debug, Copy, Clone)]
 pub enum Init {
+    /// Constant value.
     Const(f64),
+
+    /// Random normal with some mean and standard deviation.
     Randn { mean: f64, stdev: f64 },
+
+    /// Uniform initialization between some lower and upper bounds.
     Uniform { lo: f64, up: f64 },
+
+    /// Kaiming uniform initialization.
     KaimingUniform,
 }
 
+/// Creates a new float tensor with the specified shape, device, and initialization.
 pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
     match i {
         Init::Const(cst) => {
@@ -38,6 +47,7 @@ pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
 }
 
 impl Init {
+    /// Re-initializes an existing tensor with the specified initialization
     pub fn set(self, tensor: &mut Tensor) {
         match self {
             Init::Const(cst) => {
@@ -59,6 +69,7 @@ impl Init {
 }
 
 impl Tensor {
+    /// Re-initializes the tensor using the specified initialization.
     pub fn init(&mut self, i: Init) {
         i.set(self)
     }

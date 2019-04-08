@@ -2,6 +2,7 @@
 use crate::Tensor;
 use std::borrow::Borrow;
 
+/// Configuration for a linear layer.
 #[derive(Debug, Clone, Copy)]
 pub struct LinearConfig {
     pub ws_init: super::Init,
@@ -24,6 +25,7 @@ pub struct Linear {
     pub bs: Tensor,
 }
 
+/// Creates a new linear layer.
 pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     vs: T,
     in_dim: i64,

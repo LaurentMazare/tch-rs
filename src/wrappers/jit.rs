@@ -59,6 +59,10 @@ impl IValue {
     }
 }
 
+/// A jit PyTorch module.
+///
+/// These modules can be created via the
+/// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
 pub struct CModule {
     pub(super) c_module: *mut CModule_,
 }

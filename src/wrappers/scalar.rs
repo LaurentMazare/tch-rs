@@ -1,6 +1,7 @@
 //! Scalar elements.
 use failure::Fallible;
 
+/// A single scalar value.
 pub struct Scalar {
     pub(super) c_scalar: *mut torch_sys::C_scalar,
 }
@@ -30,6 +31,7 @@ impl Scalar {
         Ok(f)
     }
 
+    /// Returns a string representation of the scalar.
     pub fn to_string(&self) -> Fallible<String> {
         let s = unsafe_torch_err!({
             super::utils::ptr_to_string(torch_sys::ats_to_string(self.c_scalar))
