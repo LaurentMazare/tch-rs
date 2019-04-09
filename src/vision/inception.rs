@@ -8,7 +8,7 @@ fn conv_bn(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, pad: i64, stride: i64
         bias: false,
         ..Default::default()
     };
-    let bn_cfg = nn::BatchNorm2DConfig {
+    let bn_cfg = nn::BatchNormConfig {
         eps: 0.001,
         ..Default::default()
     };
@@ -24,7 +24,7 @@ fn conv_bn2(p: nn::Path, c_in: i64, c_out: i64, ksize: [i64; 2], pad: [i64; 2]) 
         bias: false,
         ..Default::default()
     };
-    let bn_cfg = nn::BatchNorm2DConfig {
+    let bn_cfg = nn::BatchNormConfig {
         eps: 0.001,
         ..Default::default()
     };

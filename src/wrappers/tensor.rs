@@ -26,10 +26,14 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
+    /// Returns the number of dimension of the tensor.
+    pub fn dim(&self) -> usize {
+        unsafe_torch!({ at_dim(self.c_tensor) as usize })
+    }
+
     /// Returns the shape of the input tensor.
     pub fn size(&self) -> Vec<i64> {
-        let dim = unsafe_torch!({ at_dim(self.c_tensor) as usize });
-        let mut sz = vec![0i64; dim];
+        let mut sz = vec![0i64; self.dim()];
         unsafe_torch!({ at_shape(self.c_tensor, sz.as_mut_ptr()) });
         sz
     }
