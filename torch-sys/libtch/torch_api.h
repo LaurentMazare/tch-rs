@@ -33,7 +33,7 @@ void at_copy_data(tensor tensor, void *vs, int64_t numel, int element_size_in_by
 tensor at_shallow_clone(tensor);
 
 int at_defined(tensor);
-int at_dim(tensor);
+size_t at_dim(tensor);
 void at_shape(tensor, int64_t *);
 int at_scalar_type(tensor);
 

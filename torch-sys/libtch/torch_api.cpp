@@ -75,7 +75,7 @@ int at_defined(tensor t) {
   PROTECT(return t->defined();)
 }
 
-int at_dim(tensor t) {
+size_t at_dim(tensor t) {
   PROTECT(return t->dim();)
 }
 

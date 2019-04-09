@@ -1,4 +1,4 @@
-use libc::{c_char, c_int, c_void};
+use libc::{c_char, c_int, c_void, size_t};
 
 #[repr(C)]
 pub struct C_scalar {
@@ -27,7 +27,7 @@ extern "C" {
     pub fn at_backward(arg: *mut C_tensor, keep_graph: c_int, create_graph: c_int);
     pub fn at_print(arg: *mut C_tensor);
     pub fn at_to_string(arg: *mut C_tensor, line_size: c_int) -> *mut c_char;
-    pub fn at_dim(arg: *mut C_tensor) -> c_int;
+    pub fn at_dim(arg: *mut C_tensor) -> size_t;
     pub fn at_get(arg: *mut C_tensor, index: c_int) -> *mut C_tensor;
     pub fn at_requires_grad(arg: *mut C_tensor) -> c_int;
     pub fn at_shape(arg: *mut C_tensor, sz: *mut i64);

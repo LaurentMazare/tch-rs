@@ -33,7 +33,8 @@ impl Tensor {
 
     /// Returns the shape of the input tensor.
     pub fn size(&self) -> Vec<i64> {
-        let mut sz = vec![0i64; self.dim()];
+        let dim = unsafe_torch!({ at_dim(self.c_tensor) });
+        let mut sz = vec![0i64; dim];
         unsafe_torch!({ at_shape(self.c_tensor, sz.as_mut_ptr()) });
         sz
     }
