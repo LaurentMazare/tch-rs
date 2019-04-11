@@ -29,3 +29,8 @@ runtime as a shared library. `rust-cpython` uses
 `Py_ENABLE_SHARED` to determine the link mode which does not
 seem to work properly with conda as reported in this
 [https://github.com/conda/conda-build/issues/2738](issue).
+
+## A2C Agent Playing Breakout
+[![Breakout](https://img.youtube.com/vi/Zk6j7fC1C6M/0.jpg)](https://www.youtube.com/watch?v=Zk6j7fC1C6M)
+## A2C Agent Playing SpaceInvaders
+[![SpaceInvaders](https://img.youtube.com/vi/p16n4w3aE8k/0.jpg)](https://www.youtube.com/watch?v=p16n4w3aE8k)
