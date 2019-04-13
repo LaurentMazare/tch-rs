@@ -1252,7 +1252,7 @@ void atg_cumprod(tensor *out__, tensor self, int64_t dim) {
 
 void atg_cumprod1(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::cumprod(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::cumprod(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1266,7 +1266,7 @@ void atg_cumprod_out(tensor *out__, tensor result, tensor self, int64_t dim) {
 
 void atg_cumprod_out1(tensor *out__, tensor result, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::cumprod_out(*result, *self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::cumprod_out(*result, *self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1280,7 +1280,7 @@ void atg_cumsum(tensor *out__, tensor self, int64_t dim) {
 
 void atg_cumsum1(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::cumsum(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::cumsum(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1294,7 +1294,7 @@ void atg_cumsum_out(tensor *out__, tensor result, tensor self, int64_t dim) {
 
 void atg_cumsum_out1(tensor *out__, tensor result, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::cumsum_out(*result, *self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::cumsum_out(*result, *self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2811,7 +2811,7 @@ void atg_log_softmax(tensor *out__, tensor self, int64_t dim) {
 
 void atg_log_softmax1(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::log_softmax(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::log_softmax(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3208,7 +3208,7 @@ void atg_mean(tensor *out__, tensor self) {
 
 void atg_mean1(tensor *out__, tensor self, int dtype) {
   PROTECT(
-    auto outputs__ = torch::mean(*self, torch::ScalarType(dtype));
+    auto outputs__ = torch::mean(*self, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3222,14 +3222,14 @@ void atg_mean2(tensor *out__, tensor self, int64_t dim, int keepdim) {
 
 void atg_mean3(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::mean(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::mean(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_mean4(tensor *out__, tensor self, int64_t dim, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::mean(*self, dim, (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::mean(*self, dim, (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3243,14 +3243,14 @@ void atg_mean_out(tensor *out__, tensor result, tensor self, int64_t dim, int ke
 
 void atg_mean_out1(tensor *out__, tensor result, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::mean_out(*result, *self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::mean_out(*result, *self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_mean_out2(tensor *out__, tensor result, tensor self, int64_t dim, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::mean_out(*result, *self, dim, (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::mean_out(*result, *self, dim, (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4097,7 +4097,7 @@ void atg_prod(tensor *out__, tensor self) {
 
 void atg_prod1(tensor *out__, tensor self, int dtype) {
   PROTECT(
-    auto outputs__ = torch::prod(*self, torch::ScalarType(dtype));
+    auto outputs__ = torch::prod(*self, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4111,14 +4111,14 @@ void atg_prod2(tensor *out__, tensor self, int64_t dim, int keepdim) {
 
 void atg_prod3(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::prod(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::prod(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_prod4(tensor *out__, tensor self, int64_t dim, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::prod(*self, dim, (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::prod(*self, dim, (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4132,14 +4132,14 @@ void atg_prod_out(tensor *out__, tensor result, tensor self, int64_t dim, int ke
 
 void atg_prod_out1(tensor *out__, tensor result, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::prod_out(*result, *self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::prod_out(*result, *self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_prod_out2(tensor *out__, tensor result, tensor self, int64_t dim, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::prod_out(*result, *self, dim, (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::prod_out(*result, *self, dim, (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5051,7 +5051,7 @@ void atg_softmax(tensor *out__, tensor self, int64_t dim) {
 
 void atg_softmax1(tensor *out__, tensor self, int64_t dim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::softmax(*self, dim, torch::ScalarType(dtype));
+    auto outputs__ = torch::softmax(*self, dim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5284,7 +5284,7 @@ void atg_sum(tensor *out__, tensor self) {
 
 void atg_sum1(tensor *out__, tensor self, int dtype) {
   PROTECT(
-    auto outputs__ = torch::sum(*self, torch::ScalarType(dtype));
+    auto outputs__ = torch::sum(*self, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5298,14 +5298,14 @@ void atg_sum2(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int ke
 
 void atg_sum3(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int dtype) {
   PROTECT(
-    auto outputs__ = torch::sum(*self, torch::IntList(dim_data, dim_len), torch::ScalarType(dtype));
+    auto outputs__ = torch::sum(*self, torch::IntList(dim_data, dim_len), at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_sum4(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::sum(*self, torch::IntList(dim_data, dim_len), (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::sum(*self, torch::IntList(dim_data, dim_len), (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5319,14 +5319,14 @@ void atg_sum_out(tensor *out__, tensor result, tensor self, int64_t *dim_data, i
 
 void atg_sum_out1(tensor *out__, tensor result, tensor self, int64_t *dim_data, int dim_len, int dtype) {
   PROTECT(
-    auto outputs__ = torch::sum_out(*result, *self, torch::IntList(dim_data, dim_len), torch::ScalarType(dtype));
+    auto outputs__ = torch::sum_out(*result, *self, torch::IntList(dim_data, dim_len), at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_sum_out2(tensor *out__, tensor result, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype) {
   PROTECT(
-    auto outputs__ = torch::sum_out(*result, *self, torch::IntList(dim_data, dim_len), (bool)keepdim, torch::ScalarType(dtype));
+    auto outputs__ = torch::sum_out(*result, *self, torch::IntList(dim_data, dim_len), (bool)keepdim, at::ScalarType(dtype));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5472,7 +5472,7 @@ void atg_threshold_out(tensor *out__, tensor result, tensor self, scalar thresho
 
 void atg_to(tensor *out__, tensor self, int device) {
   PROTECT(
-    auto outputs__ = self->to(torch::Device(torch::DeviceType(device)));
+    auto outputs__ = self->to(at::Device(at::DeviceType(device)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5486,7 +5486,7 @@ void atg_to1(tensor *out__, tensor self, int options_kind, int options_device, i
 
 void atg_to2(tensor *out__, tensor self, int dtype, int non_blocking, int copy) {
   PROTECT(
-    auto outputs__ = self->to(torch::ScalarType(dtype), (bool)non_blocking, (bool)copy);
+    auto outputs__ = self->to(at::ScalarType(dtype), (bool)non_blocking, (bool)copy);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5500,7 +5500,7 @@ void atg_to3(tensor *out__, tensor self, tensor other, int non_blocking, int cop
 
 void atg_to4(tensor *out__, tensor self, int device, int dtype, int non_blocking, int copy) {
   PROTECT(
-    auto outputs__ = self->to(torch::Device(torch::DeviceType(device)), torch::ScalarType(dtype), (bool)non_blocking, (bool)copy);
+    auto outputs__ = self->to(at::Device(at::DeviceType(device)), at::ScalarType(dtype), (bool)non_blocking, (bool)copy);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5544,7 +5544,7 @@ void atg_topk_out(tensor *out__, tensor values, tensor indices, tensor self, int
 
 void atg_totype(tensor *out__, tensor self, int scalar_type) {
   PROTECT(
-    auto outputs__ = self->toType(torch::ScalarType(scalar_type));
+    auto outputs__ = self->toType(at::ScalarType(scalar_type));
     out__[0] = new torch::Tensor(outputs__);
   )
 }

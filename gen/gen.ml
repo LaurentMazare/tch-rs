@@ -125,9 +125,8 @@ module Func = struct
             Printf.sprintf
               "at::device(at::DeviceType(%s_device)).dtype(at::ScalarType(%s_kind))"
               arg_name arg_name
-        | ScalarType -> Printf.sprintf "torch::ScalarType(%s)" arg_name
-        | Device ->
-            Printf.sprintf "torch::Device(torch::DeviceType(%s))" arg_name
+        | ScalarType -> Printf.sprintf "at::ScalarType(%s)" arg_name
+        | Device -> Printf.sprintf "at::Device(at::DeviceType(%s))" arg_name
         | _ -> arg_name )
     |> String.concat ~sep:", "
 
