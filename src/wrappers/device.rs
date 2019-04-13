@@ -1,8 +1,4 @@
 //! Devices on which tensor computations are run.
-//!
-//! This currently represents a device type rather than a device
-//! which could be problematic in a multi-GPU setting.
-//! If needed, a device index should be added.
 
 /// A torch device.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -10,7 +6,7 @@ pub enum Device {
     /// The main CPU device.
     Cpu,
     /// The main GPU device.
-    Cuda,
+    Cuda(usize),
 }
 
 /// Cpu related helper functions.
@@ -61,15 +57,15 @@ impl Cuda {
 impl Device {
     pub(super) fn c_int(self) -> libc::c_int {
         match self {
-            Device::Cpu => 0,
-            Device::Cuda => 1,
+            Device::Cpu => -1,
+            Device::Cuda(device_index) => device_index as libc::c_int,
         }
     }
 
     pub(super) fn of_c_int(v: libc::c_int) -> Self {
         match v {
-            0 => Device::Cpu,
-            1 => Device::Cuda,
+            -1 => Device::Cpu,
+            index if index >= 0 => Device::Cuda(index as usize),
             _ => panic!("unexpected device {}", v),
         }
     }
@@ -77,7 +73,7 @@ impl Device {
     /// Returns a GPU device if available, else default to CPU.
     pub fn cuda_if_available() -> Device {
         if Cuda::is_available() {
-            Device::Cuda
+            Device::Cuda(0)
         } else {
             Device::Cpu
         }

@@ -123,10 +123,10 @@ module Func = struct
               arg_name
         | TensorOptions ->
             Printf.sprintf
-              "at::device(at::DeviceType(%s_device)).dtype(at::ScalarType(%s_kind))"
+              "at::device(device_of_int(%s_device)).dtype(at::ScalarType(%s_kind))"
               arg_name arg_name
         | ScalarType -> Printf.sprintf "at::ScalarType(%s)" arg_name
-        | Device -> Printf.sprintf "at::Device(at::DeviceType(%s))" arg_name
+        | Device -> Printf.sprintf "device_of_int(%s)" arg_name
         | _ -> arg_name )
     |> String.concat ~sep:", "
 

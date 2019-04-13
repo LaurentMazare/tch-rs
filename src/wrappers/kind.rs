@@ -71,9 +71,9 @@ pub const FLOAT_CPU: (Kind, crate::Device) = (Kind::Float, crate::Device::Cpu);
 pub const DOUBLE_CPU: (Kind, crate::Device) = (Kind::Double, crate::Device::Cpu);
 pub const INT64_CPU: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cpu);
 
-pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda);
-pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda);
-pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda);
+pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda(0));
+pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda(0));
+pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda(0));
 
 pub trait T {
     const KIND: Kind;

@@ -32,6 +32,10 @@ vector<torch::Tensor> of_carray_tensor(torch::Tensor **vs, int len) {
   return result;
 }
 
+at::Device device_of_int(int d) {
+    if (d < 0) return at::Device(at::kCPU);
+    return at::Device(at::kCUDA, /*index=*/d);
+}
 tensor at_new_tensor() {
   PROTECT(
     return new torch::Tensor();
@@ -94,7 +98,9 @@ int at_scalar_type(tensor t) {
 
 int at_device(tensor t) {
   PROTECT(
-    return static_cast<int>(t->device().type());
+    auto device = t->device();
+    if (device.type() == at::kCPU) return -1;
+    return static_cast<int>(device.type());
   )
 }
 

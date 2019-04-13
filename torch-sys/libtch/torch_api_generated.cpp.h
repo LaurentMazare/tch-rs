@@ -399,21 +399,21 @@ void atg_any_out(tensor *out__, tensor result, tensor self, int64_t dim, int kee
 
 void atg_arange(tensor *out__, scalar end, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::arange(*end, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::arange(*end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_arange1(tensor *out__, scalar start, scalar end, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::arange(*start, *end, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::arange(*start, *end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_arange2(tensor *out__, scalar start, scalar end, scalar step, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::arange(*start, *end, *step, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::arange(*start, *end, *step, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -644,14 +644,14 @@ void atg_baddbmm_out(tensor *out__, tensor result, tensor self, tensor batch1, t
 
 void atg_bartlett_window(tensor *out__, int64_t window_length, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::bartlett_window(window_length, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::bartlett_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_bartlett_window1(tensor *out__, int64_t window_length, int periodic, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::bartlett_window(window_length, (bool)periodic, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::bartlett_window(window_length, (bool)periodic, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -756,14 +756,14 @@ void atg_bincount(tensor *out__, tensor self, tensor weights, int64_t minlength)
 
 void atg_blackman_window(tensor *out__, int64_t window_length, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::blackman_window(window_length, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::blackman_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_blackman_window1(tensor *out__, int64_t window_length, int periodic, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::blackman_window(window_length, (bool)periodic, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::blackman_window(window_length, (bool)periodic, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1530,7 +1530,7 @@ void atg_embedding_sparse_backward(tensor *out__, tensor grad, tensor indices, i
 
 void atg_empty(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::empty(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::empty(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1544,7 +1544,7 @@ void atg_empty_like(tensor *out__, tensor self) {
 
 void atg_empty_like1(tensor *out__, tensor self, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::empty_like(*self, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::empty_like(*self, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1558,7 +1558,7 @@ void atg_empty_out(tensor *out__, tensor result, int64_t *size_data, int size_le
 
 void atg_empty_strided(tensor *out__, int64_t *size_data, int size_len, int64_t *stride_data, int stride_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::empty_strided(torch::IntList(size_data, size_len), torch::IntList(stride_data, stride_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::empty_strided(torch::IntList(size_data, size_len), torch::IntList(stride_data, stride_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1733,14 +1733,14 @@ void atg_exponential_(tensor *out__, tensor self, double lambd) {
 
 void atg_eye(tensor *out__, int64_t n, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::eye(n, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::eye(n, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_eye1(tensor *out__, int64_t n, int64_t m, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::eye(n, m, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::eye(n, m, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1959,7 +1959,7 @@ void atg_frobenius_norm_out(tensor *out__, tensor result, tensor self, int64_t *
 
 void atg_full(tensor *out__, int64_t *size_data, int size_len, scalar fill_value, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::full(torch::IntList(size_data, size_len), *fill_value, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::full(torch::IntList(size_data, size_len), *fill_value, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1973,7 +1973,7 @@ void atg_full_like(tensor *out__, tensor self, scalar fill_value) {
 
 void atg_full_like1(tensor *out__, tensor self, scalar fill_value, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::full_like(*self, *fill_value, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::full_like(*self, *fill_value, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2256,42 +2256,42 @@ void atg_gt_out1(tensor *out__, tensor result, tensor self, tensor other) {
 
 void atg_hamming_window(tensor *out__, int64_t window_length, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hamming_window(window_length, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hamming_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_hamming_window1(tensor *out__, int64_t window_length, int periodic, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_hamming_window2(tensor *out__, int64_t window_length, int periodic, double alpha, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, alpha, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, alpha, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_hamming_window3(tensor *out__, int64_t window_length, int periodic, double alpha, double beta, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, alpha, beta, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hamming_window(window_length, (bool)periodic, alpha, beta, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_hann_window(tensor *out__, int64_t window_length, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hann_window(window_length, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hann_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_hann_window1(tensor *out__, int64_t window_length, int periodic, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::hann_window(window_length, (bool)periodic, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::hann_window(window_length, (bool)periodic, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2657,14 +2657,14 @@ void atg_linear(tensor *out__, tensor input, tensor weight, tensor bias) {
 
 void atg_linspace(tensor *out__, scalar start, scalar end, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::linspace(*start, *end, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::linspace(*start, *end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_linspace1(tensor *out__, scalar start, scalar end, int64_t steps, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::linspace(*start, *end, steps, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::linspace(*start, *end, steps, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2825,14 +2825,14 @@ void atg_logdet(tensor *out__, tensor self) {
 
 void atg_logspace(tensor *out__, scalar start, scalar end, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::logspace(*start, *end, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::logspace(*start, *end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_logspace1(tensor *out__, scalar start, scalar end, int64_t steps, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::logspace(*start, *end, steps, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::logspace(*start, *end, steps, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3865,7 +3865,7 @@ void atg_nuclear_norm_out(tensor *out__, tensor result, tensor self, int keepdim
 
 void atg_ones(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::ones(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::ones(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3879,7 +3879,7 @@ void atg_ones_like(tensor *out__, tensor self) {
 
 void atg_ones_like1(tensor *out__, tensor self, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::ones_like(*self, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::ones_like(*self, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4185,7 +4185,7 @@ void atg_qr_out(tensor *out__, tensor Q, tensor R, tensor self) {
 
 void atg_rand(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::rand(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::rand(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4199,7 +4199,7 @@ void atg_rand_like(tensor *out__, tensor self) {
 
 void atg_rand_like1(tensor *out__, tensor self, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::rand_like(*self, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::rand_like(*self, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4213,14 +4213,14 @@ void atg_rand_out(tensor *out__, tensor result, int64_t *size_data, int size_len
 
 void atg_randint(tensor *out__, int64_t high, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randint(high, torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randint(high, torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_randint1(tensor *out__, int64_t low, int64_t high, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randint(low, high, torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randint(low, high, torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4241,14 +4241,14 @@ void atg_randint_like1(tensor *out__, tensor self, int64_t low, int64_t high) {
 
 void atg_randint_like2(tensor *out__, tensor self, int64_t high, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randint_like(*self, high, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randint_like(*self, high, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_randint_like3(tensor *out__, tensor self, int64_t low, int64_t high, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randint_like(*self, low, high, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randint_like(*self, low, high, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4269,7 +4269,7 @@ void atg_randint_out1(tensor *out__, tensor result, int64_t low, int64_t high, i
 
 void atg_randn(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randn(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randn(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4283,7 +4283,7 @@ void atg_randn_like(tensor *out__, tensor self) {
 
 void atg_randn_like1(tensor *out__, tensor self, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randn_like(*self, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randn_like(*self, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4318,7 +4318,7 @@ void atg_random_2(tensor *out__, tensor self, int64_t from, int64_t to) {
 
 void atg_randperm(tensor *out__, int64_t n, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::randperm(n, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::randperm(n, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4332,14 +4332,14 @@ void atg_randperm_out(tensor *out__, tensor result, int64_t n) {
 
 void atg_range(tensor *out__, scalar start, scalar end, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::range(*start, *end, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::range(*start, *end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_range1(tensor *out__, scalar start, scalar end, scalar step, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::range(*start, *end, *step, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::range(*start, *end, *step, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5102,21 +5102,21 @@ void atg_sort_out(tensor *out__, tensor values, tensor indices, tensor self, int
 
 void atg_sparse_coo_tensor(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::sparse_coo_tensor(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::sparse_coo_tensor(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_sparse_coo_tensor1(tensor *out__, tensor indices, tensor values, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::sparse_coo_tensor(*indices, *values, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::sparse_coo_tensor(*indices, *values, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_sparse_coo_tensor2(tensor *out__, tensor indices, tensor values, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::sparse_coo_tensor(*indices, *values, torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::sparse_coo_tensor(*indices, *values, torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5472,14 +5472,14 @@ void atg_threshold_out(tensor *out__, tensor result, tensor self, scalar thresho
 
 void atg_to(tensor *out__, tensor self, int device) {
   PROTECT(
-    auto outputs__ = self->to(at::Device(at::DeviceType(device)));
+    auto outputs__ = self->to(device_of_int(device));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
 void atg_to1(tensor *out__, tensor self, int options_kind, int options_device, int non_blocking, int copy) {
   PROTECT(
-    auto outputs__ = self->to(at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)), (bool)non_blocking, (bool)copy);
+    auto outputs__ = self->to(at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)), (bool)non_blocking, (bool)copy);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5500,7 +5500,7 @@ void atg_to3(tensor *out__, tensor self, tensor other, int non_blocking, int cop
 
 void atg_to4(tensor *out__, tensor self, int device, int dtype, int non_blocking, int copy) {
   PROTECT(
-    auto outputs__ = self->to(at::Device(at::DeviceType(device)), at::ScalarType(dtype), (bool)non_blocking, (bool)copy);
+    auto outputs__ = self->to(device_of_int(device), at::ScalarType(dtype), (bool)non_blocking, (bool)copy);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5917,7 +5917,7 @@ void atg_zero_(tensor *out__, tensor self) {
 
 void atg_zeros(tensor *out__, int64_t *size_data, int size_len, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::zeros(torch::IntList(size_data, size_len), at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::zeros(torch::IntList(size_data, size_len), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -5931,7 +5931,7 @@ void atg_zeros_like(tensor *out__, tensor self) {
 
 void atg_zeros_like1(tensor *out__, tensor self, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::zeros_like(*self, at::device(at::DeviceType(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::zeros_like(*self, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
