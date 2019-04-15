@@ -34,35 +34,64 @@ export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 
 ## Examples
 
-### Writing a Simple Neural Network
+### Basic Tensor Operations
 
-The following code defines a simple model with one hidden layer.
+This crate provides a tensor type which wraps PyTorch tensors. Here is a minimal
+example of how to perform some tensor operations.
 
 ```rust
-struct Net {
-    fc1: nn::Linear,
-    fc2: nn::Linear,
-}
+extern crate tch;
+use tch::Tensor;
 
-impl Net {
-    fn new(vs: &mut nn::VarStore) -> Net {
-        let fc1 = nn::linear(vs, IMAGE_DIM, HIDDEN_NODES);
-        let fc2 = nn::linear(vs, HIDDEN_NODES, LABELS);
-        Net { fc1, fc2 }
-    }
-}
-
-impl nn::Module for Net {
-    fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.apply(&self.fc1).relu().apply(&self.fc2)
-    }
+fn main() {
+    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
+    let t = t * 2;
+    t.print();
 }
 ```
 
-This model can be trained on the MNIST dataset by running the following command.
+### Writing a Simple Neural Network
 
-```bash
-cargo run --example mnist
+The `nn` api can be used to create neural network architectures, e.g. the following code defines
+a simple model with one hidden layer and trains it on the MNIST dataset using the Adam optimizer.
+
+```rust
+extern crate tch;
+use tch::{nn, nn::Module, nn::OptimizerConfig, Device};
+
+const IMAGE_DIM: i64 = 784;
+const HIDDEN_NODES: i64 = 128;
+const LABELS: i64 = 10;
+
+fn net(vs: &nn::Path) -> impl Module {
+    nn::seq()
+        .add(nn::linear(vs / "layer1", IMAGE_DIM, HIDDEN_NODES, Default::default()))
+        .add_fn(|xs| xs.relu())
+        .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
+}
+
+pub fn run() -> failure::Fallible<()> {
+    let m = tch::vision::mnist::load_dir("data")?;
+    let vs = nn::VarStore::new(Device::Cpu);
+    let net = net(&vs.root());
+    let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    for epoch in 1..200 {
+        let loss = net
+            .forward(&m.train_images)
+            .cross_entropy_for_logits(&m.train_labels);
+        opt.backward_step(&loss);
+        let test_accuracy = net
+            .forward(&m.test_images)
+            .accuracy_for_logits(&m.test_labels);
+        println!(
+            "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
+            epoch,
+            f64::from(&loss),
+            100. * f64::from(&test_accuracy),
+        );
+    }
+    Ok(())
+}
 ```
 
 More details on the training loop can be found in the
