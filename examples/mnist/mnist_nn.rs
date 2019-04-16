@@ -1,35 +1,28 @@
 // This should rearch 97% accuracy.
 
-use tch::{nn, nn::Module, nn::OptimizerConfig, Device, Tensor};
+extern crate tch;
+use tch::{nn, nn::Module, nn::OptimizerConfig, Device};
 
 const IMAGE_DIM: i64 = 784;
 const HIDDEN_NODES: i64 = 128;
 const LABELS: i64 = 10;
 
-#[derive(Debug)]
-struct Net {
-    fc1: nn::Linear,
-    fc2: nn::Linear,
-}
-
-impl Net {
-    fn new(vs: &nn::Path) -> Net {
-        let fc1 = nn::linear(vs, IMAGE_DIM, HIDDEN_NODES, Default::default());
-        let fc2 = nn::linear(vs, HIDDEN_NODES, LABELS, Default::default());
-        Net { fc1, fc2 }
-    }
-}
-
-impl nn::Module for Net {
-    fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.apply(&self.fc1).relu().apply(&self.fc2)
-    }
+fn net(vs: &nn::Path) -> impl Module {
+    nn::seq()
+        .add(nn::linear(
+            vs / "layer1",
+            IMAGE_DIM,
+            HIDDEN_NODES,
+            Default::default(),
+        ))
+        .add_fn(|xs| xs.relu())
+        .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
 }
 
 pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
-    let net = Net::new(&vs.root());
+    let net = net(&vs.root());
     let opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..200 {
         let loss = net
