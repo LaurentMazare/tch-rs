@@ -142,3 +142,13 @@ fn fallible() {
     let ys = Tensor::of_slice(&[0, 1, 2, 3, 4]);
     assert!(xs.f_eq1(&ys).is_err())
 }
+
+#[test]
+fn chunk() {
+    let xs = Tensor::of_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    let tensors = xs.chunk(3, 0);
+    assert_eq!(tensors.len(), 3);
+    assert_eq!(Vec::<i64>::from(&tensors[0]), vec![0, 1, 2, 3]);
+    assert_eq!(Vec::<i64>::from(&tensors[1]), vec![4, 5, 6, 7]);
+    assert_eq!(Vec::<i64>::from(&tensors[2]), vec![8, 9]);
+}
