@@ -672,6 +672,12 @@ impl Tensor {
         self.f_bmm_out(result, mat2).unwrap()
     }
 
+    pub fn broadcast_tensors<T: Borrow<Tensor>>(
+        tensors: &[T]
+    ) -> Vec<Tensor> {
+        Tensor::f_broadcast_tensors(tensors).unwrap()
+    }
+
     pub fn btrifact(
         &self, pivot: bool
     ) -> (Tensor, Tensor) {
@@ -772,6 +778,12 @@ impl Tensor {
         &self, result: &Tensor, upper: bool
     ) -> Tensor {
         self.f_cholesky_out(result, upper).unwrap()
+    }
+
+    pub fn chunk(
+        &self, chunks: i64, dim: i64
+    ) -> Vec<Tensor> {
+        self.f_chunk(chunks, dim).unwrap()
     }
 
     pub fn clamp<S: Into<Scalar>>(
@@ -2772,6 +2784,12 @@ impl Tensor {
         self.f_median_out(values, indices, dim, keepdim).unwrap()
     }
 
+    pub fn meshgrid<T: Borrow<Tensor>>(
+        tensors: &[T]
+    ) -> Vec<Tensor> {
+        Tensor::f_meshgrid(tensors).unwrap()
+    }
+
     pub fn min(
         &self, 
     ) -> Tensor {
@@ -4344,6 +4362,18 @@ impl Tensor {
         self.f_sparse_resize_and_clear_(size, sparse_dim, dense_dim).unwrap()
     }
 
+    pub fn split(
+        &self, split_size: i64, dim: i64
+    ) -> Vec<Tensor> {
+        self.f_split(split_size, dim).unwrap()
+    }
+
+    pub fn split_with_sizes(
+        &self, split_sizes: &[i64], dim: i64
+    ) -> Vec<Tensor> {
+        self.f_split_with_sizes(split_sizes, dim).unwrap()
+    }
+
     pub fn sqrt(
         &self, 
     ) -> Tensor {
@@ -4786,6 +4816,12 @@ impl Tensor {
         &self, other: &Tensor
     ) -> Tensor {
         self.f_type_as(other).unwrap()
+    }
+
+    pub fn unbind(
+        &self, dim: i64
+    ) -> Vec<Tensor> {
+        self.f_unbind(dim).unwrap()
     }
 
     pub fn unfold(

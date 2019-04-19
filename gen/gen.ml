@@ -66,7 +66,9 @@ module Func = struct
   type t =
     { name: string
     ; args: arg list
-    ; returns: int (* number of tensors that are returned *)
+    ; returns:
+        [`fixed of int | `dynamic]
+        (* number of tensors that are returned *)
     ; kind: [`function_ | `method_] }
 
   let arg_type_of_string str ~is_nullable =
@@ -240,18 +242,14 @@ module Func = struct
   let rust_return_type t ~fallible =
     let returns =
       match t.returns with
-      | 0 -> None
-      | 1 -> Some "Tensor"
-      | v ->
-          Some
-            ( List.init v ~f:(fun _ -> "Tensor")
-            |> String.concat ~sep:", " |> Printf.sprintf "(%s)" )
+      | `fixed 1 -> "Tensor"
+      | `fixed v ->
+          List.init v ~f:(fun _ -> "Tensor")
+          |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
+      | `dynamic -> "Vec<Tensor>"
     in
-    match returns with
-    | Some returns ->
-        if fallible then Printf.sprintf " -> failure::Fallible<%s>" returns
-        else Printf.sprintf " -> %s" returns
-    | None -> ""
+    if fallible then Printf.sprintf " -> failure::Fallible<%s>" returns
+    else Printf.sprintf " -> %s" returns
 
   let rust_binding_args t ~self =
     List.map t.args ~f:(fun arg ->
@@ -312,8 +310,18 @@ let read_yaml filename =
           || String.( = ) return_type "IndexTensor"
         in
         let returns = Map.find_exn map "returns" |> extract_list in
-        if List.for_all returns ~f:is_tensor then Some (List.length returns)
-        else None
+        if List.for_all returns ~f:is_tensor then
+          Some (`fixed (List.length returns))
+        else
+          match returns with
+          | [returns] ->
+              let return_type =
+                Map.find_exn (extract_map returns) "dynamic_type"
+                |> extract_string
+              in
+              if String.( = ) return_type "TensorList" then Some `dynamic
+              else None
+          | [] | _ :: _ :: _ -> None
       in
       let kind =
         if List.exists method_of ~f:(String.( = ) "namespace") then
@@ -389,24 +397,40 @@ let write_cpp funcs filename =
           ph "" ;
           Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
               let c_typed_args_list = Func.c_typed_args_list func in
-              pc "void atg_%s(tensor *out__, %s) {" exported_name
-                c_typed_args_list ;
+              pc "tensor *atg_%s(%s) {" exported_name c_typed_args_list ;
               pc "  PROTECT(" ;
               pc "    auto outputs__ = %s;" (Func.c_call func) ;
-              if func.returns = 1 then
-                pc "    out__[0] = new torch::Tensor(outputs__);"
-              else
-                for i = 0 to func.returns - 1 do
+              ( match func.returns with
+              | `dynamic ->
+                  (* the returned type is a C++ vector of tensors *)
+                  pc "    int sz = outputs__.size();" ;
                   pc
-                    "    out__[%d] = new \
-                     torch::Tensor(std::get<%d>(outputs__));"
-                    i i
-                done ;
+                    "    torch::Tensor **out__ = (torch::Tensor**)malloc((sz \
+                     + 1) * sizeof(torch::Tensor*));" ;
+                  pc "    for (int i = 0; i < sz; ++i)" ;
+                  pc "      out__[i] = new torch::Tensor(outputs__[i]);" ;
+                  pc "    out__[sz] = nullptr;"
+              | `fixed 1 ->
+                  pc
+                    "    torch::Tensor **out__ = \
+                     (torch::Tensor**)malloc(sizeof(torch::Tensor*));" ;
+                  pc "    out__[0] = new torch::Tensor(outputs__);"
+              | `fixed ntensors ->
+                  pc
+                    "    torch::Tensor **out__ = \
+                     (torch::Tensor**)malloc(%d*sizeof(torch::Tensor*));"
+                    ntensors ;
+                  for i = 0 to ntensors - 1 do
+                    pc
+                      "    out__[%d] = new \
+                       torch::Tensor(std::get<%d>(outputs__));"
+                      i i
+                  done ) ;
+              pc "    return out__;" ;
               pc "  )" ;
               pc "}" ;
               pc "" ;
-              ph "void atg_%s(tensor *, %s);" exported_name c_typed_args_list
-          ) ) )
+              ph "tensor *atg_%s(%s);" exported_name c_typed_args_list ) ) )
 
 let write_fallible_wrapper funcs filename =
   Out_channel.with_file filename ~f:(fun out_ml ->
@@ -426,27 +450,37 @@ let write_fallible_wrapper funcs filename =
       pm "impl Tensor {" ;
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:(func : Func.t) ->
           let rust_name = Func.rust_name exported_name in
-          let returns =
-            match func.returns with
-            | 0 -> ""
-            | 1 -> "Tensor { c_tensor: c_tensors[0] }"
-            | n ->
-                List.init n
-                  ~f:(Printf.sprintf "Tensor { c_tensor: c_tensors[%d] }")
-                |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
-          in
           pm "" ;
           pm "    pub fn f_%s%s(" rust_name (Func.type_parameters func) ;
           let self, rust_args_list = Func.rust_typed_args_list func in
           pm "        %s" rust_args_list ;
           pm "    )%s {" (Func.rust_return_type func ~fallible:true) ;
-          pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
-            func.returns ;
-          pm "        unsafe_torch_err!({" ;
-          pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name ;
-          pm "                %s" (Func.rust_binding_args func ~self) ;
-          pm "            ) });" ;
-          pm "        Ok(%s)" returns ;
+          pm "        let c_tensors = unsafe_torch_err!({" ;
+          pm "            atg_%s(" exported_name ;
+          pm "                %s)});" (Func.rust_binding_args func ~self) ;
+          ( match func.returns with
+          | `dynamic ->
+              pm "        let mut r__ = vec![];" ;
+              pm "        let mut i = 0;" ;
+              pm "        loop {" ;
+              pm "            let c__ = unsafe{*c_tensors.add(i)};" ;
+              pm "            if c__.is_null() { break }" ;
+              pm "            r__.push(Tensor {c_tensor: c__});" ;
+              pm "            i += 1;" ;
+              pm "        }"
+          | `fixed 1 ->
+              pm "        let r__ = Tensor { c_tensor: unsafe{*c_tensors} };"
+          | `fixed n ->
+              let result =
+                List.init n
+                  ~f:
+                    (Printf.sprintf
+                       "Tensor { c_tensor: unsafe{*c_tensors.add(%d)} }")
+                |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
+              in
+              pm "        let r__ = %s;" result ) ;
+          pm "        unsafe{libc::free(c_tensors as *mut libc::c_void)}" ;
+          pm "        Ok(r__)" ;
           pm "    }" ) ;
       pm "}" )
 
@@ -493,12 +527,12 @@ let write_ffi funcs filename =
       pm "" ;
       pm "extern \"C\" {" ;
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
-          pm "    pub fn atg_%s(out__: *mut *mut C_tensor, %s);" exported_name
+          pm "    pub fn atg_%s(%s) -> *mut *mut C_tensor;" exported_name
             (Func.c_rust_args_list func) ) ;
       pm "}" )
 
 let methods =
-  let c name args = {Func.name; args; returns= 1; kind= `method_} in
+  let c name args = {Func.name; args; returns= `fixed 1; kind= `method_} in
   let ca arg_name arg_type = {Func.arg_name; arg_type; default_value= None} in
   [ c "grad" [ca "self" Tensor]
   ; c "set_requires_grad" [ca "self" Tensor; ca "r" Bool]
