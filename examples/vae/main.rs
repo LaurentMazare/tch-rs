@@ -11,7 +11,7 @@
 */
 
 extern crate tch;
-use tch::{nn, nn::Module, nn::OptimizerConfig, Tensor};
+use tch::{nn, nn::Module, nn::OptimizerConfig, Reduction, Tensor};
 
 struct VAE {
     fc1: nn::Linear,
@@ -49,10 +49,34 @@ impl VAE {
     }
 }
 
+// Reconstruction + KL divergence losses summed over all elements and batch dimension.
+fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
+    let bce =
+        recon_x.binary_cross_entropy(&x.view(&[-1, 784]), &Tensor::new(), Reduction::Sum.to_int());
+    // See Appendix B from VAE paper:
+    //     Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+    // https://arxiv.org/abs/1312.6114
+    // 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+    let kld = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum();
+    bce + kld
+}
+
 pub fn main() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(tch::Device::cuda_if_available());
     let vae = VAE::new(&vs.root());
     let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    for epoch in 1..21 {
+        let mut train_loss = 0f64;
+        let mut batches = 0f64;
+        for (bimages, _) in m.train_iter(128).shuffle().to_device(vs.device()) {
+            let (recon_batch, mu, logvar) = vae.forward(&bimages);
+            let loss = loss(&recon_batch, &bimages, &mu, &logvar);
+            opt.backward_step(&loss);
+            train_loss += f64::from(&loss);
+            batches += 1.0;
+        }
+        println!("Epoch: {}, loss: {}", epoch, train_loss / batches);
+    }
     Ok(())
 }
