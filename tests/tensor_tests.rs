@@ -152,3 +152,13 @@ fn chunk() {
     assert_eq!(Vec::<i64>::from(&tensors[1]), vec![4, 5, 6, 7]);
     assert_eq!(Vec::<i64>::from(&tensors[2]), vec![8, 9]);
 }
+
+#[test]
+fn broadcast() {
+    let xs = Tensor::of_slice(&[4, 5, 3]);
+    let ys = Tensor::from(42);
+    let tensors = Tensor::broadcast_tensors(&[xs, ys]);
+    assert_eq!(tensors.len(), 2);
+    assert_eq!(Vec::<i64>::from(&tensors[0]), vec![4, 5, 3]);
+    assert_eq!(Vec::<i64>::from(&tensors[1]), vec![42, 42, 42]);
+}
