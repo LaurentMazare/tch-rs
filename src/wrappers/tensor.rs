@@ -415,3 +415,25 @@ impl Drop for NoGradGuard {
         let _enabled = grad_set_enabled(self.enabled);
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub enum Reduction {
+    /// Do not reduce.
+    None,
+    /// Mean of losses.
+    Mean,
+    /// Sum of losses.
+    Sum,
+}
+
+impl Reduction {
+    // This has to stay in sync with
+    // pytorch/aten/src/ATen/core/Reduction.h
+    pub fn to_int(&self) -> i64 {
+        match self {
+            Reduction::None => 0,
+            Reduction::Mean => 1,
+            Reduction::Sum => 2,
+        }
+    }
+}
