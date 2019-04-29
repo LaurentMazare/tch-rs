@@ -725,38 +725,38 @@ impl Tensor {
     }
 
     pub fn f_arange<S: Into<Scalar>>(
-        end_: S, options: (Kind, Device)
+        end: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange(c_tensors.as_mut_ptr(),
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_arange1<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange1(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_arange2<S: Into<Scalar>>(
-        start: S, end_: S, step: S, options: (Kind, Device)
+        start: S, end: S, step: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange2(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 step.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
@@ -764,39 +764,39 @@ impl Tensor {
     }
 
     pub fn f_arange_out<S: Into<Scalar>>(
-        result: &Tensor, end_: S
+        result: &Tensor, end: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
-                end_.into().c_scalar
+                end.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_arange_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange_out1(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar
+                end.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_arange_out2<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, step: S
+        result: &Tensor, start: S, end: S, step: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_arange_out2(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 step.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4860,40 +4860,40 @@ impl Tensor {
     }
 
     pub fn f_lerp<S: Into<Scalar>>(
-        &self, end_: &Tensor, weight: S
+        &self, end: &Tensor, weight: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_lerp(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                end_.c_tensor,
+                end.c_tensor,
                 weight.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_lerp_<S: Into<Scalar>>(
-        &self, end_: &Tensor, weight: S
+        &self, end: &Tensor, weight: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_lerp_(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                end_.c_tensor,
+                end.c_tensor,
                 weight.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_lerp_out<S: Into<Scalar>>(
-        &self, result: &Tensor, end_: &Tensor, weight: S
+        &self, result: &Tensor, end: &Tensor, weight: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_lerp_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 self.c_tensor,
-                end_.c_tensor,
+                end.c_tensor,
                 weight.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4947,26 +4947,26 @@ impl Tensor {
     }
 
     pub fn f_linspace<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_linspace(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_linspace1<S: Into<Scalar>>(
-        start: S, end_: S, steps: i64, options: (Kind, Device)
+        start: S, end: S, steps: i64, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_linspace1(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 steps,
                 options.0.c_int(), options.1.c_int()
             ) });
@@ -4974,27 +4974,27 @@ impl Tensor {
     }
 
     pub fn f_linspace_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_linspace_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar
+                end.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_linspace_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, steps: i64
+        result: &Tensor, start: S, end: S, steps: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_linspace_out1(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 steps
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -5236,26 +5236,26 @@ impl Tensor {
     }
 
     pub fn f_logspace<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_logspace(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_logspace1<S: Into<Scalar>>(
-        start: S, end_: S, steps: i64, options: (Kind, Device)
+        start: S, end: S, steps: i64, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_logspace1(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 steps,
                 options.0.c_int(), options.1.c_int()
             ) });
@@ -5263,27 +5263,27 @@ impl Tensor {
     }
 
     pub fn f_logspace_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_logspace_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar
+                end.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_logspace_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, steps: i64
+        result: &Tensor, start: S, end: S, steps: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_logspace_out1(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 steps
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8074,26 +8074,26 @@ impl Tensor {
     }
 
     pub fn f_random_1(
-        &self, to_: i64
+        &self, to: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_random_1(c_tensors.as_mut_ptr(),
                 self.c_tensor,
-                to_
+                to
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_random_2(
-        &self, from: i64, to_: i64
+        &self, from: i64, to: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_random_2(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 from,
-                to_
+                to
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8123,26 +8123,26 @@ impl Tensor {
     }
 
     pub fn f_range<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_range(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_range1<S: Into<Scalar>>(
-        start: S, end_: S, step: S, options: (Kind, Device)
+        start: S, end: S, step: S, options: (Kind, Device)
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_range1(c_tensors.as_mut_ptr(),
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 step.into().c_scalar,
                 options.0.c_int(), options.1.c_int()
             ) });
@@ -8150,27 +8150,27 @@ impl Tensor {
     }
 
     pub fn f_range_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_range_out(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar
+                end.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_range_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, step: S
+        result: &Tensor, start: S, end: S, step: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_range_out1(c_tensors.as_mut_ptr(),
                 result.c_tensor,
                 start.into().c_scalar,
-                end_.into().c_scalar,
+                end.into().c_scalar,
                 step.into().c_scalar
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9279,7 +9279,7 @@ impl Tensor {
     }
 
     pub fn f_slice(
-        &self, dim: i64, start: i64, end_: i64, step: i64
+        &self, dim: i64, start: i64, end: i64, step: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9287,7 +9287,7 @@ impl Tensor {
                 self.c_tensor,
                 dim,
                 start,
-                end_,
+                end,
                 step
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -10230,7 +10230,7 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_(
+    pub fn f_to(
         &self, device: Device
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -10618,14 +10618,14 @@ impl Tensor {
     }
 
     pub fn f_uniform_(
-        &self, from: f64, to_: f64
+        &self, from: f64, to: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_uniform_(c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 from,
-                to_
+                to
             ) });
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

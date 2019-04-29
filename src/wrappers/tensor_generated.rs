@@ -343,39 +343,39 @@ impl Tensor {
     }
 
     pub fn arange<S: Into<Scalar>>(
-        end_: S, options: (Kind, Device)
+        end: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_arange(end_, options).unwrap()
+        Tensor::f_arange(end, options).unwrap()
     }
 
     pub fn arange1<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_arange1(start, end_, options).unwrap()
+        Tensor::f_arange1(start, end, options).unwrap()
     }
 
     pub fn arange2<S: Into<Scalar>>(
-        start: S, end_: S, step: S, options: (Kind, Device)
+        start: S, end: S, step: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_arange2(start, end_, step, options).unwrap()
+        Tensor::f_arange2(start, end, step, options).unwrap()
     }
 
     pub fn arange_out<S: Into<Scalar>>(
-        result: &Tensor, end_: S
+        result: &Tensor, end: S
     ) -> Tensor {
-        Tensor::f_arange_out(result, end_).unwrap()
+        Tensor::f_arange_out(result, end).unwrap()
     }
 
     pub fn arange_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> Tensor {
-        Tensor::f_arange_out1(result, start, end_).unwrap()
+        Tensor::f_arange_out1(result, start, end).unwrap()
     }
 
     pub fn arange_out2<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, step: S
+        result: &Tensor, start: S, end: S, step: S
     ) -> Tensor {
-        Tensor::f_arange_out2(result, start, end_, step).unwrap()
+        Tensor::f_arange_out2(result, start, end, step).unwrap()
     }
 
     pub fn argmax(
@@ -2221,21 +2221,21 @@ impl Tensor {
     }
 
     pub fn lerp<S: Into<Scalar>>(
-        &self, end_: &Tensor, weight: S
+        &self, end: &Tensor, weight: S
     ) -> Tensor {
-        self.f_lerp(end_, weight).unwrap()
+        self.f_lerp(end, weight).unwrap()
     }
 
     pub fn lerp_<S: Into<Scalar>>(
-        &self, end_: &Tensor, weight: S
+        &self, end: &Tensor, weight: S
     ) -> Tensor {
-        self.f_lerp_(end_, weight).unwrap()
+        self.f_lerp_(end, weight).unwrap()
     }
 
     pub fn lerp_out<S: Into<Scalar>>(
-        &self, result: &Tensor, end_: &Tensor, weight: S
+        &self, result: &Tensor, end: &Tensor, weight: S
     ) -> Tensor {
-        self.f_lerp_out(result, end_, weight).unwrap()
+        self.f_lerp_out(result, end, weight).unwrap()
     }
 
     pub fn lgamma(
@@ -2263,27 +2263,27 @@ impl Tensor {
     }
 
     pub fn linspace<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_linspace(start, end_, options).unwrap()
+        Tensor::f_linspace(start, end, options).unwrap()
     }
 
     pub fn linspace1<S: Into<Scalar>>(
-        start: S, end_: S, steps: i64, options: (Kind, Device)
+        start: S, end: S, steps: i64, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_linspace1(start, end_, steps, options).unwrap()
+        Tensor::f_linspace1(start, end, steps, options).unwrap()
     }
 
     pub fn linspace_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> Tensor {
-        Tensor::f_linspace_out(result, start, end_).unwrap()
+        Tensor::f_linspace_out(result, start, end).unwrap()
     }
 
     pub fn linspace_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, steps: i64
+        result: &Tensor, start: S, end: S, steps: i64
     ) -> Tensor {
-        Tensor::f_linspace_out1(result, start, end_, steps).unwrap()
+        Tensor::f_linspace_out1(result, start, end, steps).unwrap()
     }
 
     pub fn log(
@@ -2407,27 +2407,27 @@ impl Tensor {
     }
 
     pub fn logspace<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_logspace(start, end_, options).unwrap()
+        Tensor::f_logspace(start, end, options).unwrap()
     }
 
     pub fn logspace1<S: Into<Scalar>>(
-        start: S, end_: S, steps: i64, options: (Kind, Device)
+        start: S, end: S, steps: i64, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_logspace1(start, end_, steps, options).unwrap()
+        Tensor::f_logspace1(start, end, steps, options).unwrap()
     }
 
     pub fn logspace_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> Tensor {
-        Tensor::f_logspace_out(result, start, end_).unwrap()
+        Tensor::f_logspace_out(result, start, end).unwrap()
     }
 
     pub fn logspace_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, steps: i64
+        result: &Tensor, start: S, end: S, steps: i64
     ) -> Tensor {
-        Tensor::f_logspace_out1(result, start, end_, steps).unwrap()
+        Tensor::f_logspace_out1(result, start, end, steps).unwrap()
     }
 
     pub fn logsumexp(
@@ -3655,15 +3655,15 @@ impl Tensor {
     }
 
     pub fn random_1(
-        &self, to_: i64
+        &self, to: i64
     ) -> Tensor {
-        self.f_random_1(to_).unwrap()
+        self.f_random_1(to).unwrap()
     }
 
     pub fn random_2(
-        &self, from: i64, to_: i64
+        &self, from: i64, to: i64
     ) -> Tensor {
-        self.f_random_2(from, to_).unwrap()
+        self.f_random_2(from, to).unwrap()
     }
 
     pub fn randperm(
@@ -3679,27 +3679,27 @@ impl Tensor {
     }
 
     pub fn range<S: Into<Scalar>>(
-        start: S, end_: S, options: (Kind, Device)
+        start: S, end: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_range(start, end_, options).unwrap()
+        Tensor::f_range(start, end, options).unwrap()
     }
 
     pub fn range1<S: Into<Scalar>>(
-        start: S, end_: S, step: S, options: (Kind, Device)
+        start: S, end: S, step: S, options: (Kind, Device)
     ) -> Tensor {
-        Tensor::f_range1(start, end_, step, options).unwrap()
+        Tensor::f_range1(start, end, step, options).unwrap()
     }
 
     pub fn range_out<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S
+        result: &Tensor, start: S, end: S
     ) -> Tensor {
-        Tensor::f_range_out(result, start, end_).unwrap()
+        Tensor::f_range_out(result, start, end).unwrap()
     }
 
     pub fn range_out1<S: Into<Scalar>>(
-        result: &Tensor, start: S, end_: S, step: S
+        result: &Tensor, start: S, end: S, step: S
     ) -> Tensor {
-        Tensor::f_range_out1(result, start, end_, step).unwrap()
+        Tensor::f_range_out1(result, start, end, step).unwrap()
     }
 
     pub fn reciprocal(
@@ -4219,9 +4219,9 @@ impl Tensor {
     }
 
     pub fn slice(
-        &self, dim: i64, start: i64, end_: i64, step: i64
+        &self, dim: i64, start: i64, end: i64, step: i64
     ) -> Tensor {
-        self.f_slice(dim, start, end_, step).unwrap()
+        self.f_slice(dim, start, end, step).unwrap()
     }
 
     pub fn slogdet(
@@ -4656,10 +4656,10 @@ impl Tensor {
         self.f_threshold_out(result, threshold, value).unwrap()
     }
 
-    pub fn to_(
+    pub fn to(
         &self, device: Device
     ) -> Tensor {
-        self.f_to_(device).unwrap()
+        self.f_to(device).unwrap()
     }
 
     pub fn to1(
@@ -4831,9 +4831,9 @@ impl Tensor {
     }
 
     pub fn uniform_(
-        &self, from: f64, to_: f64
+        &self, from: f64, to: f64
     ) -> Tensor {
-        self.f_uniform_(from, to_).unwrap()
+        self.f_uniform_(from, to).unwrap()
     }
 
     pub fn unsqueeze(

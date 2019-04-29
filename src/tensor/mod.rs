@@ -342,11 +342,11 @@ impl Tensor {
 
     /// Moves a tensor to a specified device.
     pub fn to_device(&self, device: Device) -> Tensor {
-        self.to_(device)
+        self.to(device)
     }
 
     pub fn f_to_device(&self, device: Device) -> Fallible<Tensor> {
-        self.f_to_(device)
+        self.f_to(device)
     }
 
     pub fn avg_pool2d_default(&self, ksize: i64) -> Tensor {
