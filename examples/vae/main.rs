@@ -11,7 +11,7 @@
 */
 
 extern crate tch;
-use tch::{nn, nn::Module, nn::OptimizerConfig, Reduction, Tensor};
+use tch::{nn, nn::Module, nn::OptimizerConfig, Kind, Reduction, Tensor};
 
 struct VAE {
     fc1: nn::Linear,
@@ -61,22 +61,44 @@ fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
     bce + kld
 }
 
+// Generate a 2D matrix of images from a tensor with multiple images.
+fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
+    let imgs = (imgs * 256.).clamp(0., 255.).to_kind(Kind::Uint8);
+    let mut ys: Vec<Tensor> = vec![];
+    for i in 0..sz {
+        ys.push(Tensor::cat(
+            &(0..sz)
+                .map(|j| imgs.narrow(0, 4 * i + j, 1))
+                .collect::<Vec<_>>(),
+            2,
+        ))
+    }
+    Ok(Tensor::cat(&ys, 3).squeeze1(0))
+}
+
 pub fn main() -> failure::Fallible<()> {
+    let device = tch::Device::cuda_if_available();
     let m = tch::vision::mnist::load_dir("data")?;
-    let vs = nn::VarStore::new(tch::Device::cuda_if_available());
+    let vs = nn::VarStore::new(device);
     let vae = VAE::new(&vs.root());
     let opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..21 {
         let mut train_loss = 0f64;
-        let mut batches = 0f64;
+        let mut samples = 0f64;
         for (bimages, _) in m.train_iter(128).shuffle().to_device(vs.device()) {
             let (recon_batch, mu, logvar) = vae.forward(&bimages);
             let loss = loss(&recon_batch, &bimages, &mu, &logvar);
             opt.backward_step(&loss);
             train_loss += f64::from(&loss);
-            batches += 1.0;
+            samples += bimages.size()[0] as f64;
         }
-        println!("Epoch: {}, loss: {}", epoch, train_loss / batches);
+        println!("Epoch: {}, loss: {}", epoch, train_loss / samples);
+        let sample = Tensor::randn(&[64, 20], tch::kind::FLOAT_CPU).to_(device);
+        let sample = vae
+            .decode(&sample)
+            .to_(tch::Device::Cpu)
+            .view(&[64, 1, 28, 28]);
+        tch::vision::image::save(&image_matrix(&sample, 8)?, format!("s_{}.png", epoch))?
     }
     Ok(())
 }
