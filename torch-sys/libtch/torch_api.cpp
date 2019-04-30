@@ -45,7 +45,7 @@ tensor at_new_tensor() {
 tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in_bytes, int type) {
   PROTECT(
     torch::Tensor tensor = torch::zeros(torch::IntList(dims, ndims), torch::ScalarType(type));
-    if (element_size_in_bytes != tensor.type().elementSizeInBytes())
+    if (element_size_in_bytes != tensor.element_size())
       throw std::invalid_argument("incoherent element sizes in bytes");
     void *tensor_data = tensor.data_ptr();
     memcpy(tensor_data, vs, tensor.numel() * element_size_in_bytes);
@@ -55,7 +55,7 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims, int element_size_in
 
 void at_copy_data(tensor tensor, void *vs, int64_t numel, int elt_size_in_bytes) {
   PROTECT(
-    if (elt_size_in_bytes != tensor->type().elementSizeInBytes())
+    if (elt_size_in_bytes != tensor->element_size())
       throw std::invalid_argument("incoherent element sizes in bytes");
     if (numel > tensor->numel())
       throw std::invalid_argument("target numel is larger than tensor numel");
