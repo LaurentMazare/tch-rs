@@ -9,21 +9,6 @@ pub enum Device {
     Cuda(usize),
 }
 
-/// Cpu related helper functions.
-pub enum Cpu {}
-impl Cpu {
-    /// Gets the current number of allowed threads for parallel computations.
-    pub fn get_num_threads() -> i64 {
-        let res = unsafe_torch!({ torch_sys::atc_get_num_threads() });
-        i64::from(res)
-    }
-
-    /// Sets the number of allowed threads for parallel computations.
-    pub fn set_num_threads(n: i64) {
-        unsafe_torch!({ torch_sys::atc_set_num_threads(n as i32) })
-    }
-}
-
 /// Cuda related helper functions.
 pub enum Cuda {}
 impl Cuda {

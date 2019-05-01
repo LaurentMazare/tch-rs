@@ -65,8 +65,8 @@ pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
         .add(nn::linear(&c_p, 1280, nclasses, Default::default()));
     nn::func_t(move |xs, train| {
         xs.apply_t(&features, train)
-            .mean2(2, false)
-            .mean2(2, false)
+            .mean2(&[2], false)
+            .mean2(&[2], false)
             .apply_t(&classifier, train)
     })
 }

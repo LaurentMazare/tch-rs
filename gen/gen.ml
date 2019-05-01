@@ -14,7 +14,9 @@ let excluded_functions =
     ; "multi_margin_loss_out"
     ; "log_softmax_backward_data"
     ; "softmax_backward_data"
-    ; "clone" ]
+    ; "clone"
+    ; "copy_"
+    ]
 
 let prefixed_functions =
   Set.of_list
@@ -79,7 +81,7 @@ module Func = struct
     | "booltensor" | "indextensor" | "tensor" ->
         Some (if is_nullable then TensorOption else Tensor)
     | "tensoroptions" -> Some TensorOptions
-    | "intlist" -> Some IntList
+    | "intarrayref" | "intlist" -> Some IntList
     | "tensorlist" -> Some TensorList
     | "device" -> Some Device
     | "scalar" -> Some Scalar

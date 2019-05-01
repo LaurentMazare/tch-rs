@@ -221,8 +221,7 @@ impl Tensor {
     }
 
     pub fn nll_loss(&self, targets: &Tensor) -> Tensor {
-        let weights = Tensor::new();
-        self.g_nll_loss(targets, &weights, 1, -100)
+        self.g_nll_loss::<Tensor>(targets, None, 1, -100)
     }
 }
 
@@ -307,7 +306,7 @@ impl Tensor {
     /// Returns the average accuracy for some given logits assuming that
     /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.argmax1(-1, false)
+        self.argmax(-1, false)
             .eq1(&targets)
             .to_kind(Kind::Float)
             .mean()

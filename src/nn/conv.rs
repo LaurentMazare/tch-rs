@@ -59,7 +59,7 @@ pub fn no_bias() -> ConvConfig {
 #[derive(Debug)]
 pub struct Conv<ND> {
     pub ws: Tensor,
-    pub bs: Tensor,
+    pub bs: Option<Tensor>,
     config: ConvConfigND<ND>,
 }
 
@@ -82,9 +82,9 @@ pub fn conv<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
 ) -> Conv<ND> {
     let vs = vs.borrow();
     let bs = if config.bias {
-        vs.var("bias", &[out_dim], config.bs_init)
+        Some(vs.var("bias", &[out_dim], config.bs_init))
     } else {
-        Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
+        None
     };
     let mut weight_size = vec![out_dim, in_dim / config.groups];
     weight_size.extend(ksizes.as_ref().iter());
@@ -153,7 +153,7 @@ impl super::module::Module for Conv1D {
         Tensor::conv1d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.dilation,
@@ -167,7 +167,7 @@ impl super::module::Module for Conv2D {
         Tensor::conv2d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.dilation,
@@ -181,7 +181,7 @@ impl super::module::Module for Conv3D {
         Tensor::conv3d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.dilation,

@@ -38,7 +38,7 @@ impl Default for ConvTransposeConfig {
 #[derive(Debug)]
 pub struct ConvTransposeND<ND> {
     pub ws: Tensor,
-    pub bs: Tensor,
+    pub bs: Option<Tensor>,
     config: ConvTransposeConfigND<ND>,
 }
 
@@ -60,9 +60,9 @@ fn conv_transpose<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>
 ) -> ConvTransposeND<ND> {
     let vs = vs.borrow();
     let bs = if config.bias {
-        vs.var("bias", &[out_dim], config.bs_init)
+        Some(vs.var("bias", &[out_dim], config.bs_init))
     } else {
-        Tensor::zeros(&[out_dim], (crate::Kind::Float, vs.device()))
+        None
     };
     let mut weight_size = vec![in_dim, out_dim / config.groups];
     weight_size.extend(ksizes.as_ref().iter());
@@ -150,7 +150,7 @@ impl super::module::Module for ConvTranspose1D {
         Tensor::conv_transpose1d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.output_padding,
@@ -165,7 +165,7 @@ impl super::module::Module for ConvTranspose2D {
         Tensor::conv_transpose2d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.output_padding,
@@ -180,7 +180,7 @@ impl super::module::Module for ConvTranspose3D {
         Tensor::conv_transpose3d(
             &xs,
             &self.ws,
-            &self.bs,
+            self.bs.as_ref(),
             &self.config.stride,
             &self.config.padding,
             &self.config.output_padding,

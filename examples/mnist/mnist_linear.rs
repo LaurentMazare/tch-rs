@@ -25,7 +25,7 @@ pub fn run() -> failure::Fallible<()> {
         });
         let test_logits = m.test_images.mm(&ws) + &bs;
         let test_accuracy = test_logits
-            .argmax1(-1, false)
+            .argmax(-1, false)
             .eq1(&m.test_labels)
             .to_kind(Kind::Float)
             .mean()

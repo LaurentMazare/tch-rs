@@ -9,7 +9,7 @@ extern crate zip;
 pub mod data;
 
 mod wrappers;
-pub use wrappers::device::{Cpu, Cuda, Device};
+pub use wrappers::device::{Cuda, Device};
 pub use wrappers::jit::{CModule, IValue};
 pub use wrappers::kind::Kind;
 pub use wrappers::manual_seed;

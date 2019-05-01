@@ -112,8 +112,6 @@ int atc_cuda_device_count();
 int atc_cuda_is_available();
 int atc_cudnn_is_available();
 void atc_set_benchmark_cudnn(int b);
-int atc_get_num_threads();
-void atc_set_num_threads(int);
 
 module atm_load(char *);
 tensor atm_forward(module, tensor *tensors, int ntensors);

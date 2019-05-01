@@ -79,8 +79,6 @@ extern "C" {
 pub mod c_generated;
 
 extern "C" {
-    pub fn atc_get_num_threads() -> c_int;
-    pub fn atc_set_num_threads(n: c_int);
     pub fn atc_cuda_device_count() -> c_int;
     pub fn atc_cuda_is_available() -> c_int;
     pub fn atc_cudnn_is_available() -> c_int;
