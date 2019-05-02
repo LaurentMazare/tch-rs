@@ -132,7 +132,7 @@ pub fn train() -> cpython::PyResult<()> {
         let probs = actor.softmax(-1);
         let action_log_probs = {
             let index = s_actions.unsqueeze(-1).to_device(device);
-            log_probs.gather(2, &index).squeeze1(-1)
+            log_probs.gather(2, &index, false).squeeze1(-1)
         };
         let dist_entropy = (-log_probs * probs).sum2(&[-1], false).mean();
         let advantages = s_returns.narrow(0, 0, NSTEPS).to_device(device) - critic;
