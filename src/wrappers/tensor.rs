@@ -281,13 +281,13 @@ impl Tensor {
     }
 
     /// Copies values from the argument tensor to the input tensor.
-    pub fn f_copy_(&self, src: &Tensor) -> Fallible<()> {
+    pub fn f_copy_(&mut self, src: &Tensor) -> Fallible<()> {
         unsafe_torch_err!({ at_copy_(self.c_tensor, src.c_tensor) });
         Ok(())
     }
 
     /// Copies values from the argument tensor to the input tensor.
-    pub fn copy_(&self, src: &Tensor) {
+    pub fn copy_(&mut self, src: &Tensor) {
         self.f_copy_(src).unwrap()
     }
 

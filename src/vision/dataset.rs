@@ -32,7 +32,7 @@ pub fn random_flip(t: &Tensor) -> Tensor {
     }
     let output = t.zeros_like();
     for batch_index in 0..size[0] {
-        let output_view = output.narrow(0, batch_index, 1);
+        let mut output_view = output.narrow(0, batch_index, 1);
         let t_view = t.narrow(0, batch_index, 1);
         let src = if rand::random() {
             t_view
@@ -55,7 +55,7 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
     let padded = t.reflection_pad2d(&[pad, pad, pad, pad]);
     let output = t.zeros_like();
     for batch_index in 0..size[0] {
-        let output_view = output.narrow(0, batch_index, 1);
+        let mut output_view = output.narrow(0, batch_index, 1);
         let start_w = rand::thread_rng().gen_range(0, 2 * pad);
         let start_h = rand::thread_rng().gen_range(0, 2 * pad);
         let src = padded
@@ -74,7 +74,7 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     if size.len() != 4 || sz > size[2] || sz > size[3] {
         panic!("unexpected shape for tensor {:?} {}", t, sz)
     }
-    let output = t.zeros_like();
+    let mut output = t.zeros_like();
     output.copy_(&t);
     for batch_index in 0..size[0] {
         let start_h = rand::thread_rng().gen_range(0, size[2] - sz + 1);

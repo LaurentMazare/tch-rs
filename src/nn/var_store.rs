@@ -83,8 +83,8 @@ impl VarStore {
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
-        let variables = self.variables.lock().unwrap();
-        for (name, var) in variables.iter() {
+        let mut variables = self.variables.lock().unwrap();
+        for (name, var) in variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| {
                     var.tensor
@@ -209,7 +209,7 @@ impl<'a> Path<'a> {
     }
 
     pub fn var_copy(&self, name: &str, t: &Tensor) -> Tensor {
-        let v = self.zeros(name, &t.size());
+        let mut v = self.zeros(name, &t.size());
         crate::no_grad(|| v.copy_(&t));
         v
     }

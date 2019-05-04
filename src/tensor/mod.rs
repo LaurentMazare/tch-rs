@@ -384,7 +384,7 @@ impl Tensor {
 
     /// Copies a tensor to a newly allocated tensor using the same shape and device.
     pub fn copy(&self) -> Tensor {
-        let result = self.zeros_like();
+        let mut result = self.zeros_like();
         result.copy_(&self);
         result
     }
