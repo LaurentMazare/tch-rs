@@ -129,7 +129,7 @@ impl Tensor {
 
     /// Zeroes the gradient tensor attached to this tensor if defined.
     pub fn zero_grad(&mut self) {
-        let grad = self.grad();
+        let mut grad = self.grad();
         if grad.defined() {
             let _ = grad.detach_().zero_();
         }

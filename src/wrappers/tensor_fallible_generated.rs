@@ -24,7 +24,7 @@ impl Tensor {
     }
 
     pub fn f_abs_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -58,7 +58,7 @@ impl Tensor {
     }
 
     pub fn f_acos_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -310,7 +310,7 @@ impl Tensor {
     }
 
     pub fn f_add_(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -322,7 +322,7 @@ impl Tensor {
     }
 
     pub fn f_add_1<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -360,7 +360,7 @@ impl Tensor {
     }
 
     pub fn f_addbmm_(
-        &self, batch1: &Tensor, batch2: &Tensor
+        &mut self, batch1: &Tensor, batch2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -400,7 +400,7 @@ impl Tensor {
     }
 
     pub fn f_addcdiv_(
-        &self, tensor1: &Tensor, tensor2: &Tensor
+        &mut self, tensor1: &Tensor, tensor2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -440,7 +440,7 @@ impl Tensor {
     }
 
     pub fn f_addcmul_(
-        &self, tensor1: &Tensor, tensor2: &Tensor
+        &mut self, tensor1: &Tensor, tensor2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -480,7 +480,7 @@ impl Tensor {
     }
 
     pub fn f_addmm_(
-        &self, mat1: &Tensor, mat2: &Tensor
+        &mut self, mat1: &Tensor, mat2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -520,7 +520,7 @@ impl Tensor {
     }
 
     pub fn f_addmv_(
-        &self, mat: &Tensor, vec: &Tensor
+        &mut self, mat: &Tensor, vec: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -560,7 +560,7 @@ impl Tensor {
     }
 
     pub fn f_addr_(
-        &self, vec1: &Tensor, vec2: &Tensor
+        &mut self, vec1: &Tensor, vec2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -673,7 +673,7 @@ impl Tensor {
     }
 
     pub fn f_alpha_dropout_(
-        &self, p: f64, train: bool
+        &mut self, p: f64, train: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -841,7 +841,7 @@ impl Tensor {
     }
 
     pub fn f_as_strided_(
-        &self, size: &[i64], stride: &[i64], storage_offset: i64
+        &mut self, size: &[i64], stride: &[i64], storage_offset: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -866,7 +866,7 @@ impl Tensor {
     }
 
     pub fn f_asin_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -912,7 +912,7 @@ impl Tensor {
     }
 
     pub fn f_atan2_(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -937,7 +937,7 @@ impl Tensor {
     }
 
     pub fn f_atan_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1125,7 +1125,7 @@ impl Tensor {
     }
 
     pub fn f_baddbmm_(
-        &self, batch1: &Tensor, batch2: &Tensor
+        &mut self, batch1: &Tensor, batch2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1313,7 +1313,7 @@ impl Tensor {
     }
 
     pub fn f_bernoulli_(
-        &self, p: &Tensor
+        &mut self, p: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1325,7 +1325,7 @@ impl Tensor {
     }
 
     pub fn f_bernoulli_1(
-        &self, p: f64
+        &mut self, p: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1571,7 +1571,7 @@ impl Tensor {
     }
 
     pub fn f_cauchy_(
-        &self, median: f64, sigma: f64
+        &mut self, median: f64, sigma: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1608,7 +1608,7 @@ impl Tensor {
     }
 
     pub fn f_ceil_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1642,7 +1642,7 @@ impl Tensor {
     }
 
     pub fn f_celu_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1774,7 +1774,7 @@ impl Tensor {
     }
 
     pub fn f_clamp_<S: Into<Scalar>>(
-        &self, min: S, max: S
+        &mut self, min: S, max: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1799,7 +1799,7 @@ impl Tensor {
     }
 
     pub fn f_clamp_max_<S: Into<Scalar>>(
-        &self, max: S
+        &mut self, max: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -1836,7 +1836,7 @@ impl Tensor {
     }
 
     pub fn f_clamp_min_<S: Into<Scalar>>(
-        &self, min: S
+        &mut self, min: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2075,7 +2075,7 @@ impl Tensor {
     }
 
     pub fn f_copy_sparse_to_sparse_(
-        &self, src: &Tensor, non_blocking: bool
+        &mut self, src: &Tensor, non_blocking: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2099,7 +2099,7 @@ impl Tensor {
     }
 
     pub fn f_cos_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2133,7 +2133,7 @@ impl Tensor {
     }
 
     pub fn f_cosh_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2610,7 +2610,7 @@ impl Tensor {
     }
 
     pub fn f_detach_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2697,7 +2697,7 @@ impl Tensor {
     }
 
     pub fn f_digamma_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2756,7 +2756,7 @@ impl Tensor {
     }
 
     pub fn f_div_(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2768,7 +2768,7 @@ impl Tensor {
     }
 
     pub fn f_div_1<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2831,7 +2831,7 @@ impl Tensor {
     }
 
     pub fn f_dropout_(
-        &self, p: f64, train: bool
+        &mut self, p: f64, train: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2881,7 +2881,7 @@ impl Tensor {
     }
 
     pub fn f_elu_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -2998,7 +2998,7 @@ impl Tensor {
     }
 
     pub fn f_embedding_renorm_(
-        &self, indices: &Tensor, max_norm: f64, norm_type: f64
+        &mut self, indices: &Tensor, max_norm: f64, norm_type: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3111,7 +3111,7 @@ impl Tensor {
     }
 
     pub fn f_eq_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3123,7 +3123,7 @@ impl Tensor {
     }
 
     pub fn f_eq_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3172,7 +3172,7 @@ impl Tensor {
     }
 
     pub fn f_erf_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3206,7 +3206,7 @@ impl Tensor {
     }
 
     pub fn f_erfc_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3240,7 +3240,7 @@ impl Tensor {
     }
 
     pub fn f_erfinv_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3274,7 +3274,7 @@ impl Tensor {
     }
 
     pub fn f_exp_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3333,7 +3333,7 @@ impl Tensor {
     }
 
     pub fn f_expm1_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3356,7 +3356,7 @@ impl Tensor {
     }
 
     pub fn f_exponential_(
-        &self, lambd: f64
+        &mut self, lambd: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3461,7 +3461,7 @@ impl Tensor {
     }
 
     pub fn f_feature_alpha_dropout_(
-        &self, p: f64, train: bool
+        &mut self, p: f64, train: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3487,7 +3487,7 @@ impl Tensor {
     }
 
     pub fn f_feature_dropout_(
-        &self, p: f64, train: bool
+        &mut self, p: f64, train: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3513,7 +3513,7 @@ impl Tensor {
     }
 
     pub fn f_fill_<S: Into<Scalar>>(
-        &self, value: S
+        &mut self, value: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3525,7 +3525,7 @@ impl Tensor {
     }
 
     pub fn f_fill_1(
-        &self, value: &Tensor
+        &mut self, value: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3573,7 +3573,7 @@ impl Tensor {
     }
 
     pub fn f_floor_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3620,7 +3620,7 @@ impl Tensor {
     }
 
     pub fn f_fmod_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3632,7 +3632,7 @@ impl Tensor {
     }
 
     pub fn f_fmod_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3681,7 +3681,7 @@ impl Tensor {
     }
 
     pub fn f_frac_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3968,7 +3968,7 @@ impl Tensor {
     }
 
     pub fn f_ge_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -3980,7 +3980,7 @@ impl Tensor {
     }
 
     pub fn f_ge_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4044,7 +4044,7 @@ impl Tensor {
     }
 
     pub fn f_geometric_(
-        &self, p: f64
+        &mut self, p: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4334,7 +4334,7 @@ impl Tensor {
     }
 
     pub fn f_gt_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4346,7 +4346,7 @@ impl Tensor {
     }
 
     pub fn f_gt_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4498,7 +4498,7 @@ impl Tensor {
     }
 
     pub fn f_hardtanh_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4653,7 +4653,7 @@ impl Tensor {
     }
 
     pub fn f_index_add_(
-        &self, dim: i64, index: &Tensor, source: &Tensor
+        &mut self, dim: i64, index: &Tensor, source: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4681,7 +4681,7 @@ impl Tensor {
     }
 
     pub fn f_index_copy_(
-        &self, dim: i64, index: &Tensor, source: &Tensor
+        &mut self, dim: i64, index: &Tensor, source: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4723,7 +4723,7 @@ impl Tensor {
     }
 
     pub fn f_index_fill_<S: Into<Scalar>>(
-        &self, dim: i64, index: &Tensor, value: S
+        &mut self, dim: i64, index: &Tensor, value: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4737,7 +4737,7 @@ impl Tensor {
     }
 
     pub fn f_index_fill_1(
-        &self, dim: i64, index: &Tensor, value: &Tensor
+        &mut self, dim: i64, index: &Tensor, value: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -4765,7 +4765,7 @@ impl Tensor {
     }
 
     pub fn f_index_put_<T: Borrow<Tensor>>(
-        &self, indices: &[T], values: &Tensor, accumulate: bool
+        &mut self, indices: &[T], values: &Tensor, accumulate: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5064,7 +5064,7 @@ impl Tensor {
     }
 
     pub fn f_le_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5076,7 +5076,7 @@ impl Tensor {
     }
 
     pub fn f_le_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5125,7 +5125,7 @@ impl Tensor {
     }
 
     pub fn f_leaky_relu_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5201,7 +5201,7 @@ impl Tensor {
     }
 
     pub fn f_lerp_<S: Into<Scalar>>(
-        &self, end: &Tensor, weight: S
+        &mut self, end: &Tensor, weight: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5214,7 +5214,7 @@ impl Tensor {
     }
 
     pub fn f_lerp_1(
-        &self, end: &Tensor, weight: &Tensor
+        &mut self, end: &Tensor, weight: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5266,7 +5266,7 @@ impl Tensor {
     }
 
     pub fn f_lgamma_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5352,7 +5352,7 @@ impl Tensor {
     }
 
     pub fn f_log10_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5386,7 +5386,7 @@ impl Tensor {
     }
 
     pub fn f_log1p_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5420,7 +5420,7 @@ impl Tensor {
     }
 
     pub fn f_log2_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5443,7 +5443,7 @@ impl Tensor {
     }
 
     pub fn f_log_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5454,7 +5454,7 @@ impl Tensor {
     }
 
     pub fn f_log_normal_(
-        &self, mean: f64, std: f64
+        &mut self, mean: f64, std: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5700,7 +5700,7 @@ impl Tensor {
     }
 
     pub fn f_lt_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5712,7 +5712,7 @@ impl Tensor {
     }
 
     pub fn f_lt_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5818,7 +5818,7 @@ impl Tensor {
     }
 
     pub fn f_masked_fill_<S: Into<Scalar>>(
-        &self, mask: &Tensor, value: S
+        &mut self, mask: &Tensor, value: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5831,7 +5831,7 @@ impl Tensor {
     }
 
     pub fn f_masked_fill_1(
-        &self, mask: &Tensor, value: &Tensor
+        &mut self, mask: &Tensor, value: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -5857,7 +5857,7 @@ impl Tensor {
     }
 
     pub fn f_masked_scatter_(
-        &self, mask: &Tensor, source: &Tensor
+        &mut self, mask: &Tensor, source: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7060,7 +7060,7 @@ impl Tensor {
     }
 
     pub fn f_mul_(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7072,7 +7072,7 @@ impl Tensor {
     }
 
     pub fn f_mul_1<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7254,7 +7254,7 @@ impl Tensor {
     }
 
     pub fn f_mvlgamma_(
-        &self, p: i64
+        &mut self, p: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7347,7 +7347,7 @@ impl Tensor {
     }
 
     pub fn f_ne_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7359,7 +7359,7 @@ impl Tensor {
     }
 
     pub fn f_ne_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7408,7 +7408,7 @@ impl Tensor {
     }
 
     pub fn f_neg_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -7719,7 +7719,7 @@ impl Tensor {
     }
 
     pub fn f_normal_(
-        &self, mean: f64, std: f64
+        &mut self, mean: f64, std: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8008,7 +8008,7 @@ impl Tensor {
     }
 
     pub fn f_polygamma_(
-        &self, n: i64
+        &mut self, n: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8069,7 +8069,7 @@ impl Tensor {
     }
 
     pub fn f_pow_<S: Into<Scalar>>(
-        &self, exponent: S
+        &mut self, exponent: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8081,7 +8081,7 @@ impl Tensor {
     }
 
     pub fn f_pow_1(
-        &self, exponent: &Tensor
+        &mut self, exponent: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8289,7 +8289,7 @@ impl Tensor {
     }
 
     pub fn f_put_(
-        &self, index: &Tensor, source: &Tensor, accumulate: bool
+        &mut self, index: &Tensor, source: &Tensor, accumulate: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8655,7 +8655,7 @@ impl Tensor {
     }
 
     pub fn f_random_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8666,7 +8666,7 @@ impl Tensor {
     }
 
     pub fn f_random_1(
-        &self, to: i64
+        &mut self, to: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8678,7 +8678,7 @@ impl Tensor {
     }
 
     pub fn f_random_2(
-        &self, from: i64, to: i64
+        &mut self, from: i64, to: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8765,7 +8765,7 @@ impl Tensor {
     }
 
     pub fn f_reciprocal_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8903,7 +8903,7 @@ impl Tensor {
     }
 
     pub fn f_relu_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8938,7 +8938,7 @@ impl Tensor {
     }
 
     pub fn f_remainder_<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -8950,7 +8950,7 @@ impl Tensor {
     }
 
     pub fn f_remainder_1(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9002,7 +9002,7 @@ impl Tensor {
     }
 
     pub fn f_renorm_<S: Into<Scalar>>(
-        &self, p: S, dim: i64, maxnorm: S
+        &mut self, p: S, dim: i64, maxnorm: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9260,7 +9260,7 @@ impl Tensor {
     }
 
     pub fn f_resize_(
-        &self, size: &[i64]
+        &mut self, size: &[i64]
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9272,7 +9272,7 @@ impl Tensor {
     }
 
     pub fn f_resize_as_(
-        &self, the_template: &Tensor
+        &mut self, the_template: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9443,7 +9443,7 @@ impl Tensor {
     }
 
     pub fn f_round_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9478,7 +9478,7 @@ impl Tensor {
     }
 
     pub fn f_rrelu_(
-        &self, training: bool
+        &mut self, training: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9503,7 +9503,7 @@ impl Tensor {
     }
 
     pub fn f_rrelu_with_noise_(
-        &self, noise: &Tensor, training: bool
+        &mut self, noise: &Tensor, training: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9574,7 +9574,7 @@ impl Tensor {
     }
 
     pub fn f_rsqrt_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9621,7 +9621,7 @@ impl Tensor {
     }
 
     pub fn f_s_copy_(
-        &self, src: &Tensor, non_blocking: bool
+        &mut self, src: &Tensor, non_blocking: bool
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9647,7 +9647,7 @@ impl Tensor {
     }
 
     pub fn f_s_native_addmm_(
-        &self, mat1: &Tensor, mat2: &Tensor
+        &mut self, mat1: &Tensor, mat2: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9714,7 +9714,7 @@ impl Tensor {
     }
 
     pub fn f_scatter_(
-        &self, dim: i64, index: &Tensor, src: &Tensor
+        &mut self, dim: i64, index: &Tensor, src: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9728,7 +9728,7 @@ impl Tensor {
     }
 
     pub fn f_scatter_1<S: Into<Scalar>>(
-        &self, dim: i64, index: &Tensor, value: S
+        &mut self, dim: i64, index: &Tensor, value: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9756,7 +9756,7 @@ impl Tensor {
     }
 
     pub fn f_scatter_add_(
-        &self, dim: i64, index: &Tensor, src: &Tensor
+        &mut self, dim: i64, index: &Tensor, src: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9794,7 +9794,7 @@ impl Tensor {
     }
 
     pub fn f_selu_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9805,7 +9805,7 @@ impl Tensor {
     }
 
     pub fn f_set_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9816,7 +9816,7 @@ impl Tensor {
     }
 
     pub fn f_set_1(
-        &self, source: &Tensor
+        &mut self, source: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9851,7 +9851,7 @@ impl Tensor {
     }
 
     pub fn f_sigmoid_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9910,7 +9910,7 @@ impl Tensor {
     }
 
     pub fn f_sign_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9944,7 +9944,7 @@ impl Tensor {
     }
 
     pub fn f_sin_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -9978,7 +9978,7 @@ impl Tensor {
     }
 
     pub fn f_sinh_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10373,7 +10373,7 @@ impl Tensor {
     }
 
     pub fn f_sparse_resize_(
-        &self, size: &[i64], sparse_dim: i64, dense_dim: i64
+        &mut self, size: &[i64], sparse_dim: i64, dense_dim: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10387,7 +10387,7 @@ impl Tensor {
     }
 
     pub fn f_sparse_resize_and_clear_(
-        &self, size: &[i64], sparse_dim: i64, dense_dim: i64
+        &mut self, size: &[i64], sparse_dim: i64, dense_dim: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10452,7 +10452,7 @@ impl Tensor {
     }
 
     pub fn f_sqrt_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10498,7 +10498,7 @@ impl Tensor {
     }
 
     pub fn f_squeeze_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10509,7 +10509,7 @@ impl Tensor {
     }
 
     pub fn f_squeeze_1(
-        &self, dim: i64
+        &mut self, dim: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10655,7 +10655,7 @@ impl Tensor {
     }
 
     pub fn f_sub_(
-        &self, other: &Tensor
+        &mut self, other: &Tensor
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10667,7 +10667,7 @@ impl Tensor {
     }
 
     pub fn f_sub_1<S: Into<Scalar>>(
-        &self, other: S
+        &mut self, other: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10878,7 +10878,7 @@ impl Tensor {
     }
 
     pub fn f_t_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10925,7 +10925,7 @@ impl Tensor {
     }
 
     pub fn f_tan_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -10959,7 +10959,7 @@ impl Tensor {
     }
 
     pub fn f_tanh_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11034,7 +11034,7 @@ impl Tensor {
     }
 
     pub fn f_threshold_<S: Into<Scalar>>(
-        &self, threshold: S, value: S
+        &mut self, threshold: S, value: S
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11280,7 +11280,7 @@ impl Tensor {
     }
 
     pub fn f_transpose_(
-        &self, dim0: i64, dim1: i64
+        &mut self, dim0: i64, dim1: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11337,7 +11337,7 @@ impl Tensor {
     }
 
     pub fn f_tril_(
-        &self, diagonal: i64
+        &mut self, diagonal: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11406,7 +11406,7 @@ impl Tensor {
     }
 
     pub fn f_triu_(
-        &self, diagonal: i64
+        &mut self, diagonal: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11456,7 +11456,7 @@ impl Tensor {
     }
 
     pub fn f_trunc_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11524,7 +11524,7 @@ impl Tensor {
     }
 
     pub fn f_uniform_(
-        &self, from: f64, to: f64
+        &mut self, from: f64, to: f64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -11592,7 +11592,7 @@ impl Tensor {
     }
 
     pub fn f_unsqueeze_(
-        &self, dim: i64
+        &mut self, dim: i64
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
@@ -12073,7 +12073,7 @@ impl Tensor {
     }
 
     pub fn f_zero_(
-        &self, 
+        &mut self, 
     ) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
