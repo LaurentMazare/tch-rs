@@ -79,7 +79,7 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     for batch_index in 0..size[0] {
         let start_h = rand::thread_rng().gen_range(0, size[2] - sz + 1);
         let start_w = rand::thread_rng().gen_range(0, size[3] - sz + 1);
-        output
+        let _output = output
             .narrow(0, batch_index, 1)
             .narrow(2, start_h, sz)
             .narrow(3, start_w, sz)
