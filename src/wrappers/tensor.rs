@@ -7,6 +7,7 @@ use std::path::Path;
 use torch_sys::*;
 
 /// A tensor object.
+#[must_use]
 pub struct Tensor {
     pub(super) c_tensor: *mut C_tensor,
 }
