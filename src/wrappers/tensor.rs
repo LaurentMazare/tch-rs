@@ -430,7 +430,7 @@ pub enum Reduction {
 impl Reduction {
     // This has to stay in sync with
     // pytorch/aten/src/ATen/core/Reduction.h
-    pub fn to_int(&self) -> i64 {
+    pub fn to_int(self) -> i64 {
         match self {
             Reduction::None => 0,
             Reduction::Mean => 1,
