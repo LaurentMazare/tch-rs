@@ -66,7 +66,7 @@ pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Falli
         let tensor = if resize_h == out_h {
             tensor
         } else {
-            tensor.f_narrow(2, (resize_h - out_h) / 2, out_h)?
+            tensor.f_narrow(1, (resize_h - out_h) / 2, out_h)?
         };
         Ok(tensor)
     }
