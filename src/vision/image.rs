@@ -41,13 +41,11 @@ pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
     Ok(hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h)?))
 }
 
-/// Loads and resize an image, preserve the aspect ratio by taking a center crop.
-pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
-    let tensor = load_hwc(path)?;
-    let tensor_size = tensor.size();
+pub fn resize_preserve_aspect_ratio_hwc(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+    let tensor_size = t.size();
     let (w, h) = (tensor_size[0], tensor_size[1]);
     if w * out_h == h * out_w {
-        Ok(hwc_to_chw(&resize_hwc(&tensor, out_w, out_h)?))
+        Ok(hwc_to_chw(&resize_hwc(&t, out_w, out_h)?))
     } else {
         let (resize_w, resize_h) = {
             let ratio_w = out_w as f64 / w as f64;
@@ -57,19 +55,32 @@ pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Falli
         };
         let resize_w = i64::max(resize_w, out_w);
         let resize_h = i64::max(resize_h, out_h);
-        let tensor = hwc_to_chw(&resize_hwc(&tensor, resize_w, resize_h)?);
-        let tensor = if resize_w == out_w {
-            tensor
+        let t = hwc_to_chw(&resize_hwc(&t, resize_w, resize_h)?);
+        let t = if resize_w == out_w {
+            t
         } else {
-            tensor.f_narrow(2, (resize_w - out_w) / 2, out_w)?
+            t.f_narrow(2, (resize_w - out_w) / 2, out_w)?
         };
-        let tensor = if resize_h == out_h {
-            tensor
+        let t = if resize_h == out_h {
+            t
         } else {
-            tensor.f_narrow(1, (resize_h - out_h) / 2, out_h)?
+            t.f_narrow(1, (resize_h - out_h) / 2, out_h)?
         };
-        Ok(tensor)
+        Ok(t)
     }
+}
+
+/// Resize an image, preserve the aspect ratio by taking a center crop.
+///
+/// This expects as input a tensor of shape [channel, height, width] and returns
+pub fn resize_preserve_aspect_ratio(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+    resize_preserve_aspect_ratio_hwc(&chw_to_hwc(t), out_w, out_h)
+}
+
+/// Loads and resize an image, preserve the aspect ratio by taking a center crop.
+pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+    let tensor = load_hwc(path)?;
+    resize_preserve_aspect_ratio_hwc(&tensor, out_w, out_h)
 }
 
 fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Fallible<()> {
