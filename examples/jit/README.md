@@ -53,7 +53,7 @@ pub fn main() -> failure::Fallible<()> {
     };
     let image = imagenet::load_image_and_resize(image_file)?;
     let model = tch::CModule::load(model_file)?;
-    let output = model.forward(&[image.unsqueeze(0)])?.softmax(-1);
+    let output = model.forward_ts(&[image.unsqueeze(0)])?.softmax(-1);
     for (probability, class) in imagenet::top(&output, 5).iter() {
         println!("{:50} {:5.2}%", class, 100.0 * probability)
     }
@@ -81,7 +81,13 @@ of the ImageNet 1000 classes. A softmax is applied to get the associated
 probabilities.
 
 ```rust
-    let output = model.forward(&[image.unsqueeze(0)])?.softmax(-1);
+    let output = model.forward_ts(&[image.unsqueeze(0)])?.softmax(-1);
+```
+
+Alternatively, one can write the following instead as `tch::CModule` can be
+used as any other module via apply when there is only a single input.
+```rust
+    let output = image.unsqueeze(0)].apply(&model).softmax(-1);
 ```
 
 And finally we print the 5 classes with the highest probabilities.
