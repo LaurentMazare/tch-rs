@@ -63,6 +63,7 @@ impl IValue {
 ///
 /// These modules can be created via the
 /// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
+#[derive(Debug)]
 pub struct CModule {
     pub(super) c_module: *mut CModule_,
 }
@@ -81,8 +82,8 @@ impl CModule {
         Ok(CModule { c_module })
     }
 
-    /// Performs the forward pass for a model on some specified tensor input.
-    pub fn forward<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
+    /// Performs the forward pass for a model on some specified tensor inputs.
+    pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_tensor =
             unsafe_torch_err!({ atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int) });
@@ -90,7 +91,7 @@ impl CModule {
     }
 
     /// Performs the forward pass for a model on some specified ivalue input.
-    pub fn forward_<T: Borrow<IValue>>(&self, ts: &[T]) -> Fallible<IValue> {
+    pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Fallible<IValue> {
         let ts = ts
             .iter()
             .map(|x| x.borrow().to_c())

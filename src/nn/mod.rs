@@ -44,3 +44,9 @@ impl ModuleT for Id {
         xs.shallow_clone()
     }
 }
+
+impl Module for crate::CModule {
+    fn forward(&self, xs: &crate::Tensor) -> crate::Tensor {
+        self.forward_ts(&[xs]).unwrap()
+    }
+}
