@@ -7,7 +7,7 @@ use std::borrow::Borrow;
 use torch_sys::*;
 
 /// Argument and output values for JIT models.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum IValue {
     Tensor(crate::Tensor),
     Int(i64),
