@@ -162,3 +162,23 @@ fn broadcast() {
     assert_eq!(Vec::<i64>::from(&tensors[0]), vec![4, 5, 3]);
     assert_eq!(Vec::<i64>::from(&tensors[1]), vec![42, 42, 42]);
 }
+
+#[test]
+fn eq() {
+    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
+    let u = &t + 1 - 1;
+    assert_eq!(t, u);
+    assert!(t == u);
+    assert!(t != u - 1);
+
+    let t = Tensor::of_slice(&[3.14]);
+    let u = Tensor::from(3.14);
+    // The tensor shape is important for equality.
+    assert!(t != u);
+    assert!(t.size() != u.size());
+
+    let u = u.reshape(&[1]);
+    assert_eq!(t, u);
+    assert!(t == u);
+    assert!(t != u - 1)
+}

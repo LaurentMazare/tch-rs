@@ -421,9 +421,15 @@ impl<'a> std::iter::Sum<&'a Tensor> for Tensor {
 
 impl PartialEq for Tensor {
     fn eq(&self, other: &Tensor) -> bool {
+        if self.size() != other.size() {
+            return false;
+        }
         match self.f_eq1(&other) {
-            Ok(v) => i64::from(v) > 0,
             Err(_) => false,
+            Ok(v) => match v.f_all() {
+                Err(_) => false,
+                Ok(v) => i64::from(v) > 0,
+            },
         }
     }
 }
