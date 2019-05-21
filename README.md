@@ -25,7 +25,8 @@ try downloading and extracting a pre-built binary version of libtorch.
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
 the content of the zip file.
-- Add the following to your `.bashrc` or equivalent.
+- Add the following to your `.bashrc` or equivalent, where `/path/to/libtorch` is the
+path to the directory that was created when unzipping the file.
 ```bash
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
