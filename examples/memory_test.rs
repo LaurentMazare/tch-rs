@@ -1,5 +1,5 @@
 extern crate tch;
-use tch::{kind, Tensor};
+use tch::Tensor;
 
 fn main() {
     let slice = vec![0; 1_000_000];
