@@ -8,6 +8,7 @@ fn cbr(p: nn::Path, c_in: i64, c_out: i64, ks: i64, stride: i64, g: i64) -> impl
         stride,
         padding: (ks - 1) / 2,
         groups: g,
+        bias: false,
         ..Default::default()
     };
     nn::seq_t()
@@ -64,10 +65,10 @@ pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
             layer_id += 1;
         }
     }
-    features = features.add(cbr(&f_p / "x", c_in, 1280, 1, 1, 1));
+    features = features.add(cbr(&f_p / layer_id, c_in, 1280, 1, 1, 1));
     let classifier = nn::seq_t()
         .add_fn_t(|xs, train| xs.dropout(0.2, train))
-        .add(nn::linear(&c_p, 1280, nclasses, Default::default()));
+        .add(nn::linear(&c_p / 1, 1280, nclasses, Default::default()));
     nn::func_t(move |xs, train| {
         xs.apply_t(&features, train)
             .mean2(&[2], false)
