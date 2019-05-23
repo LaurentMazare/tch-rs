@@ -117,7 +117,8 @@ impl VarStore {
 }
 
 impl<'a> Path<'a> {
-    pub fn sub(&'a self, s: String) -> Path<'a> {
+    pub fn sub<T: std::string::ToString>(&'a self, s: T) -> Path<'a> {
+        let s = s.to_string();
         if s.chars().any(|x| x == SEP) {
             panic!("sub name cannot contain {} {}", SEP, s);
         }
