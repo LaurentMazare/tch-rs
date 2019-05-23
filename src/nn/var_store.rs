@@ -117,12 +117,12 @@ impl VarStore {
 }
 
 impl<'a> Path<'a> {
-    pub fn sub(&'a self, s: &str) -> Path<'a> {
+    pub fn sub(&'a self, s: String) -> Path<'a> {
         if s.chars().any(|x| x == SEP) {
             panic!("sub name cannot contain {} {}", SEP, s);
         }
         let mut path = self.path.clone();
-        path.push(s.to_owned());
+        path.push(s);
         Path {
             path,
             var_store: self.var_store,
@@ -215,18 +215,24 @@ impl<'a> Path<'a> {
     }
 }
 
-impl<'a> Div<&str> for &'a mut Path<'a> {
+impl<'a, T> Div<T> for &'a mut Path<'a>
+where
+    T: std::string::ToString,
+{
     type Output = Path<'a>;
 
-    fn div(self, rhs: &str) -> Self::Output {
-        self.sub(&rhs)
+    fn div(self, rhs: T) -> Self::Output {
+        self.sub(rhs.to_string())
     }
 }
 
-impl<'a> Div<&str> for &'a Path<'a> {
+impl<'a, T> Div<T> for &'a Path<'a>
+where
+    T: std::string::ToString,
+{
     type Output = Path<'a>;
 
-    fn div(self, rhs: &str) -> Self::Output {
-        self.sub(&rhs)
+    fn div(self, rhs: T) -> Self::Output {
+        self.sub(rhs.to_string())
     }
 }
