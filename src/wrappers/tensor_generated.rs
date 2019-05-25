@@ -619,37 +619,37 @@ impl Tensor {
     }
 
     pub fn binary_cross_entropy<T: Borrow<Tensor>>(
-        &self, target: &Tensor, weight: Option<T>, reduction: i64
+        &self, target: &Tensor, weight: Option<T>, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy(target, weight, reduction).unwrap()
     }
 
     pub fn binary_cross_entropy_backward(
-        &self, grad_output: &Tensor, target: &Tensor, weight: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, weight: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy_backward(grad_output, target, weight, reduction).unwrap()
     }
 
     pub fn binary_cross_entropy_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy_backward_out(grad_input, grad_output, target, weight, reduction).unwrap()
     }
 
     pub fn binary_cross_entropy_out<T: Borrow<Tensor>>(
-        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64
+        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy_out(out, target, weight, reduction).unwrap()
     }
 
     pub fn binary_cross_entropy_with_logits<T: Borrow<Tensor>>(
-        &self, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: i64
+        &self, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy_with_logits(target, weight, pos_weight, reduction).unwrap()
     }
 
     pub fn binary_cross_entropy_with_logits_backward<T: Borrow<Tensor>>(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, pos_weight: Option<T>, reduction: crate::Reduction
     ) -> Tensor {
         self.f_binary_cross_entropy_with_logits_backward(grad_output, target, weight, pos_weight, reduction).unwrap()
     }
@@ -973,7 +973,7 @@ impl Tensor {
     }
 
     pub fn cosine_embedding_loss(
-        input1: &Tensor, input2: &Tensor, target: &Tensor, margin: f64, reduction: i64
+        input1: &Tensor, input2: &Tensor, target: &Tensor, margin: f64, reduction: crate::Reduction
     ) -> Tensor {
         Tensor::f_cosine_embedding_loss(input1, input2, target, margin, reduction).unwrap()
     }
@@ -997,13 +997,13 @@ impl Tensor {
     }
 
     pub fn ctc_loss(
-        log_probs: &Tensor, targets: &Tensor, input_lengths: &[i64], target_lengths: &[i64], blank: i64, reduction: i64, zero_infinity: bool
+        log_probs: &Tensor, targets: &Tensor, input_lengths: &[i64], target_lengths: &[i64], blank: i64, reduction: crate::Reduction, zero_infinity: bool
     ) -> Tensor {
         Tensor::f_ctc_loss(log_probs, targets, input_lengths, target_lengths, blank, reduction, zero_infinity).unwrap()
     }
 
     pub fn ctc_loss1(
-        log_probs: &Tensor, targets: &Tensor, input_lengths: &Tensor, target_lengths: &Tensor, blank: i64, reduction: i64, zero_infinity: bool
+        log_probs: &Tensor, targets: &Tensor, input_lengths: &Tensor, target_lengths: &Tensor, blank: i64, reduction: crate::Reduction, zero_infinity: bool
     ) -> Tensor {
         Tensor::f_ctc_loss1(log_probs, targets, input_lengths, target_lengths, blank, reduction, zero_infinity).unwrap()
     }
@@ -2065,7 +2065,7 @@ impl Tensor {
     }
 
     pub fn hinge_embedding_loss(
-        &self, target: &Tensor, margin: f64, reduction: i64
+        &self, target: &Tensor, margin: f64, reduction: crate::Reduction
     ) -> Tensor {
         self.f_hinge_embedding_loss(target, margin, reduction).unwrap()
     }
@@ -2227,13 +2227,13 @@ impl Tensor {
     }
 
     pub fn kl_div(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_kl_div(target, reduction).unwrap()
     }
 
     pub fn kl_div_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_kl_div_backward(grad_output, target, reduction).unwrap()
     }
@@ -2251,25 +2251,25 @@ impl Tensor {
     }
 
     pub fn l1_loss(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_l1_loss(target, reduction).unwrap()
     }
 
     pub fn l1_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_l1_loss_backward(grad_output, target, reduction).unwrap()
     }
 
     pub fn l1_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_l1_loss_backward_out(grad_input, grad_output, target, reduction).unwrap()
     }
 
     pub fn l1_loss_out(
-        &self, out: &Tensor, target: &Tensor, reduction: i64
+        &self, out: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_l1_loss_out(out, target, reduction).unwrap()
     }
@@ -2629,7 +2629,7 @@ impl Tensor {
     }
 
     pub fn margin_ranking_loss(
-        input1: &Tensor, input2: &Tensor, target: &Tensor, margin: f64, reduction: i64
+        input1: &Tensor, input2: &Tensor, target: &Tensor, margin: f64, reduction: crate::Reduction
     ) -> Tensor {
         Tensor::f_margin_ranking_loss(input1, input2, target, margin, reduction).unwrap()
     }
@@ -3115,25 +3115,25 @@ impl Tensor {
     }
 
     pub fn mse_loss(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_mse_loss(target, reduction).unwrap()
     }
 
     pub fn mse_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_mse_loss_backward(grad_output, target, reduction).unwrap()
     }
 
     pub fn mse_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_mse_loss_backward_out(grad_input, grad_output, target, reduction).unwrap()
     }
 
     pub fn mse_loss_out(
-        &self, out: &Tensor, target: &Tensor, reduction: i64
+        &self, out: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_mse_loss_out(out, target, reduction).unwrap()
     }
@@ -3169,37 +3169,37 @@ impl Tensor {
     }
 
     pub fn multi_margin_loss_backward<S: Into<Scalar>>(
-        &self, grad_output: &Tensor, target: &Tensor, p: S, margin: S, weight: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, p: S, margin: S, weight: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_multi_margin_loss_backward(grad_output, target, p, margin, weight, reduction).unwrap()
     }
 
     pub fn multi_margin_loss_backward_out<S: Into<Scalar>>(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, p: S, margin: S, weight: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, p: S, margin: S, weight: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_multi_margin_loss_backward_out(grad_input, grad_output, target, p, margin, weight, reduction).unwrap()
     }
 
     pub fn multilabel_margin_loss(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_multilabel_margin_loss(target, reduction).unwrap()
     }
 
     pub fn multilabel_margin_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64, is_target: &Tensor
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction, is_target: &Tensor
     ) -> Tensor {
         self.f_multilabel_margin_loss_backward(grad_output, target, reduction, is_target).unwrap()
     }
 
     pub fn multilabel_margin_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: i64, is_target: &Tensor
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction, is_target: &Tensor
     ) -> Tensor {
         self.f_multilabel_margin_loss_backward_out(grad_input, grad_output, target, reduction, is_target).unwrap()
     }
 
     pub fn multilabel_margin_loss_out(
-        &self, out: &Tensor, target: &Tensor, reduction: i64
+        &self, out: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_multilabel_margin_loss_out(out, target, reduction).unwrap()
     }
@@ -3319,49 +3319,49 @@ impl Tensor {
     }
 
     pub fn g_nll_loss<T: Borrow<Tensor>>(
-        &self, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64
+        &self, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64
     ) -> Tensor {
         self.f_nll_loss(target, weight, reduction, ignore_index).unwrap()
     }
 
     pub fn nll_loss2d<T: Borrow<Tensor>>(
-        &self, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64
+        &self, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64
     ) -> Tensor {
         self.f_nll_loss2d(target, weight, reduction, ignore_index).unwrap()
     }
 
     pub fn nll_loss2d_backward<T: Borrow<Tensor>>(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         self.f_nll_loss2d_backward(grad_output, target, weight, reduction, ignore_index, total_weight).unwrap()
     }
 
     pub fn nll_loss2d_backward_out<T: Borrow<Tensor>>(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         self.f_nll_loss2d_backward_out(grad_input, grad_output, target, weight, reduction, ignore_index, total_weight).unwrap()
     }
 
     pub fn nll_loss2d_out<T: Borrow<Tensor>>(
-        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64
+        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64
     ) -> Tensor {
         self.f_nll_loss2d_out(out, target, weight, reduction, ignore_index).unwrap()
     }
 
     pub fn nll_loss_backward<T: Borrow<Tensor>>(
-        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         self.f_nll_loss_backward(grad_output, target, weight, reduction, ignore_index, total_weight).unwrap()
     }
 
     pub fn nll_loss_backward_out<T: Borrow<Tensor>>(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64, total_weight: &Tensor
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64, total_weight: &Tensor
     ) -> Tensor {
         self.f_nll_loss_backward_out(grad_input, grad_output, target, weight, reduction, ignore_index, total_weight).unwrap()
     }
 
     pub fn nll_loss_out<T: Borrow<Tensor>>(
-        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: i64, ignore_index: i64
+        &self, out: &Tensor, target: &Tensor, weight: Option<T>, reduction: crate::Reduction, ignore_index: i64
     ) -> Tensor {
         self.f_nll_loss_out(out, target, weight, reduction, ignore_index).unwrap()
     }
@@ -4507,49 +4507,49 @@ impl Tensor {
     }
 
     pub fn smooth_l1_loss(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_smooth_l1_loss(target, reduction).unwrap()
     }
 
     pub fn smooth_l1_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_smooth_l1_loss_backward(grad_output, target, reduction).unwrap()
     }
 
     pub fn smooth_l1_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_smooth_l1_loss_backward_out(grad_input, grad_output, target, reduction).unwrap()
     }
 
     pub fn smooth_l1_loss_out(
-        &self, out: &Tensor, target: &Tensor, reduction: i64
+        &self, out: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_smooth_l1_loss_out(out, target, reduction).unwrap()
     }
 
     pub fn soft_margin_loss(
-        &self, target: &Tensor, reduction: i64
+        &self, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_soft_margin_loss(target, reduction).unwrap()
     }
 
     pub fn soft_margin_loss_backward(
-        &self, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_soft_margin_loss_backward(grad_output, target, reduction).unwrap()
     }
 
     pub fn soft_margin_loss_backward_out(
-        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: i64
+        &self, grad_input: &Tensor, grad_output: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_soft_margin_loss_backward_out(grad_input, grad_output, target, reduction).unwrap()
     }
 
     pub fn soft_margin_loss_out(
-        &self, out: &Tensor, target: &Tensor, reduction: i64
+        &self, out: &Tensor, target: &Tensor, reduction: crate::Reduction
     ) -> Tensor {
         self.f_soft_margin_loss_out(out, target, reduction).unwrap()
     }
@@ -5119,7 +5119,7 @@ impl Tensor {
     }
 
     pub fn triplet_margin_loss(
-        anchor: &Tensor, positive: &Tensor, negative: &Tensor, margin: f64, p: f64, eps: f64, swap: bool, reduction: i64
+        anchor: &Tensor, positive: &Tensor, negative: &Tensor, margin: f64, p: f64, eps: f64, swap: bool, reduction: crate::Reduction
     ) -> Tensor {
         Tensor::f_triplet_margin_loss(anchor, positive, negative, margin, p, eps, swap, reduction).unwrap()
     }

@@ -51,8 +51,7 @@ impl VAE {
 
 // Reconstruction + KL divergence losses summed over all elements and batch dimension.
 fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
-    let bce =
-        recon_x.binary_cross_entropy::<Tensor>(&x.view(&[-1, 784]), None, Reduction::Sum.to_int());
+    let bce = recon_x.binary_cross_entropy::<Tensor>(&x.view(&[-1, 784]), None, Reduction::Sum);
     // See Appendix B from VAE paper:
     //     Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     // https://arxiv.org/abs/1312.6114

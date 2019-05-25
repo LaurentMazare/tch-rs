@@ -22,7 +22,7 @@ fn gram_matrix(m: &Tensor) -> Tensor {
 }
 
 fn style_loss(m1: &Tensor, m2: &Tensor) -> Tensor {
-    gram_matrix(m1).mse_loss(&gram_matrix(m2), 1)
+    gram_matrix(m1).mse_loss(&gram_matrix(m2), tch::Reduction::Mean)
 }
 
 pub fn main() -> failure::Fallible<()> {
@@ -60,7 +60,7 @@ pub fn main() -> failure::Fallible<()> {
             .sum();
         let content_loss: Tensor = CONTENT_INDEXES
             .iter()
-            .map(|&i| input_layers[i].mse_loss(&content_layers[i], 1))
+            .map(|&i| input_layers[i].mse_loss(&content_layers[i], tch::Reduction::Mean))
             .sum();
         let loss = style_loss * STYLE_WEIGHT + content_loss;
         opt.backward_step(&loss);

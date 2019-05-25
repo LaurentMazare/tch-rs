@@ -1,4 +1,4 @@
-use tch::{nn, nn::OptimizerConfig, Device, Kind, Tensor};
+use tch::{nn, nn::OptimizerConfig, Device, Kind, Reduction, Tensor};
 
 #[test]
 fn save_and_load_var_store() {
@@ -47,16 +47,16 @@ fn optimizer_test() {
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
     let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
 
-    let loss = xs.apply(&linear).mse_loss(&ys, 1);
+    let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
     for _idx in 1..50 {
-        let loss = xs.apply(&linear).mse_loss(&ys, 1);
+        let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
         opt.backward_step(&loss);
     }
-    let loss = xs.apply(&linear).mse_loss(&ys, 1);
+    let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
     assert!(final_loss < 0.25, "final loss {}", final_loss);
 
@@ -65,7 +65,7 @@ fn optimizer_test() {
         linear.ws.init(nn::Init::Const(0.));
         linear.bs.init(nn::Init::Const(0.));
     });
-    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, 1));
+    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2)
 }
 

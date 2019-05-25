@@ -232,7 +232,7 @@ impl Tensor {
     }
 
     pub fn nll_loss(&self, targets: &Tensor) -> Tensor {
-        self.g_nll_loss::<Tensor>(targets, None, 1, -100)
+        self.g_nll_loss::<Tensor>(targets, None, Reduction::Mean, -100)
     }
 }
 

@@ -215,7 +215,10 @@ module Func = struct
           let rust_arg_type =
             match arg.arg_type with
             | Bool -> "bool"
-            | Int64 -> "i64"
+            | Int64 ->
+                if String.(=) arg.arg_name "reduction"
+                then "crate::Reduction"
+                else "i64"
             | Double -> "f64"
             | Tensor -> "&Tensor"
             | TensorOption -> "Option<T>"
@@ -277,6 +280,7 @@ module Func = struct
         | TensorOption ->
             Printf.sprintf
               "%s.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
+        | Int64 when String.(=) name "reduction" -> "reduction.to_int()"
         | _ -> name )
     |> String.concat ~sep:",\n                "
 end

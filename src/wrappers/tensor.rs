@@ -425,6 +425,8 @@ pub enum Reduction {
     Mean,
     /// Sum of losses.
     Sum,
+    /// Escape hatch in case new options become available.
+    Other(i64),
 }
 
 impl Reduction {
@@ -435,6 +437,7 @@ impl Reduction {
             Reduction::None => 0,
             Reduction::Mean => 1,
             Reduction::Sum => 2,
+            Reduction::Other(i) => i,
         }
     }
 }
