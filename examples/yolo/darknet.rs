@@ -5,6 +5,7 @@ use std::path::Path;
 use tch::{
     nn,
     nn::{FuncT, ModuleT},
+    Tensor,
 };
 
 #[derive(Debug)]
@@ -26,6 +27,15 @@ impl Block {
 pub struct Darknet {
     blocks: Vec<Block>,
     parameters: BTreeMap<String, String>,
+}
+
+impl Darknet {
+    fn get(&self, key: &str) -> failure::Fallible<&str> {
+        match self.parameters.get(&key.to_string()) {
+            None => bail!("cannot find {} in net parameters", key),
+            Some(value) => Ok(value),
+        }
+    }
 }
 
 struct Accumulator {
@@ -83,9 +93,10 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> failure::Fallible<Darknet> {
         } else {
             let key_value: Vec<&str> = line.splitn(2, "=").collect();
             ensure!(key_value.len() == 2, "missing equal {}", line);
-            let prev = acc
-                .parameters
-                .insert(key_value[0].to_owned(), key_value[1].to_owned());
+            let prev = acc.parameters.insert(
+                key_value[0].trim().to_owned(),
+                key_value[1].trim().to_owned(),
+            );
             ensure!(prev == None, "multiple value for key {}", line);
         }
     }
@@ -94,10 +105,10 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> failure::Fallible<Darknet> {
 }
 
 enum Bl {
-    Layers(Box<dyn ModuleT>),
+    Layer(Box<dyn ModuleT>),
     Route(Vec<usize>),
     Shortcut(usize),
-    Yolo((i64, Vec<(i64, i64)>)),
+    Yolo(i64, Vec<(i64, i64)>),
 }
 
 fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
@@ -138,7 +149,7 @@ fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
             xs
         }
     });
-    Ok((filters, Bl::Layers(Box::new(func))))
+    Ok((filters, Bl::Layer(Box::new(func))))
 }
 
 fn upsample(prev_channels: i64) -> failure::Fallible<(i64, Bl)> {
@@ -146,11 +157,11 @@ fn upsample(prev_channels: i64) -> failure::Fallible<(i64, Bl)> {
         let (_n, _c, h, w) = xs.size4().unwrap();
         xs.upsample_nearest2d(&[2 * h, 2 * w])
     });
-    Ok((prev_channels, Bl::Layers(Box::new(layer))))
+    Ok((prev_channels, Bl::Layer(Box::new(layer))))
 }
 
 fn int_list_of_string(s: &str) -> failure::Fallible<Vec<i64>> {
-    let res: Result<Vec<_>, _> = s.split(",").map(|xs| xs.parse::<i64>()).collect();
+    let res: Result<Vec<_>, _> = s.split(",").map(|xs| xs.trim().parse::<i64>()).collect();
     Ok(res?)
 }
 
@@ -186,7 +197,31 @@ fn yolo(p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
         .collect();
     let mask = int_list_of_string(block.get("mask")?)?;
     let anchors = mask.into_iter().map(|i| anchors[i as usize]).collect();
-    Ok((p, Bl::Yolo((classes, anchors))))
+    Ok((p, Bl::Yolo(classes, anchors)))
+}
+
+fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
+    let (bsize, _channels, height, _width) = xs.size4().unwrap();
+    let stride = image_height / height;
+    let grid_size = image_height / stride;
+    let bbox_attrs = 5 + classes;
+    let nanchors = anchors.len() as i64;
+    let xs = xs
+        .view(&[bsize, bbox_attrs * nanchors, grid_size * grid_size])
+        .transpose(1, 2)
+        .contiguous()
+        .view(&[bsize, grid_size * grid_size * nanchors, bbox_attrs]);
+    let grid = Tensor::arange(grid_size, tch::kind::FLOAT_CPU);
+    let a = grid.repeat(&[grid_size, 1]);
+    let b = a.tr().contiguous();
+    let x_offset = a.view(&[-1, 1]);
+    let y_offset = b.view(&[-1, 1]);
+    let xy_offset = Tensor::cat(&[x_offset, y_offset], 1)
+        .repeat(&[1, nanchors])
+        .view(&[-1, 2])
+        .unsqueeze(0);
+    // TODO: complete...
+    xs
 }
 
 impl Darknet {
@@ -205,7 +240,31 @@ impl Darknet {
             prev_channels = channels_and_bl.0;
             blocks.push(channels_and_bl);
         }
-        let func = nn::func_t(|xs, _train| xs.shallow_clone());
+        let image_height = self.get("height")?.parse::<i64>()?;
+        let func = nn::func_t(move |xs, train| {
+            let mut prev_ys: Vec<Tensor> = vec![];
+            let mut detections: Vec<Tensor> = vec![];
+            for (_, b) in blocks.iter() {
+                let ys = match b {
+                    Bl::Layer(l) => {
+                        let xs = prev_ys.last().unwrap_or(&xs);
+                        l.forward_t(&xs, train)
+                    }
+                    Bl::Route(layers) => {
+                        let layers: Vec<_> = layers.iter().map(|&i| &prev_ys[i]).collect();
+                        Tensor::cat(&layers, 1)
+                    }
+                    Bl::Shortcut(from) => prev_ys.last().unwrap() + prev_ys.get(*from).unwrap(),
+                    Bl::Yolo(classes, anchors) => {
+                        let xs = prev_ys.last().unwrap_or(&xs);
+                        detections.push(detect(xs, image_height, *classes, anchors));
+                        Tensor::default()
+                    }
+                };
+                prev_ys.push(ys);
+            }
+            Tensor::cat(&detections, 1)
+        });
         Ok(func)
     }
 }
