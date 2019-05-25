@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use tch::nn::{FuncT, ModuleT};
+use tch::{
+    nn,
+    nn::{FuncT, ModuleT},
+};
 
 #[derive(Debug)]
 struct Block {
@@ -91,18 +94,59 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> failure::Fallible<Darknet> {
 }
 
 enum Bl {
-    Layers(Vec<Box<dyn ModuleT>>),
+    Layers(Box<dyn ModuleT>),
     Route(Vec<usize>),
     Shortcut(usize),
     Yolo((i64, Vec<(i64, i64)>)),
 }
 
+fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
+    let activation = b.get("activation")?;
+    let filters = b.get("filters")?.parse::<i64>()?;
+    let pad = b.get("pad")?.parse::<i64>()?;
+    let size = b.get("size")?.parse::<i64>()?;
+    let stride = b.get("stride")?.parse::<i64>()?;
+    let pad = if pad != 0 { (size - 1) / 2 } else { 0 };
+    let (bn, bias) = match b.parameters.get("batch_normalize") {
+        Some(p) if p.parse::<i64>()? != 0 => {
+            let bn = nn::batch_norm2d(vs, filters, Default::default());
+            (Some(bn), false)
+        }
+        Some(_) | None => (None, true),
+    };
+    let conv_cfg = nn::ConvConfig {
+        stride,
+        padding: pad,
+        bias,
+        ..Default::default()
+    };
+    let conv = nn::conv2d(vs, p, filters, size, conv_cfg);
+    let leaky = match activation {
+        "leaky" => true,
+        "linear" => false,
+        otherwise => bail!("unsupported activation {}", otherwise),
+    };
+    let func = nn::func_t(move |xs, train| {
+        let xs = xs.apply(&conv);
+        let xs = match &bn {
+            Some(bn) => xs.apply_t(bn, train),
+            None => xs,
+        };
+        if leaky {
+            xs.max1(&(&xs * 0.1))
+        } else {
+            xs
+        }
+    });
+    Ok((filters, Bl::Layers(Box::new(func))))
+}
+
 fn upsample(prev_channels: i64) -> failure::Fallible<(i64, Bl)> {
-    let layer = tch::nn::func_t(|xs, _is_training| {
+    let layer = nn::func_t(|xs, _is_training| {
         let (_n, _c, h, w) = xs.size4().unwrap();
         xs.upsample_nearest2d(&[2 * h, 2 * w])
     });
-    Ok((prev_channels, Bl::Layers(vec![Box::new(layer)])))
+    Ok((prev_channels, Bl::Layers(Box::new(layer))))
 }
 
 fn int_list_of_string(s: &str) -> failure::Fallible<Vec<i64>> {
@@ -133,7 +177,7 @@ fn shortcut(index: usize, p: i64, block: &Block) -> failure::Fallible<(i64, Bl)>
     Ok((p, Bl::Shortcut(usize_of_index(index, from))))
 }
 
-fn yolo(index: usize, p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
+fn yolo(p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
     let classes = block.get("classes")?.parse::<i64>()?;
     let flat = int_list_of_string(block.get("anchors")?)?;
     ensure!(flat.len() % 2 == 0, "even number of anchors");
@@ -146,22 +190,22 @@ fn yolo(index: usize, p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
 }
 
 impl Darknet {
-    pub fn build_model(&self, vs: &tch::nn::Path) -> failure::Fallible<FuncT> {
+    pub fn build_model(&self, vs: &nn::Path) -> failure::Fallible<FuncT> {
         let mut blocks: Vec<(i64, Bl)> = vec![];
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {
             let channels_and_bl = match block.block_type.as_str() {
-                "convolutional" => bail!("todo conv"),
+                "convolutional" => conv(&vs, prev_channels, &block)?,
                 "upsample" => upsample(prev_channels)?,
                 "shortcut" => shortcut(index, prev_channels, &block)?,
                 "route" => route(index, &blocks, &block)?,
-                "yolo" => yolo(index, prev_channels, &block)?,
+                "yolo" => yolo(prev_channels, &block)?,
                 otherwise => bail!("unsupported block type {}", otherwise),
             };
             prev_channels = channels_and_bl.0;
             blocks.push(channels_and_bl);
         }
-        let func = tch::nn::func_t(|xs, is_training| xs.shallow_clone());
+        let func = nn::func_t(|xs, _train| xs.shallow_clone());
         Ok(func)
     }
 }
