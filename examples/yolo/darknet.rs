@@ -111,7 +111,7 @@ enum Bl {
     Yolo(i64, Vec<(i64, i64)>),
 }
 
-fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
+fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
     let activation = b.get("activation")?;
     let filters = b.get("filters")?.parse::<i64>()?;
     let pad = b.get("pad")?.parse::<i64>()?;
@@ -120,7 +120,8 @@ fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
     let pad = if pad != 0 { (size - 1) / 2 } else { 0 };
     let (bn, bias) = match b.parameters.get("batch_normalize") {
         Some(p) if p.parse::<i64>()? != 0 => {
-            let bn = nn::batch_norm2d(vs, filters, Default::default());
+            let vs = &vs / format!("batch_norm_{}", index);
+            let bn = nn::batch_norm2d(&vs, filters, Default::default());
             (Some(bn), false)
         }
         Some(_) | None => (None, true),
@@ -131,6 +132,7 @@ fn conv(vs: &nn::Path, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
         bias,
         ..Default::default()
     };
+    let vs = &vs / format!("conv_{}", index);
     let conv = nn::conv2d(vs, p, filters, size, conv_cfg);
     let leaky = match activation {
         "leaky" => true,
@@ -261,7 +263,7 @@ impl Darknet {
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {
             let channels_and_bl = match block.block_type.as_str() {
-                "convolutional" => conv(&vs, prev_channels, &block)?,
+                "convolutional" => conv(vs / index, index, prev_channels, &block)?,
                 "upsample" => upsample(prev_channels)?,
                 "shortcut" => shortcut(index, prev_channels, &block)?,
                 "route" => route(index, &blocks, &block)?,

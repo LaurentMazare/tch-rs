@@ -106,14 +106,14 @@ pub fn main() -> failure::Fallible<()> {
     let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
     let darknet = darknet::parse_config(CONFIG_NAME)?;
     let model = darknet.build_model(&vs.root())?;
-    // vs.load(weights)?;
+    vs.load(weights)?;
 
     // Load the image file and resize it.
     let original_image = image::load(image)?;
     let net_width = darknet.width()?;
     let net_height = darknet.height()?;
     let image = image::resize(&original_image, net_width, net_height)?;
-    let image = image.to_kind(tch::Kind::Float) / 255.;
+    let image = image.unsqueeze(0).to_kind(tch::Kind::Float) / 255.;
     let predictions = model.forward_t(&image, false).squeeze();
     report(&predictions, &original_image, net_width, net_height)?;
     Ok(())
