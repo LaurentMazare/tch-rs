@@ -246,6 +246,16 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
 }
 
 impl Darknet {
+    pub fn height(&self) -> failure::Fallible<i64> {
+        let image_height = self.get("height")?.parse::<i64>()?;
+        Ok(image_height)
+    }
+
+    pub fn width(&self) -> failure::Fallible<i64> {
+        let image_width = self.get("width")?.parse::<i64>()?;
+        Ok(image_width)
+    }
+
     pub fn build_model(&self, vs: &nn::Path) -> failure::Fallible<FuncT> {
         let mut blocks: Vec<(i64, Bl)> = vec![];
         let mut prev_channels: i64 = 3;
@@ -261,7 +271,7 @@ impl Darknet {
             prev_channels = channels_and_bl.0;
             blocks.push(channels_and_bl);
         }
-        let image_height = self.get("height")?.parse::<i64>()?;
+        let image_height = self.height()?;
         let func = nn::func_t(move |xs, train| {
             let mut prev_ys: Vec<Tensor> = vec![];
             let mut detections: Vec<Tensor> = vec![];
