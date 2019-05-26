@@ -45,7 +45,7 @@ pub fn draw_rect(t: &mut Tensor, x1: i64, x2: i64, y1: i64, y2: i64) {
         .copy_(&color)
 }
 
-pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<()> {
+pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<Tensor> {
     let (npreds, pred_size) = pred.size2()?;
     let nclasses = (pred_size - 5) as usize;
     // The bounding boxes grouped by (maximum) class index.
@@ -113,29 +113,29 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<
             draw_rect(&mut img, xmin.max(xmax - 2), xmax, ymin, ymax);
         }
     }
-    image::save(&(img * 255.).to_kind(tch::Kind::Uint8), "output.jpg")?;
-    Ok(())
+    Ok((img * 255.).to_kind(tch::Kind::Uint8))
 }
 
 pub fn main() -> failure::Fallible<()> {
     let args: Vec<_> = std::env::args().collect();
-    let (weights, image) = match args.as_slice() {
-        [_, w, i] => (std::path::Path::new(w), i.to_owned()),
-        _ => bail!("usage: main yolo-v3.ot image.jpg"),
-    };
+    ensure!(args.len() >= 3, "usage: main yolo-v3.ot img.jpg ...");
+
     // Create the model and load the weights from the file.
     let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
     let darknet = darknet::parse_config(CONFIG_NAME)?;
     let model = darknet.build_model(&vs.root())?;
-    vs.load(weights)?;
+    vs.load(&args[1])?;
 
-    // Load the image file and resize it.
-    let original_image = image::load(image)?;
-    let net_width = darknet.width()?;
-    let net_height = darknet.height()?;
-    let image = image::resize(&original_image, net_width, net_height)?;
-    let image = image.unsqueeze(0).to_kind(tch::Kind::Float) / 255.;
-    let predictions = model.forward_t(&image, false).squeeze();
-    report(&predictions, &original_image, net_width, net_height)?;
+    for (index, image) in args.iter().skip(2).enumerate() {
+        // Load the image file and resize it.
+        let original_image = image::load(image)?;
+        let net_width = darknet.width()?;
+        let net_height = darknet.height()?;
+        let image = image::resize(&original_image, net_width, net_height)?;
+        let image = image.unsqueeze(0).to_kind(tch::Kind::Float) / 255.;
+        let predictions = model.forward_t(&image, false).squeeze();
+        let image = report(&predictions, &original_image, net_width, net_height)?;
+        image::save(&image, format!("output-{}.jpg", index))?;
+    }
     Ok(())
 }
