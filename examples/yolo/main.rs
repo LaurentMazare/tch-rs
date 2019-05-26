@@ -37,6 +37,14 @@ fn iou(b1: &Bbox, b2: &Bbox) -> f64 {
     i_area / (b1_area + b2_area - i_area)
 }
 
+// Assumes x1 <= x2 and y1 <= y2
+pub fn draw_rect(t: &mut Tensor, x1: i64, x2: i64, y1: i64, y2: i64) {
+    let color = Tensor::of_slice(&[0., 0., 1.]).view(&[3, 1, 1]);
+    t.narrow(2, x1, x2 - x1)
+        .narrow(1, y1, y2 - y1)
+        .copy_(&color)
+}
+
 pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<()> {
     let (npreds, pred_size) = pred.size2()?;
     let nclasses = (pred_size - 5) as usize;
@@ -87,12 +95,25 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<
         }
         bboxes_for_class.truncate(current_index);
     }
-    // Print box information.
+    // Annotate the original image and print boxes information.
+    let (_, initial_h, initial_w) = img.size3()?;
+    let mut img = img.to_kind(tch::Kind::Float) / 255.;
+    let w_ratio = initial_w as f64 / w as f64;
+    let h_ratio = initial_h as f64 / h as f64;
     for (class_index, bboxes_for_class) in bboxes.iter().enumerate() {
-        for bbox in bboxes_for_class.iter() {
-            println!("{}: {:?}", coco_classes::NAMES[class_index], bbox);
+        for b in bboxes_for_class.iter() {
+            println!("{}: {:?}", coco_classes::NAMES[class_index], b);
+            let xmin = ((b.xmin * w_ratio) as i64).max(0).min(initial_w - 1);
+            let ymin = ((b.ymin * h_ratio) as i64).max(0).min(initial_h - 1);
+            let xmax = ((b.xmax * w_ratio) as i64).max(0).min(initial_w - 1);
+            let ymax = ((b.ymax * h_ratio) as i64).max(0).min(initial_h - 1);
+            draw_rect(&mut img, xmin, xmax, ymin, ymax.min(ymin + 2));
+            draw_rect(&mut img, xmin, xmax, ymin.max(ymax - 2), ymax);
+            draw_rect(&mut img, xmin, xmax.min(xmin + 2), ymin, ymax);
+            draw_rect(&mut img, xmin.max(xmax - 2), xmax, ymin, ymax);
         }
     }
+    image::save(&(img * 255.).to_kind(tch::Kind::Uint8), "output.jpg")?;
     Ok(())
 }
 
