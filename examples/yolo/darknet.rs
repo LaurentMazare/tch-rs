@@ -200,13 +200,23 @@ fn yolo(p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
     Ok((p, Bl::Yolo(classes, anchors)))
 }
 
+// Apply f to a slice of tensor xs and replace xs values with f output.
+fn slice_apply_and_set<F>(xs: &mut Tensor, start: i64, len: i64, f: F)
+where
+    F: FnOnce(&Tensor) -> Tensor,
+{
+    let mut slice = xs.narrow(2, start, len);
+    let src = f(&slice);
+    slice.copy_(&src)
+}
+
 fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
     let (bsize, _channels, height, _width) = xs.size4().unwrap();
     let stride = image_height / height;
     let grid_size = image_height / stride;
     let bbox_attrs = 5 + classes;
     let nanchors = anchors.len() as i64;
-    let xs = xs
+    let mut xs = xs
         .view(&[bsize, bbox_attrs * nanchors, grid_size * grid_size])
         .transpose(1, 2)
         .contiguous()
@@ -220,7 +230,18 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
         .repeat(&[1, nanchors])
         .view(&[-1, 2])
         .unsqueeze(0);
-    // TODO: complete...
+    let anchors: Vec<f32> = anchors
+        .iter()
+        .flat_map(|&(x, y)| vec![x as f32 / stride as f32, y as f32 / stride as f32].into_iter())
+        .collect();
+    let anchors = Tensor::of_slice(&anchors)
+        .view(&[-1, 2])
+        .repeat(&[grid_size * grid_size, 1])
+        .unsqueeze(0);
+    slice_apply_and_set(&mut xs, 0, 2, |xs| xs.sigmoid() + xy_offset);
+    slice_apply_and_set(&mut xs, 4, 1 + classes, Tensor::sigmoid);
+    slice_apply_and_set(&mut xs, 2, 2, |xs| xs.exp() * anchors);
+    slice_apply_and_set(&mut xs, 0, 4, |xs| xs * stride);
     xs
 }
 
