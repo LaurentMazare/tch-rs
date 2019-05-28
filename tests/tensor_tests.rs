@@ -182,3 +182,12 @@ fn eq() {
     assert!(t == u);
     assert!(t != u - 1)
 }
+
+#[test]
+fn values_at_index() {
+    let t = Tensor::from(42);
+    assert_eq!(t.int64_value(&[]), 42);
+    assert_eq!(t.double_value(&[]), 42.0);
+    assert!(t.f_int64_value(&[0]).is_err());
+    assert!(t.f_double_value(&[0]).is_err());
+}

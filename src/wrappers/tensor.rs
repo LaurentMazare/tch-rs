@@ -103,7 +103,7 @@ impl Tensor {
     /// Returns an int value on tensors holding a single element. An error is
     /// returned otherwise.
     pub fn f_int64_value(&self, idx: &[i64]) -> Fallible<i64> {
-        Ok(unsafe_torch!({
+        Ok(unsafe_torch_err!({
             at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
