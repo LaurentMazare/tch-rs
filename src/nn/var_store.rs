@@ -62,6 +62,11 @@ impl VarStore {
             .collect()
     }
 
+    /// Gets the root path for this variable store.
+    ///
+    /// Variables are named and organized using paths. This function returns
+    /// the top level path for the var store and can be combined with '/'
+    /// to create sub-paths.
     pub fn root(&self) -> Path {
         Path {
             path: vec![],
@@ -120,6 +125,26 @@ impl VarStore {
                 let _v = variable.tensor.set_requires_grad(true);
             }
         }
+    }
+
+    /// Copies variable values from a source var store to this var store.
+    ///
+    /// All the variables in this var store have to exist with the same
+    /// name in the source var store, otherwise an error is returned.
+    pub fn copy(&mut self, src: &VarStore) -> Fallible<()> {
+        let mut variables = self.variables.lock().unwrap();
+        let src_variables = src.variables.lock().unwrap();
+        let device = self.device;
+        for name in variables.keys() {
+            if !src_variables.contains_key(name) {
+                bail!("cannot find {} in the source var store", name);
+            }
+        }
+        for (name, var) in variables.iter_mut() {
+            let src_var = src_variables.get(name).unwrap();
+            crate::no_grad(|| var.tensor.f_copy_(&src_var.tensor.to_device(device)))?;
+        }
+        Ok(())
     }
 }
 
