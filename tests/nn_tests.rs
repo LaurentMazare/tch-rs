@@ -93,4 +93,9 @@ fn var_store_test() {
         "std {}",
         uniform_std
     );
+    let mut vs2 = nn::VarStore::new(Device::Cpu);
+    let ones = vs2.root().ones("t1", &[3]);
+    assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    vs2.copy(&vs).unwrap();
+    assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
 }
