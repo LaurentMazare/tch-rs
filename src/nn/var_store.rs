@@ -97,6 +97,10 @@ impl VarStore {
         Ok(())
     }
 
+    /// Freezes a var store.
+    ///
+    /// Gradients for the variables in this store are not tracked
+    /// anymore.
     pub fn freeze(&mut self) {
         let variables = self.variables.lock().unwrap();
         for variable in variables.values() {
@@ -106,6 +110,9 @@ impl VarStore {
         }
     }
 
+    /// Unfreezes a var store.
+    ///
+    /// Gradients for the variables in this store are tracked again.
     pub fn unfreeze(&mut self) {
         let variables = self.variables.lock().unwrap();
         for variable in variables.values() {
@@ -117,6 +124,7 @@ impl VarStore {
 }
 
 impl<'a> Path<'a> {
+    /// Gets a sub-path of the given path.
     pub fn sub<T: std::string::ToString>(&'a self, s: T) -> Path<'a> {
         let s = s.to_string();
         if s.chars().any(|x| x == SEP) {
@@ -130,6 +138,7 @@ impl<'a> Path<'a> {
         }
     }
 
+    /// Gets the device where the var-store variables are stored.
     pub fn device(&self) -> Device {
         self.var_store.device
     }
@@ -166,29 +175,67 @@ impl<'a> Path<'a> {
         tensor
     }
 
+    /// Creates a new variable initialized with zeros.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable will not be trainable so
+    /// gradients will not be tracked.
+    /// The variable uses a float tensor initialized with zeros.
     pub fn zeros_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.device()));
         self.add(name, z, false)
     }
 
+    /// Creates a new variable initialized with ones.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable will not be trainable so
+    /// gradients will not be tracked.
+    /// The variable uses a float tensor initialized with ones.
     pub fn ones_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
         let o = Tensor::ones(dims, (Kind::Float, self.device()));
         self.add(name, o, false)
     }
 
+    /// Creates a new variable.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized as per the
+    /// related argument.
     pub fn var(&self, name: &str, dims: &[i64], init: Init) -> Tensor {
         let v = super::init(init, dims, self.device());
         self.add(name, v, true)
     }
 
+    /// Creates a new variable initialized with zeros.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized with zeros.
     pub fn zeros(&self, name: &str, dims: &[i64]) -> Tensor {
         self.var(name, dims, Init::Const(0.))
     }
 
+    /// Creates a new variable initialized with ones.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized with ones.
     pub fn ones(&self, name: &str, dims: &[i64]) -> Tensor {
         self.var(name, dims, Init::Const(1.))
     }
 
+    /// Creates a new variable initialized randomly with normal distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// standard normal distribution.
     pub fn randn_standard(&self, name: &str, dims: &[i64]) -> Tensor {
         let init = Init::Randn {
             mean: 0.,
@@ -197,18 +244,46 @@ impl<'a> Path<'a> {
         self.var(name, dims, init)
     }
 
+    /// Creates a new variable initialized randomly with normal distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution with the specified mean and standard deviation.
     pub fn randn(&self, name: &str, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
         self.var(name, dims, Init::Randn { mean, stdev })
     }
 
+    /// Creates a new variable initialized randomly with uniform distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// uniform distribution between the specified bounds.
     pub fn uniform(&self, name: &str, dims: &[i64], lo: f64, up: f64) -> Tensor {
         self.var(name, dims, Init::Uniform { lo, up })
     }
 
+    /// Creates a new variable initialized randomly with kaiming uniform.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// uniform distribution which bounds follow Kaiming initialization.
     pub fn kaiming_uniform(&self, name: &str, dims: &[i64]) -> Tensor {
         self.var(name, dims, Init::KaimingUniform)
     }
 
+    /// Creates a new variable initialized by copying an existing tensor.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized by copying some
+    /// given tensor.
     pub fn var_copy(&self, name: &str, t: &Tensor) -> Tensor {
         let mut v = self.zeros(name, &t.size());
         crate::no_grad(|| v.copy_(&t));
