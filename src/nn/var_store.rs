@@ -47,6 +47,12 @@ impl VarStore {
         self.device
     }
 
+    /// Returns the number of tensors currently stored on this var-store.
+    pub fn len(&self) -> usize {
+        let variables = self.variables.lock().unwrap();
+        variables.len()
+    }
+
     /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables.lock().unwrap();
@@ -313,6 +319,13 @@ impl<'a> Path<'a> {
         let mut v = self.zeros(name, &t.size());
         crate::no_grad(|| v.copy_(&t));
         v
+    }
+
+    /// Gets the tensor corresponding to a given name if present.
+    pub fn get(&self, name: &str) -> Option<Tensor> {
+        let path = self.path(name);
+        let variables = self.var_store.variables.lock().unwrap();
+        variables.get(&path).map(|v| v.tensor.shallow_clone())
     }
 }
 
