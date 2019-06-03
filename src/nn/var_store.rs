@@ -5,7 +5,7 @@ use crate::{Device, Kind};
 use failure::Fallible;
 use std::collections::HashMap;
 use std::ops::Div;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '|';
@@ -31,6 +31,12 @@ pub struct VarStore {
 pub struct Path<'a> {
     path: Vec<String>,
     var_store: &'a VarStore,
+}
+
+pub struct Entry<'a> {
+    name: &'a str,
+    variables: MutexGuard<'a, HashMap<String, Variable>>, // Hold the mutex guard
+    path: &'a Path<'a>,
 }
 
 impl VarStore {
@@ -206,6 +212,25 @@ impl<'a> Path<'a> {
         tensor
     }
 
+    fn get_or_add_with_lock(&self, name: &str, tensor: Tensor, trainable: bool, mut variables: MutexGuard<HashMap<String, Variable>>) -> Tensor {
+        let path = self.path(name);
+        if let Some(var) = variables.get(&path) {
+            return var.tensor.shallow_clone();
+        }
+
+        let tensor = if trainable {
+            tensor.set_requires_grad(true)
+        } else {
+            tensor
+        };
+        let var = Variable {
+            tensor: tensor.shallow_clone(),
+            trainable,
+        };
+        variables.insert(path, var);
+        tensor
+    }
+
     /// Creates a new variable initialized with zeros.
     ///
     /// The new variable is named according to the name parameter and
@@ -326,6 +351,66 @@ impl<'a> Path<'a> {
         let path = self.path(name);
         let variables = self.var_store.variables.lock().unwrap();
         variables.get(&path).map(|v| v.tensor.shallow_clone())
+    }
+
+    pub fn entry<'b>(&'b self, name: &'b str) -> Entry<'b> {
+        let variables = self.var_store.variables.lock().unwrap();
+        Entry {
+            name,
+            variables,
+            path: &self,
+        }
+    }
+}
+
+impl<'a> Entry<'a> {
+    pub fn or_var(self, dims: &[i64], init: Init) -> Tensor {
+        let v = super::init(init, dims, self.path.device());
+        self.path.get_or_add_with_lock(self.name, v, true, self.variables)
+    }
+
+    pub fn or_var_copy(self, tensor: &Tensor) -> Tensor {
+        let mut v = self.or_zeros(&tensor.size());
+        crate::no_grad(|| v.copy_(&tensor));
+        v
+    }
+
+    pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
+        self.or_var(dims, Init::KaimingUniform)
+    }
+
+    pub fn or_ones(self, dims: &[i64]) -> Tensor {
+        self.or_var(dims, Init::Const(1.))
+    }
+
+    pub fn or_ones_no_train(self, dims: &[i64]) -> Tensor {
+        let o = Tensor::ones(dims, (Kind::Float, self.path.device()));
+        self.path.get_or_add_with_lock(self.name, o, true, self.variables)
+    }
+
+    pub fn or_randn(self, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
+        self.or_var(dims, Init::Randn { mean, stdev })
+    }
+
+    pub fn or_randn_standard(self, dims: &[i64]) -> Tensor {
+        let init = Init::Randn {
+            mean: 0.,
+            stdev: 1.,
+        };
+        self.or_var(dims, init)
+    }
+
+    pub fn or_uniform(self, dims: &[i64], lo: f64, up: f64) -> Tensor {
+        self.or_var(dims, Init::Uniform { lo, up })
+    }
+
+    pub fn or_zeros(self, dims: &[i64]) -> Tensor {
+        self.or_var(dims, Init::Const(0.))
+    }
+
+    pub fn or_zeros_no_train(self, dims: &[i64]) -> Tensor {
+        let z = Tensor::zeros(dims, (Kind::Float, self.path.device()));
+        self.path.get_or_add_with_lock(self.name, z, true, self.variables)
     }
 }
 
