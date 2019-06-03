@@ -33,9 +33,11 @@ pub struct Path<'a> {
     var_store: &'a VarStore,
 }
 
+/// An Entry holds an entry corresponding to a given name in Path.
+#[derive(Debug)]
 pub struct Entry<'a> {
     name: &'a str,
-    variables: MutexGuard<'a, HashMap<String, Variable>>, // Hold the mutex guard
+    variables: MutexGuard<'a, HashMap<String, Variable>>, // This field holds the mutex lock
     path: &'a Path<'a>,
 }
 
@@ -353,6 +355,7 @@ impl<'a> Path<'a> {
         variables.get(&path).map(|v| v.tensor.shallow_clone())
     }
 
+    /// Gets the entry corresponding to a given name for in-place manipulation.
     pub fn entry<'b>(&'b self, name: &'b str) -> Entry<'b> {
         let variables = self.var_store.variables.lock().unwrap();
         Entry {
