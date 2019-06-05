@@ -61,6 +61,12 @@ impl VarStore {
         variables.len()
     }
 
+    /// Returns true if no tensors are currently stored on this var-store.
+    pub fn is_empty(&self) -> bool {
+        let variables = self.variables.lock().unwrap();
+        variables.is_empty()
+    }
+
     /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables.lock().unwrap();

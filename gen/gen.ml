@@ -46,6 +46,7 @@ let extract_map = function
 
 let extract_string = function
   | `String s -> s
+  | `Float _ | `Bool _ -> "n"
   | yaml -> yaml_error yaml ~msg:"expected string"
 
 module Func = struct
@@ -439,6 +440,7 @@ let write_cpp funcs filename =
                   pc "    out__[sz] = nullptr;" ;
                   pc "    return out__;" ;
                   pc "  )" ;
+                  pc "  return nullptr;" ;
                   pc "}" ;
                   pc "" ;
                   ph "tensor *atg_%s(%s);" exported_name c_typed_args_list ) )

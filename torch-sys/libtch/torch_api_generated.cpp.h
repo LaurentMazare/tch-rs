@@ -812,6 +812,7 @@ tensor *atg_broadcast_tensors(tensor *tensors_data, int tensors_len) {
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 void atg_cartesian_prod(tensor *out__, tensor *tensors_data, int tensors_len) {
@@ -943,6 +944,7 @@ tensor *atg_chunk(tensor self, int64_t chunks, int64_t dim) {
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 void atg_clamp(tensor *out__, tensor self, scalar min, scalar max) {
@@ -1192,16 +1194,16 @@ void atg_ctc_loss1(tensor *out__, tensor log_probs, tensor targets, tensor input
   )
 }
 
-void atg_cudnn_affine_grid_generator(tensor *out__, tensor theta, int64_t N, int64_t C, int64_t H, int64_t W) {
+void atg_cudnn_affine_grid_generator(tensor *out__, tensor theta, int64_t n, int64_t C, int64_t H, int64_t W) {
   PROTECT(
-    auto outputs__ = torch::cudnn_affine_grid_generator(*theta, N, C, H, W);
+    auto outputs__ = torch::cudnn_affine_grid_generator(*theta, n, C, H, W);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_cudnn_affine_grid_generator_backward(tensor *out__, tensor grad, int64_t N, int64_t C, int64_t H, int64_t W) {
+void atg_cudnn_affine_grid_generator_backward(tensor *out__, tensor grad, int64_t n, int64_t C, int64_t H, int64_t W) {
   PROTECT(
-    auto outputs__ = torch::cudnn_affine_grid_generator_backward(*grad, N, C, H, W);
+    auto outputs__ = torch::cudnn_affine_grid_generator_backward(*grad, n, C, H, W);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1839,9 +1841,9 @@ void atg_fbgemm_linear_int8_weight(tensor *out__, tensor input, tensor weight, t
   )
 }
 
-void atg_fbgemm_pack_quantized_matrix(tensor *out__, tensor input, int64_t K, int64_t N) {
+void atg_fbgemm_pack_quantized_matrix(tensor *out__, tensor input, int64_t K, int64_t n) {
   PROTECT(
-    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input, K, N);
+    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input, K, n);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3487,6 +3489,7 @@ tensor *atg_meshgrid(tensor *tensors_data, int tensors_len) {
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 void atg_min(tensor *out__, tensor self) {
@@ -5543,6 +5546,7 @@ tensor *atg_split(tensor self, int64_t split_size, int64_t dim) {
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 tensor *atg_split_with_sizes(tensor self, int64_t *split_sizes_data, int split_sizes_len, int64_t dim) {
@@ -5555,6 +5559,7 @@ tensor *atg_split_with_sizes(tensor self, int64_t *split_sizes_data, int split_s
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 void atg_sqrt(tensor *out__, tensor self) {
@@ -6151,6 +6156,7 @@ tensor *atg_unbind(tensor self, int64_t dim) {
     out__[sz] = nullptr;
     return out__;
   )
+  return nullptr;
 }
 
 void atg_unfold(tensor *out__, tensor self, int64_t dimension, int64_t size, int64_t step) {

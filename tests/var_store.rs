@@ -1,4 +1,3 @@
-use std::thread;
 use tch::{Device, nn::VarStore};
 
 #[test]

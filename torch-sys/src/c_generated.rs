@@ -171,8 +171,8 @@ extern "C" {
     pub fn atg_cross_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor, other_: *mut C_tensor, dim_: i64);
     pub fn atg_ctc_loss(out__: *mut *mut C_tensor, log_probs_: *mut C_tensor, targets_: *mut C_tensor, input_lengths_data: *const i64, input_lengths_len: c_int, target_lengths_data: *const i64, target_lengths_len: c_int, blank_: i64, reduction_: i64, zero_infinity_: c_int);
     pub fn atg_ctc_loss1(out__: *mut *mut C_tensor, log_probs_: *mut C_tensor, targets_: *mut C_tensor, input_lengths_: *mut C_tensor, target_lengths_: *mut C_tensor, blank_: i64, reduction_: i64, zero_infinity_: c_int);
-    pub fn atg_cudnn_affine_grid_generator(out__: *mut *mut C_tensor, theta_: *mut C_tensor, N_: i64, C_: i64, H_: i64, W_: i64);
-    pub fn atg_cudnn_affine_grid_generator_backward(out__: *mut *mut C_tensor, grad_: *mut C_tensor, N_: i64, C_: i64, H_: i64, W_: i64);
+    pub fn atg_cudnn_affine_grid_generator(out__: *mut *mut C_tensor, theta_: *mut C_tensor, n_: i64, C_: i64, H_: i64, W_: i64);
+    pub fn atg_cudnn_affine_grid_generator_backward(out__: *mut *mut C_tensor, grad_: *mut C_tensor, n_: i64, C_: i64, H_: i64, W_: i64);
     pub fn atg_cudnn_batch_norm(out__: *mut *mut C_tensor, input_: *mut C_tensor, weight_: *mut C_tensor, bias_: *mut C_tensor, running_mean_: *mut C_tensor, running_var_: *mut C_tensor, training_: c_int, exponential_average_factor_: f64, epsilon_: f64);
     pub fn atg_cudnn_batch_norm_backward(out__: *mut *mut C_tensor, input_: *mut C_tensor, grad_output_: *mut C_tensor, weight_: *mut C_tensor, running_mean_: *mut C_tensor, running_var_: *mut C_tensor, save_mean_: *mut C_tensor, save_var_: *mut C_tensor, epsilon_: f64);
     pub fn atg_cudnn_convolution(out__: *mut *mut C_tensor, self_: *mut C_tensor, weight_: *mut C_tensor, bias_: *mut C_tensor, padding_data: *const i64, padding_len: c_int, stride_data: *const i64, stride_len: c_int, dilation_data: *const i64, dilation_len: c_int, groups_: i64, benchmark_: c_int, deterministic_: c_int);
@@ -262,7 +262,7 @@ extern "C" {
     pub fn atg_eye_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, n_: i64);
     pub fn atg_eye_out1(out__: *mut *mut C_tensor, out_: *mut C_tensor, n_: i64, m_: i64);
     pub fn atg_fbgemm_linear_int8_weight(out__: *mut *mut C_tensor, input_: *mut C_tensor, weight_: *mut C_tensor, packed_: *mut C_tensor, col_offsets_: *mut C_tensor, weight_scale_: *mut C_scalar, weight_zero_point_: *mut C_scalar, bias_: *mut C_tensor);
-    pub fn atg_fbgemm_pack_quantized_matrix(out__: *mut *mut C_tensor, input_: *mut C_tensor, K_: i64, N_: i64);
+    pub fn atg_fbgemm_pack_quantized_matrix(out__: *mut *mut C_tensor, input_: *mut C_tensor, K_: i64, n_: i64);
     pub fn atg_feature_alpha_dropout(out__: *mut *mut C_tensor, input_: *mut C_tensor, p_: f64, train_: c_int);
     pub fn atg_feature_alpha_dropout_(out__: *mut *mut C_tensor, self_: *mut C_tensor, p_: f64, train_: c_int);
     pub fn atg_feature_dropout(out__: *mut *mut C_tensor, input_: *mut C_tensor, p_: f64, train_: c_int);
