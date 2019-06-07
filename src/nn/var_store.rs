@@ -95,6 +95,9 @@ impl VarStore {
     }
 
     /// Saves the var-store variable values to a file.
+    ///
+    /// Weight values for all the tensors currently stored in the
+    /// var-store gets saved in the given file.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
         let variables = self.variables.lock().unwrap();
         let named_tensors = variables
@@ -105,6 +108,11 @@ impl VarStore {
     }
 
     /// Loads the var-store variable values from a file.
+    ///
+    /// Weight values for all the tensors currently stored in the
+    /// var-store gets loaded from the given file. Note that the set of
+    /// variables stored in the var-store is not changed, only the values
+    /// for these tensors are modified.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
@@ -373,34 +381,46 @@ impl<'a> Path<'a> {
 }
 
 impl<'a> Entry<'a> {
+    /// Returns the existing entry if, otherwise create a new variable.
+    ///
+    /// If this entry name matches the name of a variables stored in the
+    /// var store, the corresponding tensor is returned. Otherwise a new
+    /// variable is added to the var-store with the entry name and is
+    /// initialized according to the init parameter.
     pub fn or_var(self, dims: &[i64], init: Init) -> Tensor {
         let v = super::init(init, dims, self.path.device());
         self.path.get_or_add_with_lock(self.name, v, true, self.variables)
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_var_copy(self, tensor: &Tensor) -> Tensor {
         let mut v = self.or_zeros(&tensor.size());
         crate::no_grad(|| v.copy_(&tensor));
         v
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
         self.or_var(dims, Init::KaimingUniform)
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_ones(self, dims: &[i64]) -> Tensor {
         self.or_var(dims, Init::Const(1.))
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_ones_no_train(self, dims: &[i64]) -> Tensor {
         let o = Tensor::ones(dims, (Kind::Float, self.path.device()));
         self.path.get_or_add_with_lock(self.name, o, true, self.variables)
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_randn(self, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
         self.or_var(dims, Init::Randn { mean, stdev })
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_randn_standard(self, dims: &[i64]) -> Tensor {
         let init = Init::Randn {
             mean: 0.,
@@ -409,14 +429,17 @@ impl<'a> Entry<'a> {
         self.or_var(dims, init)
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_uniform(self, dims: &[i64], lo: f64, up: f64) -> Tensor {
         self.or_var(dims, Init::Uniform { lo, up })
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_zeros(self, dims: &[i64]) -> Tensor {
         self.or_var(dims, Init::Const(0.))
     }
 
+    /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_zeros_no_train(self, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.path.device()));
         self.path.get_or_add_with_lock(self.name, z, true, self.variables)
