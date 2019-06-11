@@ -120,7 +120,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> failure::Fallible<(i64
     let pad = if pad != 0 { (size - 1) / 2 } else { 0 };
     let (bn, bias) = match b.parameters.get("batch_normalize") {
         Some(p) if p.parse::<i64>()? != 0 => {
-            let vs = &vs / format!("batch_norm_{}", index);
+            let vs = &vs / &format!("batch_norm_{}", index);
             let bn = nn::batch_norm2d(&vs, filters, Default::default());
             (Some(bn), false)
         }
@@ -132,7 +132,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> failure::Fallible<(i64
         bias,
         ..Default::default()
     };
-    let vs = &vs / format!("conv_{}", index);
+    let vs = &vs / &format!("conv_{}", index);
     let conv = nn::conv2d(vs, p, filters, size, conv_cfg);
     let leaky = match activation {
         "leaky" => true,
@@ -207,7 +207,7 @@ fn slice_apply_and_set<F>(xs: &mut Tensor, start: i64, len: i64, f: F)
 where
     F: FnOnce(&Tensor) -> Tensor,
 {
-    let mut slice = xs.narrow(2, start, len);
+    let slice = xs.narrow(2, start, len);
     let src = f(&slice);
     slice.copy_(&src)
 }
@@ -263,7 +263,7 @@ impl Darknet {
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {
             let channels_and_bl = match block.block_type.as_str() {
-                "convolutional" => conv(vs / index, index, prev_channels, &block)?,
+                "convolutional" => conv(vs / &format!("{}", index), index, prev_channels, &block)?,
                 "upsample" => upsample(prev_channels)?,
                 "shortcut" => shortcut(index, prev_channels, &block)?,
                 "route" => route(index, &blocks, &block)?,
