@@ -131,6 +131,12 @@ impl RNN for LSTM {
 #[derive(Debug)]
 pub struct GRUState(Tensor);
 
+impl GRUState {
+    pub fn value(&self) -> Tensor {
+        self.0.shallow_clone()
+    }
+}
+
 /// A Gated Recurrent Unit (GRU) layer.
 ///
 /// https://en.wikipedia.org/wiki/Gated_recurrent_unit
