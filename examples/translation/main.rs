@@ -14,7 +14,7 @@
 extern crate failure;
 extern crate rand;
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
 extern crate tch;
 use tch::nn::{GRUState, Module, OptimizerConfig, RNN};
 use tch::{nn, Device, Kind, Tensor};
@@ -22,6 +22,7 @@ use tch::{nn, Device, Kind, Tensor};
 mod dataset;
 use dataset::Dataset;
 mod lang;
+use lang::Lang;
 
 const MAX_LENGTH: usize = 10;
 const LEARNING_RATE: f64 = 0.0001;
@@ -35,8 +36,10 @@ struct Encoder {
 
 impl Encoder {
     fn new(vs: nn::Path, in_dim: usize, hidden_dim: usize) -> Self {
-        let gru = nn::gru(&vs, in_dim as i64, hidden_dim as i64, Default::default());
-        let embedding = nn::embedding(&vs, in_dim as i64, hidden_dim as i64, Default::default());
+        let in_dim = in_dim as i64;
+        let hidden_dim = hidden_dim as i64;
+        let gru = nn::gru(&vs, hidden_dim, hidden_dim, Default::default());
+        let embedding = nn::embedding(&vs, in_dim, hidden_dim, Default::default());
         Encoder { embedding, gru }
     }
 
@@ -45,9 +48,112 @@ impl Encoder {
         let state = self.gru.step(&xs, &state);
         (state.value(), state)
     }
+}
 
-    fn zero_state(&self) -> GRUState {
-        self.gru.zero_state(1)
+struct Decoder {
+    device: Device,
+    embedding: nn::Embedding,
+    gru: nn::GRU,
+    attn: nn::Linear,
+    attn_combine: nn::Linear,
+    linear: nn::Linear,
+}
+
+impl Decoder {
+    fn new(vs: nn::Path, hidden_dim: usize, out_dim: usize) -> Self {
+        let hidden_dim = hidden_dim as i64;
+        let out_dim = out_dim as i64;
+        Decoder {
+            device: vs.device(),
+            embedding: nn::embedding(&vs, out_dim, hidden_dim, Default::default()),
+            gru: nn::gru(&vs, hidden_dim, hidden_dim, Default::default()),
+            attn: nn::linear(&vs, hidden_dim * 2, MAX_LENGTH as i64, Default::default()),
+            attn_combine: nn::linear(&vs, hidden_dim * 2, hidden_dim, Default::default()),
+            linear: nn::linear(&vs, hidden_dim, out_dim, Default::default()),
+        }
+    }
+
+    fn forward(
+        &self,
+        xs: &Tensor,
+        state: &GRUState,
+        enc_outputs: &Tensor,
+        is_training: bool,
+    ) -> (Tensor, GRUState) {
+        let xs = self
+            .embedding
+            .forward(&xs)
+            .dropout(0.1, is_training)
+            .view(&[1, -1]);
+        let attn_weights = Tensor::cat(&[&xs, &state.value()], 1)
+            .apply(&self.attn)
+            .unsqueeze(0);
+        let (sz1, sz2, sz3) = enc_outputs.size3().unwrap();
+        let enc_outputs = if sz2 == MAX_LENGTH as i64 {
+            enc_outputs.shallow_clone()
+        } else {
+            let shape = [sz1, MAX_LENGTH as i64 - sz2, sz3];
+            let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+            Tensor::cat(&[enc_outputs, &zeros], 1)
+        };
+        let attn_applied = attn_weights.bmm(&enc_outputs).squeeze1(1);
+        let xs = Tensor::cat(&[&xs, &attn_applied], 1)
+            .apply(&self.attn_combine)
+            .relu();
+        let state = self.gru.step(&xs, &state);
+        (self.linear.forward(&state.value()).log_softmax(-1), state)
+    }
+}
+
+struct Model {
+    encoder: Encoder,
+    decoder: Decoder,
+    decoder_start: Tensor,
+    decoder_eos: usize,
+    device: Device,
+}
+
+impl Model {
+    fn new(vs: nn::Path, ilang: &Lang, olang: &Lang, hidden_dim: usize) -> Self {
+        Model {
+            encoder: Encoder::new(&vs / "enc", ilang.len(), hidden_dim),
+            decoder: Decoder::new(&vs / "dec", hidden_dim, olang.len()),
+            decoder_start: Tensor::of_slice(&[olang.sos_token() as i64]).to_device(vs.device()),
+            decoder_eos: olang.eos_token(),
+            device: vs.device(),
+        }
+    }
+
+    fn train_loss(&self, input_: &[usize], target: &[usize]) -> Tensor {
+        let mut state = self.encoder.gru.zero_state(1);
+        let mut enc_outputs = vec![];
+        for &s in input_.iter() {
+            let s = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            let (out, state_) = self.encoder.forward(&s, &state);
+            enc_outputs.push(out);
+            state = state_;
+        }
+        let enc_outputs = Tensor::stack(&enc_outputs, 1);
+        /* TODO: random bool. */
+        let use_teacher_forcing = true;
+        let mut loss = Tensor::from(0f32).to_device(self.device);
+        let mut prev = self.decoder_start.shallow_clone();
+        for &s in target.iter() {
+            let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
+            state = state_;
+            let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            loss = loss + output.nll_loss(&target_tensor);
+            let (_, output) = output.topk(1, -1, true, true);
+            if self.decoder_eos == i64::from(&output) as usize {
+                break;
+            }
+            prev = if use_teacher_forcing {
+                target_tensor
+            } else {
+                output
+            };
+        }
+        loss
     }
 }
 
@@ -62,10 +168,12 @@ pub fn main() -> failure::Fallible<()> {
     let mut rng = thread_rng();
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
-    let encoder = Encoder::new(vs.root(), ilang.len(), HIDDEN_SIZE);
+    let model = Model::new(vs.root(), &ilang, &olang, HIDDEN_SIZE);
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     for idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
+        let loss = model.train_loss(&input_, &target);
+        opt.backward_step(&loss)
     }
     Ok(())
 }
