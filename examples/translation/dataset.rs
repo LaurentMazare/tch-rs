@@ -36,7 +36,7 @@ fn normalize(s: &str) -> String {
                 if c.is_alphanumeric() {
                     c.to_string()
                 } else {
-                    "".to_string()
+                    " ".to_string()
                 }
             }
         })
@@ -79,10 +79,10 @@ fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Fallible<Vec<(Stri
 }
 
 impl Dataset {
-    pub fn create(ilang: &str, olang: &str, max_length: usize) -> Fallible<Dataset> {
+    pub fn new(ilang: &str, olang: &str, max_length: usize) -> Fallible<Dataset> {
         let pairs = read_pairs(ilang, olang, max_length)?;
-        let mut input_lang = lang::Lang::create(ilang);
-        let mut output_lang = lang::Lang::create(olang);
+        let mut input_lang = lang::Lang::new(ilang);
+        let mut output_lang = lang::Lang::new(olang);
         for (lhs, rhs) in pairs.iter() {
             input_lang.add_sentence(&lhs);
             output_lang.add_sentence(&rhs);

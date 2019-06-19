@@ -27,7 +27,7 @@ impl Lang {
         }
     }
 
-    pub fn create(name: &str) -> Lang {
+    pub fn new(name: &str) -> Lang {
         let mut lang = Lang {
             name: name.to_string(),
             word_to_index_and_count: HashMap::new(),
