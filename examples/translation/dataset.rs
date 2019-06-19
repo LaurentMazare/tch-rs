@@ -69,7 +69,7 @@ fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Fallible<Vec<(Stri
                     && rhs.split_whitespace().count() < max_length
                     && (filter_prefix(&lhs) || filter_prefix(&rhs))
                 {
-                    res.push((lhs.to_string(), rhs.to_string()))
+                    res.push((lhs, rhs))
                 }
             }
             _ => bail!("a line does not contain a single tab {}", line),

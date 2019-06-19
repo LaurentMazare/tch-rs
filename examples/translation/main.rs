@@ -12,6 +12,8 @@
 
 #[macro_use]
 extern crate failure;
+extern crate rand;
+use rand::{thread_rng, Rng};
 extern crate tch;
 use tch::nn::OptimizerConfig;
 use tch::{nn, Device, Kind, Tensor};
@@ -19,19 +21,25 @@ use tch::{nn, Device, Kind, Tensor};
 mod dataset;
 use dataset::Dataset;
 mod lang;
-use lang::Lang;
 
 const MAX_LENGTH: usize = 10;
 const LEARNING_RATE: f64 = 0.0001;
+const SAMPLES: usize = 100_000;
 
 pub fn main() -> failure::Fallible<()> {
     let dataset = Dataset::new("eng", "fra", MAX_LENGTH)?.reverse();
     let ilang = dataset.input_lang();
     let olang = dataset.output_lang();
+    let pairs = dataset.pairs();
     println!("Input:  {} {} words.", ilang.name(), ilang.len());
     println!("Output: {} {} words.", olang.name(), olang.len());
+    println!("Pairs:  {}.", pairs.len());
+    let mut rng = thread_rng();
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
+    for idx in 1..=SAMPLES {
+        let (input_, target) = rng.choose(&pairs).unwrap();
+    }
     Ok(())
 }
