@@ -1,3 +1,4 @@
+use std::convert::{TryFrom, TryInto};
 use tch::Tensor;
 
 #[test]
@@ -190,4 +191,18 @@ fn values_at_index() {
     assert_eq!(t.double_value(&[]), 42.0);
     assert!(t.f_int64_value(&[0]).is_err());
     assert!(t.f_double_value(&[0]).is_err());
+}
+
+#[test]
+fn into_ndarray() {
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4.]).reshape(&[2, 2]);
+    let nd: ndarray::ArrayD<f64> = (&tensor).try_into().unwrap();
+    assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn from_ndarray() {
+    let nd = ndarray::arr2(&[[1f64, 2.], [3., 4.]]);
+    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }

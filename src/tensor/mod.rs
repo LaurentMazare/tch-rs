@@ -1,6 +1,7 @@
 //! A Torch tensor.
 use crate::{Device, Kind};
 use failure::Fallible;
+use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 mod iter;
@@ -431,5 +432,28 @@ impl PartialEq for Tensor {
                 Ok(v) => i64::from(v) > 0,
             },
         }
+    }
+}
+
+impl TryInto<ndarray::ArrayD<f64>> for &Tensor {
+    type Error = ndarray::ShapeError;
+
+    fn try_into(self) -> Result<ndarray::ArrayD<f64>, Self::Error> {
+        let v: Vec<f64> = self.into();
+        let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
+        ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
+    }
+}
+
+impl<D> TryFrom<ndarray::Array<f64, D>> for Tensor
+where
+    D: ndarray::Dimension,
+{
+    type Error = Fallible<Tensor>;
+
+    fn try_from(value: ndarray::Array<f64, D>) -> Result<Self, Self::Error> {
+        let tn = Self::of_slice(value.as_slice().unwrap());
+        let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
+        Ok(tn.reshape(&shape))
     }
 }
