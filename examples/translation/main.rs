@@ -13,8 +13,7 @@
 #[macro_use]
 extern crate failure;
 extern crate rand;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::prelude::*;
 extern crate tch;
 use tch::nn::{GRUState, Module, OptimizerConfig, RNN};
 use tch::{nn, Device, Kind, Tensor};
@@ -124,7 +123,7 @@ impl Model {
         }
     }
 
-    fn train_loss(&self, input_: &[usize], target: &[usize]) -> Tensor {
+    fn train_loss(&self, input_: &[usize], target: &[usize], rng: &mut ThreadRng) -> Tensor {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
         for &s in input_.iter() {
@@ -134,8 +133,7 @@ impl Model {
             state = state_;
         }
         let enc_outputs = Tensor::stack(&enc_outputs, 1);
-        /* TODO: random bool. */
-        let use_teacher_forcing = true;
+        let use_teacher_forcing: bool = rng.gen();
         let mut loss = Tensor::from(0f32).to_device(self.device);
         let mut prev = self.decoder_start.shallow_clone();
         for &s in target.iter() {
@@ -172,7 +170,7 @@ pub fn main() -> failure::Fallible<()> {
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     for _idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
-        let loss = model.train_loss(&input_, &target);
+        let loss = model.train_loss(&input_, &target, &mut rng);
         opt.backward_step(&loss)
     }
     Ok(())
