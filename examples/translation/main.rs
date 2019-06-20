@@ -170,7 +170,7 @@ pub fn main() -> failure::Fallible<()> {
     let vs = nn::VarStore::new(device);
     let model = Model::new(vs.root(), &ilang, &olang, HIDDEN_SIZE);
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
-    for idx in 1..=SAMPLES {
+    for _idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
         let loss = model.train_loss(&input_, &target);
         opt.backward_step(&loss)

@@ -39,7 +39,7 @@ impl Lang {
     }
 
     pub fn add_sentence(&mut self, sentence: &str) {
-        for word in sentence.split_whitespace() {
+        for _word in sentence.split_whitespace() {
             self.add_word(sentence);
         }
     }
@@ -62,9 +62,5 @@ impl Lang {
 
     pub fn get_index(&self, word: &str) -> Option<usize> {
         self.word_to_index_and_count.get(word).map(|x| x.0)
-    }
-
-    pub fn get_word(&self, index: usize) -> &str {
-        &self.index_to_word.get(&index).unwrap()
     }
 }
