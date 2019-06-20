@@ -39,8 +39,8 @@ impl Lang {
     }
 
     pub fn add_sentence(&mut self, sentence: &str) {
-        for _word in sentence.split_whitespace() {
-            self.add_word(sentence);
+        for word in sentence.split_whitespace() {
+            self.add_word(word);
         }
     }
 
