@@ -452,7 +452,12 @@ where
     type Error = Fallible<Tensor>;
 
     fn try_from(value: ndarray::Array<f64, D>) -> Result<Self, Self::Error> {
-        let tn = Self::of_slice(value.as_slice().unwrap());
+        // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
+        let slice = match value.as_slice() {
+            None => failure::bail!("cannot convert to slice"),
+            Some(v) => v
+        };
+        let tn = Self::of_slice(slice);
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
         Ok(tn.reshape(&shape))
     }
