@@ -63,4 +63,12 @@ impl Lang {
     pub fn get_index(&self, word: &str) -> Option<usize> {
         self.word_to_index_and_count.get(word).map(|x| x.0)
     }
+
+    pub fn seq_to_string(&self, seq: &[usize]) -> String {
+        let mut res: Vec<String> = vec![];
+        for s in seq.iter() {
+            res.push(self.index_to_word.get(s).unwrap().to_string());
+        }
+        res.join(" ")
+    }
 }

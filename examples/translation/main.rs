@@ -153,6 +153,32 @@ impl Model {
         }
         loss
     }
+
+    fn predict(&self, input_: &[usize]) -> Vec<usize> {
+        let mut state = self.encoder.gru.zero_state(1);
+        let mut enc_outputs = vec![];
+        for &s in input_.iter() {
+            let s = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            let (out, state_) = self.encoder.forward(&s, &state);
+            enc_outputs.push(out);
+            state = state_;
+        }
+        let enc_outputs = Tensor::stack(&enc_outputs, 1);
+        let mut prev = self.decoder_start.shallow_clone();
+        let mut output_seq: Vec<usize> = vec![];
+        for _i in 0..MAX_LENGTH {
+            let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
+            let (_, output) = output.topk(1, -1, true, true);
+            let output_ = i64::from(&output) as usize;
+            output_seq.push(output_);
+            if self.decoder_eos == output_ {
+                break;
+            }
+            state = state_;
+            prev = output;
+        }
+        output_seq
+    }
 }
 
 struct LossStats {
@@ -201,7 +227,14 @@ pub fn main() -> failure::Fallible<()> {
         opt.backward_step(&loss);
         loss_stats.update(loss.into());
         if idx % 1000 == 0 {
-            println!("{} {}", idx, loss_stats.avg_and_reset())
+            println!("{} {}", idx, loss_stats.avg_and_reset());
+            for _pred_index in 1..5 {
+                let (input_, target) = pairs.choose(&mut rng).unwrap();
+                let predict = model.predict(&input_);
+                println!("in:  {}", ilang.seq_to_string(input_));
+                println!("tgt: {}", olang.seq_to_string(target));
+                println!("out: {}", olang.seq_to_string(&predict));
+            }
         }
     }
     Ok(())
