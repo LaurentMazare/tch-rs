@@ -455,7 +455,7 @@ where
         // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
         let slice = match value.as_slice() {
             None => failure::bail!("cannot convert to slice"),
-            Some(v) => v
+            Some(v) => v,
         };
         let tn = Self::of_slice(slice);
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
