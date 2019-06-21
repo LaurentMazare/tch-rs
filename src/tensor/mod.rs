@@ -449,7 +449,7 @@ impl<D> TryFrom<ndarray::Array<f64, D>> for Tensor
 where
     D: ndarray::Dimension,
 {
-    type Error = Fallible<Tensor>;
+    type Error = failure::Error;
 
     fn try_from(value: ndarray::Array<f64, D>) -> Result<Self, Self::Error> {
         // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
