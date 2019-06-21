@@ -155,6 +155,32 @@ impl Model {
     }
 }
 
+struct LossStats {
+    total_loss: f64,
+    samples: usize,
+}
+
+impl LossStats {
+    fn new() -> LossStats {
+        LossStats {
+            total_loss: 0.,
+            samples: 0,
+        }
+    }
+
+    fn update(&mut self, loss: f64) {
+        self.total_loss += loss;
+        self.samples += 1;
+    }
+
+    fn avg_and_reset(&mut self) -> f64 {
+        let avg = self.total_loss / self.samples as f64;
+        self.total_loss = 0.;
+        self.samples = 0;
+        avg
+    }
+}
+
 pub fn main() -> failure::Fallible<()> {
     let dataset = Dataset::new("eng", "fra", MAX_LENGTH)?.reverse();
     let ilang = dataset.input_lang();
@@ -168,10 +194,15 @@ pub fn main() -> failure::Fallible<()> {
     let vs = nn::VarStore::new(device);
     let model = Model::new(vs.root(), &ilang, &olang, HIDDEN_SIZE);
     let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
-    for _idx in 1..=SAMPLES {
+    let mut loss_stats = LossStats::new();
+    for idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
         let loss = model.train_loss(&input_, &target, &mut rng);
-        opt.backward_step(&loss)
+        opt.backward_step(&loss);
+        loss_stats.update(loss.into());
+        if idx % 1000 == 0 {
+            println!("{} {}", idx, loss_stats.avg_and_reset())
+        }
     }
     Ok(())
 }
