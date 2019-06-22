@@ -24,7 +24,7 @@ mod lang;
 use lang::Lang;
 
 const MAX_LENGTH: usize = 10;
-const LEARNING_RATE: f64 = 0.0001;
+const LEARNING_RATE: f64 = 0.001;
 const SAMPLES: usize = 100_000;
 const HIDDEN_SIZE: usize = 256;
 
@@ -225,7 +225,7 @@ pub fn main() -> failure::Fallible<()> {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
         let loss = model.train_loss(&input_, &target, &mut rng);
         opt.backward_step(&loss);
-        loss_stats.update(loss.into());
+        loss_stats.update(f64::from(loss) / target.len() as f64);
         if idx % 1000 == 0 {
             println!("{} {}", idx, loss_stats.avg_and_reset());
             for _pred_index in 1..5 {
