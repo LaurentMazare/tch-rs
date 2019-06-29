@@ -68,6 +68,10 @@ pub struct CModule {
     pub(super) c_module: *mut CModule_,
 }
 
+unsafe impl Send for CModule {}
+
+unsafe impl Sync for CModule {}
+
 impl Drop for CModule {
     fn drop(&mut self) {
         unsafe_torch!({ atm_free(self.c_module) })
