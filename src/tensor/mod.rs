@@ -435,30 +435,48 @@ impl PartialEq for Tensor {
     }
 }
 
-impl TryInto<ndarray::ArrayD<f64>> for &Tensor {
-    type Error = ndarray::ShapeError;
+macro_rules! try_into_impl {
+    ($type:ident) => {
+        impl TryInto<ndarray::ArrayD<$type>> for &Tensor {
+            type Error = ndarray::ShapeError;
 
-    fn try_into(self) -> Result<ndarray::ArrayD<f64>, Self::Error> {
-        let v: Vec<f64> = self.into();
-        let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
-        ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
-    }
+            fn try_into(self) -> Result<ndarray::ArrayD<$type>, Self::Error> {
+                let v: Vec<$type> = self.into();
+                let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
+                ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
+            }
+        }
+    };
 }
 
-impl<D> TryFrom<ndarray::Array<f64, D>> for Tensor
-where
-    D: ndarray::Dimension,
-{
-    type Error = failure::Error;
+try_into_impl!(f32);
+try_into_impl!(i32);
+try_into_impl!(f64);
+try_into_impl!(i64);
 
-    fn try_from(value: ndarray::Array<f64, D>) -> Result<Self, Self::Error> {
-        // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
-        let slice = match value.as_slice() {
-            None => failure::bail!("cannot convert to slice"),
-            Some(v) => v,
-        };
-        let tn = Self::of_slice(slice);
-        let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
-        Ok(tn.reshape(&shape))
-    }
+macro_rules! try_from_impl {
+    ($type:ident) => {
+        impl<D> TryFrom<ndarray::Array<$type, D>> for Tensor
+        where
+            D: ndarray::Dimension,
+        {
+            type Error = failure::Error;
+
+            fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
+                // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
+                let slice = match value.as_slice() {
+                    None => failure::bail!("cannot convert to slice"),
+                    Some(v) => v,
+                };
+                let tn = Self::of_slice(slice);
+                let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
+                Ok(tn.reshape(&shape))
+            }
+        }
+    };
 }
+
+try_from_impl!(f32);
+try_from_impl!(i32);
+try_from_impl!(f64);
+try_from_impl!(i64);
