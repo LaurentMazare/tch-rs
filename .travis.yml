@@ -5,7 +5,11 @@ rust:
   - beta
   - nightly
 
-script: |
+before_script:
+  - rustup component add rustfmt
+
+script:
+  cargo fmt -- --check
   cargo build --verbose &&
   cargo test  --verbose &&
   cargo doc   --verbose
