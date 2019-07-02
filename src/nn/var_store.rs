@@ -228,7 +228,13 @@ impl<'a> Path<'a> {
         tensor
     }
 
-    fn get_or_add_with_lock(&self, name: &str, tensor: Tensor, trainable: bool, mut variables: MutexGuard<HashMap<String, Variable>>) -> Tensor {
+    fn get_or_add_with_lock(
+        &self,
+        name: &str,
+        tensor: Tensor,
+        trainable: bool,
+        mut variables: MutexGuard<HashMap<String, Variable>>,
+    ) -> Tensor {
         let path = self.path(name);
         if let Some(var) = variables.get(&path) {
             return var.tensor.shallow_clone();
@@ -389,7 +395,8 @@ impl<'a> Entry<'a> {
     /// initialized according to the init parameter.
     pub fn or_var(self, dims: &[i64], init: Init) -> Tensor {
         let v = super::init(init, dims, self.path.device());
-        self.path.get_or_add_with_lock(self.name, v, true, self.variables)
+        self.path
+            .get_or_add_with_lock(self.name, v, true, self.variables)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -412,7 +419,8 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_ones_no_train(self, dims: &[i64]) -> Tensor {
         let o = Tensor::ones(dims, (Kind::Float, self.path.device()));
-        self.path.get_or_add_with_lock(self.name, o, true, self.variables)
+        self.path
+            .get_or_add_with_lock(self.name, o, true, self.variables)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -442,7 +450,8 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_zeros_no_train(self, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.path.device()));
-        self.path.get_or_add_with_lock(self.name, z, true, self.variables)
+        self.path
+            .get_or_add_with_lock(self.name, z, true, self.variables)
     }
 }
 
