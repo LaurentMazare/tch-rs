@@ -6,6 +6,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 
 mod iter;
 mod npy;
+mod index;
 
 pub use super::wrappers::tensor::{no_grad, no_grad_guard, NoGradGuard, Reduction, Tensor};
 
