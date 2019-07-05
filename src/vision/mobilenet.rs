@@ -2,6 +2,7 @@
 //! https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.html
 use crate::nn::{self, ModuleT};
 
+#[allow(clippy::identity_op)]
 // Conv2D + BatchNorm2D + ReLU6
 fn cbr(p: nn::Path, c_in: i64, c_out: i64, ks: i64, stride: i64, g: i64) -> impl ModuleT {
     let conv2d = nn::ConvConfig {
@@ -50,6 +51,7 @@ const INVERTED_RESIDUAL_SETTINGS: [(i64, i64, i64, i64); 7] = [
     (6, 320, 1, 1),
 ];
 
+#[allow(clippy::identity_op)]
 pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
     let f_p = p / "features";
     let c_p = p / "classifier";
