@@ -204,8 +204,21 @@ impl Tensor {
         use std::ops::Bound::*;
         use TensorIndexer::*;
 
+        // Make sure n. non-newaxis does not exceed n. of dimensions
+        let n_newaxis = index_spec
+            .iter()
+            .fold(
+                0,
+                |mut count, spec| {
+                    if spec == &InsertNewAxis {
+                        count += 1
+                    }
+                    count
+                }
+            );
+
         assert!(
-            index_spec.len() <= self.size().len(),
+            index_spec.len() <= self.size().len() + n_newaxis,
             format!("too many indices for tensor of dimension {}", self.size().len())
         );
 
@@ -213,8 +226,6 @@ impl Tensor {
         let mut curr_idx: i64 = 0;
 
         for (_spec_idx, spec) in index_spec.iter().enumerate() {
-            let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
-
             let (next_tensor, next_idx) = match spec {
                 InsertNewAxis => (
                     curr_tensor.unsqueeze(curr_idx),
@@ -222,20 +233,26 @@ impl Tensor {
                 ),
                 Select(index) => (
                     curr_tensor.select(curr_idx, *index),
-                    curr_idx,  // curr_idx is not advanced because select() sequeezes dimension
+                    curr_idx,  // not advanced because select() sequeezes dimension
                 ),
                 Narrow(Unbounded, Unbounded) => (
                     curr_tensor,
                     curr_idx + 1,
                 ),
-                Narrow(Included(start), Unbounded) => (
-                    curr_tensor.narrow(curr_idx, *start, dim_len - *start),
-                    curr_idx + 1,
-                ),
-                Narrow(Excluded(start), Unbounded) => (
-                    curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1),
-                    curr_idx + 1,
-                ),
+                Narrow(Included(start), Unbounded) => {
+                    let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
+                    (
+                        curr_tensor.narrow(curr_idx, *start, dim_len - *start),
+                        curr_idx + 1,
+                    )
+                }
+                Narrow(Excluded(start), Unbounded) => {
+                    let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
+                    (
+                        curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1),
+                        curr_idx + 1,
+                    )
+                }
                 Narrow(Unbounded, Included(end)) => (
                     curr_tensor.narrow(curr_idx, 0, *end + 1),
                     curr_idx + 1,
