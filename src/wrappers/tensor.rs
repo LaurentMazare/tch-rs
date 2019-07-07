@@ -29,7 +29,7 @@ impl Tensor {
 
     /// Returns the number of dimension of the tensor.
     pub fn dim(&self) -> usize {
-        unsafe_torch!({ at_dim(self.c_tensor) as usize })
+        unsafe_torch!({ at_dim(self.c_tensor) })
     }
 
     /// Returns the shape of the input tensor.
