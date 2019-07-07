@@ -46,16 +46,16 @@ extern "C" {
     pub fn at_copy_data(
         arg: *mut C_tensor,
         vs: *const c_void,
-        numel: i64,
-        elt_size_in_bytes: c_int,
+        numel: size_t,
+        elt_size_in_bytes: size_t,
     );
     pub fn at_scalar_type(arg: *mut C_tensor) -> c_int;
     pub fn at_device(arg: *mut C_tensor) -> c_int;
     pub fn at_tensor_of_data(
         vs: *const c_void,
         dims: *const i64,
-        ndims: i64,
-        elt_size_in_bytes: c_int,
+        ndims: size_t,
+        elt_size_in_bytes: size_t,
         kind: c_int,
     ) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;

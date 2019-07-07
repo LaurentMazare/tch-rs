@@ -198,7 +198,7 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `src` to this tensor.
-    pub fn f_copy_data<T>(&self, dst: &mut [T], numel: i64) -> Fallible<()> {
+    pub fn f_copy_data<T>(&self, dst: &mut [T], numel: usize) -> Fallible<()> {
         let kind = self.kind();
         unsafe_torch_err!({
             at_copy_data(
@@ -212,13 +212,13 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `src` to this tensor.
-    pub fn copy_data<T>(&self, dst: &mut [T], numel: i64) {
+    pub fn copy_data<T>(&self, dst: &mut [T], numel: usize) {
         self.f_copy_data(dst, numel).unwrap()
     }
 
     /// Returns the total number of elements stored in a tensor.
-    pub fn numel(&self) -> i64 {
-        self.size().iter().product()
+    pub fn numel(&self) -> usize {
+        self.size().iter().product::<i64>() as usize
     }
 
     // This is similar to vec_... but faster as it directly blits the data.
@@ -251,7 +251,7 @@ impl Tensor {
             at_tensor_of_data(
                 data,
                 size.as_ptr(),
-                size.len() as i64,
+                size.len(),
                 elt_size_in_bytes,
                 kind.c_int(),
             )

@@ -50,7 +50,7 @@ impl Kind {
         }
     }
 
-    pub fn elt_size_in_bytes(self) -> libc::c_int {
+    pub fn elt_size_in_bytes(self) -> usize {
         match self {
             Kind::Uint8 => 1,
             Kind::Int8 => 1,

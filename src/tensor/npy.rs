@@ -210,7 +210,7 @@ impl crate::Tensor {
         f.write_all(&[(header.len() % 256) as u8, (header.len() / 256) as u8])?;
         f.write_all(header.as_bytes())?;
         let numel = self.numel();
-        let elt_size_in_bytes = i64::from(kind.elt_size_in_bytes());
+        let elt_size_in_bytes = usize::from(kind.elt_size_in_bytes());
         let mut content = vec![0u8; (numel * elt_size_in_bytes) as usize];
         self.f_copy_data(&mut content, numel)?;
         f.write_all(&content)?;
