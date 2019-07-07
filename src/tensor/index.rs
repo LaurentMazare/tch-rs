@@ -8,12 +8,12 @@ use std::ops::{
     RangeToInclusive,
     Bound,
 };
-use super::Tensor;
+use crate::Tensor;
 
-// https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
-
+#[derive(Debug, PartialEq)]
 pub struct NewAxis;
 
+#[derive(Debug, PartialEq)]
 pub enum TensorIndexer {
     Select(i64),
     Narrow(Bound<i64>, Bound<i64>),
@@ -110,7 +110,7 @@ impl_from_range!(RangeInclusive<i64>);
 impl_from_range!(RangeTo<i64>);
 impl_from_range!(RangeToInclusive<i64>);
 
-trait IndexOp<T> {
+pub trait IndexOp<T> {
     fn i(&self, index: T) -> Tensor;
 }
 

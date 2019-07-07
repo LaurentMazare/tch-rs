@@ -16,7 +16,16 @@ pub use wrappers::manual_seed;
 pub use wrappers::scalar::Scalar;
 
 mod tensor;
-pub use tensor::{no_grad, no_grad_guard, NoGradGuard, Reduction, Tensor};
+pub use tensor::{
+    no_grad,
+    no_grad_guard,
+    NoGradGuard,
+    Reduction,
+    Tensor,
+    TensorIndexer,
+    NewAxis,
+    IndexOp,
+};
 
 pub mod nn;
 pub mod vision;

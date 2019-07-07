@@ -9,6 +9,7 @@ mod npy;
 mod index;
 
 pub use super::wrappers::tensor::{no_grad, no_grad_guard, NoGradGuard, Reduction, Tensor};
+pub use index::{TensorIndexer, NewAxis, IndexOp};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
