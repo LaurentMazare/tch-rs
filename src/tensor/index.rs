@@ -1,14 +1,7 @@
-use std::ops::{
-    RangeBounds,
-    Range,
-    RangeFrom,
-    RangeFull,
-    RangeInclusive,
-    RangeTo,
-    RangeToInclusive,
-    Bound,
-};
 use crate::Tensor;
+use std::ops::{
+    Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct NewAxis;
@@ -57,25 +50,17 @@ impl From<&Tensor> for TensorIndexer {
         );
 
         match tensor.kind() {
-            Int64 =>
-                TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int16 =>
-                TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int8 =>
-                TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int =>
-                TensorIndexer::IndexSelect(tensor.shallow_clone()),
+            Int64 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
+            Int16 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
+            Int8 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
+            Int => TensorIndexer::IndexSelect(tensor.shallow_clone()),
             _ => {
                 panic!(
                     "the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}",
-                    Int64,
-                    Int16,
-                    Int8,
-                    Int,
+                    Int64, Int16, Int8, Int,
                 );
             }
         }
-
     }
 }
 
@@ -100,7 +85,7 @@ macro_rules! impl_from_range {
                 TensorIndexer::Narrow(start, end)
             }
         }
-    }
+    };
 }
 
 impl_from_range!(Range<i64>);
@@ -114,7 +99,8 @@ pub trait IndexOp<T> {
     fn i(&self, index: T) -> Tensor;
 }
 
-impl<A> IndexOp<A> for Tensor where
+impl<A> IndexOp<A> for Tensor
+where
     A: Into<TensorIndexer>,
 {
     fn i(&self, index: A) -> Tensor {
@@ -122,7 +108,8 @@ impl<A> IndexOp<A> for Tensor where
     }
 }
 
-impl<A> IndexOp<(A,)> for Tensor where
+impl<A> IndexOp<(A,)> for Tensor
+where
     A: Into<TensorIndexer>,
 {
     fn i(&self, index: (A,)) -> Tensor {
@@ -131,7 +118,8 @@ impl<A> IndexOp<(A,)> for Tensor where
     }
 }
 
-impl<A, B> IndexOp<(A, B)> for Tensor where
+impl<A, B> IndexOp<(A, B)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
 {
@@ -142,7 +130,8 @@ impl<A, B> IndexOp<(A, B)> for Tensor where
     }
 }
 
-impl<A, B, C> IndexOp<(A, B, C)> for Tensor where
+impl<A, B, C> IndexOp<(A, B, C)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
     C: Into<TensorIndexer>,
@@ -155,7 +144,8 @@ impl<A, B, C> IndexOp<(A, B, C)> for Tensor where
     }
 }
 
-impl<A, B, C, D> IndexOp<(A, B, C, D)> for Tensor where
+impl<A, B, C, D> IndexOp<(A, B, C, D)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
     C: Into<TensorIndexer>,
@@ -170,7 +160,8 @@ impl<A, B, C, D> IndexOp<(A, B, C, D)> for Tensor where
     }
 }
 
-impl<A, B, C, D, E> IndexOp<(A, B, C, D, E)> for Tensor where
+impl<A, B, C, D, E> IndexOp<(A, B, C, D, E)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
     C: Into<TensorIndexer>,
@@ -187,7 +178,8 @@ impl<A, B, C, D, E> IndexOp<(A, B, C, D, E)> for Tensor where
     }
 }
 
-impl<A, B, C, D, E, F> IndexOp<(A, B, C, D, E, F)> for Tensor where
+impl<A, B, C, D, E, F> IndexOp<(A, B, C, D, E, F)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
     C: Into<TensorIndexer>,
@@ -206,7 +198,8 @@ impl<A, B, C, D, E, F> IndexOp<(A, B, C, D, E, F)> for Tensor where
     }
 }
 
-impl<A, B, C, D, E, F, G> IndexOp<(A, B, C, D, E, F, G)> for Tensor where
+impl<A, B, C, D, E, F, G> IndexOp<(A, B, C, D, E, F, G)> for Tensor
+where
     A: Into<TensorIndexer>,
     B: Into<TensorIndexer>,
     C: Into<TensorIndexer>,
@@ -233,21 +226,19 @@ impl Tensor {
         use TensorIndexer::*;
 
         // Make sure n. non-newaxis does not exceed n. of dimensions
-        let n_newaxis = index_spec
-            .iter()
-            .fold(
-                0,
-                |mut count, spec| {
-                    if spec == &InsertNewAxis {
-                        count += 1
-                    }
-                    count
-                }
-            );
+        let n_newaxis = index_spec.iter().fold(0, |mut count, spec| {
+            if spec == &InsertNewAxis {
+                count += 1
+            }
+            count
+        });
 
         assert!(
             index_spec.len() <= self.size().len() + n_newaxis,
-            format!("too many indices for tensor of dimension {}", self.size().len())
+            format!(
+                "too many indices for tensor of dimension {}",
+                self.size().len()
+            )
         );
 
         // Apply indexing from left to right
@@ -256,18 +247,12 @@ impl Tensor {
 
         for (_spec_idx, spec) in index_spec.iter().enumerate() {
             let (next_tensor, next_idx) = match spec {
-                InsertNewAxis => (
-                    curr_tensor.unsqueeze(curr_idx),
-                    curr_idx + 1,
-                ),
+                InsertNewAxis => (curr_tensor.unsqueeze(curr_idx), curr_idx + 1),
                 Select(index) => (
                     curr_tensor.select(curr_idx, *index),
-                    curr_idx,  // not advanced because select() sequeezes dimension
+                    curr_idx, // not advanced because select() sequeezes dimension
                 ),
-                Narrow(Unbounded, Unbounded) => (
-                    curr_tensor,
-                    curr_idx + 1,
-                ),
+                Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
                 Narrow(Included(start), Unbounded) => {
                     let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
                     (
@@ -282,14 +267,12 @@ impl Tensor {
                         curr_idx + 1,
                     )
                 }
-                Narrow(Unbounded, Included(end)) => (
-                    curr_tensor.narrow(curr_idx, 0, *end + 1),
-                    curr_idx + 1,
-                ),
-                Narrow(Unbounded, Excluded(end)) => (
-                    curr_tensor.narrow(curr_idx, 0, *end),
-                    curr_idx + 1,
-                ),
+                Narrow(Unbounded, Included(end)) => {
+                    (curr_tensor.narrow(curr_idx, 0, *end + 1), curr_idx + 1)
+                }
+                Narrow(Unbounded, Excluded(end)) => {
+                    (curr_tensor.narrow(curr_idx, 0, *end), curr_idx + 1)
+                }
                 Narrow(Included(start), Included(end)) => (
                     curr_tensor.narrow(curr_idx, *start, *end - *start + 1),
                     curr_idx + 1,
@@ -309,7 +292,7 @@ impl Tensor {
                 IndexSelect(index_tensor) => (
                     curr_tensor.index_select(curr_idx, index_tensor),
                     curr_idx + 1,
-                )
+                ),
             };
 
             curr_tensor = next_tensor;

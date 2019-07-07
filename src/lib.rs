@@ -17,14 +17,7 @@ pub use wrappers::scalar::Scalar;
 
 mod tensor;
 pub use tensor::{
-    no_grad,
-    no_grad_guard,
-    NoGradGuard,
-    Reduction,
-    Tensor,
-    TensorIndexer,
-    NewAxis,
-    IndexOp,
+    no_grad, no_grad_guard, IndexOp, NewAxis, NoGradGuard, Reduction, Tensor, TensorIndexer,
 };
 
 pub mod nn;

@@ -4,12 +4,12 @@ use failure::Fallible;
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+mod index;
 mod iter;
 mod npy;
-mod index;
 
 pub use super::wrappers::tensor::{no_grad, no_grad_guard, NoGradGuard, Reduction, Tensor};
-pub use index::{TensorIndexer, NewAxis, IndexOp};
+pub use index::{IndexOp, NewAxis, TensorIndexer};
 
 macro_rules! impl_op {
     ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
