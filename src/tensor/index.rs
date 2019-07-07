@@ -40,6 +40,13 @@ impl From<&[i64]> for TensorIndexer {
     }
 }
 
+impl From<Vec<i64>> for TensorIndexer {
+    fn from(index: Vec<i64>) -> Self {
+        let tensor = Tensor::of_slice(&index);
+        TensorIndexer::IndexSelect(tensor)
+    }
+}
+
 impl From<&Tensor> for TensorIndexer {
     fn from(tensor: &Tensor) -> Self {
         use super::Kind::*;
@@ -199,6 +206,27 @@ impl<A, B, C, D, E, F> IndexOp<(A, B, C, D, E, F)> for Tensor where
     }
 }
 
+impl<A, B, C, D, E, F, G> IndexOp<(A, B, C, D, E, F, G)> for Tensor where
+    A: Into<TensorIndexer>,
+    B: Into<TensorIndexer>,
+    C: Into<TensorIndexer>,
+    D: Into<TensorIndexer>,
+    E: Into<TensorIndexer>,
+    F: Into<TensorIndexer>,
+    G: Into<TensorIndexer>,
+{
+    fn i(&self, index: (A, B, C, D, E, F, G)) -> Tensor {
+        let a = index.0.into();
+        let b = index.1.into();
+        let c = index.2.into();
+        let d = index.3.into();
+        let e = index.4.into();
+        let f = index.5.into();
+        let g = index.6.into();
+        self.indexer(&[a, b, c, d, e, f, g])
+    }
+}
+
 impl Tensor {
     fn indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
         use std::ops::Bound::*;
@@ -222,6 +250,7 @@ impl Tensor {
             format!("too many indices for tensor of dimension {}", self.size().len())
         );
 
+        // Apply indexing from left to right
         let mut curr_tensor = self.shallow_clone();
         let mut curr_idx: i64 = 0;
 
