@@ -4,7 +4,7 @@
 //! https://www.cs.toronto.edu/~kriz/cifar.html
 //! The binary version of the dataset is used.
 use super::dataset::Dataset;
-use crate::{kind, Kind, Tensor};
+use crate::{kind, IndexOp, Kind, Tensor};
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
 
@@ -23,13 +23,11 @@ fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
     let labels = Tensor::zeros(&[SAMPLES_PER_FILE], kind::INT64_CPU);
     for index in 0..SAMPLES_PER_FILE {
         let content_offset = BYTES_PER_IMAGE * index;
-        labels
-            .narrow(0, index, 1)
-            .copy_(&content.narrow(0, content_offset, 1));
-        images.narrow(0, index, 1).copy_(
+        labels.i(index).copy_(&content.i(content_offset));
+        images.i(index).copy_(
             &content
                 .narrow(0, 1 + content_offset, BYTES_PER_IMAGE - 1)
-                .view(&[1, C, H, W])
+                .view(&[C, H, W])
                 .to_kind(Kind::Float),
         );
     }

@@ -1,6 +1,6 @@
 //! A simple dataset structure shared by various computer vision datasets.
 use crate::data::Iter2;
-use crate::Tensor;
+use crate::{IndexOp, Tensor};
 use rand::Rng;
 
 #[derive(Debug)]
@@ -32,12 +32,12 @@ pub fn random_flip(t: &Tensor) -> Tensor {
     }
     let output = t.zeros_like();
     for batch_index in 0..size[0] {
-        let mut output_view = output.narrow(0, batch_index, 1);
-        let t_view = t.narrow(0, batch_index, 1);
+        let mut output_view = output.i(batch_index);
+        let t_view = t.i(batch_index);
         let src = if rand::random() {
             t_view
         } else {
-            t_view.flip(&[3])
+            t_view.flip(&[2])
         };
         output_view.copy_(&src)
     }
@@ -52,16 +52,15 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
     if size.len() != 4 {
         panic!("unexpected shape for tensor {:?}", t)
     }
+    let sz_h = size[2];
+    let sz_w = size[3];
     let padded = t.reflection_pad2d(&[pad, pad, pad, pad]);
     let output = t.zeros_like();
-    for batch_index in 0..size[0] {
-        let mut output_view = output.narrow(0, batch_index, 1);
+    for bindex in 0..size[0] {
+        let mut output_view = output.i(bindex);
         let start_w = rand::thread_rng().gen_range(0, 2 * pad);
         let start_h = rand::thread_rng().gen_range(0, 2 * pad);
-        let src = padded
-            .narrow(0, batch_index, 1)
-            .narrow(2, start_h, size[2])
-            .narrow(3, start_w, size[3]);
+        let src = padded.i((bindex, .., start_h..start_h + sz_h, start_w..start_w + sz_w));
         output_view.copy_(&src)
     }
     output
@@ -76,13 +75,11 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     }
     let mut output = t.zeros_like();
     output.copy_(&t);
-    for batch_index in 0..size[0] {
+    for bindex in 0..size[0] {
         let start_h = rand::thread_rng().gen_range(0, size[2] - sz + 1);
         let start_w = rand::thread_rng().gen_range(0, size[3] - sz + 1);
         let _output = output
-            .narrow(0, batch_index, 1)
-            .narrow(2, start_h, sz)
-            .narrow(3, start_w, sz)
+            .i((bindex, .., start_h..start_h + sz, start_w..start_w + sz))
             .fill_(0.0);
     }
     output
