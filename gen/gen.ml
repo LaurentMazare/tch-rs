@@ -23,7 +23,7 @@ let prefixed_functions =
     (module String)
     ["add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss"]
 
-let excluded_prefixes = ["_"; "thnn_"; "th_"]
+let excluded_prefixes = ["_thnn_"; "_th_"; "thnn_"; "th_"]
 
 let excluded_suffixes = ["_forward"; "_forward_out"]
 
@@ -151,7 +151,15 @@ module Func = struct
   let replace_map = Map.of_alist_exn (module String) [("t", "tr"); ("where", "where_")]
 
   let rust_name name =
-    Map.find replace_map name |> Option.value ~default:name |> String.lowercase
+    let name =
+        Map.find replace_map name
+        |> Option.value ~default:name
+        |> String.lowercase
+        |> String.substr_replace_all ~pattern:"__" ~with_:"_"
+    in
+    if String.is_prefix name ~prefix:"_"
+    then "internal" ^ name
+    else name
 
   let c_rust_args_list t =
     List.map t.args ~f:(fun arg ->
