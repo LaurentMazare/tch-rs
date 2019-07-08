@@ -53,7 +53,7 @@ impl Default for RNNConfig {
             has_biases: true,
             num_layers: 1,
             dropout: 0.,
-            train: false,
+            train: true,
             bidirectional: false,
             batch_first: true,
         }

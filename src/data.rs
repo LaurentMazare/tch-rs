@@ -1,5 +1,5 @@
 //! Dataset iterators.
-use crate::{kind, Device, Tensor};
+use crate::{kind, Device, IndexOp, Tensor};
 use failure::Fallible;
 use std::collections::HashMap;
 use std::fs::File;
@@ -106,8 +106,8 @@ impl Iterator for Iter2 {
         } else {
             self.batch_index += 1;
             Some((
-                self.xs.narrow(0, start, size).to_device(self.device),
-                self.ys.narrow(0, start, size).to_device(self.device),
+                self.xs.i(start..start + size).to_device(self.device),
+                self.ys.i(start..start + size).to_device(self.device),
             ))
         }
     }
@@ -193,10 +193,10 @@ impl Iterator for TextDataIter {
             None
         } else {
             self.batch_index += 1;
-            let indexes = Vec::<i64>::from(&self.indexes.narrow(0, start, size));
+            let indexes = Vec::<i64>::from(&self.indexes.i(start..start + size));
             let batch: Vec<_> = indexes
                 .iter()
-                .map(|&i| self.data.narrow(0, i, self.seq_len))
+                .map(|&i| self.data.i(i..i + self.seq_len))
                 .collect();
             let batch: Vec<_> = batch.iter().map(|b| b).collect();
             Some(Tensor::stack(&batch, 0))
