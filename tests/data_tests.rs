@@ -1,5 +1,5 @@
 use std::io::Write;
-use tch::{data, Tensor};
+use tch::{data, IndexOp, Tensor};
 
 #[test]
 fn iter2() {
@@ -50,8 +50,8 @@ fn text() {
         );
     }
     for xs in text_data.iter_shuffle(2, 5) {
-        let first_column_plus_one = (xs.narrow(1, 0, 1) + 1).fmod(10);
-        let second_column = xs.narrow(1, 1, 1);
+        let first_column_plus_one = (xs.i((.., ..1)) + 1).fmod(10);
+        let second_column = xs.i((.., 1..=1));
         let err = i64::from((first_column_plus_one - second_column).pow(2).sum());
         assert_eq!(err, 0)
     }
