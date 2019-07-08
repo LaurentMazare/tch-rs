@@ -1,4 +1,5 @@
 use crate::Tensor;
+use failure::Fallible;
 use std::ops::{
     Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
@@ -42,25 +43,7 @@ impl From<Vec<i64>> for TensorIndexer {
 
 impl From<&Tensor> for TensorIndexer {
     fn from(tensor: &Tensor) -> Self {
-        use super::Kind::*;
-
-        assert!(
-            tensor.size().len() == 1,
-            "Multi-dimensional tensor is not supported for indexing",
-        );
-
-        match tensor.kind() {
-            Int64 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int16 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int8 => TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            Int => TensorIndexer::IndexSelect(tensor.shallow_clone()),
-            _ => {
-                panic!(
-                    "the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}",
-                    Int64, Int16, Int8, Int,
-                );
-            }
-        }
+        TensorIndexer::IndexSelect(tensor.shallow_clone())
     }
 }
 
@@ -221,19 +204,17 @@ where
 }
 
 impl Tensor {
-    fn indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
+    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Fallible<Tensor> {
         use std::ops::Bound::*;
         use TensorIndexer::*;
 
         // Make sure n. non-newaxis does not exceed n. of dimensions
-        let n_newaxis = index_spec.iter().fold(0, |mut count, spec| {
-            if spec == &InsertNewAxis {
-                count += 1
-            }
-            count
-        });
+        let n_newaxis = index_spec
+            .iter()
+            .filter(|spec| *spec == &InsertNewAxis)
+            .count();
 
-        assert!(
+        ensure!(
             index_spec.len() <= self.size().len() + n_newaxis,
             format!(
                 "too many indices for tensor of dimension {}",
@@ -241,16 +222,36 @@ impl Tensor {
             )
         );
 
+        // Make sure tensors conform the format
+        for spec in index_spec.iter() {
+            use super::Kind::*;
+            if let IndexSelect(tensor) = spec {
+                ensure!(
+                    tensor.size().len() == 1,
+                    "Multi-dimensional tensor is not supported for indexing",
+                );
+                match tensor.kind() {
+                    Int64 => {}
+                    Int16 => {}
+                    Int8 => {}
+                    Int => {}
+                    _ => {
+                        bail!("the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}", Int64, Int16, Int8, Int);
+                    }
+                }
+            }
+        }
+
         // Apply indexing from left to right
         let mut curr_tensor = self.shallow_clone();
         let mut curr_idx: i64 = 0;
 
-        for (_spec_idx, spec) in index_spec.iter().enumerate() {
+        for spec in index_spec.iter() {
             let (next_tensor, next_idx) = match spec {
                 InsertNewAxis => (curr_tensor.unsqueeze(curr_idx), curr_idx + 1),
                 Select(index) => (
                     curr_tensor.select(curr_idx, *index),
-                    curr_idx, // not advanced because select() sequeezes dimension
+                    curr_idx, // not advanced because select() squeezes dimension
                 ),
                 Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
                 Narrow(Included(start), Unbounded) => {
@@ -299,6 +300,10 @@ impl Tensor {
             curr_idx = next_idx;
         }
 
-        curr_tensor
+        Ok(curr_tensor)
+    }
+
+    fn indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
+        self.f_indexer(index_spec).unwrap()
     }
 }
