@@ -1,3 +1,49 @@
+//! Indexing operations
+//!
+//! This module defines the `i` indexing operation. This can be used in various
+//! scenarios.
+//!
+//! Using an integer index returns the slice obtained by selecting elements with
+//! the specified index. Negative values can be used for the index, and `..` can
+//! be used to get all the indexes from a given dimension.
+//!
+//! ```
+//! use crate::tch::{Tensor,IndexOp};
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let t = tensor.i(1);
+//! let t = tensor.i((.., -2));
+//! ```
+//!
+//! Indexes like `1..`, `..1`, or `1..2`, can be used to narrow a dimension.
+//!
+//! ```
+//! use crate::tch::{Tensor,IndexOp};
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let t = tensor.i((.., 1..));
+//! assert_eq!(t.size(), [2, 2]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 3, 5, 6]);
+//! let t = tensor.i((..1, ..));
+//! assert_eq!(t.size(), [1, 3]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [1, 2, 3]);
+//! let t = tensor.i((.., 1..2));
+//! assert_eq!(t.size(), [2, 1]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 5]);
+//! let t = tensor.i((.., 1..=2));
+//! assert_eq!(t.size(), [2, 2]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 3, 5, 6]);
+//! ```
+//!
+//! The `NewAxis` index can be used to insert a dimensio.
+//!
+//! ```
+//! use crate::tch::{Tensor, IndexOp, NewAxis};
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let t = tensor.i((NewAxis,));
+//! assert_eq!(t.size(), &[1, 2, 3]);
+//! let t = tensor.i((..,..,NewAxis));
+//! assert_eq!(t.size(), &[2, 3, 1]);
+//! ```
+//!
 use crate::Tensor;
 use failure::Fallible;
 use std::ops::{

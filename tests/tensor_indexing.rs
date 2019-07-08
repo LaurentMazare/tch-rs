@@ -14,6 +14,10 @@ fn integer_index() {
     let result = tensor.i((.., 2));
     assert_eq!(result.size(), &[2]);
     assert_eq!(Vec::<i64>::from(result), &[2, 5]);
+
+    let result = tensor.i((.., -2));
+    assert_eq!(result.size(), &[2]);
+    assert_eq!(Vec::<i64>::from(result), &[1, 4]);
 }
 
 #[test]
