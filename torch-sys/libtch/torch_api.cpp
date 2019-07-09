@@ -106,9 +106,9 @@ int at_device(tensor t) {
   PROTECT(
     auto device = t->device();
     if (device.type() == at::kCPU) return -1;
-    return static_cast<int>(device.type());
+    if (device.type() == at::kCUDA) return device.index();
   )
-  return -1;
+  return -2;
 }
 
 void at_backward(tensor t, int keep_graph, int create_graph) {
