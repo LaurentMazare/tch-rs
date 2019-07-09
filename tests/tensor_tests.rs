@@ -1,5 +1,5 @@
 use std::convert::{TryFrom, TryInto};
-use tch::Tensor;
+use tch::{Device, Tensor};
 
 #[test]
 fn assign_ops() {
@@ -219,4 +219,20 @@ fn from_ndarray_i64() {
     let nd = ndarray::arr2(&[[1i64, 2], [3, 4]]);
     let tensor = Tensor::try_from(nd.clone()).unwrap();
     assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn test_device() {
+    let x = Tensor::from(1);
+    assert_eq!(x.device(), Device::Cpu);
+    let x = Tensor::from(1).to_device(Device::Cpu);
+    assert_eq!(x.device(), Device::Cpu);
+    if tch::Cuda::device_count() > 0 {
+        let x = Tensor::from(1).to_device(Device::Cuda(0));
+        assert_eq!(x.device(), Device::Cuda(0));
+        let x = Tensor::from(1)
+            .to_device(Device::Cuda(0))
+            .to_device(Device::Cpu);
+        assert_eq!(x.device(), Device::Cpu);
+    }
 }
