@@ -42,7 +42,7 @@ impl VAE {
     }
 
     fn forward(&self, xs: &Tensor) -> (Tensor, Tensor, Tensor) {
-        let (mu, logvar) = self.encode(&xs.view(&[-1, 784]));
+        let (mu, logvar) = self.encode(&xs.view([-1, 784]));
         let std = (&logvar * 0.5).exp();
         let eps = std.randn_like();
         (self.decode(&(&mu + eps * std)), mu, logvar)
@@ -51,7 +51,7 @@ impl VAE {
 
 // Reconstruction + KL divergence losses summed over all elements and batch dimension.
 fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
-    let bce = recon_x.binary_cross_entropy::<Tensor>(&x.view(&[-1, 784]), None, Reduction::Sum);
+    let bce = recon_x.binary_cross_entropy::<Tensor>(&x.view([-1, 784]), None, Reduction::Sum);
     // See Appendix B from VAE paper:
     //     Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     // https://arxiv.org/abs/1312.6114
@@ -93,7 +93,7 @@ pub fn main() -> failure::Fallible<()> {
         }
         println!("Epoch: {}, loss: {}", epoch, train_loss / samples);
         let s = Tensor::randn(&[64, 20], tch::kind::FLOAT_CPU).to(device);
-        let s = vae.decode(&s).to(tch::Device::Cpu).view(&[64, 1, 28, 28]);
+        let s = vae.decode(&s).to(tch::Device::Cpu).view([64, 1, 28, 28]);
         tch::vision::image::save(&image_matrix(&s, 8)?, format!("s_{}.png", epoch))?
     }
     Ok(())

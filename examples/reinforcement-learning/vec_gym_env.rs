@@ -43,7 +43,7 @@ impl VecGymEnv {
         let obs = self.env.call_method(py, "reset", NoArgs, None)?;
         let obs = obs.call_method(py, "flatten", NoArgs, None)?;
         let obs = Tensor::of_slice(&obs.extract::<Vec<f32>>(py)?);
-        Ok(obs.view(&self.observation_space))
+        Ok(obs.view_(&self.observation_space))
     }
 
     pub fn step(&self, action: Vec<i64>) -> PyResult<Step> {
@@ -56,7 +56,7 @@ impl VecGymEnv {
         let obs_buffer = PyBuffer::get(py, &obs)?;
         let obs_vec: Vec<u8> = obs_buffer.to_vec(py)?;
         let obs = Tensor::of_slice(&obs_vec)
-            .view(&self.observation_space)
+            .view_(&self.observation_space)
             .to_kind(tch::Kind::Float);
         let reward = Tensor::of_slice(&step.get_item(py, 1)?.extract::<Vec<f32>>(py)?);
         let is_done = Tensor::of_slice(&step.get_item(py, 2)?.extract::<Vec<f32>>(py)?);

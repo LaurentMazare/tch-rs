@@ -6852,8 +6852,8 @@ impl Tensor {
         self.f_var_out(out, dim, unbiased, keepdim).unwrap()
     }
 
-    pub fn view(&self, size: &[i64]) -> Tensor {
-        self.f_view(size).unwrap()
+    pub fn view_(&self, size: &[i64]) -> Tensor {
+        self.f_view_(size).unwrap()
     }
 
     pub fn view_as(&self, other: &Tensor) -> Tensor {

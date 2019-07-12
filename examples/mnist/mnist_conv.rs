@@ -27,12 +27,12 @@ impl Net {
 
 impl nn::ModuleT for Net {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.view(&[-1, 1, 28, 28])
+        xs.view([-1, 1, 28, 28])
             .apply(&self.conv1)
             .max_pool2d_default(2)
             .apply(&self.conv2)
             .max_pool2d_default(2)
-            .view(&[-1, 1024])
+            .view([-1, 1024])
             .apply(&self.fc1)
             .relu()
             .dropout_(0.5, train)

@@ -17083,7 +17083,7 @@ impl Tensor {
         })
     }
 
-    pub fn f_view(&self, size: &[i64]) -> failure::Fallible<Tensor> {
+    pub fn f_view_(&self, size: &[i64]) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_view(

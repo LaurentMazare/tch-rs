@@ -46,7 +46,7 @@ fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
     let mut data = vec![0u8; data_len as usize];
     buf_reader.read_exact(&mut data)?;
     let tensor = Tensor::of_slice(&data)
-        .view(&[i64::from(samples), i64::from(rows * cols)])
+        .view((i64::from(samples), i64::from(rows * cols)))
         .to_kind(Kind::Float);
     Ok(tensor / 255.)
 }

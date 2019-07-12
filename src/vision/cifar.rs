@@ -27,7 +27,7 @@ fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor)> {
         images.i(index).copy_(
             &content
                 .narrow(0, 1 + content_offset, BYTES_PER_IMAGE - 1)
-                .view(&[C, H, W])
+                .view((C, H, W))
                 .to_kind(Kind::Float),
         );
     }

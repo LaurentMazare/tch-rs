@@ -51,8 +51,8 @@ pub fn main() -> failure::Fallible<()> {
             let (lstm_out, _) = lstm.seq(&xs_onehot.to_device(device));
             let logits = linear.forward(&lstm_out);
             let loss = logits
-                .view(&[BATCH_SIZE * SEQ_LEN, labels])
-                .cross_entropy_for_logits(&ys.to_device(device).view(&[BATCH_SIZE * SEQ_LEN]));
+                .view([BATCH_SIZE * SEQ_LEN, labels])
+                .cross_entropy_for_logits(&ys.to_device(device).view([BATCH_SIZE * SEQ_LEN]));
             opt.backward_step_clip(&loss, 0.5);
             sum_loss += f64::from(loss);
             cnt_loss += 1.0;

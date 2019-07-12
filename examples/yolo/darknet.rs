@@ -219,25 +219,25 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
     let bbox_attrs = 5 + classes;
     let nanchors = anchors.len() as i64;
     let mut xs = xs
-        .view(&[bsize, bbox_attrs * nanchors, grid_size * grid_size])
+        .view((bsize, bbox_attrs * nanchors, grid_size * grid_size))
         .transpose(1, 2)
         .contiguous()
-        .view(&[bsize, grid_size * grid_size * nanchors, bbox_attrs]);
+        .view((bsize, grid_size * grid_size * nanchors, bbox_attrs));
     let grid = Tensor::arange(grid_size, tch::kind::FLOAT_CPU);
     let a = grid.repeat(&[grid_size, 1]);
     let b = a.tr().contiguous();
-    let x_offset = a.view(&[-1, 1]);
-    let y_offset = b.view(&[-1, 1]);
+    let x_offset = a.view((-1, 1));
+    let y_offset = b.view((-1, 1));
     let xy_offset = Tensor::cat(&[x_offset, y_offset], 1)
         .repeat(&[1, nanchors])
-        .view(&[-1, 2])
+        .view((-1, 2))
         .unsqueeze(0);
     let anchors: Vec<f32> = anchors
         .iter()
         .flat_map(|&(x, y)| vec![x as f32 / stride as f32, y as f32 / stride as f32].into_iter())
         .collect();
     let anchors = Tensor::of_slice(&anchors)
-        .view(&[-1, 2])
+        .view((-1, 2))
         .repeat(&[grid_size * grid_size, 1])
         .unsqueeze(0);
     slice_apply_and_set(&mut xs, 0, 2, |xs| xs.sigmoid() + xy_offset);

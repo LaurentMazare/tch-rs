@@ -39,7 +39,7 @@ fn iou(b1: &Bbox, b2: &Bbox) -> f64 {
 
 // Assumes x1 <= x2 and y1 <= y2
 pub fn draw_rect(t: &mut Tensor, x1: i64, x2: i64, y1: i64, y2: i64) {
-    let color = Tensor::of_slice(&[0., 0., 1.]).view(&[3, 1, 1]);
+    let color = Tensor::of_slice(&[0., 0., 1.]).view([3, 1, 1]);
     t.narrow(2, x1, x2 - x1)
         .narrow(1, y1, y2 - y1)
         .copy_(&color)

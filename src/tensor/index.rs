@@ -9,7 +9,7 @@
 //!
 //! ```
 //! use crate::tch::{Tensor,IndexOp};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view([2, 3]);
 //! let t = tensor.i(1);
 //! let t = tensor.i((.., -2));
 //! ```
@@ -18,26 +18,26 @@
 //!
 //! ```
 //! use crate::tch::{Tensor,IndexOp};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view([2, 3]);
 //! let t = tensor.i((.., 1..));
 //! assert_eq!(t.size(), [2, 2]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 3, 5, 6]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view([-1])), [2, 3, 5, 6]);
 //! let t = tensor.i((..1, ..));
 //! assert_eq!(t.size(), [1, 3]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [1, 2, 3]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view([-1])), [1, 2, 3]);
 //! let t = tensor.i((.., 1..2));
 //! assert_eq!(t.size(), [2, 1]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 5]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view([-1])), [2, 5]);
 //! let t = tensor.i((.., 1..=2));
 //! assert_eq!(t.size(), [2, 2]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(&[-1])), [2, 3, 5, 6]);
+//! assert_eq!(Vec::<i64>::from(t.contiguous().view([-1])), [2, 3, 5, 6]);
 //! ```
 //!
 //! The `NewAxis` index can be used to insert a dimensio.
 //!
 //! ```
 //! use crate::tch::{Tensor, IndexOp, NewAxis};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view(&[2, 3]);
+//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view([2, 3]);
 //! let t = tensor.i((NewAxis,));
 //! assert_eq!(t.size(), &[1, 2, 3]);
 //! let t = tensor.i((..,..,NewAxis));

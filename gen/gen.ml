@@ -148,7 +148,8 @@ module Func = struct
           Printf.failwithf "Method calls should have at least one argument %s"
             t.name () )
 
-  let replace_map = Map.of_alist_exn (module String) [("t", "tr"); ("where", "where_")]
+  let replace_map =
+      Map.of_alist_exn (module String) [("t", "tr"); ("where", "where_"); ("view", "view_")]
 
   let rust_name name =
     let name =

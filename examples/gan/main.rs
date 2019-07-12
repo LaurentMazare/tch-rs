@@ -159,7 +159,7 @@ pub fn main() -> failure::Fallible<()> {
         if index % 1000 == 0 {
             let imgs = fixed_noise
                 .apply_t(&generator, true)
-                .view(&[-1, 3, IMG_SIZE, IMG_SIZE])
+                .view([-1, 3, IMG_SIZE, IMG_SIZE])
                 .to_device(Device::Cpu);
             tch::vision::image::save(&image_matrix(&imgs, 4)?, format!("relout{}.png", index))?
         }

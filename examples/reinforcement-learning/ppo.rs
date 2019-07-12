@@ -59,7 +59,7 @@ impl FrameStack {
 
     fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
         if let Some(masks) = masks {
-            self.data *= masks.view(&[self.nprocs, 1, 1, 1])
+            self.data *= masks.view([self.nprocs, 1, 1, 1])
         };
         let slice = |i| self.data.narrow(1, i, 1);
         for i in 1..self.nstack {
@@ -116,18 +116,18 @@ pub fn train() -> cpython::PyResult<()> {
         }
         let states = s_states
             .narrow(0, 0, NSTEPS)
-            .view(&[train_size, NSTACK, 84, 84]);
+            .view([train_size, NSTACK, 84, 84]);
         let returns = {
             let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
             let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
-            r.get(-1).copy_(&critic.view(&[NPROCS]));
+            r.get(-1).copy_(&critic.view([NPROCS]));
             for s in (0..NSTEPS).rev() {
                 let r_s = s_rewards.get(s) + r.get(s + 1) * s_masks.get(s) * 0.99;
                 r.get(s).copy_(&r_s);
             }
-            r.narrow(0, 0, NSTEPS).view(&[train_size, 1])
+            r.narrow(0, 0, NSTEPS).view([train_size, 1])
         };
-        let actions = s_actions.view(&[train_size]);
+        let actions = s_actions.view([train_size]);
         for _index in 0..OPTIM_EPOCHS {
             let batch_indexes = Tensor::randint(train_size, &[OPTIM_BATCHSIZE], INT64_CPU);
             let states = states.index_select(0, &batch_indexes);

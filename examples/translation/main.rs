@@ -43,7 +43,7 @@ impl Encoder {
     }
 
     fn forward(&self, xs: &Tensor, state: &GRUState) -> (Tensor, GRUState) {
-        let xs = self.embedding.forward(&xs).view(&[1, -1]);
+        let xs = self.embedding.forward(&xs).view([1, -1]);
         let state = self.gru.step(&xs, &state);
         (state.value(), state)
     }
@@ -83,7 +83,7 @@ impl Decoder {
             .embedding
             .forward(&xs)
             .dropout(0.1, is_training)
-            .view(&[1, -1]);
+            .view([1, -1]);
         let attn_weights = Tensor::cat(&[&xs, &state.value()], 1)
             .apply(&self.attn)
             .unsqueeze(0);

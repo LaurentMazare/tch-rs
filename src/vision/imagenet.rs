@@ -7,9 +7,9 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref IMAGENET_MEAN: Mutex<Tensor> =
-        { Mutex::new(Tensor::of_slice(&[0.485f32, 0.456, 0.406]).view(&[3, 1, 1])) };
+        { Mutex::new(Tensor::of_slice(&[0.485f32, 0.456, 0.406]).view((3, 1, 1))) };
     static ref IMAGENET_STD: Mutex<Tensor> =
-        { Mutex::new(Tensor::of_slice(&[0.229f32, 0.224, 0.225]).view(&[3, 1, 1])) };
+        { Mutex::new(Tensor::of_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1))) };
 }
 
 fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
@@ -1133,8 +1133,8 @@ pub const CLASSES: [&str; 1000] = [
 pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
     let tensor = match tensor.size().as_slice() {
         [CLASS_COUNT] => tensor.shallow_clone(),
-        [1, CLASS_COUNT] => tensor.view(&[CLASS_COUNT]),
-        [1, 1, CLASS_COUNT] => tensor.view(&[CLASS_COUNT]),
+        [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
+        [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
         _ => panic!("unexpected tensor shape {:?}", tensor),
     };
     let (values, indexes) = tensor.topk(k, 0, true, true);

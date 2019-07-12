@@ -40,12 +40,12 @@ fn array_conversion() {
     let vec: Vec<_> = (0..6).map(|x| (x * x) as f64).collect();
     let t = Tensor::of_slice(&vec);
     assert_eq!(Vec::<f64>::from(&t), [0.0, 1.0, 4.0, 9.0, 16.0, 25.0]);
-    let t = t.view(&[3, 2]);
+    let t = t.view([3, 2]);
     assert_eq!(
         Vec::<Vec<f64>>::from(&t),
         [[0.0, 1.0], [4.0, 9.0], [16.0, 25.0]]
     );
-    let t = t.view(&[2, 3]);
+    let t = t.view([2, 3]);
     assert_eq!(
         Vec::<Vec<f64>>::from(&t),
         [[0.0, 1.0, 4.0], [9.0, 16.0, 25.0]]

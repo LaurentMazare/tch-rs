@@ -35,7 +35,7 @@ fn optimizer_test() {
     // Create some linear data.
     let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>())
         .to_kind(Kind::Float)
-        .view(&[-1, 1]);
+        .view([-1, 1]);
     let ys = &xs * 0.42 + 1.337;
 
     // Fit a linear model (with deterministic initialization) on the data.

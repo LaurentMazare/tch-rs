@@ -179,6 +179,68 @@ impl_op_basic!(Sub, sub, g_sub1, neg);
 impl_op_assign!(SubAssign, Tensor, sub_assign, g_sub_);
 impl_op_assign_basic!(SubAssign, sub_assign, g_sub_1);
 
+pub trait Shape {
+    fn to_shape(&self) -> Box<[i64]>;
+}
+
+macro_rules! impl_shape {
+    ($v:expr) => {
+        impl Shape for [i64; $v] {
+            fn to_shape(&self) -> Box<[i64]> {
+                Box::new(*self)
+            }
+        }
+    };
+}
+
+impl_shape!(0);
+impl_shape!(1);
+impl_shape!(2);
+impl_shape!(3);
+impl_shape!(4);
+impl_shape!(5);
+impl_shape!(6);
+
+impl Shape for () {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([])
+    }
+}
+
+impl Shape for (i64,) {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([self.0])
+    }
+}
+
+impl Shape for (i64, i64) {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([self.0, self.1])
+    }
+}
+
+impl Shape for (i64, i64, i64) {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([self.0, self.1, self.2])
+    }
+}
+
+impl Shape for (i64, i64, i64, i64) {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([self.0, self.1, self.2, self.3])
+    }
+}
+
+impl Tensor {
+    pub fn f_view<T: Shape>(&self, s: T) -> Fallible<Tensor> {
+        self.f_view_(&*s.to_shape())
+    }
+
+    pub fn view<T: Shape>(&self, s: T) -> Tensor {
+        self.view_(&*s.to_shape())
+    }
+}
+
 impl Neg for Tensor {
     type Output = Tensor;
 
@@ -203,7 +265,7 @@ impl<T: crate::kind::T> From<&[T]> for Tensor {
 
 impl<T: crate::kind::T> From<T> for Tensor {
     fn from(v: T) -> Tensor {
-        Tensor::of_slice(&[v]).view(&[])
+        Tensor::of_slice(&[v]).view(())
     }
 }
 
@@ -376,7 +438,7 @@ impl Tensor {
     /// is preserved as it is assumed to be the mini-batch dimension.
     pub fn flat_view(&self) -> Tensor {
         let batch_size = self.size()[0] as i64;
-        self.view(&[batch_size, -1])
+        self.view((batch_size, -1))
     }
 
     /// Converts a tensor to a one-hot encoded version.
