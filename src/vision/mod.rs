@@ -20,8 +20,10 @@ pub mod vgg;
 
 pub mod squeezenet;
 
-pub mod mobilenet;
-
 pub mod imagenet;
 
 pub mod efficientnet;
+
+pub mod mobilenet_v2;
+
+pub mod mobilenet_v3;

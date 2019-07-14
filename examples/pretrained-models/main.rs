@@ -21,7 +21,7 @@ extern crate failure;
 extern crate tch;
 use tch::nn::ModuleT;
 use tch::vision::{
-    alexnet, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet, vgg,
+    alexnet, densenet, efficientnet, imagenet, inception, mobilenet_v2, resnet, squeezenet, vgg,
 };
 
 pub fn main() -> failure::Fallible<()> {
@@ -44,7 +44,7 @@ pub fn main() -> failure::Fallible<()> {
         "squeezenet1_1.ot" => Box::new(squeezenet::v1_1(&vs.root(), imagenet::CLASS_COUNT)),
         "alexnet.ot" => Box::new(alexnet::alexnet(&vs.root(), imagenet::CLASS_COUNT)),
         "inception-v3.ot" => Box::new(inception::v3(&vs.root(), imagenet::CLASS_COUNT)),
-        "mobilenet-v2.ot" => Box::new(mobilenet::v2(&vs.root(), imagenet::CLASS_COUNT)),
+        "mobilenet-v2.ot" => Box::new(mobilenet_v2::v2(&vs.root(), imagenet::CLASS_COUNT)),
         "efficientnet-b0.ot" => Box::new(efficientnet::b0(&vs.root(), imagenet::CLASS_COUNT)),
         // Maybe the higher resolution models should be handled differently.
         "efficientnet-b1.ot" => Box::new(efficientnet::b1(&vs.root(), imagenet::CLASS_COUNT)),

@@ -1,0 +1,35 @@
+name: mobilenetv3-rs
+version: "0.1"
+author: jerry73204 <jerry73204@gmail.com>
+about: MobileNetV3 in Rust
+args:
+    - dataset_name:
+        long: dataset-name
+        value_name: NAME
+        help: dataset name
+        takes_value: true
+    - dataset_dir:
+        long: dataset-dir
+        value_name: DIR
+        help: dataset directory
+        takes_value: true
+    - model_file:
+        long: model-file
+        help: path to store model parameters
+        takes_value: true
+    - batch_size:
+        long: batch-size
+        help: batch size, default is 32
+        takes_value: true
+    - epochs:
+        long: epochs
+        help: number of times to repeat training dataset, default is 10
+        takes_value: true
+    - dropout:
+        long: dropout
+        help: dropout probability during training, default is 0.8
+        takes_value: true
+    - width_mult:
+        long: width-mult
+        help: width mult model parameter, default is 1.0
+        takes_value: true
