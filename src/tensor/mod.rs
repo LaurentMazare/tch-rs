@@ -207,6 +207,24 @@ impl Shape for () {
     }
 }
 
+impl Shape for i64 {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([*self])
+    }
+}
+
+impl Shape for usize {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([*self as i64])
+    }
+}
+
+impl Shape for i32 {
+    fn to_shape(&self) -> Box<[i64]> {
+        Box::new([*self as i64])
+    }
+}
+
 impl Shape for (i64,) {
     fn to_shape(&self) -> Box<[i64]> {
         Box::new([self.0])
