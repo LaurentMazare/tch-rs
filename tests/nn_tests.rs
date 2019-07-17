@@ -1,4 +1,5 @@
-use tch::{nn, nn::OptimizerConfig, Device, Kind, Reduction, Tensor};
+use tch::nn::{Module, OptimizerConfig};
+use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
 #[test]
 fn save_and_load_var_store() {
@@ -98,4 +99,23 @@ fn var_store_test() {
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
     vs2.copy(&vs).unwrap();
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
+}
+
+fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
+    let x1 = p.zeros("x1", &[dim]);
+    let x2 = p.zeros("x2", &[dim]);
+    nn::func(move |xs| xs * &x1 + xs.exp() * &x2)
+}
+
+#[test]
+fn gradient_descent_test() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let my_module = my_module(vs.root(), 7);
+    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    for _idx in 1..50 {
+        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum();
+        opt.backward_step(&loss);
+    }
 }
