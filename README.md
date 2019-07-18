@@ -51,6 +51,46 @@ fn main() {
 }
 ```
 
+### Training a Model via Gradient Descent
+
+PyTorch provides automatic differentiation for most tensor operations
+it supports. This is commonly used to train models using gradient
+descent. The optimization is performed over variables which are created
+via a `nn::VarStore` by defining their shape and initialization.
+
+In the example below `my_module` uses two variables `x1` and `x2`
+which initial value is 0. The forward pass applied to tensor `xs`
+returns `xs * x1 + exp(xs) * x2`.
+
+Once the model has been generated, a `nn::Sgd` optimizer is created.
+Then on each step of the training loop:
+
+- The forward pass is applied to a mini-batch of data.
+- Loss is computed as the mean square error between the model output and the mini-batch ground truth.
+- An optimization step is performed: gradients are computed and variables from the `VarStore` are modified accordingly.
+
+
+```rust
+fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
+    let x1 = p.zeros("x1", &[dim]);
+    let x2 = p.zeros("x2", &[dim]);
+    nn::func(move |xs| xs * &x1 + xs.exp() * &x2)
+}
+
+fn gradient_descent() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let my_module = my_module(vs.root(), 7);
+    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    for _idx in 1..50 {
+        // Dummy mini-batches made of zeros.
+        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum();
+        opt.backward_step(&loss);
+    }
+}
+```
+
 ### Writing a Simple Neural Network
 
 The `nn` api can be used to create neural network architectures, e.g. the following code defines
