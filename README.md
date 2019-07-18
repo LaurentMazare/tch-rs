@@ -56,18 +56,18 @@ fn main() {
 PyTorch provides automatic differentiation for most tensor operations
 it supports. This is commonly used to train models using gradient
 descent. The optimization is performed over variables which are created
-via a `nn::VarStore` by defining their shape and initialization.
+via a `nn::VarStore` by defining their shapes and initializations.
 
 In the example below `my_module` uses two variables `x1` and `x2`
-which initial value is 0. The forward pass applied to tensor `xs`
+which initial values are 0. The forward pass applied to tensor `xs`
 returns `xs * x1 + exp(xs) * x2`.
 
 Once the model has been generated, a `nn::Sgd` optimizer is created.
 Then on each step of the training loop:
 
 - The forward pass is applied to a mini-batch of data.
-- Loss is computed as the mean square error between the model output and the mini-batch ground truth.
-- An optimization step is performed: gradients are computed and variables from the `VarStore` are modified accordingly.
+- A loss is computed as the mean square error between the model output and the mini-batch ground truth.
+- Finally an optimization step is performed: gradients are computed and variables from the `VarStore` are modified accordingly.
 
 
 ```rust
