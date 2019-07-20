@@ -193,6 +193,9 @@ Further examples include:
 * A [Transfer Learning Tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
   shows how to finetune a pre-trained ResNet model on a very small dataset.
 
+External material:
+* A [tutorial](http://vegapit.com/article/how-to-use-torch-in-rust-with-tch-rs) showing how to use Torch to compute option prices and greeks.
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.
