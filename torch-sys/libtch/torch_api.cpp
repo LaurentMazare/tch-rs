@@ -377,12 +377,12 @@ optimizer ato_adam(double learning_rate,
   return nullptr;
 }
 
-optimizer ato_rmsprop(double learning_rate,
-                      double alpha,
-                      double eps,
-                      double weight_decay,
-                      double momentum,
-                      int centered) {
+optimizer ato_rms_prop(double learning_rate,
+                       double alpha,
+                       double eps,
+                       double weight_decay,
+                       double momentum,
+                       int centered) {
   PROTECT(
     auto options =
       torch::optim::RMSpropOptions(learning_rate)

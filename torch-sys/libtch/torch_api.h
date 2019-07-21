@@ -83,12 +83,12 @@ optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
                    double weight_decay);
-optimizer ato_rmsprop(double learning_rate,
-                      double alpha,
-                      double eps,
-                      double weight_decay,
-                      double momentum,
-                      int centered);
+optimizer ato_rms_prop(double learning_rate,
+                       double alpha,
+                       double eps,
+                       double weight_decay,
+                       double momentum,
+                       int centered);
 optimizer ato_sgd(double learning_rate,
                   double momentum,
                   double dampening,
