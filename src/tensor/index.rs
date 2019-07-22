@@ -33,7 +33,7 @@
 //! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
 //! ```
 //!
-//! The `NewAxis` index can be used to insert a dimensio.
+//! The `NewAxis` index can be used to insert a dimension.
 //!
 //! ```
 //! use crate::tch::{Tensor, IndexOp, NewAxis};
@@ -44,6 +44,14 @@
 //! assert_eq!(t.size(), &[2, 3, 1]);
 //! ```
 //!
+//! Unlike NumPy, the `i` operation does not support advanced indexing.
+//! The result can be different from NumPy with same set of arguments.
+//! For example, `tensor.i(..1, vec![0, 3], vec![2, 1, 3])` does narrowing
+//! on first dimension, and index selection on second and third dimensions.
+//! The analogous NumPy indexing `array[:1, [0, 3], [2, 1, 3]]` throws
+//! shape mismatch error due to advanced indexing rule. Another distinction
+//! is that `i` guarantees the input and result tensor shares the same
+//! underlying storage, while NumPy may copy the tensor in certain scenarios.
 use crate::Tensor;
 use failure::Fallible;
 use std::ops::{
