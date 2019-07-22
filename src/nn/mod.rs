@@ -29,6 +29,9 @@ pub use sparse::*;
 mod rnn;
 pub use rnn::*;
 
+mod ema;
+pub use ema::*;
+
 mod func;
 pub use func::*;
 
