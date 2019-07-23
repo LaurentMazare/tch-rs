@@ -236,3 +236,11 @@ fn test_device() {
         assert_eq!(x.device(), Device::Cpu);
     }
 }
+
+#[test]
+fn where_() {
+    let t1 = Tensor::of_slice(&[3, 1, 4, 1, 5, 9]);
+    let t2 = Tensor::of_slice(&[2, 7, 1, 8, 2, 8]);
+    let t = t1.where_(&t1.lt(4), &t2);
+    assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
+}
