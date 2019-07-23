@@ -4,7 +4,7 @@ use failure::Fallible;
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-mod index;
+pub mod index;
 mod iter;
 mod npy;
 
