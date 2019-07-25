@@ -427,7 +427,7 @@ impl Tensor {
                 t2.size()
             )
         }
-        let index = Tensor::randint(len1, &[batch_size], crate::wrappers::kind::INT64_CPU);
+        let index = Tensor::randint(len1, &[batch_size], (Kind::Int64, device));
         let batch1 = t1.index_select(0, &index).to_device(device);
         let batch2 = t2.index_select(0, &index).to_device(device);
         (batch1, batch2)
