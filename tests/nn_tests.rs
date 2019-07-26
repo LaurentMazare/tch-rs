@@ -119,3 +119,13 @@ fn gradient_descent_test() {
         opt.backward_step(&loss);
     }
 }
+
+#[test]
+fn my_test() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
+
+    let x = Tensor::randn(&[10, 40], opts);
+    let _y = x.apply_t(&bn, true);
+}
