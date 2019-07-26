@@ -408,16 +408,11 @@ impl Tensor {
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
         let len: i64 = self.size()[0];
-        let index = Tensor::randint(len, &[batch_size], crate::wrappers::kind::INT64_CPU);
+        let index = Tensor::randint(len, &[batch_size], (Kind::Int64, self.device()));
         self.index_select(0, &index)
     }
 
-    pub fn random_batch2(
-        t1: &Tensor,
-        t2: &Tensor,
-        batch_size: i64,
-        device: Device,
-    ) -> (Tensor, Tensor) {
+    pub fn random_batch2(t1: &Tensor, t2: &Tensor, batch_size: i64) -> (Tensor, Tensor) {
         let len1: i64 = t1.size()[0];
         let len2: i64 = t2.size()[0];
         if len1 != len2 {
@@ -427,9 +422,14 @@ impl Tensor {
                 t2.size()
             )
         }
-        let index = Tensor::randint(len1, &[batch_size], (Kind::Int64, device));
-        let batch1 = t1.index_select(0, &index).to_device(device);
-        let batch2 = t2.index_select(0, &index).to_device(device);
+        let device1 = t1.device();
+        let device2 = t2.device();
+        if device1 != device2 {
+            panic!("random_batch2: device mismatch {:?} {:?}", device1, device2)
+        }
+        let index = Tensor::randint(len1, &[batch_size], (Kind::Int64, device1));
+        let batch1 = t1.index_select(0, &index);
+        let batch2 = t2.index_select(0, &index);
         (batch1, batch2)
     }
 
