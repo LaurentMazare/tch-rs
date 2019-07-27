@@ -12,35 +12,35 @@ pub use super::wrappers::tensor::{no_grad, no_grad_guard, NoGradGuard, Reduction
 pub use index::{IndexOp, NewAxis, TensorIndexer};
 
 macro_rules! impl_op {
-    ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
-        impl $trait<$rhs> for Tensor {
+    ($trait:ident, $func:ident, $op:ident) => {
+        impl $trait<Tensor> for Tensor {
             type Output = Tensor;
 
-            fn $func(self, rhs: $rhs) -> Self::Output {
+            fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$op(&rhs)
             }
         }
 
-        impl $trait<&$rhs> for Tensor {
+        impl $trait<&Tensor> for Tensor {
             type Output = Tensor;
 
-            fn $func(self, rhs: &$rhs) -> Self::Output {
+            fn $func(self, rhs: &Tensor) -> Self::Output {
                 self.$op(rhs)
             }
         }
 
-        impl<'a> $trait<&$rhs> for &'a Tensor {
+        impl<'a> $trait<&Tensor> for &'a Tensor {
             type Output = Tensor;
 
-            fn $func(self, rhs: &$rhs) -> Self::Output {
+            fn $func(self, rhs: &Tensor) -> Self::Output {
                 self.$op(rhs)
             }
         }
 
-        impl $trait<$rhs> for &Tensor {
+        impl $trait<Tensor> for &Tensor {
             type Output = Tensor;
 
-            fn $func(self, rhs: $rhs) -> Self::Output {
+            fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$op(&rhs)
             }
         }
@@ -117,15 +117,15 @@ macro_rules! impl_op_basic {
 }
 
 macro_rules! impl_op_assign {
-    ($trait:ident, $rhs:ident, $func:ident, $op:ident) => {
-        impl $trait<$rhs> for Tensor {
-            fn $func(&mut self, rhs: $rhs) {
+    ($trait:ident, $func:ident, $op:ident) => {
+        impl $trait<Tensor> for Tensor {
+            fn $func(&mut self, rhs: Tensor) {
                 let _ = self.$op(&rhs);
             }
         }
 
-        impl $trait<&$rhs> for Tensor {
-            fn $func(&mut self, rhs: &$rhs) {
+        impl $trait<&Tensor> for Tensor {
+            fn $func(&mut self, rhs: &Tensor) {
                 let _ = self.$op(rhs);
             }
         }
@@ -159,24 +159,24 @@ fn inv(t: Tensor) -> Tensor {
     t.pow(-1)
 }
 
-impl_op!(Add, Tensor, add, g_add);
+impl_op!(Add, add, g_add);
 impl_op_basic!(Add, add, g_add1, id);
-impl_op_assign!(AddAssign, Tensor, add_assign, g_add_);
+impl_op_assign!(AddAssign, add_assign, g_add_);
 impl_op_assign_basic!(AddAssign, add_assign, g_add_1);
 
-impl_op!(Mul, Tensor, mul, g_mul);
+impl_op!(Mul, mul, g_mul);
 impl_op_basic!(Mul, mul, g_mul1, id);
-impl_op_assign!(MulAssign, Tensor, mul_assign, g_mul_);
+impl_op_assign!(MulAssign, mul_assign, g_mul_);
 impl_op_assign_basic!(MulAssign, mul_assign, g_mul_1);
 
-impl_op!(Div, Tensor, div, g_div);
+impl_op!(Div, div, g_div);
 impl_op_basic!(Div, div, g_div1, inv);
-impl_op_assign!(DivAssign, Tensor, div_assign, g_div_);
+impl_op_assign!(DivAssign, div_assign, g_div_);
 impl_op_assign_basic!(DivAssign, div_assign, g_div_1);
 
-impl_op!(Sub, Tensor, sub, g_sub);
+impl_op!(Sub, sub, g_sub);
 impl_op_basic!(Sub, sub, g_sub1, neg);
-impl_op_assign!(SubAssign, Tensor, sub_assign, g_sub_);
+impl_op_assign!(SubAssign, sub_assign, g_sub_);
 impl_op_assign_basic!(SubAssign, sub_assign, g_sub_1);
 
 pub trait Shape {
