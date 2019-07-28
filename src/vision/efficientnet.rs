@@ -17,6 +17,49 @@ pub struct BlockArgs {
     stride: i64,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Params {
+    width: f64,
+    depth: f64,
+    res: i64,
+    dropout: f64,
+}
+
+impl Params {
+    pub fn of_tuple(width: f64, depth: f64, res: i64, dropout: f64) -> Params {
+        Params {
+            width,
+            depth,
+            res,
+            dropout,
+        }
+    }
+    pub fn b0() -> Params {
+        Params::of_tuple(1.0, 1.0, 224, 0.2)
+    }
+    pub fn b1() -> Params {
+        Params::of_tuple(1.0, 1.1, 240, 0.2)
+    }
+    pub fn b2() -> Params {
+        Params::of_tuple(1.1, 1.2, 260, 0.3)
+    }
+    pub fn b3() -> Params {
+        Params::of_tuple(1.2, 1.3, 300, 0.3)
+    }
+    pub fn b4() -> Params {
+        Params::of_tuple(1.4, 1.8, 380, 0.4)
+    }
+    pub fn b5() -> Params {
+        Params::of_tuple(1.6, 2.2, 456, 0.4)
+    }
+    pub fn b6() -> Params {
+        Params::of_tuple(1.8, 2.6, 528, 0.5)
+    }
+    pub fn b7() -> Params {
+        Params::of_tuple(2.0, 3.1, 600, 0.5)
+    }
+}
+
 impl Tensor {
     fn swish(&self) -> Tensor {
         self * self.sigmoid()
