@@ -23,7 +23,7 @@ impl Tensor {
     }
 }
 
-pub fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
+fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     let inp = args.input_filters;
     let oup = args.input_filters * args.expand_ratio;
     let final_oup = args.output_filters;
@@ -79,5 +79,51 @@ pub fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
         } else {
             ys
         }
+    })
+}
+
+pub fn efficientnet(p: nn::Path, args: Vec<BlockArgs>, nclasses: i64) -> impl ModuleT {
+    let bn2d = nn::BatchNormConfig {
+        momentum: 1.0 - BATCH_NORM_MOMENTUM,
+        eps: BATCH_NORM_EPSILON,
+        ..Default::default()
+    };
+    let conv_no_bias = nn::ConvConfig {
+        bias: false,
+        ..Default::default()
+    };
+    let conv_s2 = nn::ConvConfig {
+        stride: 2,
+        bias: false,
+        ..Default::default()
+    };
+    let conv_stem = nn::conv2d(&p, 3, 32, 3, conv_s2);
+    let bn0 = nn::batch_norm2d(&p, 32, bn2d);
+    let mut blocks = nn::seq_t();
+    for &arg in args.iter() {
+        blocks = blocks.add(block(&p / "bl0", arg));
+        for i in 1..arg.num_repeat {
+            blocks = blocks.add(block(&p / i, arg));
+        }
+    }
+    let in_channels = args.last().unwrap().output_filters;
+    let out_channels = 1280;
+    let conv_head = nn::conv2d(&p, in_channels, out_channels, 1, conv_no_bias);
+    let bn1 = nn::batch_norm2d(&p, out_channels, bn2d);
+    let classifier = nn::seq_t()
+        .add_fn_t(|xs, train| xs.dropout(0.2, train))
+        .add(nn::linear(&p, out_channels, nclasses, Default::default()));
+    nn::func_t(move |xs, train| {
+        xs.apply(&conv_stem)
+            .apply_t(&bn0, train)
+            .swish()
+            .apply_t(&blocks, train)
+            .apply(&conv_head)
+            .apply_t(&bn1, train)
+            .swish()
+            .adaptive_avg_pool2d(&[1, 1])
+            .squeeze1(-1)
+            .squeeze1(-1)
+            .apply_t(&classifier, train)
     })
 }
