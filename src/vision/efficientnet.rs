@@ -102,6 +102,11 @@ pub fn efficientnet(p: nn::Path, args: Vec<BlockArgs>, nclasses: i64) -> impl Mo
     let mut blocks = nn::seq_t();
     for &arg in args.iter() {
         blocks = blocks.add(block(&p / "bl0", arg));
+        let arg = BlockArgs {
+            input_filters: arg.output_filters,
+            stride: 1,
+            ..arg
+        };
         for i in 1..arg.num_repeat {
             blocks = blocks.add(block(&p / i, arg));
         }
