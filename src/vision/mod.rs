@@ -23,3 +23,5 @@ pub mod squeezenet;
 pub mod mobilenet;
 
 pub mod imagenet;
+
+pub mod efficientnet;
