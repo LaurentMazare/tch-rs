@@ -257,6 +257,24 @@ impl Tensor {
     pub fn view<T: Shape>(&self, s: T) -> Tensor {
         self.view_(&*s.to_shape())
     }
+
+    pub fn zero_pad_1d(&self, left: i64, right: i64) -> Fallible<Tensor> {
+        ensure!(
+            self.dim() == 3,
+            "expected a 3 dimension tensor, got {:?}",
+            self.size()
+        );
+        self.f_constant_pad_nd(&[left, right])
+    }
+
+    pub fn zero_pad_2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Fallible<Tensor> {
+        ensure!(
+            self.dim() == 4,
+            "expected a 4 dimension tensor, got {:?}",
+            self.size()
+        );
+        self.f_constant_pad_nd(&[left, right, top, bottom])
+    }
 }
 
 impl Neg for Tensor {
@@ -469,11 +487,7 @@ impl Tensor {
             &[self.size(), vec![labels]].concat(),
             crate::wrappers::kind::FLOAT_CPU,
         )
-        .scatter_(
-            -1,
-            &self.unsqueeze(-1).to_kind(Kind::Int64),
-            &Tensor::ones(&[], crate::wrappers::kind::FLOAT_CPU),
-        )
+        .scatter_1(-1, &self.unsqueeze(-1).to_kind(Kind::Int64), 1.0)
     }
 
     /// Copies a tensor to a newly allocated tensor using the same shape and device.

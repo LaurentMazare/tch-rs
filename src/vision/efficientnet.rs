@@ -12,9 +12,32 @@ pub struct BlockArgs {
     input_filters: i64,
     output_filters: i64,
     expand_ratio: i64,
-    id_skip: bool,
     se_ratio: Option<f64>,
     stride: i64,
+}
+
+fn ba(k: i64, r: i64, i: i64, o: i64, er: i64, sr: f64, s: i64) -> BlockArgs {
+    BlockArgs {
+        kernel_size: k,
+        num_repeat: r,
+        input_filters: i,
+        output_filters: o,
+        expand_ratio: er,
+        se_ratio: Some(sr),
+        stride: s,
+    }
+}
+
+fn block_args() -> Vec<BlockArgs> {
+    vec![
+        ba(3, 1, 32, 16, 1, 0.25, 1),
+        ba(3, 2, 16, 24, 6, 0.25, 2),
+        ba(5, 2, 24, 40, 6, 0.25, 2),
+        ba(3, 3, 40, 80, 6, 0.25, 2),
+        ba(5, 3, 80, 112, 6, 0.25, 1),
+        ba(5, 4, 112, 192, 6, 0.25, 2),
+        ba(3, 1, 192, 320, 6, 0.25, 1),
+    ]
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -116,7 +139,7 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
             Some(seq) => ys.adaptive_avg_pool2d(&[1, 1]).apply_t(seq, train) * ys,
         };
         let ys = ys.apply(&project_conv).apply_t(&project_bn, train);
-        if args.id_skip && args.stride == 1 && inp == final_oup {
+        if args.stride == 1 && inp == final_oup {
             // Maybe add a drop_connect layer here ?
             ys + xs
         } else {
@@ -125,7 +148,8 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     })
 }
 
-pub fn efficientnet(p: nn::Path, args: Vec<BlockArgs>, nclasses: i64) -> impl ModuleT {
+pub fn efficientnet(p: nn::Path, nclasses: i64) -> impl ModuleT {
+    let args = block_args();
     let bn2d = nn::BatchNormConfig {
         momentum: 1.0 - BATCH_NORM_MOMENTUM,
         eps: BATCH_NORM_EPSILON,
