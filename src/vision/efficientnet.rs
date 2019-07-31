@@ -49,6 +49,23 @@ pub struct Params {
 }
 
 impl Params {
+    fn round_repeats(&self, repeats: i64) -> i64 {
+        (self.depth * repeats as f64).ceil() as i64
+    }
+
+    fn round_filters(&self, filters: i64) -> i64 {
+        let divisor = 8;
+        let filters = (self.width * filters as f64 + divisor as f64 / 2.) as i64;
+        let new_filters = i64::max(divisor, filters / divisor * divisor);
+        if new_filters * 10 < 9 * filters {
+            new_filters + divisor
+        } else {
+            new_filters
+        }
+    }
+}
+
+impl Params {
     pub fn of_tuple(width: f64, depth: f64, res: i64, dropout: f64) -> Params {
         Params {
             width,
@@ -148,7 +165,7 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     })
 }
 
-pub fn efficientnet(p: nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn efficientnet(p: nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
     let args = block_args();
     let bn2d = nn::BatchNormConfig {
         momentum: 1.0 - BATCH_NORM_MOMENTUM,
@@ -164,22 +181,28 @@ pub fn efficientnet(p: nn::Path, nclasses: i64) -> impl ModuleT {
         bias: false,
         ..Default::default()
     };
-    let conv_stem = nn::conv2d(&p, 3, 32, 3, conv_s2);
-    let bn0 = nn::batch_norm2d(&p, 32, bn2d);
+    let out_channels = params.round_filters(32);
+    let conv_stem = nn::conv2d(&p, 3, out_channels, 3, conv_s2);
+    let bn0 = nn::batch_norm2d(&p, out_channels, bn2d);
     let mut blocks = nn::seq_t();
     for &arg in args.iter() {
+        let arg = BlockArgs {
+            input_filters: params.round_filters(arg.input_filters),
+            output_filters: params.round_filters(arg.output_filters),
+            ..arg
+        };
         blocks = blocks.add(block(&p / "bl0", arg));
         let arg = BlockArgs {
             input_filters: arg.output_filters,
             stride: 1,
             ..arg
         };
-        for i in 1..arg.num_repeat {
+        for i in 1..params.round_repeats(arg.num_repeat) {
             blocks = blocks.add(block(&p / i, arg));
         }
     }
     let in_channels = args.last().unwrap().output_filters;
-    let out_channels = 1280;
+    let out_channels = params.round_filters(1280);
     let conv_head = nn::conv2d(&p, in_channels, out_channels, 1, conv_no_bias);
     let bn1 = nn::batch_norm2d(&p, out_channels, bn2d);
     let classifier = nn::seq_t()
