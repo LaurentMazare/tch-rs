@@ -258,7 +258,7 @@ impl Tensor {
         self.view_(&*s.to_shape())
     }
 
-    pub fn zero_pad_1d(&self, left: i64, right: i64) -> Fallible<Tensor> {
+    pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Fallible<Tensor> {
         ensure!(
             self.dim() == 3,
             "expected a 3 dimension tensor, got {:?}",
@@ -267,13 +267,21 @@ impl Tensor {
         self.f_constant_pad_nd(&[left, right])
     }
 
-    pub fn zero_pad_2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Fallible<Tensor> {
+    pub fn zero_pad1d(&self, left: i64, right: i64) -> Tensor {
+        self.f_zero_pad1d(left, right).unwrap()
+    }
+
+    pub fn f_zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Fallible<Tensor> {
         ensure!(
             self.dim() == 4,
             "expected a 4 dimension tensor, got {:?}",
             self.size()
         );
         self.f_constant_pad_nd(&[left, right, top, bottom])
+    }
+
+    pub fn zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Tensor {
+        self.f_zero_pad2d(left, right, top, bottom).unwrap()
     }
 }
 
