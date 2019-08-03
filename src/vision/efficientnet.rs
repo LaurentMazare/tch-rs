@@ -174,14 +174,23 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     let project_conv = conv2d(&p / "_project_conv", oup, final_oup, 1, conv_no_bias);
     let project_bn = nn::batch_norm2d(&p / "_bn2", final_oup, bn2d);
     nn::func_t(move |xs, train| {
-        let ys = xs
-            .apply_t(&expansion, train)
+        let ys = if args.expand_ratio != 1 {
+            xs.apply_t(&expansion, train)
+        } else {
+            xs.shallow_clone()
+        };
+        let ys = ys
             .apply(&depthwise_conv)
             .apply_t(&depthwise_bn, train)
             .swish();
         let ys = match &se {
             None => ys,
-            Some(seq) => ys.adaptive_avg_pool2d(&[1, 1]).apply_t(seq, train) * ys,
+            Some(seq) => {
+                ys.adaptive_avg_pool2d(&[1, 1])
+                    .apply_t(seq, train)
+                    .sigmoid()
+                    * ys
+            }
         };
         let ys = ys.apply(&project_conv).apply_t(&project_bn, train);
         if args.stride == 1 && inp == final_oup {
