@@ -76,8 +76,8 @@ fn conv2d(vs: nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl Module {
         let iw = size[3];
         let oh = (ih + s - 1) / s;
         let ow = (iw + s - 1) / s;
-        let pad_h = i64::max((oh - 1) * s + (k - 1) + 1 - ih, 0);
-        let pad_w = i64::max((ow - 1) * s + (k - 1) + 1 - iw, 0);
+        let pad_h = i64::max((oh - 1) * s + k - ih, 0);
+        let pad_w = i64::max((ow - 1) * s + k - iw, 0);
         if pad_h > 0 || pad_w > 0 {
             xs.zero_pad2d(pad_w / 2, pad_w - pad_w / 2, pad_h / 2, pad_h - pad_h / 2)
                 .apply(&conv2d)
