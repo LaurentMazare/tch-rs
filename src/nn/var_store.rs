@@ -8,7 +8,7 @@ use std::ops::Div;
 use std::sync::{Mutex, MutexGuard};
 
 /// The separator is used to separate path elements in the tensor names.
-const SEP: char = '|';
+const SEP: char = '.';
 
 // When the variable store is frozen, trainable still is set to tree,
 // however the tensor is not set to require gradients.

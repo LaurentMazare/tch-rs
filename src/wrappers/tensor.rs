@@ -16,6 +16,7 @@ unsafe impl Send for Tensor {}
 
 extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mut C_tensor) {
     let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
+    let name = name.replace("|", ".");
     let v: &mut Vec<(String, Tensor)> = unsafe { &mut *(data as *mut Vec<(String, Tensor)>) };
     v.push((name.to_owned(), Tensor { c_tensor }))
 }
@@ -324,7 +325,8 @@ impl Tensor {
             .collect::<Vec<_>>();
         let names = named_tensors
             .iter()
-            .map(|nt| std::ffi::CString::new(nt.0.as_ref()))
+            .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
+            .map(|name| std::ffi::CString::new(name))
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
         unsafe_torch_err!({
