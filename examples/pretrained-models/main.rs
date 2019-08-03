@@ -11,6 +11,7 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/inception-v3.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/mobilenet-v2.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b0.ot
 #[macro_use]
 extern crate failure;
 extern crate tch;
