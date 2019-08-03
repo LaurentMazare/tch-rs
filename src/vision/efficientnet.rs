@@ -41,7 +41,7 @@ fn block_args() -> Vec<BlockArgs> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Params {
+struct Params {
     width: f64,
     depth: f64,
     res: i64,
@@ -87,7 +87,7 @@ fn conv2d(vs: &nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl Module {
 }
 
 impl Params {
-    pub fn of_tuple(width: f64, depth: f64, res: i64, dropout: f64) -> Params {
+    fn of_tuple(width: f64, depth: f64, res: i64, dropout: f64) -> Params {
         Params {
             width,
             depth,
@@ -95,28 +95,28 @@ impl Params {
             dropout,
         }
     }
-    pub fn b0() -> Params {
+    fn b0() -> Params {
         Params::of_tuple(1.0, 1.0, 224, 0.2)
     }
-    pub fn b1() -> Params {
+    fn b1() -> Params {
         Params::of_tuple(1.0, 1.1, 240, 0.2)
     }
-    pub fn b2() -> Params {
+    fn b2() -> Params {
         Params::of_tuple(1.1, 1.2, 260, 0.3)
     }
-    pub fn b3() -> Params {
+    fn b3() -> Params {
         Params::of_tuple(1.2, 1.3, 300, 0.3)
     }
-    pub fn b4() -> Params {
+    fn b4() -> Params {
         Params::of_tuple(1.4, 1.8, 380, 0.4)
     }
-    pub fn b5() -> Params {
+    fn b5() -> Params {
         Params::of_tuple(1.6, 2.2, 456, 0.4)
     }
-    pub fn b6() -> Params {
+    fn b6() -> Params {
         Params::of_tuple(1.8, 2.6, 528, 0.5)
     }
-    pub fn b7() -> Params {
+    fn b7() -> Params {
         Params::of_tuple(2.0, 3.1, 600, 0.5)
     }
 }
@@ -186,7 +186,7 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     })
 }
 
-pub fn efficientnet(p: nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
+fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
     let args = block_args();
     let bn2d = nn::BatchNormConfig {
         momentum: 1.0 - BATCH_NORM_MOMENTUM,
@@ -203,8 +203,8 @@ pub fn efficientnet(p: nn::Path, params: Params, nclasses: i64) -> impl ModuleT 
         ..Default::default()
     };
     let out_channels = params.round_filters(32);
-    let conv_stem = conv2d(&p, 3, out_channels, 3, conv_s2);
-    let bn0 = nn::batch_norm2d(&p, out_channels, bn2d);
+    let conv_stem = conv2d(p, 3, out_channels, 3, conv_s2);
+    let bn0 = nn::batch_norm2d(p, out_channels, bn2d);
     let mut blocks = nn::seq_t();
     for &arg in args.iter() {
         let arg = BlockArgs {
@@ -212,23 +212,23 @@ pub fn efficientnet(p: nn::Path, params: Params, nclasses: i64) -> impl ModuleT 
             output_filters: params.round_filters(arg.output_filters),
             ..arg
         };
-        blocks = blocks.add(block(&p / "bl0", arg));
+        blocks = blocks.add(block(p / "bl0", arg));
         let arg = BlockArgs {
             input_filters: arg.output_filters,
             stride: 1,
             ..arg
         };
         for i in 1..params.round_repeats(arg.num_repeat) {
-            blocks = blocks.add(block(&p / i, arg));
+            blocks = blocks.add(block(p / i, arg));
         }
     }
     let in_channels = args.last().unwrap().output_filters;
     let out_channels = params.round_filters(1280);
-    let conv_head = conv2d(&p, in_channels, out_channels, 1, conv_no_bias);
-    let bn1 = nn::batch_norm2d(&p, out_channels, bn2d);
+    let conv_head = conv2d(p, in_channels, out_channels, 1, conv_no_bias);
+    let bn1 = nn::batch_norm2d(p, out_channels, bn2d);
     let classifier = nn::seq_t()
         .add_fn_t(|xs, train| xs.dropout(0.2, train))
-        .add(nn::linear(&p, out_channels, nclasses, Default::default()));
+        .add(nn::linear(p, out_channels, nclasses, Default::default()));
     nn::func_t(move |xs, train| {
         xs.apply(&conv_stem)
             .apply_t(&bn0, train)
@@ -242,4 +242,29 @@ pub fn efficientnet(p: nn::Path, params: Params, nclasses: i64) -> impl ModuleT 
             .squeeze1(-1)
             .apply_t(&classifier, train)
     })
+}
+
+pub fn b0(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b0(), nclasses)
+}
+pub fn b1(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b1(), nclasses)
+}
+pub fn b2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b2(), nclasses)
+}
+pub fn b3(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b3(), nclasses)
+}
+pub fn b4(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b4(), nclasses)
+}
+pub fn b5(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b5(), nclasses)
+}
+pub fn b6(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b6(), nclasses)
+}
+pub fn b7(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+    efficientnet(p, Params::b7(), nclasses)
 }
