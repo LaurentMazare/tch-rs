@@ -55,9 +55,10 @@ impl Params {
 
     fn round_filters(&self, filters: i64) -> i64 {
         let divisor = 8;
-        let filters = (self.width * filters as f64 + divisor as f64 / 2.) as i64;
-        let new_filters = i64::max(divisor, filters / divisor * divisor);
-        if new_filters * 10 < 9 * filters {
+        let filters = self.width * filters as f64;
+        let filters_ = (filters + divisor as f64 / 2.) as i64;
+        let new_filters = i64::max(divisor, filters_ / divisor * divisor);
+        if (new_filters as f64) < 0.9 * filters {
             new_filters + divisor
         } else {
             new_filters
