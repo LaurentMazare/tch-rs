@@ -42,6 +42,14 @@ pub fn main() -> failure::Fallible<()> {
         "inception-v3.ot" => Box::new(inception::v3(&vs.root(), imagenet::CLASS_COUNT)),
         "mobilenet-v2.ot" => Box::new(mobilenet::v2(&vs.root(), imagenet::CLASS_COUNT)),
         "efficientnet-b0.ot" => Box::new(efficientnet::b0(&vs.root(), imagenet::CLASS_COUNT)),
+        // Maybe the higher resolution models should be handled differently.
+        "efficientnet-b1.ot" => Box::new(efficientnet::b1(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b2.ot" => Box::new(efficientnet::b2(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b3.ot" => Box::new(efficientnet::b3(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b4.ot" => Box::new(efficientnet::b4(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b5.ot" => Box::new(efficientnet::b5(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b6.ot" => Box::new(efficientnet::b6(&vs.root(), imagenet::CLASS_COUNT)),
+        "efficientnet-b7.ot" => Box::new(efficientnet::b7(&vs.root(), imagenet::CLASS_COUNT)),
         _ => bail!("unknown model, use a weight file named e.g. resnet18.ot"),
     };
     vs.load(weights)?;
