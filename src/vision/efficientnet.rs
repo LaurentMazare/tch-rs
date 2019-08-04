@@ -106,7 +106,7 @@ impl Params {
         Params::of_tuple(1.1, 1.2, 260, 0.3)
     }
     fn b3() -> Params {
-        Params::of_tuple(1.2, 1.3, 300, 0.3)
+        Params::of_tuple(1.2, 1.4, 300, 0.3)
     }
     fn b4() -> Params {
         Params::of_tuple(1.4, 1.8, 380, 0.4)
@@ -242,7 +242,7 @@ fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
             block_idx += 1;
         }
     }
-    let in_channels = args.last().unwrap().output_filters;
+    let in_channels = params.round_filters(args.last().unwrap().output_filters);
     let out_c = params.round_filters(1280);
     let conv_head = conv2d(p / "_conv_head", in_channels, out_c, 1, conv_no_bias);
     let bn1 = nn::batch_norm2d(p / "_bn1", out_c, bn2d);
