@@ -16,7 +16,17 @@ pub trait RNN {
     /// Applies multiple steps of the recurrent network.
     ///
     /// The input should have dimensions [batch_size, seq_len, features].
-    fn seq(&self, input: &Tensor) -> (Tensor, Self::State);
+    /// The initial state is the result of applying zero_state.
+    fn seq(&self, input: &Tensor) -> (Tensor, Self::State) {
+        let batch_dim = input.size()[0];
+        let state = self.zero_state(batch_dim);
+        self.seq_init(input, &state)
+    }
+
+    /// Applies multiple steps of the recurrent network.
+    ///
+    /// The input should have dimensions [batch_size, seq_len, features].
+    fn seq_init(&self, input: &Tensor, state: &Self::State) -> (Tensor, Self::State);
 }
 
 /// The state for a LSTM network, this contains two tensors.
@@ -109,12 +119,10 @@ impl RNN for LSTM {
         LSTMState((h, c))
     }
 
-    fn seq(&self, input: &Tensor) -> (Tensor, LSTMState) {
-        let batch_dim = input.size()[0];
-        let shape = [1, batch_dim, self.hidden_dim];
-        let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+    fn seq_init(&self, input: &Tensor, in_state: &LSTMState) -> (Tensor, LSTMState) {
+        let LSTMState((h, c)) = in_state;
         let (output, h, c) = input.lstm(
-            &[&zeros, &zeros],
+            &[h, c],
             &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
             self.config.has_biases,
             self.config.num_layers,
@@ -185,12 +193,10 @@ impl RNN for GRU {
         GRUState(h)
     }
 
-    fn seq(&self, input: &Tensor) -> (Tensor, GRUState) {
-        let batch_dim = input.size()[0];
-        let shape = [1, batch_dim, self.hidden_dim];
-        let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+    fn seq_init(&self, input: &Tensor, in_state: &GRUState) -> (Tensor, GRUState) {
+        let GRUState(h) = in_state;
         let (output, h) = input.gru(
-            &zeros,
+            h,
             &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
             self.config.has_biases,
             self.config.num_layers,
