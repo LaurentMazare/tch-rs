@@ -31,7 +31,7 @@ pub trait RNN {
 
 /// The state for a LSTM network, this contains two tensors.
 #[derive(Debug)]
-pub struct LSTMState((Tensor, Tensor));
+pub struct LSTMState(pub (Tensor, Tensor));
 
 impl LSTMState {
     /// The hidden state vector, which is also the output of the LSTM.
@@ -137,7 +137,7 @@ impl RNN for LSTM {
 
 /// A GRU state, this contains a single tensor.
 #[derive(Debug)]
-pub struct GRUState(Tensor);
+pub struct GRUState(pub Tensor);
 
 impl GRUState {
     pub fn value(&self) -> Tensor {
