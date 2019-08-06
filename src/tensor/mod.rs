@@ -221,7 +221,7 @@ impl Shape for usize {
 
 impl Shape for i32 {
     fn to_shape(&self) -> Box<[i64]> {
-        Box::new([*self as i64])
+        Box::new([i64::from(*self)])
     }
 }
 

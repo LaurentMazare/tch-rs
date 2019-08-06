@@ -150,8 +150,8 @@ where
     A: Into<TensorIndexer>,
 {
     fn i(&self, index: (A,)) -> Tensor {
-        let a = index.0.into();
-        self.indexer(&[a])
+        let idx_a = index.0.into();
+        self.indexer(&[idx_a])
     }
 }
 
@@ -161,9 +161,9 @@ where
     B: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        self.indexer(&[a, b])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        self.indexer(&[idx_a, idx_b])
     }
 }
 
@@ -174,10 +174,10 @@ where
     C: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        let c = index.2.into();
-        self.indexer(&[a, b, c])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        let idx_c = index.2.into();
+        self.indexer(&[idx_a, idx_b, idx_c])
     }
 }
 
@@ -189,11 +189,11 @@ where
     D: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        let c = index.2.into();
-        let d = index.3.into();
-        self.indexer(&[a, b, c, d])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        let idx_c = index.2.into();
+        let idx_d = index.3.into();
+        self.indexer(&[idx_a, idx_b, idx_c, idx_d])
     }
 }
 
@@ -206,12 +206,12 @@ where
     E: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        let c = index.2.into();
-        let d = index.3.into();
-        let e = index.4.into();
-        self.indexer(&[a, b, c, d, e])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        let idx_c = index.2.into();
+        let idx_d = index.3.into();
+        let idx_e = index.4.into();
+        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e])
     }
 }
 
@@ -225,13 +225,13 @@ where
     F: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E, F)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        let c = index.2.into();
-        let d = index.3.into();
-        let e = index.4.into();
-        let f = index.5.into();
-        self.indexer(&[a, b, c, d, e, f])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        let idx_c = index.2.into();
+        let idx_d = index.3.into();
+        let idx_e = index.4.into();
+        let idx_f = index.5.into();
+        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f])
     }
 }
 
@@ -246,14 +246,14 @@ where
     G: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E, F, G)) -> Tensor {
-        let a = index.0.into();
-        let b = index.1.into();
-        let c = index.2.into();
-        let d = index.3.into();
-        let e = index.4.into();
-        let f = index.5.into();
-        let g = index.6.into();
-        self.indexer(&[a, b, c, d, e, f, g])
+        let idx_a = index.0.into();
+        let idx_b = index.1.into();
+        let idx_c = index.2.into();
+        let idx_d = index.3.into();
+        let idx_e = index.4.into();
+        let idx_f = index.5.into();
+        let idx_g = index.6.into();
+        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f, idx_g])
     }
 }
 

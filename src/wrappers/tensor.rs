@@ -326,7 +326,7 @@ impl Tensor {
         let names = named_tensors
             .iter()
             .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
-            .map(|name| std::ffi::CString::new(name))
+            .map(std::ffi::CString::new)
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
         unsafe_torch_err!({
