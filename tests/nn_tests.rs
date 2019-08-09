@@ -19,15 +19,15 @@ fn save_and_load_var_store() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean()), 42.0);
-    assert_eq!(f64::from(&v1.mean()), 2.0);
-    assert_eq!(f64::from(&u2.mean()), 0.0);
-    assert_eq!(f64::from(&v2.mean()), 1.0);
+    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean()), 42.0);
-    assert_eq!(f64::from(&u2.mean()), 42.0);
-    assert_eq!(f64::from(&v2.mean()), 2.0);
+    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn gradient_descent_test() {
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys).pow(2).sum();
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum(Kind::Float);
         opt.backward_step(&loss);
     }
 }

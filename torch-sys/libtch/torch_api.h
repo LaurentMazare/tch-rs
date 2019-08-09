@@ -9,7 +9,7 @@ extern "C" {
 typedef torch::Tensor *tensor;
 typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
-typedef std::shared_ptr<torch::jit::script::Module> *module;
+typedef torch::jit::script::Module *module;
 typedef torch::jit::IValue *ivalue;
 #define PROTECT(x) \
   try { \

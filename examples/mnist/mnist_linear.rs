@@ -15,7 +15,9 @@ pub fn run() -> failure::Fallible<()> {
     let mut bs = Tensor::zeros(&[LABELS], kind::FLOAT_CPU).set_requires_grad(true);
     for epoch in 1..200 {
         let logits = m.train_images.mm(&ws) + &bs;
-        let loss = logits.log_softmax(-1).nll_loss(&m.train_labels);
+        let loss = logits
+            .log_softmax(-1, Kind::Float)
+            .nll_loss(&m.train_labels);
         ws.zero_grad();
         bs.zero_grad();
         loss.backward();
@@ -28,7 +30,7 @@ pub fn run() -> failure::Fallible<()> {
             .argmax(-1, false)
             .eq1(&m.test_labels)
             .to_kind(Kind::Float)
-            .mean()
+            .mean(Kind::Float)
             .double_value(&[]);
         println!(
             "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",

@@ -102,7 +102,7 @@ impl RNN for LSTM {
     type State = LSTMState;
 
     fn zero_state(&self, batch_dim: i64) -> LSTMState {
-        let shape = [batch_dim, self.hidden_dim];
+        let shape = [1, batch_dim, self.hidden_dim];
         let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
         LSTMState((zeros.shallow_clone(), zeros.shallow_clone()))
     }

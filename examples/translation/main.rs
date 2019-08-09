@@ -100,7 +100,12 @@ impl Decoder {
             .apply(&self.attn_combine)
             .relu();
         let state = self.gru.step(&xs, &state);
-        (self.linear.forward(&state.value()).log_softmax(-1), state)
+        (
+            self.linear
+                .forward(&state.value())
+                .log_softmax(-1, Kind::Float),
+            state,
+        )
     }
 }
 

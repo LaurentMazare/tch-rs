@@ -51,7 +51,7 @@ fn inception_a(p: nn::Path, c_in: i64, c_pool: i64) -> impl ModuleT {
         let b2 = xs.apply_t(&b2_1, tr).apply_t(&b2_2, tr);
         let b3 = xs.apply_t(&b3_1, tr).apply_t(&b3_2, tr).apply_t(&b3_3, tr);
         let bpool = xs
-            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true)
+            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true, 1)
             .apply_t(&bpool, tr);
         Tensor::cat(&[b1, b2, b3, bpool], 1)
     })
@@ -95,7 +95,7 @@ fn inception_c(p: nn::Path, c_in: i64, c7: i64) -> impl ModuleT {
             .apply_t(&b3_4, tr)
             .apply_t(&b3_5, tr);
         let bpool = xs
-            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true)
+            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true, 1)
             .apply_t(&bpool, tr);
         Tensor::cat(&[b1, b2, b3, bpool], 1)
     })
@@ -146,7 +146,7 @@ fn inception_e(p: nn::Path, c_in: i64) -> impl ModuleT {
         let b3 = Tensor::cat(&[b3.apply_t(&b3_3a, tr), b3.apply_t(&b3_3b, tr)], 1);
 
         let bpool = xs
-            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true)
+            .avg_pool2d(&[3, 3], &[1, 1], &[1, 1], false, true, 1)
             .apply_t(&bpool, tr);
 
         Tensor::cat(&[b1, b2, b3, bpool], 1)

@@ -19,7 +19,10 @@ pub fn main() -> failure::Fallible<()> {
     let model = tch::CModule::load(model_file)?;
 
     // Apply the forward pass of the model to get the logits.
-    let output = image.unsqueeze(0).apply(&model).softmax(-1);
+    let output = image
+        .unsqueeze(0)
+        .apply(&model)
+        .softmax(-1, tch::Kind::Float);
 
     // Print the top 5 categories for this image.
     for (probability, class) in imagenet::top(&output, 5).iter() {

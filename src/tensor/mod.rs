@@ -420,7 +420,7 @@ from_tensor!(u8, 0u8, Uint8);
 impl Tensor {
     /// Computes the cross-entropy loss based on some logits and targets.
     pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.log_softmax(-1).nll_loss(&targets)
+        self.log_softmax(-1, Kind::Float).nll_loss(&targets)
     }
 
     /// Returns the average accuracy for some given logits assuming that
@@ -429,7 +429,7 @@ impl Tensor {
         self.argmax(-1, false)
             .eq1(&targets)
             .to_kind(Kind::Float)
-            .mean()
+            .mean(Kind::Float)
     }
 
     pub fn random_batch(&self, batch_size: i64) -> Tensor {
@@ -469,7 +469,7 @@ impl Tensor {
     }
 
     pub fn avg_pool2d_default(&self, ksize: i64) -> Tensor {
-        self.avg_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], false, true)
+        self.avg_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], false, true, 1)
     }
 
     pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {

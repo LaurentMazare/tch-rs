@@ -52,7 +52,11 @@ fn text() {
     for xs in text_data.iter_shuffle(2, 5) {
         let first_column_plus_one = (xs.i((.., ..1)) + 1).fmod(10);
         let second_column = xs.i((.., 1..=1));
-        let err = i64::from((first_column_plus_one - second_column).pow(2).sum());
+        let err = i64::from(
+            (first_column_plus_one - second_column)
+                .pow(2)
+                .sum(tch::Kind::Float),
+        );
         assert_eq!(err, 0)
     }
 }

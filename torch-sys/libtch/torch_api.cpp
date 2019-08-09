@@ -112,7 +112,7 @@ int at_device(tensor t) {
 }
 
 void at_backward(tensor t, int keep_graph, int create_graph) {
-  PROTECT(t->backward(c10::nullopt, keep_graph, create_graph);)
+  PROTECT(t->backward({}, keep_graph, create_graph);)
 }
 
 int at_requires_grad(tensor t) {
@@ -232,10 +232,8 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
-    shared_ptr<torch::jit::script::Module> module = torch::jit::load(filename);
-    if (module == nullptr)
-      throw std::invalid_argument("torch::jit::load returned a nullptr");
-    for (const auto &p : module->get_parameters()) {
+    auto module = torch::jit::load(filename);
+    for (const auto &p : module.get_parameters()) {
       auto v = p.value();
       if (v.isTensor())
         f(data, (char*)p.name().c_str(), new torch::Tensor(v.toTensor()));
@@ -512,7 +510,7 @@ void atc_set_benchmark_cudnn(int b) {
 
 module atm_load(char *filename) {
   PROTECT(
-    return new std::shared_ptr<torch::jit::script::Module>(torch::jit::load(filename));
+    return new torch::jit::script::Module(torch::jit::load(filename));
   )
   return nullptr;
 }
@@ -522,7 +520,7 @@ tensor atm_forward(module m, tensor *tensors, int ntensors) {
     std::vector<torch::jit::IValue> inputs;
     for (int i = 0; i < ntensors; ++i)
       inputs.push_back(*(tensors[i]));
-    torch::jit::IValue output = (*m)->forward(inputs);
+    torch::jit::IValue output = m->forward(inputs);
     if (!output.isTensor())
       throw std::invalid_argument("forward did not return a tensor");
     return new torch::Tensor(output.toTensor());
@@ -537,7 +535,7 @@ ivalue atm_forward_(module m,
     std::vector<torch::jit::IValue> inputs;
     for (int i = 0; i < nivalues; ++i)
       inputs.push_back(*(ivalues[i]));
-    torch::jit::IValue output = (*m)->forward(inputs);
+    torch::jit::IValue output = m->forward(inputs);
     return new torch::jit::IValue(output);
   )
   return nullptr;
@@ -572,7 +570,7 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
   PROTECT(
     vector<torch::jit::IValue> vec;
     for (int i = 0; i < nvalues; ++i) vec.push_back(*(is[i]));
-    return new torch::jit::IValue(torch::jit::Tuple::create(vec));
+    return new torch::jit::IValue(torch::ivalue::Tuple::create(vec));
   )
   return nullptr;
 }

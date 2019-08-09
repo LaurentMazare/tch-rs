@@ -16,6 +16,9 @@ let excluded_functions =
     ; "softmax_backward_data"
     ; "clone"
     ; "copy_"
+    ; "conv_transpose2d_backward_out"
+    ; "conv_transpose3d_backward_out"
+    ; "normal"
     ]
 
 let prefixed_functions =
@@ -149,7 +152,8 @@ module Func = struct
             t.name () )
 
   let replace_map =
-      Map.of_alist_exn (module String) [("t", "tr"); ("where", "where_"); ("view", "view_")]
+    Map.of_alist_exn (module String)
+      [("t", "tr"); ("where", "where_"); ("view", "view_"); ("unsafe", "unsafe_")]
 
   let rust_name name =
     let name =

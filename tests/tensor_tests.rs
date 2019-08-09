@@ -121,7 +121,7 @@ fn save_and_load_multi() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum()), 57);
+    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -241,6 +241,6 @@ fn test_device() {
 fn where_() {
     let t1 = Tensor::of_slice(&[3, 1, 4, 1, 5, 9]);
     let t2 = Tensor::of_slice(&[2, 7, 1, 8, 2, 8]);
-    let t = t1.where_(&t1.lt(4), &t2);
+    let t = t1.where1(&t1.lt(4), &t2);
     assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
 }

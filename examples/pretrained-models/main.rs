@@ -61,7 +61,7 @@ pub fn main() -> failure::Fallible<()> {
     // Apply the forward pass of the model to get the logits.
     let output = net
         .forward_t(&image.unsqueeze(0), /*train=*/ false)
-        .softmax(-1); // Convert to probability.
+        .softmax(-1, tch::Kind::Float); // Convert to probability.
 
     // Print the top 5 categories for this image.
     for (probability, class) in imagenet::top(&output, 5).iter() {

@@ -73,7 +73,7 @@ fn discriminator(p: nn::Path) -> impl nn::ModuleT {
 
 fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
     let diff = x - y;
-    (&diff * &diff).mean()
+    (&diff * &diff).mean(Kind::Float)
 }
 
 // Generate a 2D matrix of images from a tensor with multiple images.
@@ -137,8 +137,8 @@ pub fn main() -> failure::Fallible<()> {
                 .copy()
                 .detach()
                 .apply_t(&discriminator, true);
-            mse_loss(&y_pred, &(y_pred_fake.mean() + 1))
-                + mse_loss(&y_pred_fake, &(y_pred.mean() - 1))
+            mse_loss(&y_pred, &(y_pred_fake.mean(Kind::Float) + 1))
+                + mse_loss(&y_pred_fake, &(y_pred.mean(Kind::Float) - 1))
         };
         opt_d.backward_step(&discriminator_loss);
 
@@ -151,8 +151,8 @@ pub fn main() -> failure::Fallible<()> {
             let y_pred_fake = rand_latent()
                 .apply_t(&generator, true)
                 .apply_t(&discriminator, true);
-            mse_loss(&y_pred, &(y_pred_fake.mean() - 1))
-                + mse_loss(&y_pred_fake, &(y_pred.mean() + 1))
+            mse_loss(&y_pred, &(y_pred_fake.mean(Kind::Float) - 1))
+                + mse_loss(&y_pred_fake, &(y_pred.mean(Kind::Float) + 1))
         };
         opt_g.backward_step(&generator_loss);
 

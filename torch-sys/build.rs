@@ -153,6 +153,5 @@ fn main() {
     }
 
     println!("cargo:rustc-link-lib=c10");
-    println!("cargo:rustc-link-lib=caffe2");
     println!("cargo:rustc-link-lib=torch");
 }
