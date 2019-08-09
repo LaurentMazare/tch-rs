@@ -82,6 +82,21 @@ impl VarStore {
             .collect()
     }
 
+    /// Returns all variables along with their names.
+    pub fn variables(&self, trainable_only: bool) -> HashMap<String, Tensor> {
+        let variables = self.variables.lock().unwrap();
+        variables
+            .iter()
+            .filter_map(|(name, v)| {
+                if !trainable_only || v.trainable {
+                    Some((name.clone(), v.tensor.shallow_clone()))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     /// Gets the root path for this variable store.
     ///
     /// Variables are named and organized using paths. This function returns
