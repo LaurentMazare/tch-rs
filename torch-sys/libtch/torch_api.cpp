@@ -570,7 +570,7 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
   PROTECT(
     vector<torch::jit::IValue> vec;
     for (int i = 0; i < nvalues; ++i) vec.push_back(*(is[i]));
-    return new torch::jit::IValue(torch::ivalue::Tuple::create(vec, nullptr));
+    return new torch::jit::IValue(torch::ivalue::Tuple::create(vec, c10::TupleType::create({})));
   )
   return nullptr;
 }
