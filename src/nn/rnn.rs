@@ -150,10 +150,7 @@ impl GRUState {
 /// https://en.wikipedia.org/wiki/Gated_recurrent_unit
 #[derive(Debug)]
 pub struct GRU {
-    w_ih: Tensor,
-    w_hh: Tensor,
-    b_ih: Tensor,
-    b_hh: Tensor,
+    flat_weights: Vec<Tensor>,
     hidden_dim: i64,
     config: RNNConfig,
     device: Device,
@@ -161,12 +158,28 @@ pub struct GRU {
 
 /// Creates a new GRU layer.
 pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
+    let num_directions = if c.bidirectional { 2 } else { 1 };
     let gate_dim = 3 * hidden_dim;
+    let mut flat_weights = vec![];
+    for layer_idx in 0..c.num_layers {
+        for _direction_idx in 0..num_directions {
+            let in_dim = if layer_idx == 0 {
+                in_dim
+            } else {
+                hidden_dim * num_directions
+            };
+            let w_ih = vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]);
+            let w_hh = vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]);
+            let b_ih = vs.zeros("b_ih", &[gate_dim]);
+            let b_hh = vs.zeros("b_hh", &[gate_dim]);
+            flat_weights.push(w_ih);
+            flat_weights.push(w_hh);
+            flat_weights.push(b_ih);
+            flat_weights.push(b_hh);
+        }
+    }
     GRU {
-        w_ih: vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]),
-        w_hh: vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]),
-        b_ih: vs.zeros("b_ih", &[gate_dim]),
-        b_hh: vs.zeros("b_hh", &[gate_dim]),
+        flat_weights,
         hidden_dim,
         config: c,
         device: vs.device(),
@@ -177,27 +190,23 @@ impl RNN for GRU {
     type State = GRUState;
 
     fn zero_state(&self, batch_dim: i64) -> GRUState {
-        let shape = [batch_dim, self.hidden_dim];
+        let num_directions = if self.config.bidirectional { 2 } else { 1 };
+        let layer_dim = self.config.num_layers * num_directions;
+        let shape = [layer_dim, batch_dim, self.hidden_dim];
         GRUState(Tensor::zeros(&shape, (Kind::Float, self.device)))
     }
 
     fn step(&self, input: &Tensor, in_state: &GRUState) -> GRUState {
-        let GRUState(h) = in_state;
-        let h = input.gru_cell(
-            &h,
-            &self.w_ih,
-            &self.w_hh,
-            Some(&self.b_ih),
-            Some(&self.b_hh),
-        );
-        GRUState(h)
+        let input = input.unsqueeze(1);
+        let (_output, state) = self.seq_init(&input, in_state);
+        state
     }
 
     fn seq_init(&self, input: &Tensor, in_state: &GRUState) -> (Tensor, GRUState) {
         let GRUState(h) = in_state;
         let (output, h) = input.gru(
             h,
-            &[&self.w_ih, &self.w_hh, &self.b_ih, &self.b_hh],
+            &self.flat_weights,
             self.config.has_biases,
             self.config.num_layers,
             self.config.dropout,

@@ -129,3 +129,47 @@ fn my_test() {
     let x = Tensor::randn(&[10, 40], opts);
     let _y = x.apply_t(&bn, true);
 }
+
+fn gru_test(rnn_config: nn::RNNConfig) {
+    use nn::RNN;
+    let batch_dim = 5;
+    let seq_len = 3;
+    let input_dim = 2;
+    let output_dim = 4;
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let gru = nn::gru(&vs.root(), input_dim, output_dim, rnn_config);
+
+    let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
+    let layer_dim = rnn_config.num_layers * num_directions;
+    //
+    // step test
+    let input = Tensor::randn(&[batch_dim, input_dim], kind::FLOAT_CPU);
+    let nn::GRUState(output) = gru.step(&input, &gru.zero_state(batch_dim));
+    assert_eq!(output.size(), [layer_dim, batch_dim, output_dim]);
+
+    // seq test
+    let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
+    let (output, _) = gru.seq(&input);
+    assert_eq!(
+        output.size(),
+        [batch_dim, seq_len, output_dim * num_directions]
+    );
+}
+
+#[test]
+fn rnn() {
+    gru_test(Default::default());
+    gru_test(nn::RNNConfig {
+        bidirectional: true,
+        ..Default::default()
+    });
+    gru_test(nn::RNNConfig {
+        num_layers: 2,
+        ..Default::default()
+    });
+    gru_test(nn::RNNConfig {
+        num_layers: 2,
+        bidirectional: true,
+        ..Default::default()
+    });
+}
