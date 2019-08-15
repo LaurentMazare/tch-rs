@@ -8,7 +8,7 @@
 */
 use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
-use tch::{nn, nn::OptimizerConfig, Tensor};
+use tch::{nn, nn::OptimizerConfig, Kind, Tensor};
 
 const ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
 const NPROCS: i64 = 8;
@@ -97,13 +97,13 @@ pub fn train() -> cpython::PyResult<()> {
         let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
-            let probs = actor.softmax(-1);
+            let probs = actor.softmax(-1, Kind::Float);
             let actions = probs.multinomial(1, true).squeeze1(-1);
             let step = env.step(Vec::<i64>::from(&actions))?;
 
             sum_rewards += &step.reward;
-            total_rewards += f64::from((&sum_rewards * &step.is_done).sum());
-            total_episodes += f64::from(step.is_done.sum());
+            total_rewards += f64::from((&sum_rewards * &step.is_done).sum(Kind::Float));
+            total_episodes += f64::from(step.is_done.sum(Kind::Float));
 
             let masks = Tensor::from(1f32) - step.is_done;
             sum_rewards *= &masks;
@@ -134,16 +134,18 @@ pub fn train() -> cpython::PyResult<()> {
             let actions = actions.index_select(0, &batch_indexes);
             let returns = returns.index_select(0, &batch_indexes);
             let (critic, actor) = model(&states);
-            let log_probs = actor.log_softmax(-1);
-            let probs = actor.softmax(-1);
+            let log_probs = actor.log_softmax(-1, Kind::Float);
+            let probs = actor.softmax(-1, Kind::Float);
             let action_log_probs = {
                 let index = actions.unsqueeze(-1).to_device(device);
                 log_probs.gather(-1, &index, false).squeeze1(-1)
             };
-            let dist_entropy = (-log_probs * probs).sum2(&[-1], false).mean();
+            let dist_entropy = (-log_probs * probs)
+                .sum1(&[-1], false, Kind::Float)
+                .mean(Kind::Float);
             let advantages = returns.to_device(device) - critic;
-            let value_loss = (&advantages * &advantages).mean();
-            let action_loss = (-advantages.detach() * action_log_probs).mean();
+            let value_loss = (&advantages * &advantages).mean(Kind::Float);
+            let action_loss = (-advantages.detach() * action_log_probs).mean(Kind::Float);
             let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
             opt.backward_step_clip(&loss, 0.5);
         }
@@ -180,7 +182,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
 
     for _index in 0..5000 {
         let (_critic, actor) = tch::no_grad(|| model(&obs));
-        let probs = actor.softmax(-1);
+        let probs = actor.softmax(-1, Kind::Float);
         let actions = probs.multinomial(1, true).squeeze1(-1);
         let step = env.step(Vec::<i64>::from(&actions))?;
 
