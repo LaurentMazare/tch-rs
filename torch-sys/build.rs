@@ -19,7 +19,7 @@ use curl::easy::Easy;
 use failure::Fallible;
 use zip;
 
-const TORCH_VERSION: &'static str = "1.1.0";
+const TORCH_VERSION: &'static str = "1.2.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
