@@ -5,19 +5,13 @@
 //
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
-#[macro_use]
-extern crate failure;
-
-use std::env;
-use std::fs;
-use std::io;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-
-use cmake::Config;
 use curl::easy::Easy;
-use failure::Fallible;
-use zip;
+use failure::{format_err, Fallible};
+use std::{
+    env, fs,
+    io::{self, Write},
+    path::{Path, PathBuf},
+};
 
 const TORCH_VERSION: &'static str = "1.2.0";
 
@@ -115,52 +109,18 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P) {
-    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
-
-    match os.as_str() {
-        "linux" | "macos" => {
-            let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("0".to_string());
-            cc::Build::new()
-                .cpp(true)
-                .pic(true)
-                .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
-                .flag(&format!(
-                    "-Wl,-rpath={}",
-                    libtorch.as_ref().join("lib").display()
-                ))
-                .flag("-std=c++11")
-                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
-                .file("libtch/torch_api.cpp")
-                .compile("libtorch");
-        }
-        "windows" => {
-            // TODO: Pass "/link" "LIBPATH:{}" to cl.exe in order to emulate rpath.
-            //       Not yet supported by cc=rs.
-            //       https://github.com/alexcrichton/cc-rs/issues/323
-            cc::Build::new()
-                .cpp(true)
-                .pic(true)
-                .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
-                .file("libtch/torch_api.cpp")
-                .compile("libtorch");
-        }
-        _ => panic!("Unsupported OS"),
-    };
-}
-
-fn cmake<P: AsRef<Path>>(libtorch: P) {
-    let dst = Config::new("libtch")
-        .define("CMAKE_PREFIX_PATH", libtorch.as_ref())
-        .build();
-
-    println!("cargo:rustc-link-search=native={}", dst.display());
-    println!("cargo:rustc-link-lib=static=tch");
-    println!("cargo:rustc-link-lib=stdc++");
+fn compile<P: AsRef<Path>>(libtorch: P) {
+    let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("0".to_string());
+    cc::Build::new()
+        .cpp(true)
+        .pic(true)
+        .warnings(false)
+        .include(libtorch.as_ref().join("include"))
+        .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+        .flag("-std=c++11")
+        .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
+        .file("libtch/torch_api.cpp")
+        .compile("tch");
 }
 
 fn main() {
@@ -170,12 +130,24 @@ fn main() {
         libtorch.join("lib").display()
     );
 
-    if env::var("LIBTORCH_USE_CMAKE").is_ok() {
-        cmake(&libtorch)
-    } else {
-        make(&libtorch)
-    }
+    compile(&libtorch);
 
-    println!("cargo:rustc-link-lib=c10");
+    let out_dir = env::var("OUT_DIR").unwrap();
+
+    println!("cargo:rustc-link-search=native={}", out_dir);
+    println!("cargo:rustc-link-lib=static=tch");
     println!("cargo:rustc-link-lib=torch");
+    println!("cargo:rustc-link-lib=c10");
+
+    let target = env::var("TARGET").unwrap();
+
+    if target.contains("apple") || target.contains("freebsd") || target.contains("openbsd") {
+        println!("cargo:rustc-link-lib=gomp");
+        println!("cargo:rustc-link-lib=c++");
+    } else if target.contains("linux") {
+        println!("cargo:rustc-link-lib=gomp");
+        println!("cargo:rustc-link-lib=stdc++");
+    } else if target.contains("msvc") {
+        println!("cargo:rustc-link-lib=iphlpapi");
+    }
 }
