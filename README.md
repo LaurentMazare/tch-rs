@@ -25,11 +25,19 @@ try downloading and extracting a pre-built binary version of libtorch.
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
 the content of the zip file.
-- Add the following to your `.bashrc` or equivalent, where `/path/to/libtorch` is the
-path to the directory that was created when unzipping the file.
+- For Linux users, add the following to your `.bashrc` or equivalent, where `/path/to/libtorch`
+is the path to the directory that was created when unzipping the file.
 ```bash
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
+```
+- For Windows users, navigate to Control Panel -> View advanced system settings -> Environment variables.
+Create `LIBTORCH` variable and set to `X:\path\to\libtorch`. Then, append `X:\path\to\libtorch`
+to `Path` variable, where `X:\path\to\libtorch` is the unzipped libtorch directory.
+If you prefer to temporarily set environment variables, in PowerShell you can run
+```powershell
+$Env:LIBTORCH = "X:\path\to\libtorch"
+$Env:Path += ";X:\path\to\libtorch"
 ```
 - You should now be able to run some examples, e.g. `cargo run --example basics`.
 
