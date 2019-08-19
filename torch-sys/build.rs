@@ -99,6 +99,10 @@ fn prepare_libtorch_dir() -> PathBuf {
                     "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
                     TORCH_VERSION
                 ),
+                "windows" => format!(
+                    "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-{}.zip",
+                    TORCH_VERSION
+                ),
                 _ => panic!("Unsupported OS"),
             };
 
@@ -112,21 +116,41 @@ fn prepare_libtorch_dir() -> PathBuf {
 }
 
 fn make<P: AsRef<Path>>(libtorch: P) {
-    let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("0".to_string());
-    cc::Build::new()
-        .cpp(true)
-        .include(libtorch.as_ref().join("include"))
-        .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
-        .flag(&format!(
-            "-Wl,-rpath={}",
-            libtorch.as_ref().join("lib").display()
-        ))
-        .flag("-std=c++11")
-        .flag("-fPIC")
-        .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
-        .file("libtch/torch_api.cpp")
-        .warnings(false)
-        .compile("libtorch");
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+
+    match os.as_str() {
+        "linux" | "macos" => {
+            let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("0".to_string());
+            cc::Build::new()
+                .cpp(true)
+                .pic(true)
+                .warnings(false)
+                .include(libtorch.as_ref().join("include"))
+                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .flag(&format!(
+                    "-Wl,-rpath={}",
+                    libtorch.as_ref().join("lib").display()
+                ))
+                .flag("-std=c++11")
+                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
+                .file("libtch/torch_api.cpp")
+                .compile("libtorch");
+        }
+        "windows" => {
+            // TODO: Pass "/link" "LIBPATH:{}" to cl.exe in order to emulate rpath.
+            //       Not yet supported by cc=rs.
+            //       https://github.com/alexcrichton/cc-rs/issues/323
+            cc::Build::new()
+                .cpp(true)
+                .pic(true)
+                .warnings(false)
+                .include(libtorch.as_ref().join("include"))
+                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .file("libtch/torch_api.cpp")
+                .compile("libtorch");
+        }
+        _ => panic!("Unsupported OS"),
+    };
 }
 
 fn cmake<P: AsRef<Path>>(libtorch: P) {
