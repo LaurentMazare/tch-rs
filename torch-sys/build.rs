@@ -176,6 +176,12 @@ fn main() {
         make(&libtorch)
     }
 
-    println!("cargo:rustc-link-lib=c10");
     println!("cargo:rustc-link-lib=torch");
+    println!("cargo:rustc-link-lib=c10");
+
+    let target = env::var("TARGET").unwrap();
+
+    if !target.contains("msvc") {
+        println!("cargo:rustc-link-lib=gomp");
+    }
 }
