@@ -181,7 +181,7 @@ fn main() {
 
     let target = env::var("TARGET").unwrap();
 
-  if !target.contains("msvc") && !target.contains("apple") {
+    if !target.contains("msvc") && !target.contains("apple") {
         println!("cargo:rustc-link-lib=gomp");
     }
 }
