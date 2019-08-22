@@ -318,7 +318,9 @@ impl std::fmt::Debug for Tensor {
         let (is_int, is_float) = match self.kind() {
             Kind::Int | Kind::Int8 | Kind::Uint8 | Kind::Int16 | Kind::Int64 => (true, false),
             Kind::Half | Kind::Float | Kind::Double => (false, true),
-            Kind::ComplexHalf | Kind::ComplexFloat | Kind::ComplexDouble => (false, false),
+            Kind::Bool | Kind::ComplexHalf | Kind::ComplexFloat | Kind::ComplexDouble => {
+                (false, false)
+            }
         };
         match (self.size().as_slice(), is_int, is_float) {
             ([], true, false) => write!(f, "[{}]", i64::from(self)),
@@ -416,6 +418,7 @@ from_tensor!(i64, 0i64, Int64);
 from_tensor!(i32, 0i32, Int);
 from_tensor!(i8, 0i8, Int8);
 from_tensor!(u8, 0u8, Uint8);
+from_tensor!(bool, false, Bool);
 
 impl Tensor {
     /// Computes the cross-entropy loss based on some logits and targets.

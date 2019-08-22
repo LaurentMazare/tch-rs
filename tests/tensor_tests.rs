@@ -244,3 +244,20 @@ fn where_() {
     let t = t1.where1(&t1.lt(4), &t2);
     assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
 }
+
+#[test]
+fn bool_tensor() {
+    let t1 = Tensor::of_slice(&[true, true, false]);
+    assert_eq!(Vec::<i64>::from(&t1), [1, 1, 0]);
+    assert_eq!(Vec::<bool>::from(&t1), [true, true, false]);
+    let t1 = Tensor::of_slice(&[0, 1, 0]).to_kind(tch::Kind::Bool);
+    let t2 = Tensor::of_slice(&[1, 1, 1]).to_kind(tch::Kind::Bool);
+    let t1_any = t1.any();
+    let t2_any = t2.any();
+    let t1_all = t1.all();
+    let t2_all = t2.all();
+    assert_eq!(bool::from(&t1_any), true);
+    assert_eq!(bool::from(&t1_all), false);
+    assert_eq!(bool::from(&t2_any), true);
+    assert_eq!(bool::from(&t2_all), true);
+}

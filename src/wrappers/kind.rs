@@ -14,6 +14,7 @@ pub enum Kind {
     ComplexHalf,
     ComplexFloat,
     ComplexDouble,
+    Bool,
 }
 
 impl Kind {
@@ -30,6 +31,7 @@ impl Kind {
             Kind::ComplexHalf => 8,
             Kind::ComplexFloat => 9,
             Kind::ComplexDouble => 10,
+            Kind::Bool => 11,
         }
     }
 
@@ -46,6 +48,7 @@ impl Kind {
             8 => Kind::ComplexHalf,
             9 => Kind::ComplexFloat,
             10 => Kind::ComplexDouble,
+            11 => Kind::Bool,
             _ => panic!("unexpected kind {}", v),
         }
     }
@@ -63,6 +66,7 @@ impl Kind {
             Kind::ComplexHalf => 4,
             Kind::ComplexFloat => 8,
             Kind::ComplexDouble => 16,
+            Kind::Bool => 1,
         }
     }
 }
@@ -105,4 +109,8 @@ impl T for f32 {
 
 impl T for f64 {
     const KIND: Kind = Kind::Double;
+}
+
+impl T for bool {
+    const KIND: Kind = Kind::Bool;
 }
