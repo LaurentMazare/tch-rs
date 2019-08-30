@@ -13,16 +13,16 @@ const SEP: char = '.';
 // When the variable store is frozen, trainable still is set to tree,
 // however the tensor is not set to require gradients.
 #[derive(Debug)]
-struct Variable {
-    tensor: Tensor,
-    trainable: bool,
+struct Variables {
+    named_variables: HashMap<String, Tensor>,
+    trainable_variables: Vec<Tensor>,
 }
 
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
 #[derive(Debug)]
 pub struct VarStore {
-    variables: Mutex<HashMap<String, Variable>>,
+    variables: Mutex<Variables>,
     device: Device,
 }
 
@@ -37,15 +37,19 @@ pub struct Path<'a> {
 #[derive(Debug)]
 pub struct Entry<'a> {
     name: &'a str,
-    variables: MutexGuard<'a, HashMap<String, Variable>>, // This field holds the mutex lock
+    variables: MutexGuard<'a, Variables>, // This field holds the mutex lock
     path: &'a Path<'a>,
 }
 
 impl VarStore {
     /// Creates a new var-store located on the specified device.
     pub fn new(device: Device) -> VarStore {
+        let variables = Variables {
+            named_variables: HashMap::new(),
+            trainable_variables: Vec::new(),
+        };
         VarStore {
-            variables: Mutex::new(HashMap::new()),
+            variables: Mutex::new(variables),
             device,
         }
     }
@@ -58,42 +62,32 @@ impl VarStore {
     /// Returns the number of tensors currently stored on this var-store.
     pub fn len(&self) -> usize {
         let variables = self.variables.lock().unwrap();
-        variables.len()
+        variables.named_variables.len()
     }
 
     /// Returns true if no tensors are currently stored on this var-store.
     pub fn is_empty(&self) -> bool {
         let variables = self.variables.lock().unwrap();
-        variables.is_empty()
+        variables.named_variables.is_empty()
     }
 
     /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables.lock().unwrap();
         variables
-            .values()
-            .filter_map(|v| {
-                if v.trainable {
-                    Some(v.tensor.shallow_clone())
-                } else {
-                    None
-                }
-            })
+            .trainable_variables
+            .iter()
+            .map(|v| v.shallow_clone())
             .collect()
     }
 
     /// Returns all variables along with their names.
-    pub fn variables(&self, trainable_only: bool) -> HashMap<String, Tensor> {
+    pub fn variables(&self) -> HashMap<String, Tensor> {
         let variables = self.variables.lock().unwrap();
         variables
+            .named_variables
             .iter()
-            .filter_map(|(name, v)| {
-                if !trainable_only || v.trainable {
-                    Some((name.clone(), v.tensor.shallow_clone()))
-                } else {
-                    None
-                }
-            })
+            .map(|(name, v)| (name.clone(), v.shallow_clone()))
             .collect()
     }
 
@@ -115,10 +109,7 @@ impl VarStore {
     /// var-store gets saved in the given file.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
         let variables = self.variables.lock().unwrap();
-        let named_tensors = variables
-            .iter()
-            .map(|(x, y)| (&x[..], &y.tensor))
-            .collect::<Vec<_>>();
+        let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
 
@@ -132,13 +123,11 @@ impl VarStore {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables.lock().unwrap();
-        for (name, var) in variables.iter_mut() {
+        for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| {
-                    var.tensor
-                        .f_copy_(src)
-                        .map_err(|e| format_err!("{}: {}", name, e))
-                })?,
+                Some(src) => {
+                    crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
+                }
                 None => return Err(format_err!("cannot find {} in {:?}", name, path.as_ref())),
             }
         }
@@ -151,10 +140,8 @@ impl VarStore {
     /// anymore.
     pub fn freeze(&mut self) {
         let variables = self.variables.lock().unwrap();
-        for variable in variables.values() {
-            if variable.trainable {
-                let _v = variable.tensor.set_requires_grad(false);
-            }
+        for variable in variables.trainable_variables.iter() {
+            let _v = variable.set_requires_grad(false);
         }
     }
 
@@ -163,10 +150,8 @@ impl VarStore {
     /// Gradients for the variables in this store are tracked again.
     pub fn unfreeze(&mut self) {
         let variables = self.variables.lock().unwrap();
-        for variable in variables.values() {
-            if variable.trainable {
-                let _v = variable.tensor.set_requires_grad(true);
-            }
+        for variable in variables.trainable_variables.iter() {
+            let _v = variable.set_requires_grad(true);
         }
     }
 
@@ -178,14 +163,14 @@ impl VarStore {
         let mut variables = self.variables.lock().unwrap();
         let src_variables = src.variables.lock().unwrap();
         let device = self.device;
-        for name in variables.keys() {
-            if !src_variables.contains_key(name) {
+        for name in variables.named_variables.keys() {
+            if !src_variables.named_variables.contains_key(name) {
                 bail!("cannot find {} in the source var store", name);
             }
         }
-        for (name, var) in variables.iter_mut() {
-            let src_var = src_variables.get(name).unwrap();
-            crate::no_grad(|| var.tensor.f_copy_(&src_var.tensor.to_device(device)))?;
+        for (name, var) in variables.named_variables.iter_mut() {
+            let src_var = src_variables.named_variables.get(name).unwrap();
+            crate::no_grad(|| var.f_copy_(&src_var.to_device(device)))?;
         }
         Ok(())
     }
@@ -225,8 +210,8 @@ impl<'a> Path<'a> {
     fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
         let mut variables = self.var_store.variables.lock().unwrap();
-        let path = if variables.contains_key(&path) {
-            format!("{}__{}", path, variables.len())
+        let path = if variables.named_variables.contains_key(&path) {
+            format!("{}__{}", path, variables.named_variables.len())
         } else {
             path
         };
@@ -235,11 +220,12 @@ impl<'a> Path<'a> {
         } else {
             tensor
         };
-        let var = Variable {
-            tensor: tensor.shallow_clone(),
-            trainable,
+        if trainable {
+            variables.trainable_variables.push(tensor.shallow_clone());
         };
-        variables.insert(path, var);
+        variables
+            .named_variables
+            .insert(path, tensor.shallow_clone());
         tensor
     }
 
@@ -248,11 +234,11 @@ impl<'a> Path<'a> {
         name: &str,
         tensor: Tensor,
         trainable: bool,
-        mut variables: MutexGuard<HashMap<String, Variable>>,
+        mut variables: MutexGuard<Variables>,
     ) -> Tensor {
         let path = self.path(name);
-        if let Some(var) = variables.get(&path) {
-            return var.tensor.shallow_clone();
+        if let Some(var) = variables.named_variables.get(&path) {
+            return var.shallow_clone();
         }
 
         let tensor = if trainable {
@@ -260,11 +246,12 @@ impl<'a> Path<'a> {
         } else {
             tensor
         };
-        let var = Variable {
-            tensor: tensor.shallow_clone(),
-            trainable,
-        };
-        variables.insert(path, var);
+        if trainable {
+            variables.trainable_variables.push(tensor.shallow_clone());
+        }
+        variables
+            .named_variables
+            .insert(path, tensor.shallow_clone());
         tensor
     }
 
@@ -387,7 +374,10 @@ impl<'a> Path<'a> {
     pub fn get(&self, name: &str) -> Option<Tensor> {
         let path = self.path(name);
         let variables = self.var_store.variables.lock().unwrap();
-        variables.get(&path).map(|v| v.tensor.shallow_clone())
+        variables
+            .named_variables
+            .get(&path)
+            .map(|v| v.shallow_clone())
     }
 
     /// Gets the entry corresponding to a given name for in-place manipulation.
