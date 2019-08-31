@@ -5,7 +5,7 @@ use crate::{Device, Kind};
 use failure::Fallible;
 use std::collections::HashMap;
 use std::ops::Div;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '.';
@@ -13,16 +13,16 @@ const SEP: char = '.';
 // When the variable store is frozen, trainable still is set to tree,
 // however the tensor is not set to require gradients.
 #[derive(Debug)]
-struct Variables {
-    named_variables: HashMap<String, Tensor>,
-    trainable_variables: Vec<Tensor>,
+pub struct Variables {
+    pub named_variables: HashMap<String, Tensor>,
+    pub trainable_variables: Vec<Tensor>,
 }
 
 /// A VarStore is used to store variables used by one or multiple layers.
 /// It specifies a single device where all variables are stored.
 #[derive(Debug)]
 pub struct VarStore {
-    variables: Mutex<Variables>,
+    pub variables_: Arc<Mutex<Variables>>,
     device: Device,
 }
 
@@ -49,7 +49,7 @@ impl VarStore {
             trainable_variables: Vec::new(),
         };
         VarStore {
-            variables: Mutex::new(variables),
+            variables_: Arc::new(Mutex::new(variables)),
             device,
         }
     }
@@ -61,19 +61,19 @@ impl VarStore {
 
     /// Returns the number of tensors currently stored on this var-store.
     pub fn len(&self) -> usize {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         variables.named_variables.len()
     }
 
     /// Returns true if no tensors are currently stored on this var-store.
     pub fn is_empty(&self) -> bool {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         variables.named_variables.is_empty()
     }
 
     /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         variables
             .trainable_variables
             .iter()
@@ -83,7 +83,7 @@ impl VarStore {
 
     /// Returns all variables along with their names.
     pub fn variables(&self) -> HashMap<String, Tensor> {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         variables
             .named_variables
             .iter()
@@ -108,7 +108,7 @@ impl VarStore {
     /// Weight values for all the tensors currently stored in the
     /// var-store gets saved in the given file.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
@@ -122,7 +122,7 @@ impl VarStore {
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
         let named_tensors = Tensor::load_multi(&path)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
-        let mut variables = self.variables.lock().unwrap();
+        let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => {
@@ -139,7 +139,7 @@ impl VarStore {
     /// Gradients for the variables in this store are not tracked
     /// anymore.
     pub fn freeze(&mut self) {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         for variable in variables.trainable_variables.iter() {
             let _v = variable.set_requires_grad(false);
         }
@@ -149,7 +149,7 @@ impl VarStore {
     ///
     /// Gradients for the variables in this store are tracked again.
     pub fn unfreeze(&mut self) {
-        let variables = self.variables.lock().unwrap();
+        let variables = self.variables_.lock().unwrap();
         for variable in variables.trainable_variables.iter() {
             let _v = variable.set_requires_grad(true);
         }
@@ -160,8 +160,8 @@ impl VarStore {
     /// All the variables in this var store have to exist with the same
     /// name in the source var store, otherwise an error is returned.
     pub fn copy(&mut self, src: &VarStore) -> Fallible<()> {
-        let mut variables = self.variables.lock().unwrap();
-        let src_variables = src.variables.lock().unwrap();
+        let mut variables = self.variables_.lock().unwrap();
+        let src_variables = src.variables_.lock().unwrap();
         let device = self.device;
         for name in variables.named_variables.keys() {
             if !src_variables.named_variables.contains_key(name) {
@@ -209,7 +209,7 @@ impl<'a> Path<'a> {
 
     fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
-        let mut variables = self.var_store.variables.lock().unwrap();
+        let mut variables = self.var_store.variables_.lock().unwrap();
         let path = if variables.named_variables.contains_key(&path) {
             format!("{}__{}", path, variables.named_variables.len())
         } else {
@@ -373,7 +373,7 @@ impl<'a> Path<'a> {
     /// Gets the tensor corresponding to a given name if present.
     pub fn get(&self, name: &str) -> Option<Tensor> {
         let path = self.path(name);
-        let variables = self.var_store.variables.lock().unwrap();
+        let variables = self.var_store.variables_.lock().unwrap();
         variables
             .named_variables
             .get(&path)
@@ -382,7 +382,7 @@ impl<'a> Path<'a> {
 
     /// Gets the entry corresponding to a given name for in-place manipulation.
     pub fn entry<'b>(&'b self, name: &'b str) -> Entry<'b> {
-        let variables = self.var_store.variables.lock().unwrap();
+        let variables = self.var_store.variables_.lock().unwrap();
         Entry {
             name,
             variables,

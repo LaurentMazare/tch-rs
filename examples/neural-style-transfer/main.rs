@@ -50,7 +50,7 @@ pub fn main() -> failure::Fallible<()> {
 
     let vs = nn::VarStore::new(device);
     let input_var = vs.root().var_copy("img", &content_img);
-    let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
+    let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
         let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));

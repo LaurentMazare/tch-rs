@@ -23,7 +23,7 @@ pub fn run() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = net(&vs.root());
-    let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    let mut opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..200 {
         let loss = net
             .forward(&m.train_images)

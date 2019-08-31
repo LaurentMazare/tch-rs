@@ -1,14 +1,16 @@
 //! Optimizers to be used for gradient-descent based training.
-use super::var_store::VarStore;
+use super::var_store::{VarStore, Variables};
 use crate::wrappers::optimizer::COptimizer;
 use crate::Tensor;
 use failure::Fallible;
+use std::sync::{Arc, Mutex};
 
 /// An optimizer to run gradient descent.
 #[derive(Debug)]
 pub struct Optimizer<T> {
     opt: COptimizer,
-    trainable_variables: Vec<Tensor>,
+    variables: Arc<Mutex<Variables>>,
+    variables_in_optimizer: usize,
     config: T,
 }
 
@@ -22,11 +24,12 @@ where
     /// Builds an optimizer with the specified learning rate handling variables stored in `vs`.
     fn build(self, vs: &VarStore, lr: f64) -> Fallible<Optimizer<Self>> {
         let mut opt = self.build_copt(lr)?;
-        let trainable_variables = vs.trainable_variables();
-        opt.add_parameters(&trainable_variables)?;
+        let v = vs.variables_.lock().unwrap();
+        opt.add_parameters(&v.trainable_variables)?;
         Ok(Optimizer {
             opt,
-            trainable_variables,
+            variables: vs.variables_.clone(),
+            variables_in_optimizer: v.trainable_variables.len(),
             config: self,
         })
     }
@@ -144,38 +147,55 @@ impl OptimizerConfig for RmsProp {
 }
 
 impl<T> Optimizer<T> {
+    fn add_missing_variables(&mut self) {
+        let v = self.variables.lock().unwrap();
+        let missing_variables = v.trainable_variables.len() - self.variables_in_optimizer;
+        println!("hey {} {}", self.variables_in_optimizer, missing_variables);
+        if missing_variables > 0 {
+            self.opt
+                .add_parameters(&v.trainable_variables[self.variables_in_optimizer..])
+                .unwrap();
+            self.variables_in_optimizer = v.trainable_variables.len();
+        }
+    }
+
     /// Zeroes the gradient for the tensors tracked by this optimizer.
-    pub fn zero_grad(&self) {
+    pub fn zero_grad(&mut self) {
+        self.add_missing_variables();
         self.opt.zero_grad().unwrap()
     }
 
     /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
-        for tensor in self.trainable_variables.iter() {
+        let v = self.variables.lock().unwrap();
+        for tensor in v.trainable_variables.iter() {
             let _t = tensor.grad().clamp_(-max, max);
         }
     }
 
     /// Performs an optimization step, updating the tracked tensors based on their gradients.
-    pub fn step(&self) {
+    pub fn step(&mut self) {
+        self.add_missing_variables();
         self.opt.step().unwrap()
     }
 
     /// Applies a backward step pass, update the gradients, and performs an optimization step.
-    pub fn backward_step(&self, loss: &Tensor) {
-        self.zero_grad();
+    pub fn backward_step(&mut self, loss: &Tensor) {
+        self.add_missing_variables();
+        self.opt.zero_grad().unwrap();
         loss.backward();
-        self.step();
+        self.opt.step().unwrap()
     }
 
     /// Applies a backward step pass, update the gradients, and performs an optimization step.
     ///
     /// The gradients are clipped based on `max` before being applied.
-    pub fn backward_step_clip(&self, loss: &Tensor, max: f64) {
-        self.zero_grad();
+    pub fn backward_step_clip(&mut self, loss: &Tensor, max: f64) {
+        self.add_missing_variables();
+        self.opt.zero_grad().unwrap();
         loss.backward();
         self.clip_grad_value(max);
-        self.step();
+        self.opt.step().unwrap()
     }
 
     /// Sets the optimizer learning rate.

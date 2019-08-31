@@ -41,12 +41,12 @@ fn optimizer_test() {
 
     // Fit a linear model (with deterministic initialization) on the data.
     let vs = nn::VarStore::new(Device::Cpu);
+    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     let cfg = nn::LinearConfig {
         ws_init: nn::Init::Const(0.),
         bs_init: Some(nn::Init::Const(0.)),
     };
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
-    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
@@ -111,7 +111,7 @@ fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
 fn gradient_descent_test() {
     let vs = nn::VarStore::new(Device::Cpu);
     let my_module = my_module(vs.root(), 7);
-    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
@@ -121,11 +121,10 @@ fn gradient_descent_test() {
 }
 
 #[test]
-fn my_test() {
+fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
-
     let x = Tensor::randn(&[10, 40], opts);
     let _y = x.apply_t(&bn, true);
 }

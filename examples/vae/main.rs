@@ -80,7 +80,7 @@ pub fn main() -> failure::Fallible<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(device);
     let vae = VAE::new(&vs.root());
-    let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    let mut opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..21 {
         let mut train_loss = 0f64;
         let mut samples = 0f64;

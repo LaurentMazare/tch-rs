@@ -224,7 +224,7 @@ pub fn main() -> failure::Fallible<()> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let model = Model::new(vs.root(), &ilang, &olang, HIDDEN_SIZE);
-    let opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
+    let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     let mut loss_stats = LossStats::new();
     for idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();

@@ -30,7 +30,7 @@ pub fn main() -> failure::Fallible<()> {
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let linear = nn::linear(vs.root(), 512, dataset.labels, Default::default());
-    let sgd = nn::Sgd::default().build(&vs, 1e-3)?;
+    let mut sgd = nn::Sgd::default().build(&vs, 1e-3)?;
 
     for epoch_idx in 1..1001 {
         let predicted = train_images.apply(&linear);
