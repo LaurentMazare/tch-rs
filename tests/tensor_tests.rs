@@ -261,3 +261,14 @@ fn bool_tensor() {
     assert_eq!(bool::from(&t2_any), true);
     assert_eq!(bool::from(&t2_all), true);
 }
+
+#[test]
+fn copy_overflow() {
+    let mut s = [3.14];
+    let r = Tensor::zeros(&[1], (tch::Kind::Int64, Device::Cpu)).f_copy_data(&mut s, 1);
+    assert!(r.is_err());
+
+    let mut s: [i8; 0] = [];
+    let r = Tensor::zeros(&[10000], (tch::Kind::Int8, Device::Cpu)).f_copy_data(&mut s, 10000);
+    assert!(r.is_err());
+}

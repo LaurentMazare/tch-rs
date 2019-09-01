@@ -198,22 +198,28 @@ impl Tensor {
         Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
     }
 
-    /// Copies `numel` elements from `src` to this tensor.
-    pub fn f_copy_data<T>(&self, dst: &mut [T], numel: usize) -> Fallible<()> {
-        let kind = self.kind();
+    /// Copies `numel` elements from `self` to `dst`.
+    pub fn f_copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) -> Fallible<()> {
+        ensure!(
+            T::KIND == self.kind(),
+            "incoherent elt kind, {:?} != {:?}",
+            self.kind(),
+            T::KIND
+        );
+        ensure!(dst.len() >= numel, "slice len < {}", numel);
         unsafe_torch_err!({
             at_copy_data(
                 self.c_tensor,
                 dst.as_mut_ptr() as *const c_void,
                 numel,
-                kind.elt_size_in_bytes(),
+                T::KIND.elt_size_in_bytes(),
             )
         });
         Ok(())
     }
 
-    /// Copies `numel` elements from `src` to this tensor.
-    pub fn copy_data<T>(&self, dst: &mut [T], numel: usize) {
+    /// Copies `numel` elements from `self` to `dst`.
+    pub fn copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) {
         self.f_copy_data(dst, numel).unwrap()
     }
 
