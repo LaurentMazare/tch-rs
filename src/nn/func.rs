@@ -3,7 +3,7 @@ use crate::Tensor;
 
 /// A layer defined by a simple closure.
 pub struct Func<'a> {
-    f: Box<Fn(&Tensor) -> Tensor + 'a>,
+    f: Box<dyn Fn(&Tensor) -> Tensor + 'a>,
 }
 
 impl<'a> std::fmt::Debug for Func<'a> {
@@ -28,7 +28,7 @@ impl<'a> super::module::Module for Func<'a> {
 
 /// A layer defined by a closure with an additional training parameter.
 pub struct FuncT<'a> {
-    f: Box<Fn(&Tensor, bool) -> Tensor + 'a>,
+    f: Box<dyn Fn(&Tensor, bool) -> Tensor + 'a>,
 }
 
 impl<'a> std::fmt::Debug for FuncT<'a> {
