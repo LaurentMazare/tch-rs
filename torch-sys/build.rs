@@ -71,17 +71,23 @@ fn prepare_libtorch_dir() -> PathBuf {
 
     let device = match env::var("TORCH_CUDA_VERSION") {
         Ok(cuda_env) => match os.as_str() {
-            "linux" => match cuda_env.trim_start() {
-                "9.0" | "90" | "cu90" => "cu90",
-                version => panic!("Unsupported CUDA version specified: {}", version),
-            },
+            "linux" => cuda_env
+                .trim()
+                .to_lowercase()
+                .trim_start_matches("cu")
+                .split(".")
+                .take(2)
+                .fold("cu".to_string(), |mut acc, curr| {
+                    acc += curr;
+                    acc
+                }),
             os_str => panic!(
                 "CUDA was specified with `TORCH_CUDA_VERSION`, but pre-built \
                  binaries with CUDA are only available for Linux, not: {}.",
                 os_str
             ),
         },
-        Err(_) => "cpu",
+        Err(_) => "cpu".to_string(),
     };
 
     if let Ok(libtorch) = env::var("LIBTORCH") {
