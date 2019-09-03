@@ -150,7 +150,7 @@ impl<T> Optimizer<T> {
     fn add_missing_variables(&mut self) {
         let v = self.variables.lock().unwrap();
         let missing_variables = v.trainable_variables.len() - self.variables_in_optimizer;
-        println!("hey {} {}", self.variables_in_optimizer, missing_variables);
+
         if missing_variables > 0 {
             self.opt
                 .add_parameters(&v.trainable_variables[self.variables_in_optimizer..])
