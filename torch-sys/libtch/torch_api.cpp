@@ -420,11 +420,11 @@ void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
 void ato_set_learning_rate(optimizer t, double learning_rate) {
   PROTECT(
     if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.learning_rate_ = learning_rate;
+      adam->options.learning_rate(learning_rate);
     else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.learning_rate_ = learning_rate;
+      rms->options.learning_rate(learning_rate);
     else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.learning_rate_ = learning_rate;
+      sgd->options.learning_rate(learning_rate);
     else
       throw std::invalid_argument("unexpected optimizer");
   )
@@ -433,11 +433,11 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
 void ato_set_momentum(optimizer t, double momentum) {
   PROTECT(
     if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.beta1_ = momentum;
+      adam->options.beta1(momentum);
     else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.momentum_ = momentum;
+      rms->options.momentum(momentum);
     else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.momentum_ = momentum;
+      sgd->options.momentum(momentum);
     else
      throw std::invalid_argument("unexpected optimizer");
   )
@@ -570,7 +570,7 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
   PROTECT(
     vector<torch::jit::IValue> vec;
     for (int i = 0; i < nvalues; ++i) vec.push_back(*(is[i]));
-    return new torch::jit::IValue(torch::ivalue::Tuple::create(vec, c10::TupleType::create({})));
+    return new torch::jit::IValue(torch::ivalue::Tuple::create(vec));
   )
   return nullptr;
 }

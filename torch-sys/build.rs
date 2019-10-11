@@ -19,7 +19,7 @@ use curl::easy::Easy;
 use failure::Fallible;
 use zip;
 
-const TORCH_VERSION: &'static str = "1.2.0";
+const TORCH_VERSION: &'static str = "1.3.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
@@ -98,7 +98,7 @@ fn prepare_libtorch_dir() -> PathBuf {
             fs::create_dir(&libtorch_dir).unwrap_or_default();
             let libtorch_url = match os.as_str() {
                 "linux" => format!(
-                    "https://download.pytorch.org/libtorch/{}/libtorch-shared-with-deps-{}.zip",
+                    "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}+cpu.zip",
                     device, TORCH_VERSION
                 ),
                 "macos" => format!(
@@ -126,7 +126,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
 
     match os.as_str() {
         "linux" | "macos" => {
-            let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("0".to_string());
+            let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)
