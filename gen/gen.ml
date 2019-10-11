@@ -18,6 +18,8 @@ let excluded_functions =
     ; "copy_"
     ; "conv_transpose2d_backward_out"
     ; "conv_transpose3d_backward_out"
+    ; "slow_conv_transpose2d_backward_out"
+    ; "slow_conv_transpose3d_backward_out"
     ; "normal"
     ]
 
