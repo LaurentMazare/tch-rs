@@ -98,8 +98,8 @@ fn prepare_libtorch_dir() -> PathBuf {
             fs::create_dir(&libtorch_dir).unwrap_or_default();
             let libtorch_url = match os.as_str() {
                 "linux" => format!(
-                    "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}%2Bcpu.zip",
-                    device, TORCH_VERSION
+                    "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
+                    device, TORCH_VERSION, match device.as_ref() { "cpu" => "%2Bcpu", "cu92" => "%2Bcu92", _ => "" }
                 ),
                 "macos" => format!(
                     "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
