@@ -102,10 +102,8 @@ impl CModule {
             .collect::<Fallible<Vec<_>>>()?;
         let c_ivalue =
             unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
-        // TODO: this only frees the first ivalue layer, a 'deep' free would probably
-        // be needed for tuples.
         for x in ts {
-            unsafe { ati_free(x) }
+            unsafe { ati_free_deep(x) }
         }
         IValue::of_c(c_ivalue)
     }
