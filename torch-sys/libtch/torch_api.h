@@ -134,7 +134,6 @@ void ati_to_tuple(ivalue, ivalue *, int);
 int ati_tag(ivalue);
 
 void ati_free(ivalue);
-void ati_free_deep(ivalue);
 
 #include "torch_api_generated.h"
 

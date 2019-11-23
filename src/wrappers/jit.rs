@@ -24,7 +24,13 @@ impl IValue {
                 IValue::Double(f) => ati_double(*f),
                 IValue::Tuple(v) => {
                     let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
-                    ati_tuple(v.as_ptr(), v.len() as c_int)
+                    let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
+                    
+                    for x in v {
+                        ati_free(x);
+                    }
+
+                    tuple
                 }
             }
         });
@@ -103,7 +109,7 @@ impl CModule {
         let c_ivalue =
             unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
         for x in ts {
-            unsafe { ati_free_deep(x) }
+            unsafe { ati_free(x) }
         }
         IValue::of_c(c_ivalue)
     }
