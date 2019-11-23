@@ -632,12 +632,4 @@ void ati_free(ivalue i) {
   delete(i);
 }
 
-void ati_free_deep(ivalue i) {
-  if (i->isTuple()) {
-    auto vec = i->toTuple()->elements();
-    for (int j = 0; j < vec.size(); ++j) ati_free_deep(&vec[j]);
-  }
-  delete(i);
-}
-
 #include "torch_api_generated.cpp.h"

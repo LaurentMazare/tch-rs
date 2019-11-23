@@ -153,7 +153,6 @@ extern "C" {
     pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int) -> c_int;
 
     pub fn ati_free(arg: *mut CIValue);
-    pub fn ati_free_deep(arg: *mut CIValue);
 
     pub fn atm_load(filename: *const c_char) -> *mut CModule_;
     pub fn atm_forward(m: *mut CModule_, args: *const *mut C_tensor, n: c_int) -> *mut C_tensor;
