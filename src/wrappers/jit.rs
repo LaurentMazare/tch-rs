@@ -25,7 +25,6 @@ impl IValue {
                 IValue::Tuple(v) => {
                     let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
                     let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
-                    
                     for x in v {
                         ati_free(x);
                     }
