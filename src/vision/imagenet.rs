@@ -12,7 +12,7 @@ lazy_static! {
         { Mutex::new(Tensor::of_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1))) };
 }
 
-fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
+pub fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
     (tensor.to_kind(Kind::Float) / 255.0)
@@ -20,7 +20,7 @@ fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
         .f_div(&std)
 }
 
-fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
+pub fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
     let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0)
