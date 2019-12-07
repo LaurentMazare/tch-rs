@@ -25,16 +25,13 @@ fn jit2() {
     let foo = tch::CModule::load("tests/foo2.pt").unwrap();
     let result = foo
         .forward_is(&[
-            IValue::Tensor(Tensor::from(42)),
-            IValue::Tensor(Tensor::from(1337)),
+            IValue::from(Tensor::from(42)),
+            IValue::from(Tensor::from(1337)),
         ])
         .unwrap();
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);
-    assert_eq!(
-        result,
-        IValue::Tuple(vec![IValue::Tensor(expected1), IValue::Tensor(expected2)])
-    )
+    assert_eq!(result, IValue::from((expected1, expected2)))
 }
 
 #[test]
