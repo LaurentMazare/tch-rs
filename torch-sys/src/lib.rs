@@ -137,6 +137,8 @@ pub struct CModule_ {
 
 extern "C" {
     // Constructors
+    pub fn ati_none() -> *mut CIValue;
+    pub fn ati_bool(b: c_int) -> *mut CIValue;
     pub fn ati_int(v: i64) -> *mut CIValue;
     pub fn ati_double(v: f64) -> *mut CIValue;
     pub fn ati_tensor(v: *mut C_tensor) -> *mut CIValue;
@@ -147,6 +149,7 @@ extern "C" {
 
     // Getters
     pub fn ati_to_int(arg: *mut CIValue) -> i64;
+    pub fn ati_to_bool(arg: *mut CIValue) -> c_int;
     pub fn ati_to_double(arg: *mut CIValue) -> f64;
     pub fn ati_to_tensor(arg: *mut CIValue) -> *mut C_tensor;
     pub fn ati_tuple_length(arg: *mut CIValue) -> c_int;

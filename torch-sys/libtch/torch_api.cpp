@@ -566,6 +566,20 @@ ivalue ati_double(double d) {
   return nullptr;
 }
 
+ivalue ati_bool(int i) {
+  PROTECT(
+    return new torch::jit::IValue((bool)i);
+  )
+  return nullptr;
+}
+
+ivalue ati_none() {
+  PROTECT(
+    return new torch::jit::IValue();
+  )
+  return nullptr;
+}
+
 ivalue ati_tuple(ivalue *is, int nvalues) {
   PROTECT(
     vector<torch::jit::IValue> vec;
@@ -577,10 +591,12 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
 
 int ati_tag(ivalue i) {
   PROTECT(
-    if (i->isTensor()) return 0;
-    else if (i->isInt()) return 1;
+    if (i->isNone()) return 0;
+    else if (i->isTensor()) return 1;
     else if (i->isDouble()) return 2;
-    else if (i->isTuple()) return 3;
+    else if (i->isInt()) return 3;
+    else if (i->isBool()) return 4;
+    else if (i->isTuple()) return 5;
     throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
   )
@@ -599,6 +615,13 @@ double ati_to_double(ivalue i) {
     return i->toDouble();
   )
   return 0;
+}
+
+int ati_to_bool(ivalue i) {
+  PROTECT(
+    return i->toBool();
+  )
+  return -1;
 }
 
 tensor ati_to_tensor(ivalue i) {

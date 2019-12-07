@@ -9,9 +9,11 @@ use torch_sys::*;
 /// Argument and output values for JIT models.
 #[derive(Debug, PartialEq)]
 pub enum IValue {
+    None,
     Tensor(crate::Tensor),
-    Int(i64),
     Double(f64),
+    Int(i64),
+    Bool(bool),
     Tuple(Vec<IValue>),
 }
 
@@ -21,7 +23,9 @@ impl IValue {
             match self {
                 IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
                 IValue::Int(i) => ati_int(*i),
+                IValue::None => ati_none(),
                 IValue::Double(f) => ati_double(*f),
+                IValue::Bool(b) => ati_bool(if *b { 1 } else { 0 }),
                 IValue::Tuple(v) => {
                     let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
                     let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
@@ -40,13 +44,19 @@ impl IValue {
     pub(super) fn of_c(c_ivalue: *mut CIValue) -> Fallible<Self> {
         let tag = unsafe_torch_err!({ ati_tag(c_ivalue) });
         let v = match tag {
-            0 => {
+            0 => IValue::None,
+            1 => {
                 let c_tensor = unsafe_torch_err!({ ati_to_tensor(c_ivalue) });
                 IValue::Tensor(crate::Tensor { c_tensor })
             }
-            1 => IValue::Int(unsafe_torch_err!({ ati_to_int(c_ivalue) })),
             2 => IValue::Double(unsafe_torch_err!({ ati_to_double(c_ivalue) })),
-            3 => {
+            3 => IValue::Int(unsafe_torch_err!({ ati_to_int(c_ivalue) })),
+            4 => {
+                let b = unsafe_torch_err!({ ati_to_bool(c_ivalue) });
+                ensure!(b >= 0, "unexpected bool value {}", b);
+                IValue::Bool(b != 0)
+            }
+            5 => {
                 let len = unsafe_torch_err!({ ati_tuple_length(c_ivalue) });
                 let mut c_ivalues: Vec<_> =
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
