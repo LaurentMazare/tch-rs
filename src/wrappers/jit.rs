@@ -18,6 +18,48 @@ pub enum IValue {
     String(String),
 }
 
+impl From<()> for IValue {
+    fn from((): ()) -> Self {
+        IValue::None
+    }
+}
+
+impl<T1: Into<IValue>, T2: Into<IValue>> From<(T1, T2)> for IValue {
+    fn from((p1, p2): (T1, T2)) -> Self {
+        IValue::Tuple(vec![p1.into(), p2.into()])
+    }
+}
+
+impl<T1: Into<IValue>, T2: Into<IValue>, T3: Into<IValue>> From<(T1, T2, T3)> for IValue {
+    fn from((p1, p2, p3): (T1, T2, T3)) -> Self {
+        IValue::Tuple(vec![p1.into(), p2.into(), p3.into()])
+    }
+}
+
+impl<T1: Into<IValue>, T2: Into<IValue>, T3: Into<IValue>, T4: Into<IValue>> From<(T1, T2, T3, T4)>
+    for IValue
+{
+    fn from((p1, p2, p3, p4): (T1, T2, T3, T4)) -> Self {
+        IValue::Tuple(vec![p1.into(), p2.into(), p3.into(), p4.into()])
+    }
+}
+
+macro_rules! impl_from {
+    ($type_:ident, $cons:ident) => {
+        impl From<$type_> for IValue {
+            fn from(v: $type_) -> Self {
+                IValue::$cons(v)
+            }
+        }
+    };
+}
+
+impl_from!(i64, Int);
+impl_from!(f64, Double);
+impl_from!(bool, Bool);
+impl_from!(String, String);
+impl_from!(Tensor, Tensor);
+
 impl IValue {
     pub(super) fn to_c(&self) -> Fallible<*mut CIValue> {
         let c = unsafe_torch_err!({
@@ -140,20 +182,21 @@ impl CModule {
 #[cfg(test)]
 mod tests {
     use super::IValue;
-    fn round_trip(ivalue: IValue) {
+    fn round_trip<T: Into<IValue>>(t: T) {
+        let ivalue: IValue = t.into();
         let ivalue2 = IValue::of_c(ivalue.to_c().unwrap()).unwrap();
         assert_eq!(ivalue, ivalue2);
     }
     #[test]
     fn ivalue_round_trip() {
-        round_trip(IValue::None);
-        round_trip(IValue::Bool(true));
-        round_trip(IValue::Bool(false));
-        round_trip(IValue::Int(-1));
-        round_trip(IValue::Int(42));
-        round_trip(IValue::Double(3.1415));
-        round_trip(IValue::String("".to_string()));
-        round_trip(IValue::String("foobar".to_string()));
-        round_trip(IValue::Tuple(vec![IValue::Int(42), IValue::Double(3.1415)]));
+        round_trip(());
+        round_trip(true);
+        round_trip(false);
+        round_trip(-1);
+        round_trip(42);
+        round_trip(3.1415);
+        round_trip("".to_string());
+        round_trip("foobar".to_string());
+        round_trip((42, 3.1415));
     }
 }
