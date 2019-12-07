@@ -159,7 +159,11 @@ extern "C" {
     pub fn ati_to_tensor(arg: *mut CIValue) -> *mut C_tensor;
     pub fn ati_length(arg: *mut CIValue) -> c_int;
     pub fn ati_tuple_length(arg: *mut CIValue) -> c_int;
-    pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int) -> c_int;
+    pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int);
+    pub fn ati_to_int_list(arg: *mut CIValue, outputs: *mut i64, n: c_int);
+    pub fn ati_to_double_list(arg: *mut CIValue, outputs: *mut f64, n: c_int);
+    pub fn ati_to_bool_list(arg: *mut CIValue, outputs: *mut c_char, n: c_int);
+    pub fn ati_to_tensor_list(arg: *mut CIValue, outputs: *mut *mut C_tensor, n: c_int);
     pub fn ati_to_string(arg: *mut CIValue) -> *mut c_char;
 
     pub fn ati_free(arg: *mut CIValue);

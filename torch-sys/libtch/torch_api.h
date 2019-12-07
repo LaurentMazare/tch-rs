@@ -140,6 +140,10 @@ int ati_to_bool(ivalue);
 int ati_length(ivalue);
 int ati_tuple_length(ivalue);
 void ati_to_tuple(ivalue, ivalue *, int);
+void ati_to_int_list(ivalue, int64_t *, int);
+void ati_to_double_list(ivalue, double *, int);
+void ati_to_bool_list(ivalue, char *, int);
+void ati_to_tensor_list(ivalue, tensor *, int);
 
 int ati_tag(ivalue);
 

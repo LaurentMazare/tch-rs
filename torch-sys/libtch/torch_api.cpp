@@ -599,8 +599,8 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
 
 ivalue ati_int_list(int64_t *is, int nvalues) {
   PROTECT(
-    c10::List<int64_t> vec(nvalues); 
-    for (int i = 0; i < nvalues; ++i) vec[i] = is[i];
+    c10::List<int64_t> vec;
+    for (int i = 0; i < nvalues; ++i) vec.push_back(is[i]);
     return new torch::jit::IValue(vec);
   )
   return nullptr;
@@ -608,8 +608,8 @@ ivalue ati_int_list(int64_t *is, int nvalues) {
 
 ivalue ati_double_list(double *is, int nvalues) {
   PROTECT(
-    c10::List<double> vec(nvalues); 
-    for (int i = 0; i < nvalues; ++i) vec[i] = is[i];
+    c10::List<double> vec; 
+    for (int i = 0; i < nvalues; ++i) vec.push_back(is[i]);
     return new torch::jit::IValue(vec);
   )
   return nullptr;
@@ -617,8 +617,8 @@ ivalue ati_double_list(double *is, int nvalues) {
 
 ivalue ati_bool_list(char *is, int nvalues) {
   PROTECT(
-    c10::List<bool> vec(nvalues); 
-    for (int i = 0; i < nvalues; ++i) vec[i] = is[i] != 0;
+    c10::List<bool> vec; 
+    for (int i = 0; i < nvalues; ++i) vec.push_back(is[i] != 0);
     return new torch::jit::IValue(vec);
   )
   return nullptr;
@@ -725,6 +725,59 @@ void ati_to_tuple(ivalue i,
       outputs[i] = new torch::jit::IValue(vec[i]);
   )
 }
+
+void ati_to_int_list(ivalue i,
+                  int64_t *outputs,
+                  int noutputs) {
+  PROTECT(
+    auto vec = i->toIntList();
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected list size");
+    }
+    for (int i = 0; i < noutputs; ++i)
+      outputs[i] = vec[i];
+  )
+}
+
+void ati_to_double_list(ivalue i,
+                        double *outputs,
+                        int noutputs) {
+  PROTECT(
+    auto vec = i->toDoubleList();
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected list size");
+    }
+    for (int i = 0; i < noutputs; ++i)
+      outputs[i] = vec[i];
+  )
+}
+
+void ati_to_bool_list(ivalue i,
+                      char *outputs,
+                      int noutputs) {
+  PROTECT(
+    auto vec = i->toBoolList();
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected list size");
+    }
+    for (int i = 0; i < noutputs; ++i)
+      outputs[i] = vec[i];
+  )
+}
+
+void ati_to_tensor_list(ivalue i,
+                        tensor *outputs,
+                        int noutputs) {
+  PROTECT(
+    auto vec = i->toTensorList();
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected tuple size");
+    }
+    for (int i = 0; i < noutputs; ++i)
+      outputs[i] = new torch::Tensor(vec[i]);
+  )
+}
+
 
 void ati_free(ivalue i) {
   delete(i);

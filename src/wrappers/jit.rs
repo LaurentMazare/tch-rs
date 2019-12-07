@@ -49,7 +49,7 @@ impl<T1: Into<IValue>, T2: Into<IValue>, T3: Into<IValue>, T4: Into<IValue>> Fro
 }
 
 macro_rules! impl_from {
-    ($type_:ident, $cons:ident) => {
+    ($type_:ty, $cons:ident) => {
         impl From<$type_> for IValue {
             fn from(v: $type_) -> Self {
                 IValue::$cons(v)
@@ -63,6 +63,10 @@ impl_from!(f64, Double);
 impl_from!(bool, Bool);
 impl_from!(String, String);
 impl_from!(Tensor, Tensor);
+impl_from!(Vec<i64>, IntList);
+impl_from!(Vec<f64>, DoubleList);
+impl_from!(Vec<bool>, BoolList);
+impl_from!(Vec<crate::Tensor>, TensorList);
 
 impl From<&str> for IValue {
     fn from(s: &str) -> Self {
@@ -134,9 +138,24 @@ impl IValue {
                     .collect();
                 IValue::Tuple(vec?)
             }
-            6 => bail!("IntList is not currently supported"),
-            7 => bail!("DoubleList is not currently supported"),
-            8 => bail!("BoolList is not currently supported"),
+            6 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_array = vec![0i64; len as usize];
+                unsafe_torch_err!(ati_to_int_list(c_ivalue, c_array.as_mut_ptr(), len));
+                IValue::IntList(c_array)
+            }
+            7 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_array = vec![0f64; len as usize];
+                unsafe_torch_err!(ati_to_double_list(c_ivalue, c_array.as_mut_ptr(), len));
+                IValue::DoubleList(c_array)
+            }
+            8 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_array = vec![0i8; len as usize];
+                unsafe_torch_err!(ati_to_bool_list(c_ivalue, c_array.as_mut_ptr(), len));
+                IValue::BoolList(c_array.iter().map(|&x| x != 0).collect())
+            }
             9 => {
                 let ptr = unsafe_torch_err!({ ati_to_string(c_ivalue) });
                 let string = match unsafe { ptr_to_string(ptr) } {
@@ -145,7 +164,17 @@ impl IValue {
                 };
                 IValue::String(string)
             }
-            10 => bail!("TensorList is not currently supported"),
+            10 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_tensors: Vec<_> =
+                    (0..len).map(|_| std::ptr::null_mut::<C_tensor>()).collect();
+                unsafe_torch_err!(ati_to_tensor_list(c_ivalue, c_tensors.as_mut_ptr(), len));
+                let vec: Vec<_> = c_tensors
+                    .iter()
+                    .map(|&c_tensor| (Tensor { c_tensor }))
+                    .collect();
+                IValue::TensorList(vec)
+            }
             12 => bail!("GenericList is not currently supported"),
             13 => bail!("GenericDict is not currently supported"),
             _ => bail!("unhandled tag {}", tag),
@@ -224,5 +253,11 @@ mod tests {
         round_trip("".to_string());
         round_trip("foobar".to_string());
         round_trip((42, 3.1415));
+        round_trip(vec![42, 1337]);
+        round_trip(vec![2.71828, 3.141592, 299792458.00001]);
+        round_trip((
+            vec![true, false, true, true],
+            vec![2.71828, 3.141592, 299792458.00001],
+        ));
     }
 }
