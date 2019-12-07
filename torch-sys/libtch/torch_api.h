@@ -125,11 +125,13 @@ ivalue ati_tensor(tensor);
 ivalue ati_int(int64_t);
 ivalue ati_double(double);
 ivalue ati_bool(int);
+ivalue ati_string(char*);
 ivalue ati_tuple(ivalue *, int);
 
 tensor ati_to_tensor(ivalue);
 int64_t ati_to_int(ivalue);
 double ati_to_double(ivalue);
+char *ati_to_string(ivalue);
 int ati_to_bool(ivalue);
 int ati_tuple_length(ivalue);
 void ati_to_tuple(ivalue, ivalue *, int);

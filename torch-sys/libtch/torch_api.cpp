@@ -573,6 +573,14 @@ ivalue ati_bool(int i) {
   return nullptr;
 }
 
+ivalue ati_string(char *s) {
+  PROTECT(
+    string str(s);
+    return new torch::jit::IValue(str);
+  )
+  return nullptr;
+}
+
 ivalue ati_none() {
   PROTECT(
     return new torch::jit::IValue();
@@ -597,6 +605,7 @@ int ati_tag(ivalue i) {
     else if (i->isInt()) return 3;
     else if (i->isBool()) return 4;
     else if (i->isTuple()) return 5;
+    else if (i->isString()) return 9;
     throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
   )
@@ -622,6 +631,14 @@ int ati_to_bool(ivalue i) {
     return i->toBool();
   )
   return -1;
+}
+
+char *ati_to_string(ivalue i) {
+  PROTECT(
+    auto str = i->toStringRef();
+    return strdup(str.c_str());
+  )
+  return nullptr;
 }
 
 tensor ati_to_tensor(ivalue i) {
