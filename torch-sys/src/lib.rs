@@ -144,6 +144,10 @@ extern "C" {
     pub fn ati_tensor(v: *mut C_tensor) -> *mut CIValue;
     pub fn ati_string(s: *const c_char) -> *mut CIValue;
     pub fn ati_tuple(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
+    pub fn ati_int_list(v: *const i64, n: c_int) -> *mut CIValue;
+    pub fn ati_double_list(v: *const f64, n: c_int) -> *mut CIValue;
+    pub fn ati_bool_list(v: *const c_char, n: c_int) -> *mut CIValue;
+    pub fn ati_tensor_list(v: *const *mut C_tensor, n: c_int) -> *mut CIValue;
 
     // Type query
     pub fn ati_tag(arg: *mut CIValue) -> c_int;
@@ -153,6 +157,7 @@ extern "C" {
     pub fn ati_to_bool(arg: *mut CIValue) -> c_int;
     pub fn ati_to_double(arg: *mut CIValue) -> f64;
     pub fn ati_to_tensor(arg: *mut CIValue) -> *mut C_tensor;
+    pub fn ati_length(arg: *mut CIValue) -> c_int;
     pub fn ati_tuple_length(arg: *mut CIValue) -> c_int;
     pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int) -> c_int;
     pub fn ati_to_string(arg: *mut CIValue) -> *mut c_char;

@@ -597,6 +597,42 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_int_list(int64_t *is, int nvalues) {
+  PROTECT(
+    c10::List<int64_t> vec(nvalues); 
+    for (int i = 0; i < nvalues; ++i) vec[i] = is[i];
+    return new torch::jit::IValue(vec);
+  )
+  return nullptr;
+}
+
+ivalue ati_double_list(double *is, int nvalues) {
+  PROTECT(
+    c10::List<double> vec(nvalues); 
+    for (int i = 0; i < nvalues; ++i) vec[i] = is[i];
+    return new torch::jit::IValue(vec);
+  )
+  return nullptr;
+}
+
+ivalue ati_bool_list(char *is, int nvalues) {
+  PROTECT(
+    c10::List<bool> vec(nvalues); 
+    for (int i = 0; i < nvalues; ++i) vec[i] = is[i] != 0;
+    return new torch::jit::IValue(vec);
+  )
+  return nullptr;
+}
+
+ivalue ati_tensor_list(tensor *is, int nvalues) {
+  PROTECT(
+    c10::List<at::Tensor> vec;
+    for (int i = 0; i < nvalues; ++i) vec.push_back(*(is[i]));
+    return new torch::jit::IValue(vec);
+  )
+  return nullptr;
+}
+
 int ati_tag(ivalue i) {
   PROTECT(
     if (i->isNone()) return 0;
@@ -605,7 +641,13 @@ int ati_tag(ivalue i) {
     else if (i->isInt()) return 3;
     else if (i->isBool()) return 4;
     else if (i->isTuple()) return 5;
+    else if (i->isIntList()) return 6;
+    else if (i->isDoubleList()) return 7;
+    else if (i->isBoolList()) return 8;
     else if (i->isString()) return 9;
+    else if (i->isTensorList()) return 10;
+    else if (i->isGenericList()) return 12;
+    else if (i->isGenericDict()) return 13;
     throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
   )
@@ -646,6 +688,22 @@ tensor ati_to_tensor(ivalue i) {
     return new torch::Tensor(i->toTensor());
   )
   return nullptr;
+}
+
+int ati_length(ivalue i) {
+  PROTECT(
+    if (i->isTuple()) return i->toTuple()->elements().size();
+    else if (i->isIntList()) return i->toIntList().size();
+    else if (i->isDoubleList()) return i->toDoubleList().size();
+    else if (i->isBoolList()) return i->toBoolList().size();
+    else if (i->isString()) return i->toStringRef().size();
+    else if (i->isTensorList()) return i->toTensorList().size();
+    else if (i->isGenericList()) return i->toGenericList().size();
+    else if (i->isGenericDict()) return i->toGenericDict().size();
+    throw std::invalid_argument(("unsupported tag for length " + i->tagKind()).c_str());
+    return -1;
+  )
+  return -1;
 }
 
 int ati_tuple_length(ivalue i) {

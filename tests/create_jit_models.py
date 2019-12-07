@@ -59,6 +59,4 @@ class Foo4(torch.jit.ScriptModule):
         return x[0] + x[1] * x[2]
 
 foo = Foo4()
-print(dir(foo))
-print(foo._methods)
 foo.save('foo4.pt')

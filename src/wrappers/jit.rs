@@ -15,7 +15,11 @@ pub enum IValue {
     Int(i64),
     Bool(bool),
     Tuple(Vec<IValue>),
+    IntList(Vec<i64>),
+    DoubleList(Vec<f64>),
+    BoolList(Vec<bool>),
     String(String),
+    TensorList(Vec<crate::Tensor>),
 }
 
 impl From<()> for IValue {
@@ -84,6 +88,16 @@ impl IValue {
 
                     tuple
                 }
+                IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
+                IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
+                IValue::BoolList(v) => {
+                    let v: Vec<i8> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
+                    ati_bool_list(v.as_ptr(), v.len() as c_int)
+                }
+                IValue::TensorList(v) => {
+                    let v = v.iter().map(|t| t.c_tensor).collect::<Vec<_>>();
+                    ati_tensor_list(v.as_ptr(), v.len() as c_int)
+                }
                 IValue::String(string) => {
                     let c_str = std::ffi::CString::new(string.as_str())?;
                     ati_string(c_str.as_ptr())
@@ -120,6 +134,9 @@ impl IValue {
                     .collect();
                 IValue::Tuple(vec?)
             }
+            6 => bail!("IntList is not currently supported"),
+            7 => bail!("DoubleList is not currently supported"),
+            8 => bail!("BoolList is not currently supported"),
             9 => {
                 let ptr = unsafe_torch_err!({ ati_to_string(c_ivalue) });
                 let string = match unsafe { ptr_to_string(ptr) } {
@@ -128,6 +145,9 @@ impl IValue {
                 };
                 IValue::String(string)
             }
+            10 => bail!("TensorList is not currently supported"),
+            12 => bail!("GenericList is not currently supported"),
+            13 => bail!("GenericDict is not currently supported"),
             _ => bail!("unhandled tag {}", tag),
         };
         unsafe_torch_err!({ ati_free(c_ivalue) });
