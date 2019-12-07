@@ -142,6 +142,7 @@ extern "C" {
     pub fn ati_int(v: i64) -> *mut CIValue;
     pub fn ati_double(v: f64) -> *mut CIValue;
     pub fn ati_tensor(v: *mut C_tensor) -> *mut CIValue;
+    pub fn ati_string(s: *const c_char) -> *mut CIValue;
     pub fn ati_tuple(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
 
     // Type query
@@ -154,6 +155,7 @@ extern "C" {
     pub fn ati_to_tensor(arg: *mut CIValue) -> *mut C_tensor;
     pub fn ati_tuple_length(arg: *mut CIValue) -> c_int;
     pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int) -> c_int;
+    pub fn ati_to_string(arg: *mut CIValue) -> *mut c_char;
 
     pub fn ati_free(arg: *mut CIValue);
 

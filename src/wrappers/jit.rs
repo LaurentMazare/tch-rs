@@ -1,5 +1,5 @@
 //! JIT interface to run model trained/saved using PyTorch Python API.
-use super::utils::path_to_cstring;
+use super::utils::{path_to_cstring, ptr_to_string};
 use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
@@ -15,6 +15,7 @@ pub enum IValue {
     Int(i64),
     Bool(bool),
     Tuple(Vec<IValue>),
+    String(String),
 }
 
 impl IValue {
@@ -34,6 +35,10 @@ impl IValue {
                     }
 
                     tuple
+                }
+                IValue::String(string) => {
+                    let c_str = std::ffi::CString::new(string.as_str())?;
+                    ati_string(c_str.as_ptr())
                 }
             }
         });
@@ -66,6 +71,11 @@ impl IValue {
                     .map(|&c_ivalue| (Self::of_c(c_ivalue)))
                     .collect();
                 IValue::Tuple(vec?)
+            }
+            9 => {
+                let ptr = unsafe_torch_err!({ ati_to_string(c_ivalue) });
+                let string = unsafe { ptr_to_string(ptr) }.unwrap(); // TODO: better error handling
+                IValue::String(string)
             }
             _ => Err(format_err!("unhandled tag {}", tag))?,
         };
