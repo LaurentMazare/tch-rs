@@ -74,10 +74,13 @@ impl IValue {
             }
             9 => {
                 let ptr = unsafe_torch_err!({ ati_to_string(c_ivalue) });
-                let string = unsafe { ptr_to_string(ptr) }.unwrap(); // TODO: better error handling
+                let string = match unsafe { ptr_to_string(ptr) } {
+                    None => bail!("unable to decode string"),
+                    Some(s) => s,
+                };
                 IValue::String(string)
             }
-            _ => Err(format_err!("unhandled tag {}", tag))?,
+            _ => bail!("unhandled tag {}", tag),
         };
         unsafe_torch_err!({ ati_free(c_ivalue) });
         Ok(v)
@@ -137,10 +140,20 @@ impl CModule {
 #[cfg(test)]
 mod tests {
     use super::IValue;
-    #[test]
-    fn ivalue() {
-        let ivalue = IValue::Tuple(vec![IValue::Int(42), IValue::Double(3.1415)]);
+    fn round_trip(ivalue: IValue) {
         let ivalue2 = IValue::of_c(ivalue.to_c().unwrap()).unwrap();
-        assert_eq!(format!("{:?}", ivalue), format!("{:?}", ivalue2));
+        assert_eq!(ivalue, ivalue2);
+    }
+    #[test]
+    fn ivalue_round_trip() {
+        round_trip(IValue::None);
+        round_trip(IValue::Bool(true));
+        round_trip(IValue::Bool(false));
+        round_trip(IValue::Int(-1));
+        round_trip(IValue::Int(42));
+        round_trip(IValue::Double(3.1415));
+        round_trip(IValue::String("".to_string()));
+        round_trip(IValue::String("foobar".to_string()));
+        round_trip(IValue::Tuple(vec![IValue::Int(42), IValue::Double(3.1415)]));
     }
 }
