@@ -48,3 +48,17 @@ class Foo3(torch.jit.ScriptModule):
 foo = Foo3()
 foo.save('foo3.pt')
 
+from typing import Tuple
+
+class Foo4(torch.jit.ScriptModule):
+    def __init__(self):
+        super(Foo4, self).__init__()
+
+    @torch.jit.script_method
+    def forward(self, x: Tuple[float, float, int]):
+        return x[0] + x[1] * x[2]
+
+foo = Foo4()
+print(dir(foo))
+print(foo._methods)
+foo.save('foo4.pt')

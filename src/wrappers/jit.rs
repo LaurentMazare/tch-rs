@@ -60,6 +60,12 @@ impl_from!(bool, Bool);
 impl_from!(String, String);
 impl_from!(Tensor, Tensor);
 
+impl From<&str> for IValue {
+    fn from(s: &str) -> Self {
+        IValue::String(s.to_string())
+    }
+}
+
 impl IValue {
     pub(super) fn to_c(&self) -> Fallible<*mut CIValue> {
         let c = unsafe_torch_err!({

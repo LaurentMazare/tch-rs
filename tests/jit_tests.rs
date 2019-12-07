@@ -41,3 +41,10 @@ fn jit3() {
     let result = foo.forward_ts(&[xs]).unwrap();
     assert_eq!(f64::from(&result), 120.0);
 }
+
+#[test]
+fn jit4() {
+    let foo = tch::CModule::load("tests/foo4.pt").unwrap();
+    let result = foo.forward_is(&[IValue::from((2.0, 3.0, 4))]).unwrap();
+    assert_eq!(result, 14.0.into());
+}
