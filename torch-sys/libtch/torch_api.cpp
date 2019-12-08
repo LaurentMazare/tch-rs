@@ -597,6 +597,15 @@ ivalue ati_tuple(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_generic_list(ivalue *is, int nvalues) {
+  PROTECT(
+    c10::List<torch::jit::IValue> vec(c10::AnyType::get());
+    for (int i = 0; i < nvalues; ++i) vec.push_back(*(is[i]));
+    return new torch::jit::IValue(c10::List<torch::jit::IValue>(vec));
+  )
+  return nullptr;
+}
+
 ivalue ati_int_list(int64_t *is, int nvalues) {
   PROTECT(
     c10::List<int64_t> vec;
@@ -720,6 +729,19 @@ void ati_to_tuple(ivalue i,
     auto vec = i->toTuple()->elements();
     if (vec.size() != noutputs) {
       throw std::invalid_argument("unexpected tuple size");
+    }
+    for (int i = 0; i < noutputs; ++i)
+      outputs[i] = new torch::jit::IValue(vec[i]);
+  )
+}
+
+void ati_to_generic_list(ivalue i,
+                         ivalue *outputs,
+                         int noutputs) {
+  PROTECT(
+    auto vec = i->toGenericList();
+    if (vec.size() != noutputs) {
+      throw std::invalid_argument("unexpected list size");
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = new torch::jit::IValue(vec[i]);

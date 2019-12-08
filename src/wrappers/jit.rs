@@ -20,6 +20,7 @@ pub enum IValue {
     BoolList(Vec<bool>),
     String(String),
     TensorList(Vec<crate::Tensor>),
+    GenericList(Vec<IValue>),
 }
 
 impl From<()> for IValue {
@@ -67,6 +68,7 @@ impl_from!(Vec<i64>, IntList);
 impl_from!(Vec<f64>, DoubleList);
 impl_from!(Vec<bool>, BoolList);
 impl_from!(Vec<crate::Tensor>, TensorList);
+impl_from!(Vec<IValue>, GenericList);
 
 impl From<&str> for IValue {
     fn from(s: &str) -> Self {
@@ -86,6 +88,15 @@ impl IValue {
                 IValue::Tuple(v) => {
                     let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
                     let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
+                    for x in v {
+                        ati_free(x);
+                    }
+
+                    tuple
+                }
+                IValue::GenericList(v) => {
+                    let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
+                    let tuple = ati_generic_list(v.as_ptr(), v.len() as c_int);
                     for x in v {
                         ati_free(x);
                     }
@@ -175,7 +186,17 @@ impl IValue {
                     .collect();
                 IValue::TensorList(vec)
             }
-            12 => bail!("GenericList is not currently supported"),
+            12 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_ivalues: Vec<_> =
+                    (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
+                unsafe_torch_err!(ati_to_generic_list(c_ivalue, c_ivalues.as_mut_ptr(), len));
+                let vec: Result<Vec<_>, _> = c_ivalues
+                    .iter()
+                    .map(|&c_ivalue| (Self::of_c(c_ivalue)))
+                    .collect();
+                IValue::GenericList(vec?)
+            }
             13 => bail!("GenericDict is not currently supported"),
             _ => bail!("unhandled tag {}", tag),
         };
