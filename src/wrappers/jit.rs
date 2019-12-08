@@ -280,5 +280,6 @@ mod tests {
             vec![true, false, true, true],
             vec![2.71828, 3.141592, 299792458.00001],
         ));
+        round_trip(vec![IValue::from(42), IValue::from("foobar")]);
     }
 }
