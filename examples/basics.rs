@@ -1,4 +1,5 @@
 extern crate tch;
+
 use tch::{kind, Tensor};
 
 fn grad_example() {
@@ -23,4 +24,5 @@ fn main() {
     t.print();
     println!("{:?} {}", t.size(), t.double_value(&[1]));
     grad_example();
+    println!("Cuda available: {}", tch::Cuda::cudnn_is_available());
 }

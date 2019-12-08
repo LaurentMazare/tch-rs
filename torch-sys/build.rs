@@ -71,7 +71,7 @@ fn prepare_libtorch_dir() -> PathBuf {
 
     let device = match env::var("TORCH_CUDA_VERSION") {
         Ok(cuda_env) => match os.as_str() {
-            "linux" => cuda_env
+            "linux" | "windows" => cuda_env
                 .trim()
                 .to_lowercase()
                 .trim_start_matches("cu")
@@ -83,7 +83,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 }),
             os_str => panic!(
                 "CUDA was specified with `TORCH_CUDA_VERSION`, but pre-built \
-                 binaries with CUDA are only available for Linux, not: {}.",
+                 binaries with CUDA are only available for Linux and Windows, not: {}.",
                 os_str
             ),
         },
@@ -106,7 +106,8 @@ fn prepare_libtorch_dir() -> PathBuf {
                     TORCH_VERSION
                 ),
                 "windows" => format!(
-                    "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-{}.zip",
+                    "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}.zip",
+                    device,
                     TORCH_VERSION
                 ),
                 _ => panic!("Unsupported OS"),
