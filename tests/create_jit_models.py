@@ -48,7 +48,7 @@ class Foo3(torch.jit.ScriptModule):
 foo = Foo3()
 foo.save('foo3.pt')
 
-from typing import Tuple
+from typing import Tuple, List
 
 class Foo4(torch.jit.ScriptModule):
     def __init__(self):
@@ -60,3 +60,14 @@ class Foo4(torch.jit.ScriptModule):
 
 foo = Foo4()
 foo.save('foo4.pt')
+
+class Foo5(torch.jit.ScriptModule):
+    def __init__(self):
+        super(Foo5, self).__init__()
+
+    @torch.jit.script_method
+    def forward(self, xs: List[str]):
+      return [x[:-1] for x in xs]
+
+foo = Foo5()
+foo.save('foo5.pt')

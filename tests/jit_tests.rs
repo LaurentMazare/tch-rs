@@ -48,3 +48,23 @@ fn jit4() {
     let result = foo.forward_is(&[IValue::from((2.0, 3.0, 4))]).unwrap();
     assert_eq!(result, 14.0.into());
 }
+
+#[test]
+fn jit5() {
+    let foo = tch::CModule::load("tests/foo5.pt").unwrap();
+    let result = foo
+        .forward_is(&[IValue::GenericList(vec![
+            IValue::from("foo"),
+            IValue::from("bar"),
+            IValue::from("foobar"),
+        ])])
+        .unwrap();
+    assert_eq!(
+        result,
+        IValue::from(vec![
+            IValue::from("fo"),
+            IValue::from("ba"),
+            IValue::from("fooba")
+        ])
+    );
+}
