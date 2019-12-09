@@ -125,7 +125,7 @@ impl IValue {
                         .iter()
                         .flat_map(|(k, v)| vec![Self::to_c(k), Self::to_c(v)])
                         .collect::<Fallible<Vec<_>>>()?;
-                    let dict = ati_generic_dict(v.as_ptr(), v.len() as c_int);
+                    let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
                     for x in v {
                         ati_free(x);
                     }
@@ -308,5 +308,9 @@ mod tests {
             vec![2.71828, 3.141592, 299792458.00001],
         ));
         round_trip(vec![IValue::from(42), IValue::from("foobar")]);
+        round_trip(vec![
+            (IValue::from(42), IValue::from("foobar")),
+            (IValue::from("foo"), IValue::from("bar")),
+        ]);
     }
 }
