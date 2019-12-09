@@ -606,6 +606,15 @@ ivalue ati_generic_list(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_generic_dict(ivalue *is, int nvalues) {
+  c10::Dict<torch::jit::IValue, torch::jit::IValue> dict(c10::AnyType::get(), c10::AnyType::get());
+  PROTECT(
+    for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
+    return new torch::jit::IValue(dict);
+  )
+  return nullptr;
+}
+
 ivalue ati_int_list(int64_t *is, int nvalues) {
   PROTECT(
     c10::List<int64_t> vec;
@@ -745,6 +754,22 @@ void ati_to_generic_list(ivalue i,
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = new torch::jit::IValue(vec[i]);
+  )
+}
+
+void ati_to_generic_dict(ivalue i,
+                         ivalue *outputs,
+                         int noutputs) {
+  PROTECT(
+    auto dict = i->toGenericDict();
+    if (dict.size() != noutputs) {
+      throw std::invalid_argument("unexpected dict size");
+    }
+    int k = 0;
+    for (auto it = dict.begin(); it != dict.end(); ++it) {
+      outputs[k++] = new torch::jit::IValue(it->key());
+      outputs[k++] = new torch::jit::IValue(it->value());
+    }
   )
 }
 
