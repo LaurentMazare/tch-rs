@@ -141,7 +141,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                 .flag("-std=c++11")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .file("libtch/torch_api.cpp")
-                .compile("libtorch");
+                .compile("tch");
         }
         "windows" => {
             // TODO: Pass "/link" "LIBPATH:{}" to cl.exe in order to emulate rpath.
@@ -154,7 +154,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                 .include(libtorch.as_ref().join("include"))
                 .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
                 .file("libtch/torch_api.cpp")
-                .compile("libtorch");
+                .compile("tch");
         }
         _ => panic!("Unsupported OS"),
     };
@@ -183,6 +183,7 @@ fn main() {
         make(&libtorch)
     }
 
+    println!("cargo:rustc-link-lib=static=tch");
     println!("cargo:rustc-link-lib=torch");
     println!("cargo:rustc-link-lib=c10");
 

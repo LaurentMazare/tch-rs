@@ -4,7 +4,7 @@ version = "0.1.4"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 build = "build.rs"
-links = "torch"
+links = "tch"
 
 description = "Low-level FFI bindings for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"
