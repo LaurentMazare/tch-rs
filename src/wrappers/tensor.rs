@@ -129,6 +129,11 @@ impl Tensor {
         unsafe_torch!({ at_defined(self.c_tensor) != 0 })
     }
 
+    /// Returns true is the tensor is spare.
+    pub fn is_sparse(&self) -> bool {
+        unsafe_torch!({ at_is_sparse(self.c_tensor) != 0 })
+    }
+
     /// Zeroes the gradient tensor attached to this tensor if defined.
     pub fn zero_grad(&mut self) {
         let mut grad = self.grad();

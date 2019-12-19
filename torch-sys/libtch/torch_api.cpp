@@ -83,6 +83,11 @@ int at_defined(tensor t) {
   return -1;
 }
 
+int at_is_sparse(tensor t) {
+  PROTECT(return t->is_sparse();)
+  return -1;
+}
+
 size_t at_dim(tensor t) {
   PROTECT(return t->dim();)
   return -1;

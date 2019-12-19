@@ -272,3 +272,9 @@ fn copy_overflow() {
     let r = Tensor::zeros(&[10000], (tch::Kind::Int8, Device::Cpu)).f_copy_data(&mut s, 10000);
     assert!(r.is_err());
 }
+
+#[test]
+fn sparse() {
+    let t = Tensor::of_slice(&[1, 2, 3]);
+    assert!(!t.is_sparse());
+}

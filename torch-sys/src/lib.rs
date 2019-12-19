@@ -24,6 +24,7 @@ extern "C" {
     pub fn at_shallow_clone(arg: *mut C_tensor) -> *mut C_tensor;
     pub fn at_copy_(dst: *mut C_tensor, src: *mut C_tensor);
     pub fn at_defined(arg: *mut C_tensor) -> c_int;
+    pub fn at_is_sparse(arg: *mut C_tensor) -> c_int;
     pub fn at_backward(arg: *mut C_tensor, keep_graph: c_int, create_graph: c_int);
     pub fn at_print(arg: *mut C_tensor);
     pub fn at_to_string(arg: *mut C_tensor, line_size: c_int) -> *mut c_char;
