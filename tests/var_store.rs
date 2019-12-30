@@ -50,6 +50,8 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
     let ones = vs.root().var("t3", &[3], Init::Const(1.));
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    let ones = vs.root().var("t4", &[3], Init::Const(0.5));
+    assert_eq!(Vec::<f64>::from(&ones), [0.5, 0.5, 0.5]);
     let forty_two = vs.root().var("t4", &[2], Init::Const(42.));
     assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
     let uniform = vs
