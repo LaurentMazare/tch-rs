@@ -1,12 +1,12 @@
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex};
 use tch::nn::{VarStore, Variables};
-use tch::{Tensor, Kind, Device, no_grad};
+use tch::{no_grad, Device, Kind, Tensor};
 
 /// Buffer of first/second order moment for the Adam optimizer
 struct Buffer {
     pub first_moment: Tensor,
     pub second_moment: Tensor,
-    idx: usize
+    idx: usize,
 }
 
 impl Buffer {
@@ -14,7 +14,7 @@ impl Buffer {
         Buffer {
             first_moment: Tensor::zeros(size, (Kind::Float, Device::Cpu)),
             second_moment: Tensor::zeros(size, (Kind::Float, Device::Cpu)),
-            idx: 1
+            idx: 1,
         }
     }
 
@@ -43,11 +43,21 @@ pub struct SparseAdam {
 }
 
 impl SparseAdam {
-    pub fn new(vs: &VarStore, lr: f64, beta1: f64, beta2: f64, eps: f64, force_sparse: bool) -> SparseAdam {
+    pub fn new(
+        vs: &VarStore,
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        eps: f64,
+        force_sparse: bool,
+    ) -> SparseAdam {
         let vars = vs.variables_.clone();
-        
+
         // create buffers for every trainable variable
-        let buffers = vars.lock().unwrap().trainable_variables
+        let buffers = vars
+            .lock()
+            .unwrap()
+            .trainable_variables
             .iter()
             .map(|x| Buffer::new(&x.size()))
             .collect();
@@ -98,32 +108,41 @@ impl SparseAdam {
 
                 // update both moments
                 // old = b*old + (1-b) * new <==> old += (1-b) * (new - old)
-                let update_first_moment = (1.0 - self.beta1) * (&values - buffer.first_moment.index_select(0, &indices));
-                let update_second_moment = (1.0 - self.beta2) * (&values * &values - buffer.second_moment.index_select(0, &indices));
+                let update_first_moment =
+                    (1.0 - self.beta1) * (&values - buffer.first_moment.index_select(0, &indices));
+                let update_second_moment = (1.0 - self.beta2)
+                    * (&values * &values - buffer.second_moment.index_select(0, &indices));
 
-                let _ = buffer.first_moment.index_add_(0, &indices, &update_first_moment);
-                let _ = buffer.second_moment.index_add_(0, &indices, &update_second_moment);
+                let _ = buffer
+                    .first_moment
+                    .index_add_(0, &indices, &update_first_moment);
+                let _ = buffer
+                    .second_moment
+                    .index_add_(0, &indices, &update_second_moment);
 
                 // first part of update step -lr * m_t / (1-b_1^t)
-                let part1 = buffer.first_moment.index_select(0, &indices) * (-self.lr / bias_correction1);
+                let part1 =
+                    buffer.first_moment.index_select(0, &indices) * (-self.lr / bias_correction1);
                 // second part of update step sqrt(v_t / (1-b_2^t)) + eps
-                let part2 = (buffer.second_moment.index_select(0, &indices) / bias_correction2).sqrt() + self.eps;
+                let part2 = (buffer.second_moment.index_select(0, &indices) / bias_correction2)
+                    .sqrt()
+                    + self.eps;
 
-                let _ = tensor.index_add_(0, &indices, &(part1/part2));
+                let _ = tensor.index_add_(0, &indices, &(part1 / part2));
             } else {
                 // update first moment
                 buffer.first_moment *= self.beta1;
-                buffer.first_moment += (1.0-self.beta1) * &grad;
+                buffer.first_moment += (1.0 - self.beta1) * &grad;
                 // update second raw moment
                 buffer.second_moment *= self.beta2;
-                let scaled_grad = grad * (1.0-self.beta2).sqrt();
+                let scaled_grad = grad * (1.0 - self.beta2).sqrt();
                 let _ = buffer.second_moment.addcmul_(&scaled_grad, &scaled_grad);
 
                 // first part of update step -lr * m_t / (1-b_1^t)
                 let part1 = &buffer.first_moment * (-self.lr / bias_correction1);
                 // second part of update step sqrt(v_t / (1-b_2^t)) + eps
                 let part2 = (&buffer.second_moment / bias_correction2).sqrt() + self.eps;
-                
+
                 // calculate fraction and update parameters
                 let _ = tensor.addcdiv_(&part1, &part2);
             }
