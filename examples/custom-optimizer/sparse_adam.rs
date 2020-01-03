@@ -14,7 +14,7 @@ impl Buffer {
         Buffer {
             first_moment: Tensor::zeros(size, (Kind::Float, Device::Cpu)),
             second_moment: Tensor::zeros(size, (Kind::Float, Device::Cpu)),
-            idx: 0
+            idx: 1
         }
     }
 
@@ -73,20 +73,21 @@ impl SparseAdam {
 
         // iterate through all trainable variables
         for (tensor, buffer) in vars.trainable_variables.iter_mut().zip(&mut self.buffers) {
-            buffer.inc();
             let mut grad = tensor.grad();
 
             // calculate both bias correction values
-            let bias_correction1 = 1.0 - self.beta1.powf(buffer.idx as f64);
-            let bias_correction2 = 1.0 - self.beta2.powf(buffer.idx as f64);
+            let buffer_idx = buffer.inc();
+            let bias_correction1 = 1.0 - self.beta1.powf(buffer_idx as f64);
+            let bias_correction2 = 1.0 - self.beta2.powf(buffer_idx as f64);
 
             // check whether the gradient is sparse
             if grad.is_sparse() || self.force_sparse {
-                // deduplicate coordinates in the sparse matrix
-                if !grad.is_sparse() && self.force_sparse {
+                // convert matrix to sparse matrix if necessary
+                if !grad.is_sparse() {
                     grad = grad.to_sparse1(1);
                 }
 
+                // deduplicate coordinates in the sparse matrix
                 let grad = grad.coalesce();
                 // get indices and values of the sparse gradient
                 let indices = grad.indices().squeeze();
@@ -129,7 +130,7 @@ impl SparseAdam {
         }
     }
 
-    // zero the gradient for all trainable variables
+    // zero the gradient of all trainable variables
     pub fn zero_grad(&mut self) {
         let mut vars = self.vars.lock().unwrap();
         for var in &mut vars.trainable_variables {
