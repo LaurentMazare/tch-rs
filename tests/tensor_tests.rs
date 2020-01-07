@@ -1,3 +1,4 @@
+use failure::Fallible;
 use std::convert::{TryFrom, TryInto};
 use tch::{Device, Tensor};
 
@@ -219,6 +220,73 @@ fn from_ndarray_i64() {
     let nd = ndarray::arr2(&[[1i64, 2], [3, 4]]);
     let tensor = Tensor::try_from(nd.clone()).unwrap();
     assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn from_ndarray_bool() {
+    let nd = ndarray::arr2(&[[true, false], [true, true]]);
+    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    assert_eq!(Vec::<bool>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn from_primitive() -> Fallible<()> {
+    assert_eq!(Vec::<i32>::from(Tensor::try_from(1_i32)?), vec![1]);
+    assert_eq!(Vec::<i64>::from(Tensor::try_from(1_i64)?), vec![1]);
+    assert_eq!(Vec::<f32>::from(Tensor::try_from(1_f32)?), vec![1.0]);
+    assert_eq!(Vec::<f64>::from(Tensor::try_from(1_f64)?), vec![1.0]);
+    assert_eq!(Vec::<bool>::from(Tensor::try_from(true)?), vec![true]);
+    Ok(())
+}
+
+#[test]
+fn from_vec() -> Fallible<()> {
+    assert_eq!(
+        Vec::<i32>::from(Tensor::try_from(vec![-1_i32, 0, 1])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<i64>::from(Tensor::try_from(vec![-1_i64, 0, 1])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f32>::from(Tensor::try_from(vec![-1_f32, 0.0, 1.0])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<f64>::from(Tensor::try_from(vec![-1_f64, 0.0, 1.0])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<bool>::from(Tensor::try_from(vec![true, false])?),
+        vec![true, false]
+    );
+    Ok(())
+}
+
+#[test]
+fn from_slice() -> Fallible<()> {
+    assert_eq!(
+        Vec::<i32>::from(Tensor::try_from(&[-1_i32, 0, 1] as &[_])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<i64>::from(Tensor::try_from(&[-1_i64, 0, 1] as &[_])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f32>::from(Tensor::try_from(&[-1_f32, 0.0, 1.0] as &[_])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<f64>::from(Tensor::try_from(&[-1_f64, 0.0, 1.0] as &[_])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<bool>::from(Tensor::try_from(&[true, false] as &[_])?),
+        vec![true, false]
+    );
+    Ok(())
 }
 
 #[test]
