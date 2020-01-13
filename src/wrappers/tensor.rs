@@ -363,6 +363,26 @@ impl Tensor {
         Ok(v)
     }
 
+    /// Loads some named tensors from a file to a given device
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn load_multi_with_device<T: AsRef<Path>>(
+        path: T,
+        device: Device,
+    ) -> Fallible<Vec<(String, Tensor)>> {
+        let path = path_to_cstring(path)?;
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!({
+            at_load_callback_with_device(
+                path.as_ptr(),
+                &mut v as *mut _ as *mut c_void,
+                add_callback,
+                device.c_int(),
+            )
+        });
+        Ok(v)
+    }
+
     /// Returns a string representation for the tensor.
     ///
     /// The representation will contain all the tensor element hence may be huge for

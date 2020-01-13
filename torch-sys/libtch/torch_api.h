@@ -69,6 +69,7 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *filename);
 
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
+void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
 
 void at_free(tensor);
 

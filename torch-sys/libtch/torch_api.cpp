@@ -246,6 +246,17 @@ void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tens
   )
 }
 
+void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id) {
+  PROTECT(
+    auto module = torch::jit::load(filename, device_of_int(device_id));
+    for (const auto &p : module.get_parameters()) {
+      auto v = p.value();
+      if (v.isTensor())
+        f(data, (char*)p.name().c_str(), new torch::Tensor(v.toTensor()));
+    }
+  )
+}
+
 void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *filename) {
   PROTECT(
     torch::NoGradGuard no_grad;
