@@ -67,6 +67,16 @@ fn init_test() {
         "std {}",
         uniform_std
     );
+    let normal = vs.root().var(
+        "normal",
+        &[100],
+        Init::Randn {
+            mean: 0.,
+            stdev: 0.02,
+        },
+    );
+    let normal_std = f64::from(&normal.std(true));
+    assert!(normal_std <= 0.03, "std {}", normal_std);
     let mut vs2 = VarStore::new(Device::Cpu);
     let ones = vs2.root().ones("t1", &[3]);
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);

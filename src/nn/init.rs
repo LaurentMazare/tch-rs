@@ -32,7 +32,7 @@ pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
         }
         Init::Uniform { lo, up } => Tensor::zeros(dims, (Kind::Float, device)).uniform_(lo, up),
         Init::Randn { mean, stdev } => {
-            if mean == 0. && (stdev - 1.) <= std::f64::EPSILON {
+            if mean == 0. && (stdev - 1.).abs() <= std::f64::EPSILON {
                 Tensor::randn(dims, (Kind::Float, device))
             } else {
                 Tensor::randn(dims, (Kind::Float, device)) * stdev + mean
