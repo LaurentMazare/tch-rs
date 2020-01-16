@@ -49,6 +49,7 @@ fn jit4() {
     assert_eq!(result, 14.0.into());
 }
 
+/*
 #[test]
 fn jit5() {
     let foo = tch::CModule::load("tests/foo5.pt").unwrap();
@@ -68,3 +69,4 @@ fn jit5() {
         ])
     );
 }
+*/
