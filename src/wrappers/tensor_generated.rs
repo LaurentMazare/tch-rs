@@ -703,8 +703,9 @@ impl Tensor {
         weight: &Tensor,
         bias: Option<T>,
         padding: &[i64],
+        stride: &[i64],
     ) -> Tensor {
-        self.f_internal_nnpack_spatial_convolution(weight, bias, padding)
+        self.f_internal_nnpack_spatial_convolution(weight, bias, padding, stride)
             .unwrap()
     }
 
@@ -918,6 +919,10 @@ impl Tensor {
 
     pub fn internal_symeig_helper(&self, eigenvectors: bool, upper: bool) -> (Tensor, Tensor) {
         self.f_internal_symeig_helper(eigenvectors, upper).unwrap()
+    }
+
+    pub fn internal_test_optional_float(&self, scale: f64) -> Tensor {
+        self.f_internal_test_optional_float(scale).unwrap()
     }
 
     pub fn internal_triangular_solve_helper(
@@ -1270,6 +1275,14 @@ impl Tensor {
 
     pub fn alpha_dropout_(&mut self, p: f64, train: bool) -> Tensor {
         self.f_alpha_dropout_(p, train).unwrap()
+    }
+
+    pub fn angle(&self) -> Tensor {
+        self.f_angle().unwrap()
+    }
+
+    pub fn angle_out(&self, out: &Tensor) -> Tensor {
+        self.f_angle_out(out).unwrap()
     }
 
     pub fn any(&self) -> Tensor {
@@ -1631,6 +1644,19 @@ impl Tensor {
             .unwrap()
     }
 
+    pub fn batch_norm_elemt_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        weight: Option<T>,
+        bias: Option<T>,
+        mean: &Tensor,
+        invstd: &Tensor,
+        eps: f64,
+    ) -> Tensor {
+        self.f_batch_norm_elemt_out(out, weight, bias, mean, invstd, eps)
+            .unwrap()
+    }
+
     pub fn batch_norm_gather_stats<T: Borrow<Tensor>>(
         &self,
         mean: &Tensor,
@@ -1807,6 +1833,30 @@ impl Tensor {
         self.f_bitwise_not_out(out).unwrap()
     }
 
+    pub fn bitwise_xor<S: Into<Scalar>>(&self, other: S) -> Tensor {
+        self.f_bitwise_xor(other).unwrap()
+    }
+
+    pub fn bitwise_xor1(&self, other: &Tensor) -> Tensor {
+        self.f_bitwise_xor1(other).unwrap()
+    }
+
+    pub fn bitwise_xor_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
+        self.f_bitwise_xor_(other).unwrap()
+    }
+
+    pub fn bitwise_xor_1(&mut self, other: &Tensor) -> Tensor {
+        self.f_bitwise_xor_1(other).unwrap()
+    }
+
+    pub fn bitwise_xor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
+        self.f_bitwise_xor_out(out, other).unwrap()
+    }
+
+    pub fn bitwise_xor_out1<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
+        self.f_bitwise_xor_out1(out, other).unwrap()
+    }
+
     pub fn blackman_window(window_length: i64, options: (Kind, Device)) -> Tensor {
         Tensor::f_blackman_window(window_length, options).unwrap()
     }
@@ -1843,8 +1893,8 @@ impl Tensor {
         self.f_cauchy_(median, sigma).unwrap()
     }
 
-    pub fn cdist(x1: &Tensor, x2: &Tensor, p: f64) -> Tensor {
-        Tensor::f_cdist(x1, x2, p).unwrap()
+    pub fn cdist(x1: &Tensor, x2: &Tensor, p: f64, compute_mode: i64) -> Tensor {
+        Tensor::f_cdist(x1, x2, p, compute_mode).unwrap()
     }
 
     pub fn ceil(&self) -> Tensor {
@@ -1995,6 +2045,14 @@ impl Tensor {
 
     pub fn combinations(&self, r: i64, with_replacement: bool) -> Tensor {
         self.f_combinations(r, with_replacement).unwrap()
+    }
+
+    pub fn conj(&self) -> Tensor {
+        self.f_conj().unwrap()
+    }
+
+    pub fn conj_out(&self, out: &Tensor) -> Tensor {
+        self.f_conj_out(out).unwrap()
     }
 
     pub fn constant_pad_nd(&self, pad: &[i64]) -> Tensor {
@@ -2287,7 +2345,7 @@ impl Tensor {
         training: bool,
         exponential_average_factor: f64,
         epsilon: f64,
-    ) -> (Tensor, Tensor, Tensor) {
+    ) -> (Tensor, Tensor, Tensor, Tensor) {
         self.f_cudnn_batch_norm(
             weight,
             bias,
@@ -2309,6 +2367,7 @@ impl Tensor {
         save_mean: Option<T>,
         save_var: Option<T>,
         epsilon: f64,
+        reservespace: &Tensor,
     ) -> (Tensor, Tensor, Tensor) {
         self.f_cudnn_batch_norm_backward(
             grad_output,
@@ -2318,6 +2377,7 @@ impl Tensor {
             save_mean,
             save_var,
             epsilon,
+            reservespace,
         )
         .unwrap()
     }
@@ -3611,6 +3671,14 @@ impl Tensor {
             .unwrap()
     }
 
+    pub fn imag(&self) -> Tensor {
+        self.f_imag().unwrap()
+    }
+
+    pub fn imag_out(&self, out: &Tensor) -> Tensor {
+        self.f_imag_out(out).unwrap()
+    }
+
     pub fn index<T: Borrow<Tensor>>(&self, indices: &[T]) -> Tensor {
         self.f_index(indices).unwrap()
     }
@@ -3726,6 +3794,10 @@ impl Tensor {
 
     pub fn isclose(&self, other: &Tensor, rtol: f64, atol: f64, equal_nan: bool) -> Tensor {
         self.f_isclose(other, rtol, atol, equal_nan).unwrap()
+    }
+
+    pub fn isfinite(&self) -> Tensor {
+        self.f_isfinite().unwrap()
     }
 
     pub fn isnan(&self) -> Tensor {
@@ -5261,6 +5333,10 @@ impl Tensor {
         self.f_new_full(size, fill_value, options).unwrap()
     }
 
+    pub fn new_zeros(&self, size: &[i64], options: (Kind, Device)) -> Tensor {
+        self.f_new_zeros(size, options).unwrap()
+    }
+
     pub fn g_nll_loss<T: Borrow<Tensor>>(
         &self,
         target: &Tensor,
@@ -5779,6 +5855,35 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn quantized_lstm1<T: Borrow<Tensor>>(
+        data: &Tensor,
+        batch_sizes: &Tensor,
+        hx: &[T],
+        params: &[T],
+        has_biases: bool,
+        num_layers: i64,
+        dropout: f64,
+        train: bool,
+        bidirectional: bool,
+        dtype: Kind,
+        use_dynamic: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_quantized_lstm1(
+            data,
+            batch_sizes,
+            hx,
+            params,
+            has_biases,
+            num_layers,
+            dropout,
+            train,
+            bidirectional,
+            dtype,
+            use_dynamic,
+        )
+        .unwrap()
+    }
+
     pub fn quantized_lstm_cell<T: Borrow<Tensor>, S: Into<Scalar>>(
         &self,
         hx: &[T],
@@ -5989,6 +6094,14 @@ impl Tensor {
         Tensor::f_range_out(out, start, end).unwrap()
     }
 
+    pub fn real(&self) -> Tensor {
+        self.f_real().unwrap()
+    }
+
+    pub fn real_out(&self, out: &Tensor) -> Tensor {
+        self.f_real_out(out).unwrap()
+    }
+
     pub fn reciprocal(&self) -> Tensor {
         self.f_reciprocal().unwrap()
     }
@@ -6174,6 +6287,10 @@ impl Tensor {
 
     pub fn replication_pad3d_out(&self, out: &Tensor, padding: &[i64]) -> Tensor {
         self.f_replication_pad3d_out(out, padding).unwrap()
+    }
+
+    pub fn requires_grad_(&mut self, internal_requires_grad: bool) -> Tensor {
+        self.f_requires_grad_(internal_requires_grad).unwrap()
     }
 
     pub fn reshape(&self, shape: &[i64]) -> Tensor {
@@ -6519,6 +6636,31 @@ impl Tensor {
 
     pub fn slogdet(&self) -> (Tensor, Tensor) {
         self.f_slogdet().unwrap()
+    }
+
+    pub fn slow_conv3d<T: Borrow<Tensor>>(
+        &self,
+        weight: &Tensor,
+        kernel_size: &[i64],
+        bias: Option<T>,
+        stride: &[i64],
+        padding: &[i64],
+    ) -> Tensor {
+        self.f_slow_conv3d(weight, kernel_size, bias, stride, padding)
+            .unwrap()
+    }
+
+    pub fn slow_conv3d_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        weight: &Tensor,
+        kernel_size: &[i64],
+        bias: Option<T>,
+        stride: &[i64],
+        padding: &[i64],
+    ) -> Tensor {
+        self.f_slow_conv3d_out(out, weight, kernel_size, bias, stride, padding)
+            .unwrap()
     }
 
     pub fn slow_conv_dilated2d<T: Borrow<Tensor>>(
