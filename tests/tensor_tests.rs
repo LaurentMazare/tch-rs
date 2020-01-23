@@ -85,6 +85,14 @@ fn grad_grad() {
 }
 
 #[test]
+#[should_panic]
+fn grad_without_requires() {
+    let x = Tensor::from(2.0);
+    let y = &x * &x + &x + 36;
+    let _dy_over_dx = Tensor::run_backward(&[y], &[&x], true, true);
+}
+
+#[test]
 fn cat_and_stack() {
     let t = Tensor::of_slice(&[13.0, 37.0]);
     let t = Tensor::cat(&[&t, &t, &t], 0);

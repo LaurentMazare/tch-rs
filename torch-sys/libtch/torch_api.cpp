@@ -360,8 +360,11 @@ void at_run_backward(tensor *tensors,
       roots.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*tensors[i])));
 
     vector<torch::autograd::Edge> inputs_;
-    for (int i = 0; i < ninputs; ++i)
+    for (int i = 0; i < ninputs; ++i) {
+      if (!inputs[i]->requires_grad())
+        throw std::invalid_argument("one of the input tensor does not use set_requires_grad");
       inputs_.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*inputs[i])));
+    }
 
     vector<torch::autograd::Variable> grads;
     for (int i = 0; i < ntensors; ++i)
