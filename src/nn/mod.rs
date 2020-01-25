@@ -6,7 +6,7 @@ mod init;
 pub use init::{init, Init};
 
 mod var_store;
-pub use var_store::{Path, VarStore};
+pub use var_store::{Path, VarStore, Variables};
 
 mod module;
 pub use module::{Module, ModuleT};

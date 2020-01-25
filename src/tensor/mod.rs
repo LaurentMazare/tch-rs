@@ -560,6 +560,7 @@ try_into_impl!(f32);
 try_into_impl!(i32);
 try_into_impl!(f64);
 try_into_impl!(i64);
+try_into_impl!(bool);
 
 macro_rules! try_from_impl {
     ($type:ident) => {
@@ -575,9 +576,18 @@ macro_rules! try_from_impl {
                     None => failure::bail!("cannot convert to slice"),
                     Some(v) => v,
                 };
-                let tn = Self::of_slice(slice);
+                let tn = Self::f_of_slice(slice)?;
                 let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
-                Ok(tn.reshape(&shape))
+                Ok(tn.f_reshape(&shape)?)
+            }
+        }
+
+        impl TryFrom<Vec<$type>> for Tensor {
+            type Error = failure::Error;
+
+            fn try_from(value: Vec<$type>) -> Result<Self, Self::Error> {
+                let tn = Self::f_of_slice(value.as_slice())?;
+                Ok(tn)
             }
         }
     };
@@ -587,3 +597,4 @@ try_from_impl!(f32);
 try_from_impl!(i32);
 try_from_impl!(f64);
 try_from_impl!(i64);
+try_from_impl!(bool);

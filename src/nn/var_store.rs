@@ -120,7 +120,7 @@ impl VarStore {
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
-        let named_tensors = Tensor::load_multi(&path)?;
+        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {

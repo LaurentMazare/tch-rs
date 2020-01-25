@@ -129,6 +129,11 @@ impl Tensor {
         unsafe_torch!({ at_defined(self.c_tensor) != 0 })
     }
 
+    /// Returns true is the tensor is spare.
+    pub fn is_sparse(&self) -> bool {
+        unsafe_torch!({ at_is_sparse(self.c_tensor) != 0 })
+    }
+
     /// Zeroes the gradient tensor attached to this tensor if defined.
     pub fn zero_grad(&mut self) {
         let mut grad = self.grad();
@@ -354,6 +359,26 @@ impl Tensor {
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!({
             at_load_callback(path.as_ptr(), &mut v as *mut _ as *mut c_void, add_callback)
+        });
+        Ok(v)
+    }
+
+    /// Loads some named tensors from a file to a given device
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn load_multi_with_device<T: AsRef<Path>>(
+        path: T,
+        device: Device,
+    ) -> Fallible<Vec<(String, Tensor)>> {
+        let path = path_to_cstring(path)?;
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!({
+            at_load_callback_with_device(
+                path.as_ptr(),
+                &mut v as *mut _ as *mut c_void,
+                add_callback,
+                device.c_int(),
+            )
         });
         Ok(v)
     }

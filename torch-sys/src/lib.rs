@@ -24,6 +24,7 @@ extern "C" {
     pub fn at_shallow_clone(arg: *mut C_tensor) -> *mut C_tensor;
     pub fn at_copy_(dst: *mut C_tensor, src: *mut C_tensor);
     pub fn at_defined(arg: *mut C_tensor) -> c_int;
+    pub fn at_is_sparse(arg: *mut C_tensor) -> c_int;
     pub fn at_backward(arg: *mut C_tensor, keep_graph: c_int, create_graph: c_int);
     pub fn at_print(arg: *mut C_tensor);
     pub fn at_to_string(arg: *mut C_tensor, line_size: c_int) -> *mut c_char;
@@ -71,6 +72,12 @@ extern "C" {
         filename: *const c_char,
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+    );
+    pub fn at_load_callback_with_device(
+        filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+        device_id: c_int,
     );
 
     pub fn at_manual_seed(seed: i64);
@@ -145,6 +152,7 @@ extern "C" {
     pub fn ati_string(s: *const c_char) -> *mut CIValue;
     pub fn ati_tuple(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
     pub fn ati_generic_list(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
+    pub fn ati_generic_dict(v: *const *mut CIValue, n: c_int) -> *mut CIValue;
     pub fn ati_int_list(v: *const i64, n: c_int) -> *mut CIValue;
     pub fn ati_double_list(v: *const f64, n: c_int) -> *mut CIValue;
     pub fn ati_bool_list(v: *const c_char, n: c_int) -> *mut CIValue;
@@ -162,6 +170,7 @@ extern "C" {
     pub fn ati_tuple_length(arg: *mut CIValue) -> c_int;
     pub fn ati_to_tuple(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int);
     pub fn ati_to_generic_list(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int);
+    pub fn ati_to_generic_dict(arg: *mut CIValue, outputs: *mut *mut CIValue, n: c_int);
     pub fn ati_to_int_list(arg: *mut CIValue, outputs: *mut i64, n: c_int);
     pub fn ati_to_double_list(arg: *mut CIValue, outputs: *mut f64, n: c_int);
     pub fn ati_to_bool_list(arg: *mut CIValue, outputs: *mut c_char, n: c_int);

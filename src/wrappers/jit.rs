@@ -21,6 +21,9 @@ pub enum IValue {
     String(String),
     TensorList(Vec<crate::Tensor>),
     GenericList(Vec<IValue>),
+    // We use a vec to represent dictionaries as f64 does not implement
+    // Eq or Hash out of the box in rust. TODO: improve this?
+    GenericDict(Vec<(IValue, IValue)>),
 }
 
 impl From<()> for IValue {
@@ -69,6 +72,7 @@ impl_from!(Vec<f64>, DoubleList);
 impl_from!(Vec<bool>, BoolList);
 impl_from!(Vec<crate::Tensor>, TensorList);
 impl_from!(Vec<IValue>, GenericList);
+impl_from!(Vec<(IValue, IValue)>, GenericDict);
 
 impl From<&str> for IValue {
     fn from(s: &str) -> Self {
@@ -96,12 +100,11 @@ impl IValue {
                 }
                 IValue::GenericList(v) => {
                     let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
-                    let tuple = ati_generic_list(v.as_ptr(), v.len() as c_int);
+                    let list = ati_generic_list(v.as_ptr(), v.len() as c_int);
                     for x in v {
                         ati_free(x);
                     }
-
-                    tuple
+                    list
                 }
                 IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
                 IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
@@ -116,6 +119,17 @@ impl IValue {
                 IValue::String(string) => {
                     let c_str = std::ffi::CString::new(string.as_str())?;
                     ati_string(c_str.as_ptr())
+                }
+                IValue::GenericDict(dict) => {
+                    let v = dict
+                        .iter()
+                        .flat_map(|(k, v)| vec![Self::to_c(k), Self::to_c(v)])
+                        .collect::<Fallible<Vec<_>>>()?;
+                    let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
+                    for x in v {
+                        ati_free(x);
+                    }
+                    dict
                 }
             }
         });
@@ -197,7 +211,20 @@ impl IValue {
                     .collect();
                 IValue::GenericList(vec?)
             }
-            13 => bail!("GenericDict is not currently supported"),
+            13 => {
+                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let mut c_ivalues: Vec<_> = (0..2 * len)
+                    .map(|_| std::ptr::null_mut::<CIValue>())
+                    .collect();
+                unsafe_torch_err!(ati_to_generic_dict(c_ivalue, c_ivalues.as_mut_ptr(), len));
+                let mut res: Vec<(IValue, IValue)> = vec![];
+                for i in 0..(len as usize) {
+                    let key = Self::of_c(c_ivalues[2 * i])?;
+                    let value = Self::of_c(c_ivalues[2 * i + 1])?;
+                    res.push((key, value))
+                }
+                IValue::GenericDict(res)
+            }
             _ => bail!("unhandled tag {}", tag),
         };
         unsafe_torch_err!({ ati_free(c_ivalue) });
@@ -281,5 +308,9 @@ mod tests {
             vec![2.71828, 3.141592, 299792458.00001],
         ));
         round_trip(vec![IValue::from(42), IValue::from("foobar")]);
+        round_trip(vec![
+            (IValue::from(42), IValue::from("foobar")),
+            (IValue::from("foo"), IValue::from("bar")),
+        ]);
     }
 }

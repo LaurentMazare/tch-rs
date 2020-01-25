@@ -1,3 +1,4 @@
+use failure::Fallible;
 use std::convert::{TryFrom, TryInto};
 use tch::{Device, Tensor};
 
@@ -81,6 +82,14 @@ fn grad_grad() {
     dy_over_dx.backward();
     let dy_over_dx2 = x.grad();
     assert_eq!(f64::from(&dy_over_dx2), 254.0);
+}
+
+#[test]
+#[should_panic]
+fn grad_without_requires() {
+    let x = Tensor::from(2.0);
+    let y = &x * &x + &x + 36;
+    let _dy_over_dx = Tensor::run_backward(&[y], &[&x], true, true);
 }
 
 #[test]
@@ -222,6 +231,73 @@ fn from_ndarray_i64() {
 }
 
 #[test]
+fn from_ndarray_bool() {
+    let nd = ndarray::arr2(&[[true, false], [true, true]]);
+    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    assert_eq!(Vec::<bool>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn from_primitive() -> Fallible<()> {
+    assert_eq!(Vec::<i32>::from(Tensor::try_from(1_i32)?), vec![1]);
+    assert_eq!(Vec::<i64>::from(Tensor::try_from(1_i64)?), vec![1]);
+    assert_eq!(Vec::<f32>::from(Tensor::try_from(1_f32)?), vec![1.0]);
+    assert_eq!(Vec::<f64>::from(Tensor::try_from(1_f64)?), vec![1.0]);
+    assert_eq!(Vec::<bool>::from(Tensor::try_from(true)?), vec![true]);
+    Ok(())
+}
+
+#[test]
+fn from_vec() -> Fallible<()> {
+    assert_eq!(
+        Vec::<i32>::from(Tensor::try_from(vec![-1_i32, 0, 1])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<i64>::from(Tensor::try_from(vec![-1_i64, 0, 1])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f32>::from(Tensor::try_from(vec![-1_f32, 0.0, 1.0])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<f64>::from(Tensor::try_from(vec![-1_f64, 0.0, 1.0])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<bool>::from(Tensor::try_from(vec![true, false])?),
+        vec![true, false]
+    );
+    Ok(())
+}
+
+#[test]
+fn from_slice() -> Fallible<()> {
+    assert_eq!(
+        Vec::<i32>::from(Tensor::try_from(&[-1_i32, 0, 1] as &[_])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<i64>::from(Tensor::try_from(&[-1_i64, 0, 1] as &[_])?),
+        vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f32>::from(Tensor::try_from(&[-1_f32, 0.0, 1.0] as &[_])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<f64>::from(Tensor::try_from(&[-1_f64, 0.0, 1.0] as &[_])?),
+        vec![-1.0, 0.0, 1.0]
+    );
+    assert_eq!(
+        Vec::<bool>::from(Tensor::try_from(&[true, false] as &[_])?),
+        vec![true, false]
+    );
+    Ok(())
+}
+
+#[test]
 fn test_device() {
     let x = Tensor::from(1);
     assert_eq!(x.device(), Device::Cpu);
@@ -271,4 +347,10 @@ fn copy_overflow() {
     let mut s: [i8; 0] = [];
     let r = Tensor::zeros(&[10000], (tch::Kind::Int8, Device::Cpu)).f_copy_data(&mut s, 10000);
     assert!(r.is_err());
+}
+
+#[test]
+fn sparse() {
+    let t = Tensor::of_slice(&[1, 2, 3]);
+    assert!(!t.is_sparse());
 }

@@ -83,6 +83,11 @@ int at_defined(tensor t) {
   return -1;
 }
 
+int at_is_sparse(tensor t) {
+  PROTECT(return t->is_sparse();)
+  return -1;
+}
+
 size_t at_dim(tensor t) {
   PROTECT(return t->dim();)
   return -1;
@@ -233,10 +238,19 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
     auto module = torch::jit::load(filename);
-    for (const auto &p : module.get_parameters()) {
-      auto v = p.value();
-      if (v.isTensor())
-        f(data, (char*)p.name().c_str(), new torch::Tensor(v.toTensor()));
+    for (const auto &p : module.named_parameters()) {
+      auto v = p.value;
+      f(data, (char*)p.name.c_str(), new torch::Tensor(v));
+    }
+  )
+}
+
+void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id) {
+  PROTECT(
+    auto module = torch::jit::load(filename, device_of_int(device_id));
+    for (const auto &p : module.named_parameters()) {
+      auto v = p.value;
+      f(data, (char*)p.name.c_str(), new torch::Tensor(v));
     }
   )
 }
@@ -343,11 +357,14 @@ void at_run_backward(tensor *tensors,
     torch::autograd::Engine engine;
     vector<torch::autograd::Edge> roots;
     for (int i = 0; i < ntensors; ++i)
-      roots.push_back(torch::autograd::as_variable_ref(*tensors[i]).gradient_edge());
+      roots.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*tensors[i])));
 
     vector<torch::autograd::Edge> inputs_;
-    for (int i = 0; i < ninputs; ++i)
-      inputs_.push_back(torch::autograd::as_variable_ref(*inputs[i]).gradient_edge());
+    for (int i = 0; i < ninputs; ++i) {
+      if (!inputs[i]->requires_grad())
+        throw std::invalid_argument("one of the input tensor does not use set_requires_grad");
+      inputs_.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*inputs[i])));
+    }
 
     vector<torch::autograd::Variable> grads;
     for (int i = 0; i < ntensors; ++i)
@@ -606,6 +623,15 @@ ivalue ati_generic_list(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_generic_dict(ivalue *is, int nvalues) {
+  c10::Dict<torch::jit::IValue, torch::jit::IValue> dict(c10::AnyType::get(), c10::AnyType::get());
+  PROTECT(
+    for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
+    return new torch::jit::IValue(dict);
+  )
+  return nullptr;
+}
+
 ivalue ati_int_list(int64_t *is, int nvalues) {
   PROTECT(
     c10::List<int64_t> vec;
@@ -745,6 +771,22 @@ void ati_to_generic_list(ivalue i,
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = new torch::jit::IValue(vec[i]);
+  )
+}
+
+void ati_to_generic_dict(ivalue i,
+                         ivalue *outputs,
+                         int noutputs) {
+  PROTECT(
+    auto dict = i->toGenericDict();
+    if (dict.size() != noutputs) {
+      throw std::invalid_argument("unexpected dict size");
+    }
+    int k = 0;
+    for (auto it = dict.begin(); it != dict.end(); ++it) {
+      outputs[k++] = new torch::jit::IValue(it->key());
+      outputs[k++] = new torch::jit::IValue(it->value());
+    }
   )
 }
 

@@ -33,6 +33,7 @@ void at_copy_data(tensor tensor, void *vs, size_t numel, size_t element_size_in_
 tensor at_shallow_clone(tensor);
 
 int at_defined(tensor);
+int at_is_sparse(tensor);
 int at_device(tensor);
 size_t at_dim(tensor);
 void at_shape(tensor, int64_t *);
@@ -68,6 +69,7 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *filename);
 
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
+void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
 
 void at_free(tensor);
 
@@ -128,6 +130,7 @@ ivalue ati_bool(int);
 ivalue ati_string(char *);
 ivalue ati_tuple(ivalue *, int);
 ivalue ati_generic_list(ivalue *, int);
+ivalue ati_generic_dict(ivalue *, int);
 ivalue ati_int_list(int64_t *, int);
 ivalue ati_double_list(double *, int);
 ivalue ati_bool_list(char *, int);
@@ -142,6 +145,7 @@ int ati_length(ivalue);
 int ati_tuple_length(ivalue);
 void ati_to_tuple(ivalue, ivalue *, int);
 void ati_to_generic_list(ivalue, ivalue *, int);
+void ati_to_generic_dict(ivalue, ivalue *, int);
 void ati_to_int_list(ivalue, int64_t *, int);
 void ati_to_double_list(ivalue, double *, int);
 void ati_to_bool_list(ivalue, char *, int);

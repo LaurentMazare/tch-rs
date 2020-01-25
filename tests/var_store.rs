@@ -50,6 +50,8 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
     let ones = vs.root().var("t3", &[3], Init::Const(1.));
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    let ones = vs.root().var("t4", &[3], Init::Const(0.5));
+    assert_eq!(Vec::<f64>::from(&ones), [0.5, 0.5, 0.5]);
     let forty_two = vs.root().var("t4", &[2], Init::Const(42.));
     assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
     let uniform = vs
@@ -65,6 +67,16 @@ fn init_test() {
         "std {}",
         uniform_std
     );
+    let normal = vs.root().var(
+        "normal",
+        &[100],
+        Init::Randn {
+            mean: 0.,
+            stdev: 0.02,
+        },
+    );
+    let normal_std = f64::from(&normal.std(true));
+    assert!(normal_std <= 0.03, "std {}", normal_std);
     let mut vs2 = VarStore::new(Device::Cpu);
     let ones = vs2.root().ones("t1", &[3]);
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
