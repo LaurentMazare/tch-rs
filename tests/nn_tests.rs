@@ -1,4 +1,5 @@
 use tch::nn::{Module, OptimizerConfig};
+use tch::nn::layer_norm;
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
 #[test]
@@ -65,6 +66,15 @@ fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
+    let x = Tensor::randn(&[10, 40], opts);
+    let _y = x.apply_t(&bn, true);
+}
+
+#[test]
+fn layer_norm_test() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let bn = layer_norm(vs.root(), 40, Default::default());
     let x = Tensor::randn(&[10, 40], opts);
     let _y = x.apply_t(&bn, true);
 }
