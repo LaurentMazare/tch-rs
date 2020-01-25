@@ -74,9 +74,9 @@ fn bn_test() {
 fn layer_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let bn = layer_norm(vs.root(), 40, Default::default());
-    let x = Tensor::randn(&[10, 40], opts);
-    let _y = x.apply_t(&bn, true);
+    let ln = layer_norm(vs.root(), vec!(5, 10, 10), Default::default());
+    let x = Tensor::randn(&[20, 5, 10, 10], opts);
+    let _y = x.apply_t(&ln, true);
 }
 
 fn gru_test(rnn_config: nn::RNNConfig) {
