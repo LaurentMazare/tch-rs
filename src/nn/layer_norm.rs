@@ -58,8 +58,8 @@ pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
     }
 }
 
-impl super::module::ModuleT for LayerNorm {
-    fn forward_t(&self, xs: &Tensor, _train: bool) -> Tensor {
+impl super::module::Module for LayerNorm {
+    fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::layer_norm(
             xs,
             self.normalized_shape.as_slice(),

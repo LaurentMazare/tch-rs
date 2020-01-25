@@ -76,7 +76,47 @@ fn layer_norm_test() {
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let ln = layer_norm(vs.root(), vec!(5, 10, 10), Default::default());
     let x = Tensor::randn(&[20, 5, 10, 10], opts);
-    let _y = x.apply_t(&ln, true);
+    let _y = x.apply(&ln);
+}
+
+#[test]
+fn layer_norm_parameters_test() {
+    tch::manual_seed(42);
+    // Create some linear data.
+    let xs = Tensor::of_slice(&[42.0, 42.0, 42.0, 24.0])
+        .to_kind(Kind::Float)
+        .view([-1, 2]);
+    let ys = &xs * 0.42 + 1.337;
+
+    // Fit a layer normalization layer (with deterministic initialization) on the data.
+    let vs = nn::VarStore::new(Device::Cpu);
+    let mut opt = nn::Sgd::default().build(&vs, 1.0).unwrap();
+    let mut ln = layer_norm(vs.root(), vec!(2), Default::default());
+
+    let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
+    let initial_loss = f64::from(&loss);
+    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+
+    // Optimization loop.
+    for _idx in 1..50 {
+        let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
+    let final_loss = f64::from(loss);
+    assert!(final_loss < 0.25, "final loss {:?}", final_loss);
+
+//     Reset the weights to their initial values.
+    tch::no_grad(|| {
+        if let Some(ws) = &mut ln.ws {
+            ws.init(nn::Init::Const(1.));
+        }
+        if let Some(bs) = &mut ln.bs {
+            bs.init(nn::Init::Const(0.));
+        }
+    });
+    let initial_loss2 = f64::from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
+    assert_eq!(initial_loss, initial_loss2)
 }
 
 fn gru_test(rnn_config: nn::RNNConfig) {
