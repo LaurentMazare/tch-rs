@@ -207,3 +207,41 @@ fn lstm() {
         ..Default::default()
     });
 }
+
+fn embedding_test(embedding_config: nn::EmbeddingConfig) {
+    let batch_dim = 5;
+    let seq_len = 7;
+    let input_dim = 10;
+    let output_dim = 4;
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let embeddings = nn::embedding(&vs.root(), input_dim, output_dim, embedding_config);
+
+    // forward test
+    let input = Tensor::randint(10, &[batch_dim, seq_len], kind::INT64_CPU);
+    let output = embeddings.forward(&input);
+    assert_eq!(output.size(), [batch_dim, seq_len, output_dim]);
+
+    // padding test
+    let padding_idx = if embedding_config.padding_idx < 0 {
+        input_dim + embedding_config.padding_idx
+    } else {
+        embedding_config.padding_idx
+    };
+    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let output = embeddings.forward(&input);
+    assert_eq!(output.size(), [1, output_dim]);
+    assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
+}
+
+#[test]
+fn embedding() {
+    embedding_test(Default::default());
+    embedding_test(nn::EmbeddingConfig {
+        padding_idx: -1,
+        ..Default::default()
+    });
+    embedding_test(nn::EmbeddingConfig {
+        padding_idx: 0,
+        ..Default::default()
+    });
+}
