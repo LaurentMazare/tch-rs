@@ -8,6 +8,7 @@ pub struct EmbeddingConfig {
     pub sparse: bool,
     pub scale_grad_by_freq: bool,
     pub ws_init: super::Init,
+    pub padding_idx: i64,
 }
 
 impl Default for EmbeddingConfig {
@@ -19,6 +20,7 @@ impl Default for EmbeddingConfig {
                 mean: 0.,
                 stdev: 1.,
             },
+            padding_idx: -1,
         }
     }
 }
@@ -55,7 +57,7 @@ impl super::module::Module for Embedding {
         Tensor::embedding(
             &self.ws,
             xs,
-            -1,
+            self.config.padding_idx,
             self.config.scale_grad_by_freq,
             self.config.sparse,
         )
