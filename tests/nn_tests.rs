@@ -1,5 +1,5 @@
-use tch::nn::{Module, OptimizerConfig};
 use tch::nn::layer_norm;
+use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
 #[test]
@@ -74,7 +74,7 @@ fn bn_test() {
 fn layer_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let ln = layer_norm(vs.root(), vec!(5, 10, 10), Default::default());
+    let ln = layer_norm(vs.root(), vec![5, 10, 10], Default::default());
     let x = Tensor::randn(&[20, 5, 10, 10], opts);
     let _y = x.apply(&ln);
 }
@@ -91,7 +91,7 @@ fn layer_norm_parameters_test() {
     // Fit a layer normalization layer (with deterministic initialization) on the data.
     let vs = nn::VarStore::new(Device::Cpu);
     let mut opt = nn::Sgd::default().build(&vs, 1.0).unwrap();
-    let mut ln = layer_norm(vs.root(), vec!(2), Default::default());
+    let mut ln = layer_norm(vs.root(), vec![2], Default::default());
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
@@ -106,7 +106,7 @@ fn layer_norm_parameters_test() {
     let final_loss = f64::from(loss);
     assert!(final_loss < 0.25, "final loss {:?}", final_loss);
 
-//     Reset the weights to their initial values.
+    //     Reset the weights to their initial values.
     tch::no_grad(|| {
         if let Some(ws) = &mut ln.ws {
             ws.init(nn::Init::Const(1.));

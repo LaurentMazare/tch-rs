@@ -36,18 +36,18 @@ pub struct LayerNorm {
 pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
     vs: T,
     normalized_shape: Vec<i64>,
-    config: LayerNormConfig
+    config: LayerNormConfig,
 ) -> LayerNorm {
     let vs = vs.borrow();
 
     let ws = match config.elementwise_affine {
         true => Some(vs.var("weight", normalized_shape.as_slice(), config.ws_init)),
-        false => None
+        false => None,
     };
 
     let bs = match config.elementwise_affine {
         true => Some(vs.var("bias", normalized_shape.as_slice(), config.bs_init)),
-        false => None
+        false => None,
     };
 
     LayerNorm {
@@ -66,9 +66,7 @@ impl super::module::Module for LayerNorm {
             self.ws.as_ref(),
             self.bs.as_ref(),
             self.config.eps,
-            self.config.cudnn_enabled
+            self.config.cudnn_enabled,
         )
     }
 }
-
-
