@@ -227,8 +227,10 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&[padding_idx, batch_dim]);
+    let input = Tensor::of_slice(&vec![padding_idx; 1]);
     let output = embeddings.forward(&input);
+    assert_eq!(output.size(), [1, output_dim]);
+    assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
 }
 
 #[test]
