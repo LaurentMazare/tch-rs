@@ -532,6 +532,14 @@ module atm_load(char *filename) {
   return nullptr;
 }
 
+module atm_load_str(char *data, size_t sz) {
+  PROTECT(
+    std::istringstream stream(std::string(data, sz));
+    return new torch::jit::script::Module(torch::jit::load(stream));
+  )
+  return nullptr;
+}
+
 tensor atm_forward(module m, tensor *tensors, int ntensors) {
   PROTECT(
     std::vector<torch::jit::IValue> inputs;

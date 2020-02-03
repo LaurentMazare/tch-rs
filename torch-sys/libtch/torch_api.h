@@ -116,6 +116,7 @@ int atc_cudnn_is_available();
 void atc_set_benchmark_cudnn(int b);
 
 module atm_load(char *);
+module atm_load_str(char *, size_t sz);
 tensor atm_forward(module, tensor *tensors, int ntensors);
 ivalue atm_forward_(module,
                     ivalue *ivalues,

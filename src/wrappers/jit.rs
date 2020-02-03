@@ -259,6 +259,15 @@ impl CModule {
         Ok(CModule { c_module })
     }
 
+    /// Loads a PyTorch saved JIT model from a read instance.
+    pub fn load_data<T: std::io::Read>(f: &mut T) -> Fallible<CModule> {
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)?;
+        let buffer_ptr = buffer.as_ptr() as *const i8;
+        let c_module = unsafe_torch_err!({ atm_load_str(buffer_ptr, buffer.len()) });
+        Ok(CModule { c_module })
+    }
+
     /// Performs the forward pass for a model on some specified tensor inputs.
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();

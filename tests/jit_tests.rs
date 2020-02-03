@@ -12,6 +12,17 @@ fn jit() {
 }
 
 #[test]
+fn jit_data() {
+    let x = Tensor::of_slice(&[3, 1, 4, 1, 5]).to_kind(Kind::Float);
+    let y = Tensor::of_slice(&[7]).to_kind(Kind::Float);
+    let mut file = std::fs::File::open("tests/foo.pt").unwrap();
+    let foo = tch::CModule::load_data(&mut file).unwrap();
+    let result = foo.forward_ts(&[&x, &y]).unwrap();
+    let expected = x * 2.0 + y + 42.0;
+    assert_eq!(Vec::<f64>::from(&result), Vec::<f64>::from(&expected));
+}
+
+#[test]
 fn jit1() {
     let foo = tch::CModule::load("tests/foo1.pt").unwrap();
     let result = foo
