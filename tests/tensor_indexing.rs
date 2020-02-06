@@ -116,3 +116,12 @@ fn complex_index() {
         &[157, 158, 159, 160, 164, 165, 166, 167, 143, 144, 145, 146]
     );
 }
+
+#[test]
+fn index_3d() {
+    let values: Vec<i64> = (0..24).collect();
+    let tensor = tch::Tensor::of_slice(&values).view((2, 3, 4));
+    assert_eq!(Vec::<i64>::from(tensor.i((0, 0, 0))), &[0]);
+    assert_eq!(Vec::<i64>::from(tensor.i((1, 0, 0))), &[12]);
+    assert_eq!(Vec::<i64>::from(tensor.i((0..2, 0, 0))), &[0, 12]);
+}

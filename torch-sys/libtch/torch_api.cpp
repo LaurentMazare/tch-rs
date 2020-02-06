@@ -62,12 +62,13 @@ void at_copy_data(tensor tensor, void *vs, size_t numel, size_t elt_size_in_byte
     if (numel > tensor->numel())
       throw std::invalid_argument("target numel is larger than tensor numel");
     if (tensor->device().type() != at::kCPU) {
-      torch::Tensor tmp_tensor = tensor->to(at::kCPU);
-      void *tensor_data = tmp_tensor.contiguous().data_ptr();
+      torch::Tensor tmp_tensor = tensor->to(at::kCPU).contiguous();
+      void *tensor_data = tmp_tensor.data_ptr();
       memcpy(vs, tensor_data, numel * elt_size_in_bytes);
     }
     else {
-      void *tensor_data = tensor->contiguous().data_ptr();
+      auto tmp_tensor = tensor->contiguous();
+      void *tensor_data = tmp_tensor.data_ptr();
       memcpy(vs, tensor_data, numel * elt_size_in_bytes);
     }
   )
@@ -314,7 +315,8 @@ int at_save_image(tensor tensor, char *filename) {
     int h = sizes[0];
     int w = sizes[1];
     int c = sizes[2];
-    void *tensor_data = tensor->contiguous().data_ptr();
+    auto tmp_tensor = tensor->contiguous();
+    void *tensor_data = tmp_tensor.data_ptr();
     if (ends_with(filename, ".jpg"))
       return stbi_write_jpg(filename, w, h, c, tensor_data, 90);
     if (ends_with(filename, ".bmp"))
@@ -334,7 +336,8 @@ tensor at_resize_image(tensor tensor, int out_w, int out_h) {
     int h = sizes[0];
     int w = sizes[1];
     int c = sizes[2];
-    const unsigned char *tensor_data = (unsigned char*)tensor->contiguous().data_ptr();
+    auto tmp_tensor = tensor->contiguous();
+    const unsigned char *tensor_data = (unsigned char*)tmp_tensor.data_ptr();
     torch::Tensor out = torch::zeros({ out_h, out_w, c }, at::ScalarType::Byte);
     stbir_resize_uint8(tensor_data, w, h, 0, (unsigned char*)out.data_ptr(), out_w, out_h, 0, c);
     return new torch::Tensor(out);
