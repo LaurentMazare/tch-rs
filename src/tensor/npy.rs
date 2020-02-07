@@ -211,7 +211,7 @@ impl crate::Tensor {
         f.write_all(header.as_bytes())?;
         let numel = self.numel();
         let mut content = vec![0u8; (numel * kind.elt_size_in_bytes()) as usize];
-        self.f_copy_data(&mut content, numel)?;
+        self.f_copy_data_u8(&mut content, numel)?;
         f.write_all(&content)?;
         Ok(())
     }

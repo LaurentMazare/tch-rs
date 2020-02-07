@@ -204,6 +204,30 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
+    pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Fallible<()> {
+        let elt_size_in_bytes = self.kind().elt_size_in_bytes();
+        ensure!(
+            dst.len() >= numel * elt_size_in_bytes,
+            "slice len < {}",
+            numel
+        );
+        unsafe_torch_err!({
+            at_copy_data(
+                self.c_tensor,
+                dst.as_mut_ptr() as *const c_void,
+                numel,
+                elt_size_in_bytes,
+            )
+        });
+        Ok(())
+    }
+
+    /// Copies `numel` elements from `self` to `dst`.
+    pub fn copy_data_u8(&self, dst: &mut [u8], numel: usize) {
+        self.f_copy_data_u8(dst, numel).unwrap()
+    }
+
+    /// Copies `numel` elements from `self` to `dst`.
     pub fn f_copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) -> Fallible<()> {
         ensure!(
             T::KIND == self.kind(),
