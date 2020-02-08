@@ -1,3 +1,4 @@
+use std::fs;
 use tch::{nn::Init, nn::VarStore, Device, Kind};
 
 #[test]
@@ -39,6 +40,7 @@ fn save_and_load_var_store() {
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    fs::remove_file(filename).unwrap();
 }
 
 #[test]
@@ -69,6 +71,7 @@ fn save_and_load_partial_var_store() {
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
     assert!(missing_variables.is_none());
+    fs::remove_file(filename).unwrap();
 }
 
 #[test]
@@ -101,6 +104,7 @@ fn save_and_load_var_store_incomplete_file() {
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    fs::remove_file(filename).unwrap();
 }
 
 #[test]
@@ -133,6 +137,7 @@ fn save_and_load_partial_var_store_incomplete_file() {
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
     assert_eq!(missing_variables, Some(vec!(String::from("a.b.t2"))));
+    fs::remove_file(filename).unwrap();
 }
 
 #[test]
