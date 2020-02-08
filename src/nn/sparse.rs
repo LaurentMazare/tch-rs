@@ -43,11 +43,7 @@ pub fn embedding<'a, T: Borrow<super::Path<'a>>>(
 ) -> Embedding {
     let vs = vs.borrow();
     Embedding {
-        ws: vs.var(
-            "weight",
-            &[num_embeddings, embedding_dim],
-            config.ws_init,
-        ),
+        ws: vs.var("weight", &[num_embeddings, embedding_dim], config.ws_init),
         config,
     }
 }
