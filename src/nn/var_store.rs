@@ -143,7 +143,7 @@ impl VarStore {
     /// weight for only parts of the model are available.
     /// Note that the set of variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
-    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()>  {
+    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
         let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
@@ -152,7 +152,11 @@ impl VarStore {
                 Some(src) => {
                     crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
                 }
-                None => println!("cannot find {} in {:?}. Variable value not updated", name, path.as_ref()),
+                None => println!(
+                    "cannot find {} in {:?}. Variable value not updated",
+                    name,
+                    path.as_ref()
+                ),
             }
         }
         Ok(())
@@ -485,8 +489,8 @@ impl<'a> Entry<'a> {
 }
 
 impl<'a, T> Div<T> for &'a mut Path<'a>
-    where
-        T: std::string::ToString,
+where
+    T: std::string::ToString,
 {
     type Output = Path<'a>;
 
@@ -496,8 +500,8 @@ impl<'a, T> Div<T> for &'a mut Path<'a>
 }
 
 impl<'a, T> Div<T> for &'a Path<'a>
-    where
-        T: std::string::ToString,
+where
+    T: std::string::ToString,
 {
     type Output = Path<'a>;
 
