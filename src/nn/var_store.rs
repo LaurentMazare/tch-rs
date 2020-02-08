@@ -37,7 +37,8 @@ pub struct Path<'a> {
 #[derive(Debug)]
 pub struct Entry<'a> {
     name: &'a str,
-    variables: MutexGuard<'a, Variables>, // This field holds the mutex lock
+    variables: MutexGuard<'a, Variables>,
+    // This field holds the mutex lock
     path: &'a Path<'a>,
 }
 
@@ -129,6 +130,29 @@ impl VarStore {
                     crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
                 }
                 None => return Err(format_err!("cannot find {} in {:?}", name, path.as_ref())),
+            }
+        }
+        Ok(())
+    }
+
+    /// Loads the var-store variable values from a file if it exists.
+    ///
+    /// Weight values for the tensors currently stored in the var-store and the given file get
+    /// loaded from the given file. If a variable in the var store is not present in the given file,
+    /// it is skipped and its values are not updated. This method should be used if pre-trained
+    /// weight for only parts of the model are available.
+    /// Note that the set of variables stored in the var-store is not changed, only the values
+    /// for these tensors are modified.
+    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()>  {
+        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
+        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        let mut variables = self.variables_.lock().unwrap();
+        for (name, var) in variables.named_variables.iter_mut() {
+            match named_tensors.get(name) {
+                Some(src) => {
+                    crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
+                }
+                None => println!("cannot find {} in {:?}. Variable value not updated", name, path.as_ref()),
             }
         }
         Ok(())
@@ -461,8 +485,8 @@ impl<'a> Entry<'a> {
 }
 
 impl<'a, T> Div<T> for &'a mut Path<'a>
-where
-    T: std::string::ToString,
+    where
+        T: std::string::ToString,
 {
     type Output = Path<'a>;
 
@@ -472,8 +496,8 @@ where
 }
 
 impl<'a, T> Div<T> for &'a Path<'a>
-where
-    T: std::string::ToString,
+    where
+        T: std::string::ToString,
 {
     type Output = Path<'a>;
 
