@@ -143,10 +143,9 @@ impl VarStore {
     /// weight for only parts of the model are available.
     /// Note that the set of variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
-    pub fn load_partial<T: AsRef<std::path::Path>>(
-        &mut self,
-        path: T,
-    ) -> Fallible<Option<Vec<String>>> {
+    ///
+    /// Returns a String Vector containing the names of missing variables.
+    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<Vec<String>> {
         let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
@@ -161,11 +160,7 @@ impl VarStore {
                 }
             }
         }
-        Ok(if !&missing_variables.is_empty() {
-            Some(missing_variables)
-        } else {
-            None
-        })
+        Ok(missing_variables)
     }
 
     /// Freezes a var store.

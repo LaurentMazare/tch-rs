@@ -15,7 +15,8 @@ fn var_store_entry() {
 
 #[test]
 fn save_and_load_var_store() {
-    let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-load-complete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let v = vs.sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
@@ -45,7 +46,10 @@ fn save_and_load_var_store() {
 
 #[test]
 fn save_and_load_partial_var_store() {
-    let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
+    let filename = std::env::temp_dir().join(format!(
+        "tch-vs-partial-load-complete-{}",
+        std::process::id()
+    ));
     let add = |vs: &tch::nn::Path| {
         let v = vs.sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
@@ -70,14 +74,15 @@ fn save_and_load_partial_var_store() {
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
-    assert!(missing_variables.is_none());
+    assert!(missing_variables.is_empty());
     fs::remove_file(filename).unwrap();
 }
 
 #[test]
 #[should_panic]
 fn save_and_load_var_store_incomplete_file() {
-    let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-load-incomplete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let u = vs.zeros("t1", &[4]);
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
@@ -109,7 +114,10 @@ fn save_and_load_var_store_incomplete_file() {
 
 #[test]
 fn save_and_load_partial_var_store_incomplete_file() {
-    let filename = std::env::temp_dir().join(format!("tch-vs-{}", std::process::id()));
+    let filename = std::env::temp_dir().join(format!(
+        "tch-vs-partial-load-incomplete-{}",
+        std::process::id()
+    ));
     let add = |vs: &tch::nn::Path| {
         let u = vs.zeros("t1", &[4]);
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
@@ -136,7 +144,7 @@ fn save_and_load_partial_var_store_incomplete_file() {
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
-    assert_eq!(missing_variables, Some(vec!(String::from("a.b.t2"))));
+    assert_eq!(missing_variables, vec!(String::from("a.b.t2")));
     fs::remove_file(filename).unwrap();
 }
 
