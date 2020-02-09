@@ -12,12 +12,19 @@ keywords = ["pytorch", "ffi", "deep-learning", "machine-learning"]
 categories = ["external-ffi-bindings", "science"]
 license = "MIT/Apache-2.0"
 
+[features]
+default = ["real-ffi"]
+real-ffi = ["cc", "cmake", "curl", "failure", "zip"]
+
 [dependencies]
 libc = "0.2.0"
 
 [build-dependencies]
-cc = "1.0"
-cmake = "0.1"
-curl = "0.4.9"
-failure = "0.1"
-zip = "0.5"
+cc = { version = "1.0", optional = true }
+cmake = { version = "0.1", optional = true }
+curl = { version = "0.4.9", optional = true }
+failure = { version = "0.1", optional = true }
+zip = { version = "0.5", optional = true }
+
+[package.metadata.docs.rs]
+no-default-feautres = true

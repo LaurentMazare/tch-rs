@@ -26,8 +26,13 @@ cpython = { version = "0.2.0", optional = true }
 members = ["torch-sys"]
 
 [features]
+default = ["real-ffi"]
 python = ["cpython"]
+real-ffi = ["torch-sys/real-ffi"]
 
 [[example]]
 name = "reinforcement-learning"
 required-features = ["python"]
+
+[package.metadata.docs.rs]
+no-default-feautres = true

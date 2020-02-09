@@ -567,17 +567,16 @@ let write_ffi funcs filename =
       pm "use crate::{C_scalar, C_tensor};";
       pm "use libc::c_int;";
       pm "";
-      pm "extern \"C\" {";
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
           match func.Func.returns with
           | `fixed _ ->
-              pm "    pub fn atg_%s(out__: *mut *mut C_tensor, %s);"
+              pm "    pub_ffi!(fn atg_%s(out__: *mut *mut C_tensor, %s));"
                 exported_name
                 (Func.c_rust_args_list func)
           | `dynamic ->
-              pm "    pub fn atg_%s(%s) -> *mut *mut C_tensor;" exported_name
+              pm "    pub_ffi!(fn atg_%s(%s) -> *mut *mut C_tensor);" exported_name
                 (Func.c_rust_args_list func));
-      pm "}")
+      )
 
 let methods =
   let c name args = { Func.name; args; returns = `fixed 1; kind = `method_ } in
