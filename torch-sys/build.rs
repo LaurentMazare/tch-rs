@@ -171,25 +171,27 @@ fn cmake<P: AsRef<Path>>(libtorch: P) {
 }
 
 fn main() {
-    let libtorch = prepare_libtorch_dir();
-    println!(
-        "cargo:rustc-link-search=native={}",
-        libtorch.join("lib").display()
-    );
+    if !cfg!(feature = "doc-only") {
+        let libtorch = prepare_libtorch_dir();
+        println!(
+            "cargo:rustc-link-search=native={}",
+            libtorch.join("lib").display()
+        );
 
-    if env::var("LIBTORCH_USE_CMAKE").is_ok() {
-        cmake(&libtorch)
-    } else {
-        make(&libtorch)
-    }
+        if env::var("LIBTORCH_USE_CMAKE").is_ok() {
+            cmake(&libtorch)
+        } else {
+            make(&libtorch)
+        }
 
-    println!("cargo:rustc-link-lib=static=tch");
-    println!("cargo:rustc-link-lib=torch");
-    println!("cargo:rustc-link-lib=c10");
+        println!("cargo:rustc-link-lib=static=tch");
+        println!("cargo:rustc-link-lib=torch");
+        println!("cargo:rustc-link-lib=c10");
 
-    let target = env::var("TARGET").unwrap();
+        let target = env::var("TARGET").unwrap();
 
-    if !target.contains("msvc") && !target.contains("apple") {
-        println!("cargo:rustc-link-lib=gomp");
+        if !target.contains("msvc") && !target.contains("apple") {
+            println!("cargo:rustc-link-lib=gomp");
+        }
     }
 }
