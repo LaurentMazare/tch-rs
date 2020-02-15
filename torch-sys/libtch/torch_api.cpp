@@ -328,6 +328,22 @@ int at_save_image(tensor tensor, char *filename) {
   return -1;
 }
 
+int at_get_num_interop_threads() {
+  PROTECT(return at::get_num_interop_threads();)
+}
+
+int at_get_num_threads() {
+  PROTECT(return at::get_num_threads();)
+}
+
+void at_set_num_interop_threads(int n_threads) {
+  PROTECT(at::set_num_interop_threads(n_threads);)
+}
+
+void at_set_num_threads(int n_threads) {
+  PROTECT(at::set_num_threads(n_threads);)
+}
+
 tensor at_resize_image(tensor tensor, int out_w, int out_h) {
   PROTECT(
     auto sizes = tensor->sizes();

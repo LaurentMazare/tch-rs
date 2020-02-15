@@ -69,3 +69,23 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<st
 pub fn manual_seed(seed: i64) {
     unsafe_torch!({ torch_sys::at_manual_seed(seed) })
 }
+
+/// Get the number of threads used by torch for inter-op parallelism.
+pub fn get_num_interop_threads() -> i32 {
+    unsafe_torch!({ torch_sys::at_get_num_interop_threads() })
+}
+
+/// Get the number of threads used by torch in parallel regions.
+pub fn get_num_threads() -> i32 {
+    unsafe_torch!({ torch_sys::at_get_num_threads() })
+}
+
+/// Set the number of threads used by torch for inter-op parallelism.
+pub fn set_num_interop_threads(n_threads: i32) {
+    unsafe_torch!({ torch_sys::at_set_num_interop_threads(n_threads) })
+}
+
+/// Set the number of threads used by torch in parallel regions.
+pub fn set_num_threads(n_threads: i32) {
+    unsafe_torch!({ torch_sys::at_set_num_threads(n_threads) })
+}

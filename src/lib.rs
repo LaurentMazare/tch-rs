@@ -12,8 +12,10 @@ mod wrappers;
 pub use wrappers::device::{Cuda, Device};
 pub use wrappers::jit::{CModule, IValue};
 pub use wrappers::kind::Kind;
-pub use wrappers::manual_seed;
 pub use wrappers::scalar::Scalar;
+pub use wrappers::{
+    get_num_interop_threads, get_num_threads, manual_seed, set_num_interop_threads, set_num_threads,
+};
 
 mod tensor;
 pub use tensor::{

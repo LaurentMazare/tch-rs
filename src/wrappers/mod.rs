@@ -1,6 +1,8 @@
 #[macro_use]
 mod utils;
-pub use utils::manual_seed;
+pub use utils::{
+    get_num_interop_threads, get_num_threads, manual_seed, set_num_interop_threads, set_num_threads,
+};
 
 pub(crate) mod device;
 pub(crate) mod image;
