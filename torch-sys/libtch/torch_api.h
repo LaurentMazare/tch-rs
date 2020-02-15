@@ -71,6 +71,14 @@ void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *fi
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
 void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
 
+int at_get_num_interop_threads();
+
+int at_get_num_threads();
+
+void at_set_num_interop_threads(int n_threads);
+
+void at_set_num_threads(int n_threads);
+
 void at_free(tensor);
 
 void at_run_backward(tensor *tensors,
