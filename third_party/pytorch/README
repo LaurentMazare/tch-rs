@@ -1,0 +1,3 @@
+The Declarations-B.yaml files included in this directory have been obtained
+by compiling PyTorch from source using the code in branch B from the official
+GitHub repo: https://github.com/pytorch/pytorch
