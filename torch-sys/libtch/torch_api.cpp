@@ -79,6 +79,12 @@ tensor at_shallow_clone(tensor t) {
   return nullptr;
 }
 
+void *at_data_ptr(tensor t) {
+    PROTECT(return t->data_ptr();)
+    return nullptr;
+}
+
+
 int at_defined(tensor t) {
   PROTECT(return t->defined();)
   return -1;

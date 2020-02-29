@@ -124,6 +124,11 @@ impl Tensor {
         unsafe_torch!({ at_requires_grad(self.c_tensor) }) != 0
     }
 
+    /// Returns the address of the first element of this tensor.
+    pub fn data_ptr(&self) -> *mut c_void {
+        unsafe_torch!({ at_data_ptr(self.c_tensor) })
+    }
+
     /// Returns true is the tensor is defined.
     pub fn defined(&self) -> bool {
         unsafe_torch!({ at_defined(self.c_tensor) != 0 })
