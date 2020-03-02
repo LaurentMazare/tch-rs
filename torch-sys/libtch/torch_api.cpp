@@ -80,8 +80,8 @@ tensor at_shallow_clone(tensor t) {
 }
 
 void *at_data_ptr(tensor t) {
-    PROTECT(return t->data_ptr();)
-    return nullptr;
+  PROTECT(return t->data_ptr();)
+  return nullptr;
 }
 
 
@@ -593,6 +593,12 @@ ivalue atm_forward_(module m,
 
 void atm_free(module m) {
   delete(m);
+}
+
+void atm_to(module m, at::Device device, bool non_blocking) {
+  PROTECT(
+    m->to(device, non_blocking);
+  )
 }
 
 ivalue ati_tensor(tensor t) {

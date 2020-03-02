@@ -189,4 +189,5 @@ extern "C" {
     pub fn atm_forward(m: *mut CModule_, args: *const *mut C_tensor, n: c_int) -> *mut C_tensor;
     pub fn atm_forward_(m: *mut CModule_, args: *const *mut CIValue, n: c_int) -> *mut CIValue;
     pub fn atm_free(m: *mut CModule_);
+    pub fn atm_to(m: *mut CModule_, device: c_int, non_blocking: bool);
 }

@@ -131,6 +131,7 @@ ivalue atm_forward_(module,
                     ivalue *ivalues,
                     int nivalues);
 void atm_free(module);
+void atm_to(module m, at::Device device, bool non_blocking);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);
