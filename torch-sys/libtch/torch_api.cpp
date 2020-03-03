@@ -595,10 +595,9 @@ void atm_free(module m) {
   delete(m);
 }
 
-//void atm_to(module m, at::Device device, bool non_blocking) {
-void atm_to(module m, at::Device device, at::ScalarType dtype, bool non_blocking) {
+void atm_to(module m, int device, int dtype, bool non_blocking) {
   PROTECT(
-    m->to(device, dtype, non_blocking);
+    m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);
   )
 }
 
