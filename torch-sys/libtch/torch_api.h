@@ -32,6 +32,7 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, size_t ndims, size_t element_s
 void at_copy_data(tensor tensor, void *vs, size_t numel, size_t element_size_in_bytes);
 tensor at_shallow_clone(tensor);
 
+void *at_data_ptr(tensor);
 int at_defined(tensor);
 int at_is_sparse(tensor);
 int at_device(tensor);
@@ -130,6 +131,7 @@ ivalue atm_forward_(module,
                     ivalue *ivalues,
                     int nivalues);
 void atm_free(module);
+void atm_to(module m, int device, int dtype, bool non_blocking);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);

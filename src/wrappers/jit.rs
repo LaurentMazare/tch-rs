@@ -1,5 +1,6 @@
 //! JIT interface to run model trained/saved using PyTorch Python API.
 use super::utils::{path_to_cstring, ptr_to_string};
+use super::{device::Device, kind::Kind};
 use crate::Tensor;
 use failure::Fallible;
 use libc::c_int;
@@ -288,6 +289,10 @@ impl CModule {
             unsafe { ati_free(x) }
         }
         IValue::of_c(c_ivalue)
+    }
+
+    pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
+        unsafe_torch!({ atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking) });
     }
 }
 

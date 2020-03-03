@@ -79,6 +79,12 @@ tensor at_shallow_clone(tensor t) {
   return nullptr;
 }
 
+void *at_data_ptr(tensor t) {
+  PROTECT(return t->data_ptr();)
+  return nullptr;
+}
+
+
 int at_defined(tensor t) {
   PROTECT(return t->defined();)
   return -1;
@@ -587,6 +593,12 @@ ivalue atm_forward_(module m,
 
 void atm_free(module m) {
   delete(m);
+}
+
+void atm_to(module m, int device, int dtype, bool non_blocking) {
+  PROTECT(
+    m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);
+  )
 }
 
 ivalue ati_tensor(tensor t) {
