@@ -365,6 +365,7 @@ void atg_dropout(tensor *, tensor input, double p, int train);
 void atg_dropout_(tensor *, tensor self, double p, int train);
 void atg_eig(tensor *, tensor self, int eigenvectors);
 void atg_eig_out(tensor *, tensor e, tensor v, tensor self, int eigenvectors);
+void atg_einsum(tensor *, char* equation_ptr, int equation_len, tensor *tensors_data, int tensors_len);
 void atg_elu(tensor *, tensor self);
 void atg_elu_(tensor *, tensor self);
 void atg_elu_backward(tensor *, tensor grad_output, scalar alpha, scalar scale, scalar input_scale, tensor output);
@@ -453,6 +454,7 @@ void atg_fractional_max_pool3d_out(tensor *, tensor output, tensor indices, tens
 void atg_frobenius_norm(tensor *, tensor self);
 void atg_frobenius_norm1(tensor *, tensor self, int64_t *dim_data, int dim_len, int keepdim);
 void atg_frobenius_norm_out(tensor *, tensor out, tensor self, int64_t *dim_data, int dim_len, int keepdim);
+void atg_from_file(tensor *, char* filename_ptr, int filename_len, int shared, int64_t size, int options_kind, int options_device);
 void atg_full(tensor *, int64_t *size_data, int size_len, scalar fill_value, int options_kind, int options_device);
 void atg_full_like(tensor *, tensor self, scalar fill_value);
 void atg_full_like1(tensor *, tensor self, scalar fill_value, int options_kind, int options_device);

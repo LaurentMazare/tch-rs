@@ -2629,6 +2629,13 @@ void atg_eig_out(tensor *out__, tensor e, tensor v, tensor self, int eigenvector
   )
 }
 
+void atg_einsum(tensor *out__, char* equation_ptr, int equation_len, tensor *tensors_data, int tensors_len) {
+  PROTECT(
+    auto outputs__ = torch::einsum(std::string(equation_ptr, equation_len), of_carray_tensor(tensors_data, tensors_len));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_elu(tensor *out__, tensor self) {
   PROTECT(
     auto outputs__ = torch::elu(*self);
@@ -3248,6 +3255,13 @@ void atg_frobenius_norm1(tensor *out__, tensor self, int64_t *dim_data, int dim_
 void atg_frobenius_norm_out(tensor *out__, tensor out, tensor self, int64_t *dim_data, int dim_len, int keepdim) {
   PROTECT(
     auto outputs__ = torch::frobenius_norm_out(*out, *self, torch::IntArrayRef(dim_data, dim_len), (bool)keepdim);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_from_file(tensor *out__, char* filename_ptr, int filename_len, int shared, int64_t size, int options_kind, int options_device) {
+  PROTECT(
+    auto outputs__ = torch::from_file(std::string(filename_ptr, filename_len), (bool)shared, size, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }

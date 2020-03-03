@@ -331,3 +331,18 @@ fn sparse() {
     let t = Tensor::of_slice(&[1, 2, 3]);
     assert!(!t.is_sparse());
 }
+
+#[test]
+fn einsum() {
+    // Element-wise squaring of a vector.
+    let t = Tensor::of_slice(&[1.0, 2.0, 3.0]);
+    let t = Tensor::einsum("i, i -> i", &[&t, &t]);
+    assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 9.0]);
+    // Matrix transpose
+    let t = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape(&[2, 3]);
+    let t = Tensor::einsum("ij -> ji", &[t]);
+    assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 2.0, 5.0, 3.0, 6.0]);
+    // Sum all elements
+    let t = Tensor::einsum("ij -> ", &[t]);
+    assert_eq!(Vec::<f64>::from(&t), [21.0]);
+}

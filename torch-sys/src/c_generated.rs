@@ -2008,6 +2008,13 @@ extern "C" {
         self_: *mut C_tensor,
         eigenvectors_: c_int,
     );
+    pub fn atg_einsum(
+        out__: *mut *mut C_tensor,
+        equation_ptr: *const u8,
+        equation_len: c_int,
+        tensors_data: *const *mut C_tensor,
+        tensors_len: c_int,
+    );
     pub fn atg_elu(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_elu_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_elu_backward(
@@ -2402,6 +2409,15 @@ extern "C" {
         dim_data: *const i64,
         dim_len: c_int,
         keepdim_: c_int,
+    );
+    pub fn atg_from_file(
+        out__: *mut *mut C_tensor,
+        filename_ptr: *const u8,
+        filename_len: c_int,
+        shared_: c_int,
+        size_: i64,
+        options_kind: c_int,
+        options_device: c_int,
     );
     pub fn atg_full(
         out__: *mut *mut C_tensor,

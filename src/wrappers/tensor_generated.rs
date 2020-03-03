@@ -2665,6 +2665,10 @@ impl Tensor {
         self.f_eig_out(e, v, eigenvectors).unwrap()
     }
 
+    pub fn einsum<T: Borrow<Tensor>>(equation: &str, tensors: &[T]) -> Tensor {
+        Tensor::f_einsum(equation, tensors).unwrap()
+    }
+
     pub fn elu(&self) -> Tensor {
         self.f_elu().unwrap()
     }
@@ -3238,6 +3242,10 @@ impl Tensor {
 
     pub fn frobenius_norm_out(&self, out: &Tensor, dim: &[i64], keepdim: bool) -> Tensor {
         self.f_frobenius_norm_out(out, dim, keepdim).unwrap()
+    }
+
+    pub fn from_file(filename: &str, shared: bool, size: i64, options: (Kind, Device)) -> Tensor {
+        Tensor::f_from_file(filename, shared, size, options).unwrap()
     }
 
     pub fn full<S: Into<Scalar>>(size: &[i64], fill_value: S, options: (Kind, Device)) -> Tensor {

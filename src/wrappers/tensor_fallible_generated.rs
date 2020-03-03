@@ -6406,6 +6406,22 @@ impl Tensor {
         ))
     }
 
+    pub fn f_einsum<T: Borrow<Tensor>>(equation: &str, tensors: &[T]) -> failure::Fallible<Tensor> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!({
+            atg_einsum(
+                c_tensors.as_mut_ptr(),
+                equation.as_ptr(),
+                equation.len() as i32,
+                ptr_list(tensors).as_ptr(),
+                tensors.len() as i32,
+            )
+        });
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
     pub fn f_elu(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({ atg_elu(c_tensors.as_mut_ptr(), self.c_tensor) });
@@ -7706,6 +7722,29 @@ impl Tensor {
                 dim.as_ptr(),
                 dim.len() as i32,
                 if keepdim { 1 } else { 0 },
+            )
+        });
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
+    pub fn f_from_file(
+        filename: &str,
+        shared: bool,
+        size: i64,
+        options: (Kind, Device),
+    ) -> failure::Fallible<Tensor> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!({
+            atg_from_file(
+                c_tensors.as_mut_ptr(),
+                filename.as_ptr(),
+                filename.len() as i32,
+                if shared { 1 } else { 0 },
+                size,
+                options.0.c_int(),
+                options.1.c_int(),
             )
         });
         Ok(Tensor {

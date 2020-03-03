@@ -75,6 +75,7 @@ module Func = struct
     | Scalar
     | ScalarType
     | Device
+    | String
 
   type arg = {
     arg_name : string;
@@ -103,6 +104,7 @@ module Func = struct
     | "device" -> Some Device
     | "scalar" -> Some Scalar
     | "scalartype" -> Some ScalarType
+    | "std::string" -> Some String
     | _ -> None
 
   let c_typed_args_list t =
@@ -114,6 +116,7 @@ module Func = struct
             Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
         | TensorOptions ->
             Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
+        | String -> Printf.sprintf "char* %s_ptr, int %s_len" arg_name arg_name
         | otherwise ->
             let simple_type_cstring =
               match otherwise with
@@ -125,7 +128,7 @@ module Func = struct
               | ScalarType -> "int"
               | Device -> "int"
               | Scalar -> "scalar"
-              | IntList | TensorList | TensorOptions -> assert false
+              | String | IntList | TensorList | TensorOptions -> assert false
             in
             Printf.sprintf "%s %s" simple_type_cstring arg_name)
     |> String.concat ~sep:", "
@@ -140,6 +143,8 @@ module Func = struct
         | IntList ->
             Printf.sprintf "torch::IntArrayRef(%s_data, %s_len)" arg_name
               arg_name
+        | String ->
+            Printf.sprintf "std::string(%s_ptr, %s_len)" arg_name arg_name
         | TensorList ->
             Printf.sprintf "of_carray_tensor(%s_data, %s_len)" arg_name arg_name
         | TensorOptions ->
@@ -193,6 +198,7 @@ module Func = struct
         | Scalar -> single_param "*mut C_scalar"
         | ScalarType -> single_param "c_int"
         | Device -> single_param "c_int"
+        | String -> Printf.sprintf "%s_ptr: *const u8, %s_len: c_int" an an
         | IntList -> Printf.sprintf "%s_data: *const i64, %s_len: c_int" an an
         | TensorList ->
             Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
@@ -253,6 +259,7 @@ module Func = struct
             | TensorOption -> "Option<T>"
             | IntList -> "&[i64]"
             | TensorList -> "&[T]"
+            | String -> "&str"
             | TensorOptions -> "(Kind, Device)"
             | Scalar -> "S"
             | ScalarType -> "Kind"
@@ -301,6 +308,7 @@ module Func = struct
         | ScalarType -> Printf.sprintf "%s.c_int()" name
         | Device -> Printf.sprintf "%s.c_int()" name
         | TensorOptions -> Printf.sprintf "%s.0.c_int(), %s.1.c_int()" name name
+        | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | TensorList ->
             Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
