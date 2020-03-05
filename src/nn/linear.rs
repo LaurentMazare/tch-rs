@@ -1,4 +1,5 @@
 //! A linear fully-connected layer.
+use crate::wrappers::kind::Kind::Float;
 use crate::Tensor;
 use std::borrow::Borrow;
 
@@ -43,6 +44,35 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     Linear {
         ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
         bs: vs.var("bias", &[out_dim], bs_init),
+    }
+}
+
+/// Creates a new linear layer.
+pub fn linear2<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    out_dim: i64,
+    bias: bool,
+    c: LinearConfig,
+) -> Linear {
+    let vs = vs.borrow();
+    let bs = match bias {
+        true => {
+            let bs_init = c.bs_init.unwrap_or_else(|| {
+                let bound = 1.0 / (in_dim as f64).sqrt();
+                super::Init::Uniform {
+                    lo: -bound,
+                    up: bound,
+                }
+            });
+            vs.var("bias", &[out_dim], bs_init)
+        }
+        false => Tensor::zeros(&[out_dim], (Float, vs.device())),
+    };
+
+    Linear {
+        ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
+        bs,
     }
 }
 
