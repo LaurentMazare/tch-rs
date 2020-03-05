@@ -1,4 +1,5 @@
 //! A linear fully-connected layer.
+use crate::wrappers::kind::Kind::Float;
 use crate::Tensor;
 use std::borrow::Borrow;
 
@@ -7,6 +8,7 @@ use std::borrow::Borrow;
 pub struct LinearConfig {
     pub ws_init: super::Init,
     pub bs_init: Option<super::Init>,
+    pub bias: bool,
 }
 
 impl Default for LinearConfig {
@@ -14,6 +16,7 @@ impl Default for LinearConfig {
         LinearConfig {
             ws_init: super::Init::KaimingUniform,
             bs_init: None,
+            bias: true,
         }
     }
 }
@@ -33,16 +36,23 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     c: LinearConfig,
 ) -> Linear {
     let vs = vs.borrow();
-    let bs_init = c.bs_init.unwrap_or_else(|| {
-        let bound = 1.0 / (in_dim as f64).sqrt();
-        super::Init::Uniform {
-            lo: -bound,
-            up: bound,
+    let bs = match c.bias {
+        true => {
+            let bs_init = c.bs_init.unwrap_or_else(|| {
+                let bound = 1.0 / (in_dim as f64).sqrt();
+                super::Init::Uniform {
+                    lo: -bound,
+                    up: bound,
+                }
+            });
+            vs.var("bias", &[out_dim], bs_init)
         }
-    });
+        false => Tensor::zeros(&[out_dim], (Float, vs.device())),
+    };
+
     Linear {
         ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
-        bs: vs.var("bias", &[out_dim], bs_init),
+        bs: bs,
     }
 }
 

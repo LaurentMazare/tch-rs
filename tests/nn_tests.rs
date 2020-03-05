@@ -17,6 +17,7 @@ fn optimizer_test() {
     let cfg = nn::LinearConfig {
         ws_init: nn::Init::Const(0.),
         bs_init: Some(nn::Init::Const(0.)),
+        bias: true,
     };
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
 
@@ -242,6 +243,40 @@ fn embedding() {
     });
     embedding_test(nn::EmbeddingConfig {
         padding_idx: 0,
+        ..Default::default()
+    });
+}
+
+fn linear_test(linear_config: nn::LinearConfig) {
+    let batch_dim = 5;
+    let input_dim = 10;
+    let output_dim = 4;
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let linear = nn::linear(&vs.root(), input_dim, output_dim, linear_config);
+
+    // forward test
+    let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
+    let expected_var_store_size = if linear_config.bias { 2 } else { 1 };
+    let bias_in_var_store = if linear_config.bias { true } else { false };
+
+    let output = linear.forward(&input);
+    assert_eq!(output.size(), [batch_dim, output_dim]);
+
+    assert_eq!(output.size(), [batch_dim, output_dim]);
+    assert_eq!(vs.variables().len(), expected_var_store_size);
+    assert!(vs.variables().contains_key("weight"));
+    assert_eq!(vs.variables().contains_key("bias"), bias_in_var_store);
+}
+
+#[test]
+fn linear() {
+    linear_test(Default::default());
+    linear_test(nn::LinearConfig {
+        bias: true,
+        ..Default::default()
+    });
+    linear_test(nn::LinearConfig {
+        bias: false,
         ..Default::default()
     });
 }
