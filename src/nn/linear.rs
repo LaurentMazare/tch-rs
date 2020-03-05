@@ -8,6 +8,7 @@ use std::borrow::Borrow;
 pub struct LinearConfig {
     pub ws_init: super::Init,
     pub bs_init: Option<super::Init>,
+    pub bias: bool,
 }
 
 impl Default for LinearConfig {
@@ -15,6 +16,7 @@ impl Default for LinearConfig {
         LinearConfig {
             ws_init: super::Init::KaimingUniform,
             bs_init: None,
+            bias: true,
         }
     }
 }
@@ -34,29 +36,7 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     c: LinearConfig,
 ) -> Linear {
     let vs = vs.borrow();
-    let bs_init = c.bs_init.unwrap_or_else(|| {
-        let bound = 1.0 / (in_dim as f64).sqrt();
-        super::Init::Uniform {
-            lo: -bound,
-            up: bound,
-        }
-    });
-    Linear {
-        ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
-        bs: vs.var("bias", &[out_dim], bs_init),
-    }
-}
-
-/// Creates a new linear layer.
-pub fn linear2<'a, T: Borrow<super::Path<'a>>>(
-    vs: T,
-    in_dim: i64,
-    out_dim: i64,
-    bias: bool,
-    c: LinearConfig,
-) -> Linear {
-    let vs = vs.borrow();
-    let bs = match bias {
+    let bs = match c.bias {
         true => {
             let bs_init = c.bs_init.unwrap_or_else(|| {
                 let bound = 1.0 / (in_dim as f64).sqrt();
@@ -72,7 +52,7 @@ pub fn linear2<'a, T: Borrow<super::Path<'a>>>(
 
     Linear {
         ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
-        bs,
+        bs: bs,
     }
 }
 
