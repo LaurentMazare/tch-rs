@@ -19,7 +19,8 @@ pub use wrappers::{
 
 mod tensor;
 pub use tensor::{
-    index, no_grad, no_grad_guard, IndexOp, NewAxis, NoGradGuard, Reduction, Tensor, TensorIndexer,
+    index, no_grad, no_grad_guard, IndexOp, NewAxis, NoGradGuard, Reduction, Shape, Tensor,
+    TensorIndexer,
 };
 
 pub mod nn;
