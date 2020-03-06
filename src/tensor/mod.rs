@@ -209,7 +209,7 @@ impl Shape for () {
 
 impl Shape for &[i64] {
     fn to_shape(&self) -> Box<[i64]> {
-        self.into()
+        (*self).into()
     }
 }
 
