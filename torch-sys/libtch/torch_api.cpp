@@ -459,12 +459,13 @@ void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
 
 void ato_set_learning_rate(optimizer t, double learning_rate) {
   PROTECT(
-    if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->defaults().learning_rate(learning_rate);
-    else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.learning_rate(learning_rate);
-    else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.learning_rate(learning_rate);
+    torch::optim::OptimizerOptions* d = &(t->defaults());
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d))
+      adam->lr(learning_rate);
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d))
+      rms->lr(learning_rate);
+    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d))
+      sgd->lr(learning_rate);
     else
       throw std::invalid_argument("unexpected optimizer");
   )
@@ -472,12 +473,15 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
 
 void ato_set_momentum(optimizer t, double momentum) {
   PROTECT(
-    if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.beta1(momentum);
-    else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.momentum(momentum);
-    else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.momentum(momentum);
+    torch::optim::OptimizerOptions* d = &(t->defaults());
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
+      auto betas = adam->betas();
+      adam->betas({momentum, get<1>(betas)});
+    }
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d))
+      rms->momentum(momentum);
+    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d))
+      sgd->momentum(momentum);
     else
      throw std::invalid_argument("unexpected optimizer");
   )
