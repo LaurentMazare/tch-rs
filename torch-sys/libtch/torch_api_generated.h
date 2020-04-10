@@ -25,7 +25,6 @@ void atg__adaptive_avg_pool2d_backward(tensor *, tensor grad_output, tensor self
 void atg__addr(tensor *, tensor self, tensor vec1, tensor vec2);
 void atg__addr_(tensor *, tensor self, tensor vec1, tensor vec2);
 void atg__addr_out(tensor *, tensor out, tensor self, tensor vec1, tensor vec2);
-void atg__amp_non_finite_check_and_unscale_(tensor *, tensor self, tensor found_inf, tensor inv_scale);
 void atg__amp_update_scale(tensor *, tensor growth_tracker, tensor current_scale, tensor found_inf, double scale_growth_factor, double scale_backoff_factor, int64_t growth_interval);
 void atg__baddbmm_mkl_(tensor *, tensor self, tensor batch1, tensor batch2);
 void atg__cast_byte(tensor *, tensor self, int non_blocking);
@@ -51,8 +50,6 @@ void atg__cudnn_ctc_loss(tensor *, tensor log_probs, tensor targets, int64_t *in
 void atg__cudnn_init_dropout_state(tensor *, double dropout, int train, int64_t dropout_seed, int options_kind, int options_device);
 void atg__cudnn_rnn(tensor *, tensor input, tensor *weight_data, int weight_len, int64_t weight_stride0, tensor weight_buf, tensor hx, tensor cx, int64_t mode, int64_t hidden_size, int64_t num_layers, int batch_first, double dropout, int train, int bidirectional, int64_t *batch_sizes_data, int batch_sizes_len, tensor dropout_state);
 void atg__cudnn_rnn_flatten_weight(tensor *, tensor *weight_arr_data, int weight_arr_len, int64_t weight_stride0, int64_t input_size, int64_t mode, int64_t hidden_size, int64_t num_layers, int batch_first, int bidirectional);
-void atg__cummax_helper(tensor *, tensor self, tensor values, tensor indices, int64_t dim);
-void atg__cummin_helper(tensor *, tensor self, tensor values, tensor indices, int64_t dim);
 void atg__cumprod(tensor *, tensor self, int64_t dim);
 void atg__cumprod_out(tensor *, tensor out, tensor self, int64_t dim);
 void atg__cumsum(tensor *, tensor self, int64_t dim);
@@ -904,7 +901,6 @@ void atg_reshape(tensor *, tensor self, int64_t *shape_data, int shape_len);
 void atg_reshape_as(tensor *, tensor self, tensor other);
 void atg_resize_(tensor *, tensor self, int64_t *size_data, int size_len);
 void atg_resize_as_(tensor *, tensor self, tensor the_template);
-void atg_retain_grad(tensor *, tensor self);
 void atg_rfft(tensor *, tensor self, int64_t signal_ndim, int normalized, int onesided);
 void atg_rnn_relu(tensor *, tensor input, tensor hx, tensor *params_data, int params_len, int has_biases, int64_t num_layers, double dropout, int train, int bidirectional, int batch_first);
 void atg_rnn_relu1(tensor *, tensor data, tensor batch_sizes, tensor hx, tensor *params_data, int params_len, int has_biases, int64_t num_layers, double dropout, int train, int bidirectional);

@@ -408,8 +408,7 @@ optimizer ato_adam(double learning_rate,
   PROTECT(
     auto options =
       torch::optim::AdamOptions(learning_rate)
-        .beta1(beta1)
-        .beta2(beta2)
+        .betas({beta1, beta2})
         .weight_decay(weight_decay);
     return new torch::optim::Adam(vector<torch::Tensor>(), options);
   )
@@ -461,7 +460,7 @@ void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
 void ato_set_learning_rate(optimizer t, double learning_rate) {
   PROTECT(
     if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.learning_rate(learning_rate);
+      adam->defaults().learning_rate(learning_rate);
     else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
       rms->options.learning_rate(learning_rate);
     else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
@@ -719,7 +718,7 @@ int ati_tag(ivalue i) {
     else if (i->isBoolList()) return 8;
     else if (i->isString()) return 9;
     else if (i->isTensorList()) return 10;
-    else if (i->isGenericList()) return 12;
+    else if (i->isList()) return 12;
     else if (i->isGenericDict()) return 13;
     throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
@@ -771,7 +770,7 @@ int ati_length(ivalue i) {
     else if (i->isBoolList()) return i->toBoolList().size();
     else if (i->isString()) return i->toStringRef().size();
     else if (i->isTensorList()) return i->toTensorList().size();
-    else if (i->isGenericList()) return i->toGenericList().size();
+    else if (i->isList()) return i->toList().size();
     else if (i->isGenericDict()) return i->toGenericDict().size();
     throw std::invalid_argument(("unsupported tag for length " + i->tagKind()).c_str());
     return -1;
@@ -803,7 +802,7 @@ void ati_to_generic_list(ivalue i,
                          ivalue *outputs,
                          int noutputs) {
   PROTECT(
-    auto vec = i->toGenericList();
+    auto vec = i->toList();
     if (vec.size() != noutputs) {
       throw std::invalid_argument("unexpected list size");
     }

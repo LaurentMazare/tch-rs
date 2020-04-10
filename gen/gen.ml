@@ -27,6 +27,10 @@ let excluded_functions =
       "_cufft_clear_plan_cache";
       "backward";
       "set_data";
+      "_amp_non_finite_check_and_unscale_";
+      "_cummin_helper";
+      "_cummax_helper";
+      "retain_grad";
     ]
 
 let prefixed_functions =

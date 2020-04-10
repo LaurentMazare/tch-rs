@@ -106,15 +106,6 @@ impl Tensor {
         self.f_internal_addr_out(out, vec1, vec2).unwrap()
     }
 
-    pub fn internal_amp_non_finite_check_and_unscale_(
-        &mut self,
-        found_inf: &Tensor,
-        inv_scale: &Tensor,
-    ) -> () {
-        self.f_internal_amp_non_finite_check_and_unscale_(found_inf, inv_scale)
-            .unwrap()
-    }
-
     pub fn internal_amp_update_scale(
         growth_tracker: &Tensor,
         current_scale: &Tensor,
@@ -387,14 +378,6 @@ impl Tensor {
             bidirectional,
         )
         .unwrap()
-    }
-
-    pub fn internal_cummax_helper(&self, values: &Tensor, indices: &Tensor, dim: i64) -> () {
-        self.f_internal_cummax_helper(values, indices, dim).unwrap()
-    }
-
-    pub fn internal_cummin_helper(&self, values: &Tensor, indices: &Tensor, dim: i64) -> () {
-        self.f_internal_cummin_helper(values, indices, dim).unwrap()
     }
 
     pub fn internal_cumprod(&self, dim: i64) -> Tensor {
@@ -6526,10 +6509,6 @@ impl Tensor {
 
     pub fn resize_as_(&mut self, the_template: &Tensor) -> Tensor {
         self.f_resize_as_(the_template).unwrap()
-    }
-
-    pub fn retain_grad(&self) -> () {
-        self.f_retain_grad().unwrap()
     }
 
     pub fn rfft(&self, signal_ndim: i64, normalized: bool, onesided: bool) -> Tensor {

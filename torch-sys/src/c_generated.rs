@@ -54,12 +54,6 @@ extern "C" {
         vec1_: *mut C_tensor,
         vec2_: *mut C_tensor,
     );
-    pub fn atg__amp_non_finite_check_and_unscale_(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        found_inf_: *mut C_tensor,
-        inv_scale_: *mut C_tensor,
-    );
     pub fn atg__amp_update_scale(
         out__: *mut *mut C_tensor,
         growth_tracker_: *mut C_tensor,
@@ -228,20 +222,6 @@ extern "C" {
         num_layers_: i64,
         batch_first_: c_int,
         bidirectional_: c_int,
-    );
-    pub fn atg__cummax_helper(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        values_: *mut C_tensor,
-        indices_: *mut C_tensor,
-        dim_: i64,
-    );
-    pub fn atg__cummin_helper(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        values_: *mut C_tensor,
-        indices_: *mut C_tensor,
-        dim_: i64,
     );
     pub fn atg__cumprod(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim_: i64);
     pub fn atg__cumprod_out(
@@ -5073,7 +5053,6 @@ extern "C" {
         self_: *mut C_tensor,
         the_template_: *mut C_tensor,
     );
-    pub fn atg_retain_grad(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_rfft(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,

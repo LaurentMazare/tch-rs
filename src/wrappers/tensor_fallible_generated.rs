@@ -282,23 +282,6 @@ impl Tensor {
         })
     }
 
-    pub fn f_internal_amp_non_finite_check_and_unscale_(
-        &mut self,
-        found_inf: &Tensor,
-        inv_scale: &Tensor,
-    ) -> failure::Fallible<()> {
-        let mut c_tensors = [std::ptr::null_mut(); 0];
-        unsafe_torch_err!({
-            atg__amp_non_finite_check_and_unscale_(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                found_inf.c_tensor,
-                inv_scale.c_tensor,
-            )
-        });
-        Ok(())
-    }
-
     pub fn f_internal_amp_update_scale(
         growth_tracker: &Tensor,
         current_scale: &Tensor,
@@ -861,44 +844,6 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
-    }
-
-    pub fn f_internal_cummax_helper(
-        &self,
-        values: &Tensor,
-        indices: &Tensor,
-        dim: i64,
-    ) -> failure::Fallible<()> {
-        let mut c_tensors = [std::ptr::null_mut(); 0];
-        unsafe_torch_err!({
-            atg__cummax_helper(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                values.c_tensor,
-                indices.c_tensor,
-                dim,
-            )
-        });
-        Ok(())
-    }
-
-    pub fn f_internal_cummin_helper(
-        &self,
-        values: &Tensor,
-        indices: &Tensor,
-        dim: i64,
-    ) -> failure::Fallible<()> {
-        let mut c_tensors = [std::ptr::null_mut(); 0];
-        unsafe_torch_err!({
-            atg__cummin_helper(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                values.c_tensor,
-                indices.c_tensor,
-                dim,
-            )
-        });
-        Ok(())
     }
 
     pub fn f_internal_cumprod(&self, dim: i64) -> failure::Fallible<Tensor> {
@@ -15736,12 +15681,6 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
-    }
-
-    pub fn f_retain_grad(&self) -> failure::Fallible<()> {
-        let mut c_tensors = [std::ptr::null_mut(); 0];
-        unsafe_torch_err!({ atg_retain_grad(c_tensors.as_mut_ptr(), self.c_tensor) });
-        Ok(())
     }
 
     pub fn f_rfft(

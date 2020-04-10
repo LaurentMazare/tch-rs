@@ -175,12 +175,6 @@ void atg__addr_out(tensor *out__, tensor out, tensor self, tensor vec1, tensor v
   )
 }
 
-void atg__amp_non_finite_check_and_unscale_(tensor *out__, tensor self, tensor found_inf, tensor inv_scale) {
-  PROTECT(
-    auto outputs__ = torch::_amp_non_finite_check_and_unscale_(*self, *found_inf, *inv_scale);
-  )
-}
-
 void atg__amp_update_scale(tensor *out__, tensor growth_tracker, tensor current_scale, tensor found_inf, double scale_growth_factor, double scale_backoff_factor, int64_t growth_interval) {
   PROTECT(
     auto outputs__ = torch::_amp_update_scale(*growth_tracker, *current_scale, *found_inf, scale_growth_factor, scale_backoff_factor, growth_interval);
@@ -359,18 +353,6 @@ void atg__cudnn_rnn_flatten_weight(tensor *out__, tensor *weight_arr_data, int w
   PROTECT(
     auto outputs__ = torch::_cudnn_rnn_flatten_weight(of_carray_tensor(weight_arr_data, weight_arr_len), weight_stride0, input_size, mode, hidden_size, num_layers, (bool)batch_first, (bool)bidirectional);
     out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg__cummax_helper(tensor *out__, tensor self, tensor values, tensor indices, int64_t dim) {
-  PROTECT(
-    auto outputs__ = torch::_cummax_helper(*self, *values, *indices, dim);
-  )
-}
-
-void atg__cummin_helper(tensor *out__, tensor self, tensor values, tensor indices, int64_t dim) {
-  PROTECT(
-    auto outputs__ = torch::_cummin_helper(*self, *values, *indices, dim);
   )
 }
 
@@ -6472,12 +6454,6 @@ void atg_resize_as_(tensor *out__, tensor self, tensor the_template) {
   PROTECT(
     auto outputs__ = torch::resize_as_(*self, *the_template);
     out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_retain_grad(tensor *out__, tensor self) {
-  PROTECT(
-    auto outputs__ = self->retain_grad();
   )
 }
 
