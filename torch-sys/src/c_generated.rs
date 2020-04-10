@@ -2176,12 +2176,7 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_empty_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_empty_like(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_empty_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -2536,8 +2531,6 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         fill_value_: *mut C_scalar,
-        options_kind: c_int,
-        options_device: c_int,
     );
     pub fn atg_full_out(
         out__: *mut *mut C_tensor,
@@ -4407,12 +4400,7 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_ones_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_ones_like(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_ones_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -4719,12 +4707,7 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_rand_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_rand_like(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_rand_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -4748,20 +4731,12 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_randint_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        high_: i64,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_randint_like(out__: *mut *mut C_tensor, self_: *mut C_tensor, high_: i64);
     pub fn atg_randint_like1(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         low_: i64,
         high_: i64,
-        options_kind: c_int,
-        options_device: c_int,
     );
     pub fn atg_randint_out(
         out__: *mut *mut C_tensor,
@@ -4785,12 +4760,7 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_randn_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_randn_like(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_randn_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -6253,12 +6223,7 @@ extern "C" {
         options_kind: c_int,
         options_device: c_int,
     );
-    pub fn atg_zeros_like(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        options_kind: c_int,
-        options_device: c_int,
-    );
+    pub fn atg_zeros_like(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_zeros_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,

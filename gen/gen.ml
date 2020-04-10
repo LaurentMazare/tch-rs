@@ -33,6 +33,19 @@ let excluded_functions =
       "retain_grad";
     ]
 
+let no_tensor_options =
+  Set.of_list
+    (module String)
+    [
+      "zeros_like";
+      "empty_like";
+      "full_like";
+      "ones_like";
+      "rand_like";
+      "randint_like";
+      "randn_like";
+    ]
+
 let prefixed_functions =
   Set.of_list
     (module String)
@@ -408,6 +421,10 @@ let read_yaml filename =
                        match Func.arg_type_of_string arg_type ~is_nullable with
                        | Some Scalar
                          when Option.is_some default_value && not is_nullable ->
+                           None
+                       | Some TensorOptions
+                         when Option.is_some default_value
+                              && Set.mem no_tensor_options name ->
                            None
                        | Some arg_type ->
                            let arg_name =

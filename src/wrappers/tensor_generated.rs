@@ -2917,8 +2917,8 @@ impl Tensor {
         Tensor::f_empty(size, options).unwrap()
     }
 
-    pub fn empty_like(&self, options: (Kind, Device)) -> Tensor {
-        self.f_empty_like(options).unwrap()
+    pub fn empty_like(&self) -> Tensor {
+        self.f_empty_like().unwrap()
     }
 
     pub fn empty_out(out: &Tensor, size: &[i64]) -> Tensor {
@@ -3389,8 +3389,8 @@ impl Tensor {
         Tensor::f_full(size, fill_value, options).unwrap()
     }
 
-    pub fn full_like<S: Into<Scalar>>(&self, fill_value: S, options: (Kind, Device)) -> Tensor {
-        self.f_full_like(fill_value, options).unwrap()
+    pub fn full_like<S: Into<Scalar>>(&self, fill_value: S) -> Tensor {
+        self.f_full_like(fill_value).unwrap()
     }
 
     pub fn full_out<S: Into<Scalar>>(out: &Tensor, size: &[i64], fill_value: S) -> Tensor {
@@ -5772,8 +5772,8 @@ impl Tensor {
         Tensor::f_ones(size, options).unwrap()
     }
 
-    pub fn ones_like(&self, options: (Kind, Device)) -> Tensor {
-        self.f_ones_like(options).unwrap()
+    pub fn ones_like(&self) -> Tensor {
+        self.f_ones_like().unwrap()
     }
 
     pub fn ones_out(out: &Tensor, size: &[i64]) -> Tensor {
@@ -6224,8 +6224,8 @@ impl Tensor {
         Tensor::f_rand(size, options).unwrap()
     }
 
-    pub fn rand_like(&self, options: (Kind, Device)) -> Tensor {
-        self.f_rand_like(options).unwrap()
+    pub fn rand_like(&self) -> Tensor {
+        self.f_rand_like().unwrap()
     }
 
     pub fn rand_out(out: &Tensor, size: &[i64]) -> Tensor {
@@ -6240,12 +6240,12 @@ impl Tensor {
         Tensor::f_randint1(low, high, size, options).unwrap()
     }
 
-    pub fn randint_like(&self, high: i64, options: (Kind, Device)) -> Tensor {
-        self.f_randint_like(high, options).unwrap()
+    pub fn randint_like(&self, high: i64) -> Tensor {
+        self.f_randint_like(high).unwrap()
     }
 
-    pub fn randint_like1(&self, low: i64, high: i64, options: (Kind, Device)) -> Tensor {
-        self.f_randint_like1(low, high, options).unwrap()
+    pub fn randint_like1(&self, low: i64, high: i64) -> Tensor {
+        self.f_randint_like1(low, high).unwrap()
     }
 
     pub fn randint_out(out: &Tensor, high: i64, size: &[i64]) -> Tensor {
@@ -6260,8 +6260,8 @@ impl Tensor {
         Tensor::f_randn(size, options).unwrap()
     }
 
-    pub fn randn_like(&self, options: (Kind, Device)) -> Tensor {
-        self.f_randn_like(options).unwrap()
+    pub fn randn_like(&self) -> Tensor {
+        self.f_randn_like().unwrap()
     }
 
     pub fn randn_out(out: &Tensor, size: &[i64]) -> Tensor {
@@ -8090,8 +8090,8 @@ impl Tensor {
         Tensor::f_zeros(size, options).unwrap()
     }
 
-    pub fn zeros_like(&self, options: (Kind, Device)) -> Tensor {
-        self.f_zeros_like(options).unwrap()
+    pub fn zeros_like(&self) -> Tensor {
+        self.f_zeros_like().unwrap()
     }
 
     pub fn zeros_out(out: &Tensor, size: &[i64]) -> Tensor {

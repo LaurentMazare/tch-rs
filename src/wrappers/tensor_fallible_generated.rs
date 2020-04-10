@@ -6950,16 +6950,9 @@ impl Tensor {
         })
     }
 
-    pub fn f_empty_like(&self, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_empty_like(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_empty_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_empty_like(c_tensors.as_mut_ptr(), self.c_tensor) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
@@ -8107,19 +8100,13 @@ impl Tensor {
         })
     }
 
-    pub fn f_full_like<S: Into<Scalar>>(
-        &self,
-        fill_value: S,
-        options: (Kind, Device),
-    ) -> failure::Fallible<Tensor> {
+    pub fn f_full_like<S: Into<Scalar>>(&self, fill_value: S) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!({
             atg_full_like(
                 c_tensors.as_mut_ptr(),
                 self.c_tensor,
                 fill_value.into().c_scalar,
-                options.0.c_int(),
-                options.1.c_int(),
             )
         });
         Ok(Tensor {
@@ -13744,16 +13731,9 @@ impl Tensor {
         })
     }
 
-    pub fn f_ones_like(&self, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_ones_like(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_ones_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_ones_like(c_tensors.as_mut_ptr(), self.c_tensor) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
@@ -14700,16 +14680,9 @@ impl Tensor {
         })
     }
 
-    pub fn f_rand_like(&self, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_rand_like(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_rand_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_rand_like(c_tensors.as_mut_ptr(), self.c_tensor) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
@@ -14774,39 +14747,17 @@ impl Tensor {
         })
     }
 
-    pub fn f_randint_like(&self, high: i64, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_randint_like(&self, high: i64) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_randint_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                high,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_randint_like(c_tensors.as_mut_ptr(), self.c_tensor, high) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
     }
 
-    pub fn f_randint_like1(
-        &self,
-        low: i64,
-        high: i64,
-        options: (Kind, Device),
-    ) -> failure::Fallible<Tensor> {
+    pub fn f_randint_like1(&self, low: i64, high: i64) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_randint_like1(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                low,
-                high,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_randint_like1(c_tensors.as_mut_ptr(), self.c_tensor, low, high) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
@@ -14866,16 +14817,9 @@ impl Tensor {
         })
     }
 
-    pub fn f_randn_like(&self, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_randn_like(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_randn_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_randn_like(c_tensors.as_mut_ptr(), self.c_tensor) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
@@ -19558,16 +19502,9 @@ impl Tensor {
         })
     }
 
-    pub fn f_zeros_like(&self, options: (Kind, Device)) -> failure::Fallible<Tensor> {
+    pub fn f_zeros_like(&self) -> failure::Fallible<Tensor> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!({
-            atg_zeros_like(
-                c_tensors.as_mut_ptr(),
-                self.c_tensor,
-                options.0.c_int(),
-                options.1.c_int(),
-            )
-        });
+        unsafe_torch_err!({ atg_zeros_like(c_tensors.as_mut_ptr(), self.c_tensor) });
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
