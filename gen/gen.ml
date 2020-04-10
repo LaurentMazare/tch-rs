@@ -627,7 +627,7 @@ let run ~yaml_filename ~cpp_filename ~ffi_filename ~wrapper_filename
   write_fallible_wrapper funcs fallible_wrapper_filename
 
 let () =
-  run ~yaml_filename:"third_party/pytorch/Declarations-v1.4.0.yaml"
+  run ~yaml_filename:"third_party/pytorch/Declarations-v1.5.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"
