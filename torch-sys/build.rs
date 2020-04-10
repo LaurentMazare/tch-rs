@@ -186,6 +186,7 @@ fn main() {
 
         println!("cargo:rustc-link-lib=static=tch");
         println!("cargo:rustc-link-lib=torch");
+        println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=c10");
 
         let target = env::var("TARGET").unwrap();
