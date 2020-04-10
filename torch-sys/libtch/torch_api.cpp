@@ -379,7 +379,6 @@ void at_run_backward(tensor *tensors,
                      int keep_graph,
                      int create_graph) {
   PROTECT(
-    torch::autograd::Engine engine;
     vector<torch::autograd::Edge> roots;
     for (int i = 0; i < ntensors; ++i)
       roots.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*tensors[i])));

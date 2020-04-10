@@ -19,7 +19,7 @@ use curl::easy::Easy;
 use failure::Fallible;
 use zip;
 
-const TORCH_VERSION: &'static str = "1.4.0";
+const TORCH_VERSION: &'static str = "1.5.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
@@ -138,7 +138,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                     "-Wl,-rpath={}",
                     libtorch.as_ref().join("lib").display()
                 ))
-                .flag("-std=c++11")
+                .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .file("libtch/torch_api.cpp")
                 .compile("tch");
