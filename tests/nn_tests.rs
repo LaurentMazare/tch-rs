@@ -40,7 +40,22 @@ fn optimizer_test() {
         linear.bs.init(nn::Init::Const(0.));
     });
     let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
-    assert_eq!(initial_loss, initial_loss2)
+    assert_eq!(initial_loss, initial_loss2);
+
+    // Set the learning-rate to be very small and check that the loss does not change
+    // much.
+    opt.set_lr(1e-10);
+    for _idx in 1..50 {
+        let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
+    let final_loss = f64::from(loss);
+    assert!(
+        (final_loss - initial_loss) < 1e-5,
+        "final loss {}",
+        final_loss
+    )
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
