@@ -440,14 +440,14 @@ optimizer ato_sgd(double learning_rate,
                   double weight_decay,
                   int nesterov) {
   PROTECT(
-    auto options = 
+    auto options =
       torch::optim::SGDOptions(learning_rate)
       .momentum(momentum)
       .dampening(dampening)
       .weight_decay(weight_decay)
       .nesterov(nesterov);
     return new torch::optim::SGD(vector<torch::Tensor>(), options);
-  ) 
+  )
   return nullptr;
 }
 
@@ -684,7 +684,7 @@ ivalue ati_int_list(int64_t *is, int nvalues) {
 
 ivalue ati_double_list(double *is, int nvalues) {
   PROTECT(
-    c10::List<double> vec; 
+    c10::List<double> vec;
     for (int i = 0; i < nvalues; ++i) vec.push_back(is[i]);
     return new torch::jit::IValue(vec);
   )
@@ -693,7 +693,7 @@ ivalue ati_double_list(double *is, int nvalues) {
 
 ivalue ati_bool_list(char *is, int nvalues) {
   PROTECT(
-    c10::List<bool> vec; 
+    c10::List<bool> vec;
     for (int i = 0; i < nvalues; ++i) vec.push_back(is[i] != 0);
     return new torch::jit::IValue(vec);
   )
