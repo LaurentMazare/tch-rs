@@ -3,6 +3,7 @@ use crate::{Device, Kind};
 use failure::Fallible;
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use torch_sys::*;
 
 pub mod index;
 mod iter;
@@ -604,3 +605,6 @@ try_from_impl!(i32);
 try_from_impl!(f64);
 try_from_impl!(i64);
 try_from_impl!(bool);
+
+#[used]
+static INIT_ARRAY: [unsafe extern "C" fn(); 1] = [dummy_cuda_dependency];

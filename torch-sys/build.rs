@@ -141,6 +141,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .file("libtch/torch_api.cpp")
+                .file("libtch/dummy_cuda_dependency.cpp")
                 .compile("tch");
         }
         "windows" => {
@@ -185,6 +186,7 @@ fn main() {
         }
 
         println!("cargo:rustc-link-lib=static=tch");
+        println!("cargo:rustc-link-lib=torch_cuda");
         println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=c10");

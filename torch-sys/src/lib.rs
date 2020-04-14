@@ -191,3 +191,7 @@ extern "C" {
     pub fn atm_free(m: *mut CModule_);
     pub fn atm_to(m: *mut CModule_, device: c_int, kind: c_int, non_blocking: bool);
 }
+
+extern "C" {
+    pub fn dummy_cuda_dependency();
+}
