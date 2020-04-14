@@ -122,12 +122,17 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P) {
+fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
     match os.as_str() {
         "linux" | "macos" => {
             let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
+            let cuda_dependency = if use_cuda {
+                "libtch/dummy_cuda_dependency.cpp"
+            } else {
+                "libtch/fake_cuda_dependency.cpp"
+            };
             cc::Build::new()
                 .cpp(true)
                 .pic(true)
@@ -141,7 +146,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .file("libtch/torch_api.cpp")
-                .file("libtch/dummy_cuda_dependency.cpp")
+                .file(cuda_dependency)
                 .compile("tch");
         }
         "windows" => {
@@ -174,6 +179,7 @@ fn cmake<P: AsRef<Path>>(libtorch: P) {
 fn main() {
     if !cfg!(feature = "doc-only") {
         let libtorch = prepare_libtorch_dir();
+        let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists();
         println!(
             "cargo:rustc-link-search=native={}",
             libtorch.join("lib").display()
@@ -182,11 +188,13 @@ fn main() {
         if env::var("LIBTORCH_USE_CMAKE").is_ok() {
             cmake(&libtorch)
         } else {
-            make(&libtorch)
+            make(&libtorch, use_cuda)
         }
 
         println!("cargo:rustc-link-lib=static=tch");
-        println!("cargo:rustc-link-lib=torch_cuda");
+        if use_cuda {
+            println!("cargo:rustc-link-lib=torch_cuda");
+        }
         println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=c10");
