@@ -179,6 +179,14 @@ fn cmake<P: AsRef<Path>>(libtorch: P) {
 fn main() {
     if !cfg!(feature = "doc-only") {
         let libtorch = prepare_libtorch_dir();
+        // use_cuda is a hacky way to detect whether cuda is available and
+        // if it's the case link to it by explicitly depending on a symbol
+        // from the torch_cuda library.
+        // It would be better to use -Wl,--no-as-needed but there is no way
+        // to specify arbitrary linker flags at the moment.
+        // If https://github.com/rust-lang/cargo/pull/7811 gets released,
+        // we should switch to using this instead e.g. with the following
+        // flags: -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
         let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists();
         println!(
             "cargo:rustc-link-search=native={}",
