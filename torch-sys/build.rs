@@ -19,7 +19,7 @@ use curl::easy::Easy;
 use failure::Fallible;
 use zip;
 
-const TORCH_VERSION: &'static str = "1.4.0";
+const TORCH_VERSION: &'static str = "1.5.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
@@ -99,7 +99,7 @@ fn prepare_libtorch_dir() -> PathBuf {
             let libtorch_url = match os.as_str() {
                 "linux" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
-                    device, TORCH_VERSION, match device.as_ref() { "cpu" => "%2Bcpu", "cu92" => "%2Bcu92", _ => "" }
+                    device, TORCH_VERSION, match device.as_ref() { "cpu" => "%2Bcpu", "cu92" => "%2Bcu92", "cu101"=> "%2Bcu101", _ => "" }
                 ),
                 "macos" => format!(
                     "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
@@ -122,9 +122,14 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P) {
+fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
+    let cuda_dependency = if use_cuda {
+        "libtch/dummy_cuda_dependency.cpp"
+    } else {
+        "libtch/fake_cuda_dependency.cpp"
+    };
     match os.as_str() {
         "linux" | "macos" => {
             let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
@@ -138,9 +143,10 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                     "-Wl,-rpath={}",
                     libtorch.as_ref().join("lib").display()
                 ))
-                .flag("-std=c++11")
+                .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .file("libtch/torch_api.cpp")
+                .file(cuda_dependency)
                 .compile("tch");
         }
         "windows" => {
@@ -154,6 +160,7 @@ fn make<P: AsRef<Path>>(libtorch: P) {
                 .include(libtorch.as_ref().join("include"))
                 .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
                 .file("libtch/torch_api.cpp")
+                .file(cuda_dependency)
                 .compile("tch");
         }
         _ => panic!("Unsupported OS"),
@@ -173,6 +180,15 @@ fn cmake<P: AsRef<Path>>(libtorch: P) {
 fn main() {
     if !cfg!(feature = "doc-only") {
         let libtorch = prepare_libtorch_dir();
+        // use_cuda is a hacky way to detect whether cuda is available and
+        // if it's the case link to it by explicitly depending on a symbol
+        // from the torch_cuda library.
+        // It would be better to use -Wl,--no-as-needed but there is no way
+        // to specify arbitrary linker flags at the moment.
+        // If https://github.com/rust-lang/cargo/pull/7811 gets released,
+        // we should switch to using this instead e.g. with the following
+        // flags: -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
+        let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists();
         println!(
             "cargo:rustc-link-search=native={}",
             libtorch.join("lib").display()
@@ -181,11 +197,15 @@ fn main() {
         if env::var("LIBTORCH_USE_CMAKE").is_ok() {
             cmake(&libtorch)
         } else {
-            make(&libtorch)
+            make(&libtorch, use_cuda)
         }
 
         println!("cargo:rustc-link-lib=static=tch");
+        if use_cuda {
+            println!("cargo:rustc-link-lib=torch_cuda");
+        }
         println!("cargo:rustc-link-lib=torch");
+        println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=c10");
 
         let target = env::var("TARGET").unwrap();

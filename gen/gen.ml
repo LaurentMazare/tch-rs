@@ -27,6 +27,23 @@ let excluded_functions =
       "_cufft_clear_plan_cache";
       "backward";
       "set_data";
+      "_amp_non_finite_check_and_unscale_";
+      "_cummin_helper";
+      "_cummax_helper";
+      "retain_grad";
+    ]
+
+let no_tensor_options =
+  Set.of_list
+    (module String)
+    [
+      "zeros_like";
+      "empty_like";
+      "full_like";
+      "ones_like";
+      "rand_like";
+      "randint_like";
+      "randn_like";
     ]
 
 let prefixed_functions =
@@ -405,6 +422,10 @@ let read_yaml filename =
                        | Some Scalar
                          when Option.is_some default_value && not is_nullable ->
                            None
+                       | Some TensorOptions
+                         when Option.is_some default_value
+                              && Set.mem no_tensor_options name ->
+                           None
                        | Some arg_type ->
                            let arg_name =
                              match (arg_name, arg_type) with
@@ -627,7 +648,7 @@ let run ~yaml_filename ~cpp_filename ~ffi_filename ~wrapper_filename
   write_fallible_wrapper funcs fallible_wrapper_filename
 
 let () =
-  run ~yaml_filename:"third_party/pytorch/Declarations-v1.4.0.yaml"
+  run ~yaml_filename:"third_party/pytorch/Declarations-v1.5.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

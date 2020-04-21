@@ -24,5 +24,6 @@ fn main() {
     t.print();
     println!("{:?} {}", t.size(), t.double_value(&[1]));
     grad_example();
-    println!("Cuda available: {}", tch::Cuda::cudnn_is_available());
+    println!("Cuda available: {}", tch::Cuda::is_available());
+    println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
 }

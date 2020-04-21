@@ -379,16 +379,15 @@ void at_run_backward(tensor *tensors,
                      int keep_graph,
                      int create_graph) {
   PROTECT(
-    torch::autograd::Engine engine;
     vector<torch::autograd::Edge> roots;
     for (int i = 0; i < ntensors; ++i)
-      roots.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*tensors[i])));
+      roots.push_back(torch::autograd::impl::gradient_edge(*tensors[i]));
 
     vector<torch::autograd::Edge> inputs_;
     for (int i = 0; i < ninputs; ++i) {
       if (!inputs[i]->requires_grad())
         throw std::invalid_argument("one of the input tensor does not use set_requires_grad");
-      inputs_.push_back(torch::autograd::impl::gradient_edge(torch::autograd::as_variable_ref(*inputs[i])));
+      inputs_.push_back(torch::autograd::impl::gradient_edge(*inputs[i]));
     }
 
     vector<torch::autograd::Variable> grads;
@@ -409,8 +408,7 @@ optimizer ato_adam(double learning_rate,
   PROTECT(
     auto options =
       torch::optim::AdamOptions(learning_rate)
-        .beta1(beta1)
-        .beta2(beta2)
+        .betas(std::tuple<double, double>(beta1, beta2))
         .weight_decay(weight_decay);
     return new torch::optim::Adam(vector<torch::Tensor>(), options);
   )
@@ -461,12 +459,13 @@ void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
 
 void ato_set_learning_rate(optimizer t, double learning_rate) {
   PROTECT(
-    if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.learning_rate(learning_rate);
-    else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.learning_rate(learning_rate);
-    else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.learning_rate(learning_rate);
+    torch::optim::OptimizerOptions* d = &(t->defaults());
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d))
+      adam->lr(learning_rate);
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d))
+      rms->lr(learning_rate);
+    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d))
+      sgd->lr(learning_rate);
     else
       throw std::invalid_argument("unexpected optimizer");
   )
@@ -474,12 +473,15 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
 
 void ato_set_momentum(optimizer t, double momentum) {
   PROTECT(
-    if (auto adam = dynamic_cast<torch::optim::Adam*>(t))
-      adam->options.beta1(momentum);
-    else if (auto rms = dynamic_cast<torch::optim::RMSprop*>(t))
-      rms->options.momentum(momentum);
-    else if (auto sgd = dynamic_cast<torch::optim::SGD*>(t))
-      sgd->options.momentum(momentum);
+    torch::optim::OptimizerOptions* d = &(t->defaults());
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
+      auto betas = adam->betas();
+      adam->betas(std::tuple<double, double>(momentum, get<1>(betas)));
+    }
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d))
+      rms->momentum(momentum);
+    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d))
+      sgd->momentum(momentum);
     else
      throw std::invalid_argument("unexpected optimizer");
   )
@@ -720,7 +722,7 @@ int ati_tag(ivalue i) {
     else if (i->isBoolList()) return 8;
     else if (i->isString()) return 9;
     else if (i->isTensorList()) return 10;
-    else if (i->isGenericList()) return 12;
+    else if (i->isList()) return 12;
     else if (i->isGenericDict()) return 13;
     throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
     return -1;
@@ -772,7 +774,7 @@ int ati_length(ivalue i) {
     else if (i->isBoolList()) return i->toBoolList().size();
     else if (i->isString()) return i->toStringRef().size();
     else if (i->isTensorList()) return i->toTensorList().size();
-    else if (i->isGenericList()) return i->toGenericList().size();
+    else if (i->isList()) return i->toList().size();
     else if (i->isGenericDict()) return i->toGenericDict().size();
     throw std::invalid_argument(("unsupported tag for length " + i->tagKind()).c_str());
     return -1;
@@ -804,7 +806,7 @@ void ati_to_generic_list(ivalue i,
                          ivalue *outputs,
                          int noutputs) {
   PROTECT(
-    auto vec = i->toGenericList();
+    auto vec = i->toList();
     if (vec.size() != noutputs) {
       throw std::invalid_argument("unexpected list size");
     }
