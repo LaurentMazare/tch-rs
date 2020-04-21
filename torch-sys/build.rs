@@ -99,7 +99,7 @@ fn prepare_libtorch_dir() -> PathBuf {
             let libtorch_url = match os.as_str() {
                 "linux" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
-                    device, TORCH_VERSION, match device.as_ref() { "cpu" => "%2Bcpu", "cu92" => "%2Bcu92", _ => "" }
+                    device, TORCH_VERSION, match device.as_ref() { "cpu" => "%2Bcpu", "cu92" => "%2Bcu92", "cu101"=> "%2Bcu101", _ => "" }
                 ),
                 "macos" => format!(
                     "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
