@@ -110,7 +110,7 @@ impl IValue {
                 IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
                 IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
                 IValue::BoolList(v) => {
-                    let v: Vec<i8> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
+                    let v: Vec<libc::c_char> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
                     ati_bool_list(v.as_ptr(), v.len() as c_int)
                 }
                 IValue::TensorList(v) => {
@@ -178,7 +178,7 @@ impl IValue {
             }
             8 => {
                 let len = unsafe_torch_err!({ ati_length(c_ivalue) });
-                let mut c_array = vec![0i8; len as usize];
+                let mut c_array = vec![0 as libc::c_char; len as usize];
                 unsafe_torch_err!(ati_to_bool_list(c_ivalue, c_array.as_mut_ptr(), len));
                 IValue::BoolList(c_array.iter().map(|&x| x != 0).collect())
             }
@@ -264,7 +264,7 @@ impl CModule {
     pub fn load_data<T: std::io::Read>(f: &mut T) -> Fallible<CModule> {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
-        let buffer_ptr = buffer.as_ptr() as *const i8;
+        let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
         let c_module = unsafe_torch_err!({ atm_load_str(buffer_ptr, buffer.len()) });
         Ok(CModule { c_module })
     }
