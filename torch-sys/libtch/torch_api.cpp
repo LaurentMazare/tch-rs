@@ -408,7 +408,7 @@ optimizer ato_adam(double learning_rate,
   PROTECT(
     auto options =
       torch::optim::AdamOptions(learning_rate)
-        .betas({beta1, beta2})
+        .betas(std::tuple<double, double>(beta1, beta2))
         .weight_decay(weight_decay);
     return new torch::optim::Adam(vector<torch::Tensor>(), options);
   )
@@ -476,7 +476,7 @@ void ato_set_momentum(optimizer t, double momentum) {
     torch::optim::OptimizerOptions* d = &(t->defaults());
     if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
       auto betas = adam->betas();
-      adam->betas({momentum, get<1>(betas)});
+      adam->betas(std::tuple<double, double>(momentum, get<1>(betas)));
     }
     else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d))
       rms->momentum(momentum);
