@@ -336,10 +336,12 @@ int at_save_image(tensor tensor, char *filename) {
 
 int at_get_num_interop_threads() {
   PROTECT(return at::get_num_interop_threads();)
+  return -1;
 }
 
 int at_get_num_threads() {
   PROTECT(return at::get_num_threads();)
+  return -1;
 }
 
 void at_set_num_interop_threads(int n_threads) {
@@ -453,7 +455,8 @@ optimizer ato_sgd(double learning_rate,
 
 void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
   PROTECT(
-    t->add_parameters(of_carray_tensor(tensors, ntensors));
+    for (int i = 0; i < ntensors; ++i)
+      t->param_groups()[0].params().push_back(*(tensors[i]));
   )
 }
 
