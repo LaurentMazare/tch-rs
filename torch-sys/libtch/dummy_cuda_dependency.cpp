@@ -4,9 +4,9 @@ extern "C" {
 
 namespace at {
     namespace cuda {
-        void getDeviceProperties(long);
+        int warp_size();
     }
 }
 void dummy_cuda_dependency() {
-    at::cuda::getDeviceProperties(0);
+  at::cuda::warp_size();
 }
