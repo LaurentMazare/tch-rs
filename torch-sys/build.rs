@@ -188,7 +188,8 @@ fn main() {
         // If https://github.com/rust-lang/cargo/pull/7811 gets released,
         // we should switch to using this instead e.g. with the following
         // flags: -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
-        let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists();
+        let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
+            || libtorch.join("lib").join("torch_cuda.dll").exists();
         println!(
             "cargo:rustc-link-search=native={}",
             libtorch.join("lib").display()
