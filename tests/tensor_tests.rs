@@ -346,3 +346,12 @@ fn einsum() {
     let t = Tensor::einsum("ij -> ", &[t]);
     assert_eq!(Vec::<f64>::from(&t), [21.0]);
 }
+
+#[test]
+fn vec2() {
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
+    assert_eq!(
+        Vec::<Vec::<f64>>::from(tensor),
+        [[1., 2., 3.], [4., 5., 6.]]
+    )
+}
