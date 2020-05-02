@@ -562,10 +562,25 @@ module atm_load(char *filename) {
   return nullptr;
 }
 
+module atm_load_on_device(char *filename, int device) {
+  PROTECT(
+    return new torch::jit::script::Module(torch::jit::load(filename, device_of_int(device)));
+  )
+  return nullptr;
+}
+
 module atm_load_str(char *data, size_t sz) {
   PROTECT(
     std::istringstream stream(std::string(data, sz));
     return new torch::jit::script::Module(torch::jit::load(stream));
+  )
+  return nullptr;
+}
+
+module atm_load_str_on_device(char *data, size_t sz, int device) {
+  PROTECT(
+    std::istringstream stream(std::string(data, sz));
+    return new torch::jit::script::Module(torch::jit::load(stream, device_of_int(device)));
   )
   return nullptr;
 }
