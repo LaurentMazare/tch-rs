@@ -66,10 +66,15 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
     Ok(())
 }
 
+fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
+    println!("cargo:rerun-if-env-changed={}", name);
+    env::var(name)
+}
+
 fn prepare_libtorch_dir() -> PathBuf {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
-    let device = match env::var("TORCH_CUDA_VERSION") {
+    let device = match env_var_rerun("TORCH_CUDA_VERSION") {
         Ok(cuda_env) => match os.as_str() {
             "linux" | "windows" => cuda_env
                 .trim()
@@ -90,7 +95,7 @@ fn prepare_libtorch_dir() -> PathBuf {
         Err(_) => "cpu".to_string(),
     };
 
-    if let Ok(libtorch) = env::var("LIBTORCH") {
+    if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
         PathBuf::from(libtorch)
     } else {
         let libtorch_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtorch");
@@ -132,7 +137,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool) {
     };
     match os.as_str() {
         "linux" | "macos" => {
-            let libtorch_cxx11_abi = env::var("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
+            let libtorch_cxx11_abi = env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)
@@ -195,7 +200,7 @@ fn main() {
             libtorch.join("lib").display()
         );
 
-        if env::var("LIBTORCH_USE_CMAKE").is_ok() {
+        if env_var_rerun("LIBTORCH_USE_CMAKE").is_ok() {
             cmake(&libtorch)
         } else {
             make(&libtorch, use_cuda)
