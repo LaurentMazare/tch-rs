@@ -260,12 +260,34 @@ impl CModule {
         Ok(CModule { c_module })
     }
 
+    /// Loads a PyTorch saved JIT model from a file onto the given device.
+    ///
+    /// This function loads the model directly on the specified device,
+    /// which means it also allows loading a GPU model on the CPU without having a CUDA enabled GPU.
+    pub fn load_on_device<T: AsRef<std::path::Path>>(path: T, device: Device) -> Fallible<CModule> {
+        let path = path_to_cstring(path)?;
+        let c_module = unsafe_torch_err!({ atm_load_on_device(path.as_ptr(), device.c_int()) });
+        Ok(CModule { c_module })
+    }
+
     /// Loads a PyTorch saved JIT model from a read instance.
     pub fn load_data<T: std::io::Read>(f: &mut T) -> Fallible<CModule> {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
         let c_module = unsafe_torch_err!({ atm_load_str(buffer_ptr, buffer.len()) });
+        Ok(CModule { c_module })
+    }
+
+    /// Loads a PyTorch saved JIT model from a read instance.
+    ///
+    /// This function loads the model directly on the specified device,
+    /// which means it also allows loading a GPU model on the CPU without having a CUDA enabled GPU.
+    pub fn load_data_on_device<T: std::io::Read>(f: &mut T, device: Device) -> Fallible<CModule> {
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)?;
+        let buffer_ptr = buffer.as_ptr() as *const i8;
+        let c_module = unsafe_torch_err!({ atm_load_str_on_device(buffer_ptr, buffer.len(), device.c_int()) });
         Ok(CModule { c_module })
     }
 

@@ -125,7 +125,9 @@ int atc_cudnn_is_available();
 void atc_set_benchmark_cudnn(int b);
 
 module atm_load(char *);
+module atm_load_on_device(char *, int device);
 module atm_load_str(char *, size_t sz);
+module atm_load_str_on_device(char *, size_t sz, int device);
 tensor atm_forward(module, tensor *tensors, int ntensors);
 ivalue atm_forward_(module,
                     ivalue *ivalues,
