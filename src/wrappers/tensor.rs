@@ -24,20 +24,20 @@ extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mu
 impl Tensor {
     /// Creates a new tensor.
     pub fn new() -> Tensor {
-        let c_tensor = unsafe_torch!({ at_new_tensor() });
+        let c_tensor = unsafe_torch!(at_new_tensor());
         Tensor { c_tensor }
     }
 
     /// Returns the number of dimension of the tensor.
     pub fn dim(&self) -> usize {
-        unsafe_torch!({ at_dim(self.c_tensor) })
+        unsafe_torch!(at_dim(self.c_tensor))
     }
 
     /// Returns the shape of the input tensor.
     pub fn size(&self) -> Vec<i64> {
-        let dim = unsafe_torch!({ at_dim(self.c_tensor) });
+        let dim = unsafe_torch!(at_dim(self.c_tensor));
         let mut sz = vec![0i64; dim];
-        unsafe_torch!({ at_shape(self.c_tensor, sz.as_mut_ptr()) });
+        unsafe_torch!(at_shape(self.c_tensor, sz.as_mut_ptr()));
         sz
     }
 
@@ -75,13 +75,13 @@ impl Tensor {
 
     /// Returns the kind of elements stored in the input tensor.
     pub fn kind(&self) -> Kind {
-        let kind = unsafe_torch!({ at_scalar_type(self.c_tensor) });
+        let kind = unsafe_torch!(at_scalar_type(self.c_tensor));
         Kind::of_c_int(kind)
     }
 
     /// Returns the device on which the input tensor is located.
     pub fn device(&self) -> Device {
-        let device = unsafe_torch!({ at_device(self.c_tensor) });
+        let device = unsafe_torch!(at_device(self.c_tensor));
         Device::of_c_int(device)
     }
 
@@ -90,7 +90,7 @@ impl Tensor {
     /// Caution: this uses the C++ printer which prints the whole tensor even if
     /// it is very large.
     pub fn print(&self) {
-        unsafe_torch!({ at_print(self.c_tensor) })
+        unsafe_torch!(at_print(self.c_tensor))
     }
 
     /// Returns a double value on tensors holding a single element. An error is
@@ -121,22 +121,22 @@ impl Tensor {
 
     /// Returns true if gradient are currently tracked for this tensor.
     pub fn requires_grad(&self) -> bool {
-        unsafe_torch!({ at_requires_grad(self.c_tensor) }) != 0
+        unsafe_torch!(at_requires_grad(self.c_tensor)) != 0
     }
 
     /// Returns the address of the first element of this tensor.
     pub fn data_ptr(&self) -> *mut c_void {
-        unsafe_torch!({ at_data_ptr(self.c_tensor) })
+        unsafe_torch!(at_data_ptr(self.c_tensor))
     }
 
     /// Returns true is the tensor is defined.
     pub fn defined(&self) -> bool {
-        unsafe_torch!({ at_defined(self.c_tensor) != 0 })
+        unsafe_torch!(at_defined(self.c_tensor) != 0)
     }
 
     /// Returns true is the tensor is spare.
     pub fn is_sparse(&self) -> bool {
-        unsafe_torch!({ at_is_sparse(self.c_tensor) != 0 })
+        unsafe_torch!(at_is_sparse(self.c_tensor) != 0)
     }
 
     /// Zeroes the gradient tensor attached to this tensor if defined.
@@ -152,7 +152,7 @@ impl Tensor {
     ///
     /// Gradients tracking can be turned on via `set_requires_grad`.
     pub fn f_backward(&self) -> Fallible<()> {
-        unsafe_torch_err!({ at_backward(self.c_tensor, 0, 0) });
+        unsafe_torch_err!(at_backward(self.c_tensor, 0, 0));
         Ok(())
     }
 
@@ -178,17 +178,15 @@ impl Tensor {
         let mut outputs = vec![std::ptr::null_mut(); inputs.len()];
         let tensors: Vec<_> = tensors.iter().map(|x| x.borrow().c_tensor).collect();
         let inputs: Vec<_> = inputs.iter().map(|x| x.borrow().c_tensor).collect();
-        unsafe_torch_err!({
-            at_run_backward(
-                tensors.as_ptr(),
-                tensors.len() as c_int,
-                inputs.as_ptr(),
-                inputs.len() as c_int,
-                outputs.as_mut_ptr(),
-                keep_graph as c_int,
-                create_graph as c_int,
-            )
-        });
+        unsafe_torch_err!(at_run_backward(
+            tensors.as_ptr(),
+            tensors.len() as c_int,
+            inputs.as_ptr(),
+            inputs.len() as c_int,
+            outputs.as_mut_ptr(),
+            keep_graph as c_int,
+            create_graph as c_int,
+        ));
         Ok(outputs
             .into_iter()
             .map(|c_tensor| Tensor { c_tensor })
@@ -216,14 +214,12 @@ impl Tensor {
             "slice len < {}",
             numel
         );
-        unsafe_torch_err!({
-            at_copy_data(
-                self.c_tensor,
-                dst.as_mut_ptr() as *const c_void,
-                numel,
-                elt_size_in_bytes,
-            )
-        });
+        unsafe_torch_err!(at_copy_data(
+            self.c_tensor,
+            dst.as_mut_ptr() as *const c_void,
+            numel,
+            elt_size_in_bytes,
+        ));
         Ok(())
     }
 
@@ -241,14 +237,12 @@ impl Tensor {
             T::KIND
         );
         ensure!(dst.len() >= numel, "slice len < {}", numel);
-        unsafe_torch_err!({
-            at_copy_data(
-                self.c_tensor,
-                dst.as_mut_ptr() as *const c_void,
-                numel,
-                T::KIND.elt_size_in_bytes(),
-            )
-        });
+        unsafe_torch_err!(at_copy_data(
+            self.c_tensor,
+            dst.as_mut_ptr() as *const c_void,
+            numel,
+            T::KIND.elt_size_in_bytes(),
+        ));
         Ok(())
     }
 
@@ -267,15 +261,13 @@ impl Tensor {
     pub fn f_of_slice<T: kind::T>(data: &[T]) -> Fallible<Tensor> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
-        let c_tensor = unsafe_torch_err!({
-            at_tensor_of_data(
-                data,
-                [data_len as i64].as_ptr(),
-                1,
-                T::KIND.elt_size_in_bytes(),
-                T::KIND.c_int(),
-            )
-        });
+        let c_tensor = unsafe_torch_err!(at_tensor_of_data(
+            data,
+            [data_len as i64].as_ptr(),
+            1,
+            T::KIND.elt_size_in_bytes(),
+            T::KIND.c_int(),
+        ));
         Ok(Tensor { c_tensor })
     }
 
@@ -288,15 +280,13 @@ impl Tensor {
     pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Fallible<Tensor> {
         let data = data.as_ptr() as *const c_void;
         let elt_size_in_bytes = kind.elt_size_in_bytes();
-        let c_tensor = unsafe_torch_err!({
-            at_tensor_of_data(
-                data,
-                size.as_ptr(),
-                size.len(),
-                elt_size_in_bytes,
-                kind.c_int(),
-            )
-        });
+        let c_tensor = unsafe_torch_err!(at_tensor_of_data(
+            data,
+            size.as_ptr(),
+            size.len(),
+            elt_size_in_bytes,
+            kind.c_int(),
+        ));
         Ok(Tensor { c_tensor })
     }
 
@@ -307,13 +297,13 @@ impl Tensor {
 
     /// Returns a new tensor that share storage with the input tensor.
     pub fn shallow_clone(&self) -> Tensor {
-        let c_tensor = unsafe_torch!({ at_shallow_clone(self.c_tensor) });
+        let c_tensor = unsafe_torch!(at_shallow_clone(self.c_tensor));
         Tensor { c_tensor }
     }
 
     /// Gets the sub-tensor at the given index.
     pub fn f_get(&self, index: i64) -> Fallible<Tensor> {
-        let c_tensor = unsafe_torch_err!({ at_get(self.c_tensor, index as c_int) });
+        let c_tensor = unsafe_torch_err!(at_get(self.c_tensor, index as c_int));
         Ok(Tensor { c_tensor })
     }
 
@@ -324,7 +314,7 @@ impl Tensor {
 
     /// Copies values from the argument tensor to the input tensor.
     pub fn f_copy_(&mut self, src: &Tensor) -> Fallible<()> {
-        unsafe_torch_err!({ at_copy_(self.c_tensor, src.c_tensor) });
+        unsafe_torch_err!(at_copy_(self.c_tensor, src.c_tensor));
         Ok(())
     }
 
@@ -338,7 +328,7 @@ impl Tensor {
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
         let path = path_to_cstring(path)?;
-        let c_tensor = unsafe_torch_err!({ at_load(path.as_ptr()) });
+        let c_tensor = unsafe_torch_err!(at_load(path.as_ptr()));
         Ok(Tensor { c_tensor })
     }
 
@@ -347,7 +337,7 @@ impl Tensor {
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save<T: AsRef<Path>>(&self, path: T) -> Fallible<()> {
         let path = path_to_cstring(path)?;
-        unsafe_torch_err!({ at_save(self.c_tensor, path.as_ptr()) });
+        unsafe_torch_err!(at_save(self.c_tensor, path.as_ptr()));
         Ok(())
     }
 
@@ -369,14 +359,12 @@ impl Tensor {
             .map(std::ffi::CString::new)
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
-        unsafe_torch_err!({
-            at_save_multi(
-                c_tensors.as_ptr(),
-                name_ptrs.as_ptr(),
-                names.len() as i32,
-                path.as_ptr(),
-            )
-        });
+        unsafe_torch_err!(at_save_multi(
+            c_tensors.as_ptr(),
+            name_ptrs.as_ptr(),
+            names.len() as i32,
+            path.as_ptr(),
+        ));
         Ok(())
     }
 
@@ -386,9 +374,11 @@ impl Tensor {
     pub fn load_multi<T: AsRef<Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
-        unsafe_torch_err!({
-            at_load_callback(path.as_ptr(), &mut v as *mut _ as *mut c_void, add_callback)
-        });
+        unsafe_torch_err!(at_load_callback(
+            path.as_ptr(),
+            &mut v as *mut _ as *mut c_void,
+            add_callback
+        ));
         Ok(v)
     }
 
@@ -401,14 +391,12 @@ impl Tensor {
     ) -> Fallible<Vec<(String, Tensor)>> {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
-        unsafe_torch_err!({
-            at_load_callback_with_device(
-                path.as_ptr(),
-                &mut v as *mut _ as *mut c_void,
-                add_callback,
-                device.c_int(),
-            )
-        });
+        unsafe_torch_err!(at_load_callback_with_device(
+            path.as_ptr(),
+            &mut v as *mut _ as *mut c_void,
+            add_callback,
+            device.c_int(),
+        ));
         Ok(v)
     }
 
@@ -417,9 +405,10 @@ impl Tensor {
     /// The representation will contain all the tensor element hence may be huge for
     /// large tensors.
     pub fn to_string(&self, lw: i64) -> Fallible<String> {
-        let s = unsafe_torch_err!({
-            ptr_to_string(torch_sys::at_to_string(self.c_tensor, lw as c_int))
-        });
+        let s = unsafe_torch_err!(ptr_to_string(torch_sys::at_to_string(
+            self.c_tensor,
+            lw as c_int
+        )));
         match s {
             None => bail!("nullptr representation"),
             Some(s) => Ok(s),
@@ -435,12 +424,12 @@ impl Default for Tensor {
 
 impl Drop for Tensor {
     fn drop(&mut self) {
-        unsafe_torch!({ at_free(self.c_tensor) })
+        unsafe_torch!(at_free(self.c_tensor))
     }
 }
 
 fn grad_set_enabled(b: bool) -> bool {
-    unsafe_torch!({ at_grad_set_enabled(if b { 1 } else { 0 }) != 0 })
+    unsafe_torch!(at_grad_set_enabled(if b { 1 } else { 0 }) != 0)
 }
 
 /// Runs a closure without keeping track of gradients.

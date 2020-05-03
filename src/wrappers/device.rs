@@ -14,18 +14,18 @@ pub enum Cuda {}
 impl Cuda {
     /// Returns the number of GPU that can be used.
     pub fn device_count() -> i64 {
-        let res = unsafe_torch!({ torch_sys::atc_cuda_device_count() });
+        let res = unsafe_torch!(torch_sys::atc_cuda_device_count());
         i64::from(res)
     }
 
     /// Returns true if cuda support is available.
     pub fn is_available() -> bool {
-        unsafe_torch!({ torch_sys::atc_cuda_is_available() }) != 0
+        unsafe_torch!(torch_sys::atc_cuda_is_available()) != 0
     }
 
     /// Returns true if cudnn support is available.
     pub fn cudnn_is_available() -> bool {
-        unsafe_torch!({ torch_sys::atc_cudnn_is_available() }) != 0
+        unsafe_torch!(torch_sys::atc_cudnn_is_available()) != 0
     }
 
     /// Sets cudnn benchmark mode.
@@ -35,7 +35,7 @@ impl Cuda {
     /// in the following runs. This can result in significant performance
     /// improvements.
     pub fn cudnn_set_benchmark(b: bool) {
-        unsafe_torch!({ torch_sys::atc_set_benchmark_cudnn(if b { 1 } else { 0 }) })
+        unsafe_torch!(torch_sys::atc_set_benchmark_cudnn(if b { 1 } else { 0 }))
     }
 }
 

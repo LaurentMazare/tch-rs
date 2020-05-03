@@ -9,25 +9,25 @@ pub struct Scalar {
 impl Scalar {
     /// Creates an integer scalar.
     pub fn int(v: i64) -> Scalar {
-        let c_scalar = unsafe_torch!({ torch_sys::ats_int(v) });
+        let c_scalar = unsafe_torch!(torch_sys::ats_int(v));
         Scalar { c_scalar }
     }
 
     /// Creates a float scalar scalar.
     pub fn float(v: f64) -> Scalar {
-        let c_scalar = unsafe_torch!({ torch_sys::ats_float(v) });
+        let c_scalar = unsafe_torch!(torch_sys::ats_float(v));
         Scalar { c_scalar }
     }
 
     /// Returns an integer value.
     pub fn to_int(&self) -> Fallible<i64> {
-        let i = unsafe_torch_err!({ torch_sys::ats_to_int(self.c_scalar) });
+        let i = unsafe_torch_err!(torch_sys::ats_to_int(self.c_scalar));
         Ok(i)
     }
 
     /// Returns a float value.
     pub fn to_float(&self) -> Fallible<f64> {
-        let f = unsafe_torch_err!({ torch_sys::ats_to_float(self.c_scalar) });
+        let f = unsafe_torch_err!(torch_sys::ats_to_float(self.c_scalar));
         Ok(f)
     }
 
@@ -54,7 +54,7 @@ impl std::fmt::Debug for Scalar {
 
 impl Drop for Scalar {
     fn drop(&mut self) {
-        unsafe_torch!({ torch_sys::ats_free(self.c_scalar) })
+        unsafe_torch!(torch_sys::ats_free(self.c_scalar))
     }
 }
 

@@ -14,7 +14,7 @@ impl std::fmt::Debug for COptimizer {
 
 impl COptimizer {
     pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<COptimizer> {
-        let c_optimizer = unsafe_torch_err!({ torch_sys::ato_adam(lr, beta1, beta2, wd) });
+        let c_optimizer = unsafe_torch_err!(torch_sys::ato_adam(lr, beta1, beta2, wd));
         Ok(COptimizer { c_optimizer })
     }
 
@@ -28,8 +28,9 @@ impl COptimizer {
         centered: bool,
     ) -> Fallible<COptimizer> {
         let centered = if centered { 1 } else { 0 };
-        let c_optimizer =
-            unsafe_torch_err!({ torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered) });
+        let c_optimizer = unsafe_torch_err!(torch_sys::ato_rms_prop(
+            lr, alpha, eps, wd, momentum, centered
+        ));
         Ok(COptimizer { c_optimizer })
     }
 
@@ -42,7 +43,7 @@ impl COptimizer {
     ) -> Fallible<COptimizer> {
         let nesterov = if nesterov { 1 } else { 0 };
         let c_optimizer =
-            unsafe_torch_err!({ torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov) });
+            unsafe_torch_err!(torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov));
         Ok(COptimizer { c_optimizer })
     }
 
@@ -55,22 +56,22 @@ impl COptimizer {
     }
 
     pub fn set_learning_rate(&mut self, lr: f64) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::ato_set_learning_rate(self.c_optimizer, lr) });
+        unsafe_torch_err!(torch_sys::ato_set_learning_rate(self.c_optimizer, lr));
         Ok(())
     }
 
     pub fn set_momentum(&mut self, m: f64) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::ato_set_momentum(self.c_optimizer, m) });
+        unsafe_torch_err!(torch_sys::ato_set_momentum(self.c_optimizer, m));
         Ok(())
     }
 
     pub fn zero_grad(&self) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::ato_zero_grad(self.c_optimizer) });
+        unsafe_torch_err!(torch_sys::ato_zero_grad(self.c_optimizer));
         Ok(())
     }
 
     pub fn step(&self) -> Fallible<()> {
-        unsafe_torch_err!({ torch_sys::ato_step(self.c_optimizer) });
+        unsafe_torch_err!(torch_sys::ato_step(self.c_optimizer));
         Ok(())
     }
 }
