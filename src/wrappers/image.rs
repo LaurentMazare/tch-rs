@@ -7,14 +7,14 @@ use std::path::Path;
 /// On success returns a tensor of shape [width, height, channels].
 pub fn load_hwc<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
     let path = path_to_cstring(path)?;
-    let c_tensor = unsafe_torch_err!({ torch_sys::at_load_image(path.as_ptr()) });
+    let c_tensor = unsafe_torch_err!(torch_sys::at_load_image(path.as_ptr()));
     Ok(Tensor { c_tensor })
 }
 
 /// Expects a tensor of shape [width, height, channels].
 pub fn save_hwc<T: AsRef<Path>>(t: &Tensor, path: T) -> Fallible<()> {
     let path = path_to_cstring(path)?;
-    let _ = unsafe_torch_err!({ torch_sys::at_save_image(t.c_tensor, path.as_ptr()) });
+    let _ = unsafe_torch_err!(torch_sys::at_save_image(t.c_tensor, path.as_ptr()));
     Ok(())
 }
 

@@ -523,9 +523,9 @@ let write_fallible_wrapper funcs filename =
           pm "    )%s {" (Func.rust_return_type func ~fallible:true);
           match func.returns with
           | `dynamic ->
-              pm "        let c_tensors = unsafe_torch_err!({";
+              pm "        let c_tensors = unsafe_torch_err!(";
               pm "            atg_%s(" exported_name;
-              pm "                %s)});" (Func.rust_binding_args func ~self);
+              pm "                %s));" (Func.rust_binding_args func ~self);
               pm "        let mut r__ = vec![];";
               pm "        let mut i = 0;";
               pm "        loop {";
@@ -540,10 +540,10 @@ let write_fallible_wrapper funcs filename =
           | `fixed ntensors ->
               pm "        let mut c_tensors = [std::ptr::null_mut(); %d];"
                 ntensors;
-              pm "        unsafe_torch_err!({";
+              pm "        unsafe_torch_err!(";
               pm "            atg_%s(c_tensors.as_mut_ptr()," exported_name;
               pm "                %s" (Func.rust_binding_args func ~self);
-              pm "            ) });";
+              pm "            ));";
               let returns =
                 if ntensors = 1 then "Tensor { c_tensor: c_tensors[0] }"
                 else

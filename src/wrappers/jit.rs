@@ -83,55 +83,53 @@ impl From<&str> for IValue {
 
 impl IValue {
     pub(super) fn to_c(&self) -> Fallible<*mut CIValue> {
-        let c = unsafe_torch_err!({
-            match self {
-                IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
-                IValue::Int(i) => ati_int(*i),
-                IValue::None => ati_none(),
-                IValue::Double(f) => ati_double(*f),
-                IValue::Bool(b) => ati_bool(if *b { 1 } else { 0 }),
-                IValue::Tuple(v) => {
-                    let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
-                    let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
-                    for x in v {
-                        ati_free(x);
-                    }
+        let c = unsafe_torch_err!(match self {
+            IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
+            IValue::Int(i) => ati_int(*i),
+            IValue::None => ati_none(),
+            IValue::Double(f) => ati_double(*f),
+            IValue::Bool(b) => ati_bool(if *b { 1 } else { 0 }),
+            IValue::Tuple(v) => {
+                let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
+                let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
+                for x in v {
+                    ati_free(x);
+                }
 
-                    tuple
+                tuple
+            }
+            IValue::GenericList(v) => {
+                let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
+                let list = ati_generic_list(v.as_ptr(), v.len() as c_int);
+                for x in v {
+                    ati_free(x);
                 }
-                IValue::GenericList(v) => {
-                    let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
-                    let list = ati_generic_list(v.as_ptr(), v.len() as c_int);
-                    for x in v {
-                        ati_free(x);
-                    }
-                    list
+                list
+            }
+            IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
+            IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
+            IValue::BoolList(v) => {
+                let v: Vec<libc::c_char> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
+                ati_bool_list(v.as_ptr(), v.len() as c_int)
+            }
+            IValue::TensorList(v) => {
+                let v = v.iter().map(|t| t.c_tensor).collect::<Vec<_>>();
+                ati_tensor_list(v.as_ptr(), v.len() as c_int)
+            }
+            IValue::String(string) => {
+                let c_str = std::ffi::CString::new(string.as_str())?;
+                ati_string(c_str.as_ptr())
+            }
+            IValue::GenericDict(dict) => {
+                let v = dict
+                    .iter()
+                    .flat_map(|(k, v)| vec![Self::to_c(k), Self::to_c(v)])
+                    .collect::<Fallible<Vec<_>>>()?;
+                let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
+                for x in v {
+                    ati_free(x);
                 }
-                IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
-                IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
-                IValue::BoolList(v) => {
-                    let v: Vec<libc::c_char> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
-                    ati_bool_list(v.as_ptr(), v.len() as c_int)
-                }
-                IValue::TensorList(v) => {
-                    let v = v.iter().map(|t| t.c_tensor).collect::<Vec<_>>();
-                    ati_tensor_list(v.as_ptr(), v.len() as c_int)
-                }
-                IValue::String(string) => {
-                    let c_str = std::ffi::CString::new(string.as_str())?;
-                    ati_string(c_str.as_ptr())
-                }
-                IValue::GenericDict(dict) => {
-                    let v = dict
-                        .iter()
-                        .flat_map(|(k, v)| vec![Self::to_c(k), Self::to_c(v)])
-                        .collect::<Fallible<Vec<_>>>()?;
-                    let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
-                    for x in v {
-                        ati_free(x);
-                    }
-                    dict
-                }
+                dict
             }
         });
         Ok(c)
@@ -139,22 +137,22 @@ impl IValue {
 
     // This consumes the pointer and frees the associated memory.
     pub(super) fn of_c(c_ivalue: *mut CIValue) -> Fallible<Self> {
-        let tag = unsafe_torch_err!({ ati_tag(c_ivalue) });
+        let tag = unsafe_torch_err!(ati_tag(c_ivalue));
         let v = match tag {
             0 => IValue::None,
             1 => {
-                let c_tensor = unsafe_torch_err!({ ati_to_tensor(c_ivalue) });
+                let c_tensor = unsafe_torch_err!(ati_to_tensor(c_ivalue));
                 IValue::Tensor(crate::Tensor { c_tensor })
             }
-            2 => IValue::Double(unsafe_torch_err!({ ati_to_double(c_ivalue) })),
-            3 => IValue::Int(unsafe_torch_err!({ ati_to_int(c_ivalue) })),
+            2 => IValue::Double(unsafe_torch_err!(ati_to_double(c_ivalue))),
+            3 => IValue::Int(unsafe_torch_err!(ati_to_int(c_ivalue))),
             4 => {
-                let b = unsafe_torch_err!({ ati_to_bool(c_ivalue) });
+                let b = unsafe_torch_err!(ati_to_bool(c_ivalue));
                 ensure!(b >= 0, "unexpected bool value {}", b);
                 IValue::Bool(b != 0)
             }
             5 => {
-                let len = unsafe_torch_err!({ ati_tuple_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_tuple_length(c_ivalue));
                 let mut c_ivalues: Vec<_> =
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_tuple(c_ivalue, c_ivalues.as_mut_ptr(), len));
@@ -165,25 +163,25 @@ impl IValue {
                 IValue::Tuple(vec?)
             }
             6 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_array = vec![0i64; len as usize];
                 unsafe_torch_err!(ati_to_int_list(c_ivalue, c_array.as_mut_ptr(), len));
                 IValue::IntList(c_array)
             }
             7 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_array = vec![0f64; len as usize];
                 unsafe_torch_err!(ati_to_double_list(c_ivalue, c_array.as_mut_ptr(), len));
                 IValue::DoubleList(c_array)
             }
             8 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_array = vec![0 as libc::c_char; len as usize];
                 unsafe_torch_err!(ati_to_bool_list(c_ivalue, c_array.as_mut_ptr(), len));
                 IValue::BoolList(c_array.iter().map(|&x| x != 0).collect())
             }
             9 => {
-                let ptr = unsafe_torch_err!({ ati_to_string(c_ivalue) });
+                let ptr = unsafe_torch_err!(ati_to_string(c_ivalue));
                 let string = match unsafe { ptr_to_string(ptr) } {
                     None => bail!("unable to decode string"),
                     Some(s) => s,
@@ -191,7 +189,7 @@ impl IValue {
                 IValue::String(string)
             }
             10 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_tensors: Vec<_> =
                     (0..len).map(|_| std::ptr::null_mut::<C_tensor>()).collect();
                 unsafe_torch_err!(ati_to_tensor_list(c_ivalue, c_tensors.as_mut_ptr(), len));
@@ -202,7 +200,7 @@ impl IValue {
                 IValue::TensorList(vec)
             }
             12 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_ivalues: Vec<_> =
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_generic_list(c_ivalue, c_ivalues.as_mut_ptr(), len));
@@ -213,7 +211,7 @@ impl IValue {
                 IValue::GenericList(vec?)
             }
             13 => {
-                let len = unsafe_torch_err!({ ati_length(c_ivalue) });
+                let len = unsafe_torch_err!(ati_length(c_ivalue));
                 let mut c_ivalues: Vec<_> = (0..2 * len)
                     .map(|_| std::ptr::null_mut::<CIValue>())
                     .collect();
@@ -228,7 +226,7 @@ impl IValue {
             }
             _ => bail!("unhandled tag {}", tag),
         };
-        unsafe_torch_err!({ ati_free(c_ivalue) });
+        unsafe_torch_err!(ati_free(c_ivalue));
         Ok(v)
     }
 }
@@ -248,7 +246,7 @@ unsafe impl Sync for CModule {}
 
 impl Drop for CModule {
     fn drop(&mut self) {
-        unsafe_torch!({ atm_free(self.c_module) })
+        unsafe_torch!(atm_free(self.c_module))
     }
 }
 
@@ -256,7 +254,7 @@ impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
     pub fn load<T: AsRef<std::path::Path>>(path: T) -> Fallible<CModule> {
         let path = path_to_cstring(path)?;
-        let c_module = unsafe_torch_err!({ atm_load(path.as_ptr()) });
+        let c_module = unsafe_torch_err!(atm_load(path.as_ptr()));
         Ok(CModule { c_module })
     }
 
@@ -266,7 +264,7 @@ impl CModule {
     /// which means it also allows loading a GPU model on the CPU without having a CUDA enabled GPU.
     pub fn load_on_device<T: AsRef<std::path::Path>>(path: T, device: Device) -> Fallible<CModule> {
         let path = path_to_cstring(path)?;
-        let c_module = unsafe_torch_err!({ atm_load_on_device(path.as_ptr(), device.c_int()) });
+        let c_module = unsafe_torch_err!(atm_load_on_device(path.as_ptr(), device.c_int()));
         Ok(CModule { c_module })
     }
 
@@ -275,7 +273,7 @@ impl CModule {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
-        let c_module = unsafe_torch_err!({ atm_load_str(buffer_ptr, buffer.len()) });
+        let c_module = unsafe_torch_err!(atm_load_str(buffer_ptr, buffer.len()));
         Ok(CModule { c_module })
     }
 
@@ -287,8 +285,11 @@ impl CModule {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         let buffer_ptr = buffer.as_ptr() as *const i8;
-        let c_module =
-            unsafe_torch_err!({ atm_load_str_on_device(buffer_ptr, buffer.len(), device.c_int()) });
+        let c_module = unsafe_torch_err!(atm_load_str_on_device(
+            buffer_ptr,
+            buffer.len(),
+            device.c_int()
+        ));
         Ok(CModule { c_module })
     }
 
@@ -296,7 +297,7 @@ impl CModule {
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_tensor =
-            unsafe_torch_err!({ atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int) });
+            unsafe_torch_err!(atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int));
         Ok(Tensor { c_tensor })
     }
 
@@ -307,7 +308,7 @@ impl CModule {
             .map(|x| x.borrow().to_c())
             .collect::<Fallible<Vec<_>>>()?;
         let c_ivalue =
-            unsafe_torch_err!({ atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int) });
+            unsafe_torch_err!(atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int));
         for x in ts {
             unsafe { ati_free(x) }
         }
@@ -315,7 +316,12 @@ impl CModule {
     }
 
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
-        unsafe_torch!({ atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking) });
+        unsafe_torch!(atm_to(
+            self.c_module,
+            device.c_int(),
+            kind.c_int(),
+            non_blocking
+        ));
     }
 }
 
