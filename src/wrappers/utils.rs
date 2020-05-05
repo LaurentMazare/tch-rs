@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use libc::c_char;
 use std::convert::From;
 
@@ -71,7 +71,7 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Result<std:
     let path = path.as_ref();
     match path.to_str() {
         Some(path) => Ok(std::ffi::CString::new(path)?),
-        None => Err(format_err!("path {:?} is none", path)),
+        None => Err(anyhow!("path {:?} is none", path)),
     }
 }
 

@@ -3,7 +3,7 @@
 //! Format spec:
 //! https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html
 use crate::{Kind, Tensor};
-use anyhow::{anyhow, Result};
+use anyhow::{bail, ensure, Result};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -21,7 +21,7 @@ fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String> {
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
-        otherwise => Err(anyhow!("unsupported version {}", otherwise))?,
+        otherwise => bail!("unsupported version {}", otherwise),
     };
     let mut header_len = vec![0u8; header_len_len];
     buf_reader.read_exact(&mut header_len)?;
@@ -58,7 +58,7 @@ impl Header {
             Kind::Int16 => "i2",
             Kind::Int8 => "i1",
             Kind::Uint8 => "u1",
-            descr => Err(anyhow!("unsupported kind {:?}", descr))?,
+            descr => bail!("unsupported kind {:?}", descr),
         };
         if !shape.is_empty() {
             shape.push(',')
@@ -102,7 +102,7 @@ impl Header {
                         let value = value.trim_matches(|c: char| c == '\'' || c.is_whitespace());
                         let _ = part_map.insert(key.to_owned(), value.to_owned());
                     }
-                    _ => Err(anyhow!("unable to parse header {}", header))?,
+                    _ => bail!("unable to parse header {}", header),
                 }
             }
         }
@@ -111,11 +111,11 @@ impl Header {
             Some(fortran_order) => match fortran_order.as_ref() {
                 "False" => false,
                 "True" => true,
-                _ => Err(anyhow!("unknown fortran_order {}", fortran_order))?,
+                _ => bail!("unknown fortran_order {}", fortran_order),
             },
         };
         let descr = match part_map.get("descr") {
-            None => Err(anyhow!("no descr in header"))?,
+            None => bail!("no descr in header"),
             Some(descr) => {
                 ensure!(!descr.is_empty(), "empty descr");
                 ensure!(!descr.starts_with('>'), "little-endian descr {}", descr);
@@ -127,12 +127,12 @@ impl Header {
                     "i2" => Kind::Int16,
                     "i1" => Kind::Int8,
                     "u1" => Kind::Uint8,
-                    descr => Err(anyhow!("unrecognized descr {}", descr))?,
+                    descr => bail!("unrecognized descr {}", descr),
                 }
             }
         };
         let shape = match part_map.get("shape") {
-            None => Err(anyhow!("no shape in header"))?,
+            None => bail!("no shape in header"),
             Some(shape) => {
                 let shape = shape.trim_matches(|c: char| c == '(' || c == ')' || c == ',');
                 if shape.is_empty() {

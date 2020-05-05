@@ -12,7 +12,7 @@ mod mnist_conv;
 mod mnist_linear;
 mod mnist_nn;
 
-fn main() -> failure::Fallible<()> {
+fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let model = if args.len() < 2 {
         None

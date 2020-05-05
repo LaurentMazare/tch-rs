@@ -2,7 +2,7 @@
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind::Kind};
 use crate::Tensor;
-use anyhow::Result;
+use anyhow::{bail, ensure, Result};
 use libc::c_int;
 use std::borrow::Borrow;
 use torch_sys::*;

@@ -1,7 +1,7 @@
 //! Utility functions to manipulate images.
 use crate::wrappers::image::{load_hwc, resize_hwc, save_hwc};
 use crate::Tensor;
-use anyhow::Result;
+use anyhow::{bail, ensure, Result};
 use std::path::Path;
 
 fn hwc_to_chw(tensor: &Tensor) -> Tensor {

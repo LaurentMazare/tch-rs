@@ -1,7 +1,7 @@
 //! Helper functions for ImageNet like datasets.
 use super::dataset::Dataset;
 use crate::{kind, Device, Kind, Tensor};
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use std::path::Path;
 use std::sync::Mutex;
 

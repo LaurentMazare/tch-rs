@@ -5,8 +5,6 @@
 //
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
-#[macro_use]
-extern crate failure;
 
 use std::env;
 use std::fs;
@@ -14,14 +12,14 @@ use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use anyhow::Result;
 use cmake::Config;
 use curl::easy::Easy;
-use failure::Fallible;
 use zip;
 
 const TORCH_VERSION: &'static str = "1.5.0";
 
-fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
+fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Result<()> {
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
     let mut easy = Easy::new();
@@ -32,7 +30,7 @@ fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     if response_code == 200 {
         Ok(())
     } else {
-        Err(format_err!(
+        Err(anyhow::anyhow!(
             "Unexpected response code {} for {}",
             response_code,
             source_url
@@ -40,7 +38,7 @@ fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     }
 }
 
-fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
+fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Result<()> {
     let file = fs::File::open(&filename)?;
     let buf = io::BufReader::new(file);
     let mut archive = zip::ZipArchive::new(buf)?;

@@ -119,7 +119,7 @@ fn net(vs: &nn::Path) -> impl Module {
         .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
 }
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> anyhow::Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = net(&vs.root());

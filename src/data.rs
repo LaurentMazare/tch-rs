@@ -1,6 +1,6 @@
 //! Dataset iterators.
 use crate::{kind, Device, IndexOp, Tensor};
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read};

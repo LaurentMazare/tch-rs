@@ -40,7 +40,7 @@ impl nn::ModuleT for Net {
     }
 }
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> anyhow::Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());

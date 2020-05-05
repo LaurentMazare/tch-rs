@@ -1,6 +1,6 @@
 //! A Torch tensor.
 use crate::{Device, Kind};
-use anyhow::Result;
+use anyhow::{bail, ensure, Result};
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use torch_sys::*;
@@ -580,7 +580,7 @@ macro_rules! try_from_impl {
             fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
                 // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
                 let slice = match value.as_slice() {
-                    None => Err(anyhow::anyhow!("cannot convert to slice"))?,
+                    None => bail!("cannot convert to slice"),
                     Some(v) => v,
                 };
                 let tn = Self::f_of_slice(slice)?;

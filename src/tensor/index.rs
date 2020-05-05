@@ -53,7 +53,7 @@
 //! is that `i` guarantees the input and result tensor shares the same
 //! underlying storage, while NumPy may copy the tensor in certain scenarios.
 use crate::Tensor;
-use anyhow::Result;
+use anyhow::{bail, ensure, Result};
 use std::ops::{
     Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };

@@ -2,7 +2,7 @@
 use super::Init;
 use crate::tensor::Tensor;
 use crate::{Device, Kind};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use std::collections::HashMap;
 use std::ops::Div;
 use std::sync::{Arc, Mutex, MutexGuard};

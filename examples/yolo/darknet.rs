@@ -1,3 +1,4 @@
+use anyhow::{bail, ensure, Result};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -15,7 +16,7 @@ struct Block {
 }
 
 impl Block {
-    fn get(&self, key: &str) -> failure::Fallible<&str> {
+    fn get(&self, key: &str) -> Result<&str> {
         match self.parameters.get(&key.to_string()) {
             None => bail!("cannot find {} in {}", key, self.block_type),
             Some(value) => Ok(value),
@@ -30,7 +31,7 @@ pub struct Darknet {
 }
 
 impl Darknet {
-    fn get(&self, key: &str) -> failure::Fallible<&str> {
+    fn get(&self, key: &str) -> Result<&str> {
         match self.parameters.get(&key.to_string()) {
             None => bail!("cannot find {} in net parameters", key),
             Some(value) => Ok(value),
@@ -76,7 +77,7 @@ impl Accumulator {
     }
 }
 
-pub fn parse_config<T: AsRef<Path>>(path: T) -> failure::Fallible<Darknet> {
+pub fn parse_config<T: AsRef<Path>>(path: T) -> Result<Darknet> {
     let file = File::open(path.as_ref())?;
     let mut acc = Accumulator::new();
     for line in BufReader::new(file).lines() {
@@ -111,7 +112,7 @@ enum Bl {
     Yolo(i64, Vec<(i64, i64)>),
 }
 
-fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> failure::Fallible<(i64, Bl)> {
+fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
     let activation = b.get("activation")?;
     let filters = b.get("filters")?.parse::<i64>()?;
     let pad = b.get("pad")?.parse::<i64>()?;
@@ -154,7 +155,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> failure::Fallible<(i64
     Ok((filters, Bl::Layer(Box::new(func))))
 }
 
-fn upsample(prev_channels: i64) -> failure::Fallible<(i64, Bl)> {
+fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
     let layer = nn::func_t(|xs, _is_training| {
         let (_n, _c, h, w) = xs.size4().unwrap();
         xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
@@ -162,7 +163,7 @@ fn upsample(prev_channels: i64) -> failure::Fallible<(i64, Bl)> {
     Ok((prev_channels, Bl::Layer(Box::new(layer))))
 }
 
-fn int_list_of_string(s: &str) -> failure::Fallible<Vec<i64>> {
+fn int_list_of_string(s: &str) -> Result<Vec<i64>> {
     let res: Result<Vec<_>, _> = s.split(",").map(|xs| xs.trim().parse::<i64>()).collect();
     Ok(res?)
 }
@@ -175,7 +176,7 @@ fn usize_of_index(index: usize, i: i64) -> usize {
     }
 }
 
-fn route(index: usize, p: &Vec<(i64, Bl)>, block: &Block) -> failure::Fallible<(i64, Bl)> {
+fn route(index: usize, p: &Vec<(i64, Bl)>, block: &Block) -> Result<(i64, Bl)> {
     let layers = int_list_of_string(block.get("layers")?)?;
     let layers: Vec<usize> = layers
         .into_iter()
@@ -185,12 +186,12 @@ fn route(index: usize, p: &Vec<(i64, Bl)>, block: &Block) -> failure::Fallible<(
     Ok((channels, Bl::Route(layers)))
 }
 
-fn shortcut(index: usize, p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
+fn shortcut(index: usize, p: i64, block: &Block) -> Result<(i64, Bl)> {
     let from = block.get("from")?.parse::<i64>()?;
     Ok((p, Bl::Shortcut(usize_of_index(index, from))))
 }
 
-fn yolo(p: i64, block: &Block) -> failure::Fallible<(i64, Bl)> {
+fn yolo(p: i64, block: &Block) -> Result<(i64, Bl)> {
     let classes = block.get("classes")?.parse::<i64>()?;
     let flat = int_list_of_string(block.get("anchors")?)?;
     ensure!(flat.len() % 2 == 0, "even number of anchors");
@@ -248,17 +249,17 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
 }
 
 impl Darknet {
-    pub fn height(&self) -> failure::Fallible<i64> {
+    pub fn height(&self) -> Result<i64> {
         let image_height = self.get("height")?.parse::<i64>()?;
         Ok(image_height)
     }
 
-    pub fn width(&self) -> failure::Fallible<i64> {
+    pub fn width(&self) -> Result<i64> {
         let image_width = self.get("width")?.parse::<i64>()?;
         Ok(image_width)
     }
 
-    pub fn build_model(&self, vs: &nn::Path) -> failure::Fallible<FuncT> {
+    pub fn build_model(&self, vs: &nn::Path) -> Result<FuncT> {
         let mut blocks: Vec<(i64, Bl)> = vec![];
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {

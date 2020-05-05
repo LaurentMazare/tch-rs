@@ -10,8 +10,6 @@
    The eng-fra.txt file should be moved in the data directory.
 */
 
-#[macro_use]
-extern crate failure;
 extern crate rand;
 use rand::prelude::*;
 extern crate tch;
@@ -212,7 +210,7 @@ impl LossStats {
     }
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> anyhow::Result<()> {
     let dataset = Dataset::new("eng", "fra", MAX_LENGTH)?.reverse();
     let ilang = dataset.input_lang();
     let olang = dataset.output_lang();

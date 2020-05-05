@@ -1,5 +1,5 @@
 //! Scalar elements.
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 /// A single scalar value.
 pub struct Scalar {

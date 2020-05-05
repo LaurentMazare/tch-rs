@@ -1,6 +1,6 @@
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind, kind::Kind};
-use anyhow::{anyhow, Result};
+use anyhow::{bail, ensure, Result};
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::path::Path;
@@ -45,7 +45,7 @@ impl Tensor {
     pub fn size1(&self) -> Result<i64> {
         match self.size().as_slice() {
             &[s0] => Ok(s0),
-            size => Err(anyhow!("expected one dim, got {:?}", size)),
+            size => bail!("expected one dim, got {:?}", size),
         }
     }
 
@@ -53,7 +53,7 @@ impl Tensor {
     pub fn size2(&self) -> Result<(i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => Err(anyhow!("expected two dims, got {:?}", size)),
+            size => bail!("expected two dims, got {:?}", size),
         }
     }
 
@@ -61,7 +61,7 @@ impl Tensor {
     pub fn size3(&self) -> Result<(i64, i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => Err(anyhow!("expected three dims, got {:?}", size)),
+            size => bail!("expected three dims, got {:?}", size),
         }
     }
 
@@ -69,7 +69,7 @@ impl Tensor {
     pub fn size4(&self) -> Result<(i64, i64, i64, i64)> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => Err(anyhow!("expected four dims, got {:?}", size)),
+            size => bail!("expected four dims, got {:?}", size),
         }
     }
 
@@ -410,7 +410,7 @@ impl Tensor {
             lw as c_int
         )));
         match s {
-            None => Err(anyhow!("nullptr representation")),
+            None => bail!("nullptr representation"),
             Some(s) => Ok(s),
         }
     }

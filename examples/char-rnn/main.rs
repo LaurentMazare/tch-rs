@@ -36,7 +36,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     result
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> anyhow::Result<()> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;

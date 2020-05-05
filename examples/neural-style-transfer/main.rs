@@ -2,8 +2,6 @@
 //   https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 // The pre-trained weights for the VGG16 model can be downloaded from:
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
-#[macro_use]
-extern crate failure;
 extern crate tch;
 use tch::vision::{imagenet, vgg};
 use tch::{nn, nn::OptimizerConfig, Device, Tensor};
@@ -25,12 +23,12 @@ fn style_loss(m1: &Tensor, m2: &Tensor) -> Tensor {
     gram_matrix(m1).mse_loss(&gram_matrix(m2), tch::Reduction::Mean)
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> anyhow::Result<()> {
     let device = Device::cuda_if_available();
     let args: Vec<_> = std::env::args().collect();
     let (style_img, content_img, weights) = match args.as_slice() {
         [_, s, c, w] => (s.to_owned(), c.to_owned(), w.to_owned()),
-        _ => bail!("usage: main style.jpg content.jpg vgg16.ot"),
+        _ => anyhow::bail!("usage: main style.jpg content.jpg vgg16.ot"),
     };
 
     let mut net_vs = tch::nn::VarStore::new(device);
