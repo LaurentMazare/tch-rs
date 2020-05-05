@@ -1,5 +1,5 @@
 use super::tensor::Tensor;
-use failure::Fallible;
+use anyhow::Result;
 use libc::c_int;
 
 pub struct COptimizer {
@@ -13,7 +13,7 @@ impl std::fmt::Debug for COptimizer {
 }
 
 impl COptimizer {
-    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Fallible<COptimizer> {
+    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Result<COptimizer> {
         let c_optimizer = unsafe_torch_err!(torch_sys::ato_adam(lr, beta1, beta2, wd));
         Ok(COptimizer { c_optimizer })
     }
@@ -26,7 +26,7 @@ impl COptimizer {
         wd: f64,
         momentum: f64,
         centered: bool,
-    ) -> Fallible<COptimizer> {
+    ) -> Result<COptimizer> {
         let centered = if centered { 1 } else { 0 };
         let c_optimizer = unsafe_torch_err!(torch_sys::ato_rms_prop(
             lr, alpha, eps, wd, momentum, centered
@@ -40,14 +40,14 @@ impl COptimizer {
         dampening: f64,
         wd: f64,
         nesterov: bool,
-    ) -> Fallible<COptimizer> {
+    ) -> Result<COptimizer> {
         let nesterov = if nesterov { 1 } else { 0 };
         let c_optimizer =
             unsafe_torch_err!(torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov));
         Ok(COptimizer { c_optimizer })
     }
 
-    pub fn add_parameters(&mut self, ts: &[Tensor]) -> Fallible<()> {
+    pub fn add_parameters(&mut self, ts: &[Tensor]) -> Result<()> {
         let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
         unsafe_torch_err!({
             torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int)
@@ -55,22 +55,22 @@ impl COptimizer {
         Ok(())
     }
 
-    pub fn set_learning_rate(&mut self, lr: f64) -> Fallible<()> {
+    pub fn set_learning_rate(&mut self, lr: f64) -> Result<()> {
         unsafe_torch_err!(torch_sys::ato_set_learning_rate(self.c_optimizer, lr));
         Ok(())
     }
 
-    pub fn set_momentum(&mut self, m: f64) -> Fallible<()> {
+    pub fn set_momentum(&mut self, m: f64) -> Result<()> {
         unsafe_torch_err!(torch_sys::ato_set_momentum(self.c_optimizer, m));
         Ok(())
     }
 
-    pub fn zero_grad(&self) -> Fallible<()> {
+    pub fn zero_grad(&self) -> Result<()> {
         unsafe_torch_err!(torch_sys::ato_zero_grad(self.c_optimizer));
         Ok(())
     }
 
-    pub fn step(&self) -> Fallible<()> {
+    pub fn step(&self) -> Result<()> {
         unsafe_torch_err!(torch_sys::ato_step(self.c_optimizer));
         Ok(())
     }

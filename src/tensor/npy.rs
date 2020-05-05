@@ -3,7 +3,7 @@
 //! Format spec:
 //! https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html
 use crate::{Kind, Tensor};
-use failure::Fallible;
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -12,7 +12,7 @@ use std::path::Path;
 const NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
 const NPY_SUFFIX: &str = ".npy";
 
-fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
+fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];
     buf_reader.read_exact(&mut magic_string)?;
     ensure!(magic_string == NPY_MAGIC_STRING, "magic string mismatch");
@@ -21,7 +21,7 @@ fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
-        otherwise => bail!("unsupported version {}", otherwise),
+        otherwise => Err(anyhow!("unsupported version {}", otherwise))?,
     };
     let mut header_len = vec![0u8; header_len_len];
     buf_reader.read_exact(&mut header_len)?;
@@ -42,7 +42,7 @@ struct Header {
 }
 
 impl Header {
-    fn to_string(&self) -> Fallible<String> {
+    fn to_string(&self) -> Result<String> {
         let fortran_order = if self.fortran_order { "True" } else { "False" };
         let mut shape = self
             .shape
@@ -58,7 +58,7 @@ impl Header {
             Kind::Int16 => "i2",
             Kind::Int8 => "i1",
             Kind::Uint8 => "u1",
-            descr => bail!("unsupported kind {:?}", descr),
+            descr => Err(anyhow!("unsupported kind {:?}", descr))?,
         };
         if !shape.is_empty() {
             shape.push(',')
@@ -71,7 +71,7 @@ impl Header {
 
     // Hacky parser for the npy header, a typical example would be:
     // {'descr': '<f8', 'fortran_order': False, 'shape': (128,), }
-    fn parse(header: &str) -> Fallible<Header> {
+    fn parse(header: &str) -> Result<Header> {
         let header =
             header.trim_matches(|c: char| c == '{' || c == '}' || c == ',' || c.is_whitespace());
 
@@ -102,7 +102,7 @@ impl Header {
                         let value = value.trim_matches(|c: char| c == '\'' || c.is_whitespace());
                         let _ = part_map.insert(key.to_owned(), value.to_owned());
                     }
-                    _ => bail!("unable to parse header {}", header),
+                    _ => Err(anyhow!("unable to parse header {}", header))?,
                 }
             }
         }
@@ -111,11 +111,11 @@ impl Header {
             Some(fortran_order) => match fortran_order.as_ref() {
                 "False" => false,
                 "True" => true,
-                _ => bail!("unknown fortran_order {}", fortran_order),
+                _ => Err(anyhow!("unknown fortran_order {}", fortran_order))?,
             },
         };
         let descr = match part_map.get("descr") {
-            None => bail!("no descr in header"),
+            None => Err(anyhow!("no descr in header"))?,
             Some(descr) => {
                 ensure!(!descr.is_empty(), "empty descr");
                 ensure!(!descr.starts_with('>'), "little-endian descr {}", descr);
@@ -127,12 +127,12 @@ impl Header {
                     "i2" => Kind::Int16,
                     "i1" => Kind::Int8,
                     "u1" => Kind::Uint8,
-                    descr => bail!("unrecognized descr {}", descr),
+                    descr => Err(anyhow!("unrecognized descr {}", descr))?,
                 }
             }
         };
         let shape = match part_map.get("shape") {
-            None => bail!("no shape in header"),
+            None => Err(anyhow!("no shape in header"))?,
             Some(shape) => {
                 let shape = shape.trim_matches(|c: char| c == '(' || c == ')' || c == ',');
                 if shape.is_empty() {
@@ -155,7 +155,7 @@ impl Header {
 
 impl crate::Tensor {
     /// Reads a npy file and return the stored tensor.
-    pub fn read_npy<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+    pub fn read_npy<T: AsRef<Path>>(path: T) -> Result<Tensor> {
         let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
         let header = read_header(&mut buf_reader)?;
         let header = Header::parse(&header)?;
@@ -166,7 +166,7 @@ impl crate::Tensor {
     }
 
     /// Reads a npz file and returns some named tensors.
-    pub fn read_npz<T: AsRef<Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
+    pub fn read_npz<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>> {
         let zip_reader = BufReader::new(File::open(path.as_ref())?);
         let mut zip = zip::ZipArchive::new(zip_reader)?;
         let mut result = vec![];
@@ -192,7 +192,7 @@ impl crate::Tensor {
         Ok(result)
     }
 
-    fn write<T: Write>(&self, f: &mut T) -> Fallible<()> {
+    fn write<T: Write>(&self, f: &mut T) -> Result<()> {
         f.write_all(NPY_MAGIC_STRING)?;
         f.write_all(&[1u8, 0u8])?;
         let kind = self.kind();
@@ -217,7 +217,7 @@ impl crate::Tensor {
     }
 
     /// Writes a tensor in the npy format so that it can be read using python.
-    pub fn write_npy<T: AsRef<Path>>(&self, path: T) -> Fallible<()> {
+    pub fn write_npy<T: AsRef<Path>>(&self, path: T) -> Result<()> {
         let mut f = File::create(path.as_ref())?;
         self.write(&mut f)
     }
@@ -225,7 +225,7 @@ impl crate::Tensor {
     pub fn write_npz<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
         ts: &[(S, T)],
         path: P,
-    ) -> Fallible<()> {
+    ) -> Result<()> {
         let mut zip = zip::ZipWriter::new(File::create(path.as_ref())?);
         let options =
             zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);

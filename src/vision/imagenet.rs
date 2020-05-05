@@ -1,7 +1,7 @@
 //! Helper functions for ImageNet like datasets.
 use super::dataset::Dataset;
 use crate::{kind, Device, Kind, Tensor};
-use failure::Fallible;
+use anyhow::Result;
 use std::path::Path;
 use std::sync::Mutex;
 
@@ -12,7 +12,7 @@ lazy_static! {
         Mutex::new(Tensor::of_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1)));
 }
 
-pub fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
+pub fn normalize(tensor: &Tensor) -> Result<Tensor> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
     (tensor.to_kind(Kind::Float) / 255.0)
@@ -20,7 +20,7 @@ pub fn normalize(tensor: &Tensor) -> Fallible<Tensor> {
         .f_div(&std)
 }
 
-pub fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
+pub fn unnormalize(tensor: &Tensor) -> Result<Tensor> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
     let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0)
@@ -31,24 +31,24 @@ pub fn unnormalize(tensor: &Tensor) -> Fallible<Tensor> {
 
 /// Saves an image to a path.
 /// This unapplies the ImageNet normalization.
-pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Fallible<()> {
+pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Result<()> {
     super::image::save(&unnormalize(&tensor.to_device(Device::Cpu))?, path)
 }
 
 /// Loads an image from a file and applies the ImageNet normalization.
-pub fn load_image<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+pub fn load_image<T: AsRef<Path>>(path: T) -> Result<Tensor> {
     normalize(&super::image::load(path)?)
 }
 
 /// Loads an image from a file and resize it to 224x224.
 /// This applies the ImageNet normalization.
-pub fn load_image_and_resize224<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+pub fn load_image_and_resize224<T: AsRef<Path>>(path: T) -> Result<Tensor> {
     normalize(&super::image::load_and_resize(path, 224, 224)?)
 }
 
 /// Loads an image from a file and resize it to the specified width and height.
 /// This applies the ImageNet normalization.
-pub fn load_image_and_resize<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Fallible<Tensor> {
+pub fn load_image_and_resize<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Result<Tensor> {
     normalize(&super::image::load_and_resize(path, w, h)?)
 }
 
@@ -64,7 +64,7 @@ fn has_image_suffix<T: AsRef<Path>>(path: T) -> bool {
     }
 }
 
-fn load_images_from_dir(dir: std::path::PathBuf) -> Fallible<Tensor> {
+fn load_images_from_dir(dir: std::path::PathBuf) -> Result<Tensor> {
     let mut images: Vec<Tensor> = vec![];
     for image in std::fs::read_dir(&dir)? {
         match image {
@@ -91,7 +91,7 @@ fn load_images_from_dir(dir: std::path::PathBuf) -> Fallible<Tensor> {
 /// In each of these datasets, there should be a subdirectory per class named
 /// in the same way.
 /// The ImageNet normalization is applied, image are resized to 224x224.
-pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Fallible<Dataset> {
+pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Result<Dataset> {
     let train_path = dir.as_ref().join("train");
     let valid_path = dir.as_ref().join("val");
     let classes = std::fs::read_dir(&valid_path)?

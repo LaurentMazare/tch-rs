@@ -1,9 +1,9 @@
 //! Dataset iterators.
 use crate::{kind, Device, IndexOp, Tensor};
-use failure::Fallible;
+use anyhow::Result;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Result};
+use std::io::{BufReader, Read};
 
 /// An iterator over a pair of tensors which have the same first dimension
 /// size.
@@ -35,7 +35,7 @@ impl Iter2 {
     /// * `xs` - the features to be used by the model.
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
-    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Fallible<Iter2> {
+    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Result<Iter2> {
         let total_size = xs.size()[0];
         ensure!(
             ys.size()[0] == total_size,

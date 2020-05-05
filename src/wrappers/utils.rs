@@ -1,14 +1,24 @@
-use failure::Fallible;
+use anyhow::Result;
 use libc::c_char;
 use std::convert::From;
 
 /// Errors returned by the torch C++ api.
-#[derive(Fail, Debug)]
-#[fail(display = "Internal torch error: {}", c_error)]
+#[derive(Debug)]
 pub struct TorchError {
     c_error: String,
 }
 
+impl std::fmt::Display for TorchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "internal torch error {}", self.c_error)
+    }
+}
+
+impl std::error::Error for TorchError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+}
 impl From<std::ffi::NulError> for TorchError {
     fn from(_err: std::ffi::NulError) -> Self {
         TorchError {
@@ -57,7 +67,7 @@ macro_rules! unsafe_torch_err {
 // Be cautious when using this function as the returned CString should be stored
 // in a variable when using as_ptr. Otherwise dangling pointer issues are likely
 // to happen.
-pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<std::ffi::CString> {
+pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Result<std::ffi::CString> {
     let path = path.as_ref();
     match path.to_str() {
         Some(path) => Ok(std::ffi::CString::new(path)?),

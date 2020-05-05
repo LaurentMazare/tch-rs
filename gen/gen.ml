@@ -308,7 +308,7 @@ module Func = struct
           |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
       | `dynamic -> "Vec<Tensor>"
     in
-    if fallible then Printf.sprintf " -> failure::Fallible<%s>" returns
+    if fallible then Printf.sprintf " -> anyhow::Result<%s>" returns
     else Printf.sprintf " -> %s" returns
 
   let rust_binding_args t ~self =

@@ -53,7 +53,7 @@
 //! is that `i` guarantees the input and result tensor shares the same
 //! underlying storage, while NumPy may copy the tensor in certain scenarios.
 use crate::Tensor;
-use failure::Fallible;
+use anyhow::Result;
 use std::ops::{
     Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
@@ -258,7 +258,7 @@ where
 }
 
 impl Tensor {
-    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Fallible<Tensor> {
+    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Result<Tensor> {
         use std::ops::Bound::*;
         use TensorIndexer::*;
 

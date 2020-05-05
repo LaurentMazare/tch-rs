@@ -2,7 +2,7 @@
 use super::Init;
 use crate::tensor::Tensor;
 use crate::{Device, Kind};
-use failure::Fallible;
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::ops::Div;
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -108,7 +108,7 @@ impl VarStore {
     ///
     /// Weight values for all the tensors currently stored in the
     /// var-store gets saved in the given file.
-    pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Fallible<()> {
+    pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<()> {
         let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
         Tensor::save_multi(named_tensors.as_slice(), path)
@@ -120,16 +120,16 @@ impl VarStore {
     /// var-store gets loaded from the given file. Note that the set of
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
-    pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<()> {
+    pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<()> {
         let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => {
-                    crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
+                    crate::no_grad(|| var.f_copy_(src).map_err(|e| anyhow!("{}: {}", name, e)))?
                 }
-                None => return Err(format_err!("cannot find {} in {:?}", name, path.as_ref())),
+                None => return Err(anyhow!("cannot find {} in {:?}", name, path.as_ref())),
             }
         }
         Ok(())
@@ -145,7 +145,7 @@ impl VarStore {
     /// for these tensors are modified.
     ///
     /// Returns a String Vector containing the names of missing variables.
-    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Fallible<Vec<String>> {
+    pub fn load_partial<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<Vec<String>> {
         let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
@@ -153,7 +153,7 @@ impl VarStore {
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => {
-                    crate::no_grad(|| var.f_copy_(src).map_err(|e| format_err!("{}: {}", name, e)))?
+                    crate::no_grad(|| var.f_copy_(src).map_err(|e| anyhow!("{}: {}", name, e)))?
                 }
                 None => {
                     missing_variables.push(name.to_owned());
@@ -188,7 +188,7 @@ impl VarStore {
     ///
     /// All the variables in this var store have to exist with the same
     /// name in the source var store, otherwise an error is returned.
-    pub fn copy(&mut self, src: &VarStore) -> Fallible<()> {
+    pub fn copy(&mut self, src: &VarStore) -> Result<()> {
         let mut variables = self.variables_.lock().unwrap();
         let src_variables = src.variables_.lock().unwrap();
         let device = self.device;

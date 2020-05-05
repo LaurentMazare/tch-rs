@@ -2,7 +2,7 @@
 use super::var_store::{VarStore, Variables};
 use crate::wrappers::optimizer::COptimizer;
 use crate::Tensor;
-use failure::Fallible;
+use anyhow::Result;
 use std::sync::{Arc, Mutex};
 
 /// An optimizer to run gradient descent.
@@ -19,10 +19,10 @@ pub trait OptimizerConfig
 where
     Self: std::marker::Sized,
 {
-    fn build_copt(&self, lr: f64) -> Fallible<COptimizer>;
+    fn build_copt(&self, lr: f64) -> Result<COptimizer>;
 
     /// Builds an optimizer with the specified learning rate handling variables stored in `vs`.
-    fn build(self, vs: &VarStore, lr: f64) -> Fallible<Optimizer<Self>> {
+    fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer<Self>> {
         let mut opt = self.build_copt(lr)?;
         let v = vs.variables_.lock().unwrap();
         opt.add_parameters(&v.trainable_variables)?;
@@ -66,7 +66,7 @@ pub fn sgd(momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> Sgd {
 }
 
 impl OptimizerConfig for Sgd {
-    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+    fn build_copt(&self, lr: f64) -> Result<COptimizer> {
         COptimizer::sgd(lr, self.momentum, self.dampening, self.wd, self.nesterov)
     }
 }
@@ -95,7 +95,7 @@ pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
 }
 
 impl OptimizerConfig for Adam {
-    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+    fn build_copt(&self, lr: f64) -> Result<COptimizer> {
         COptimizer::adam(lr, self.beta1, self.beta2, self.wd)
     }
 }
@@ -134,7 +134,7 @@ pub fn rms_prop(alpha: f64, eps: f64, wd: f64, momentum: f64, centered: bool) ->
 }
 
 impl OptimizerConfig for RmsProp {
-    fn build_copt(&self, lr: f64) -> Fallible<COptimizer> {
+    fn build_copt(&self, lr: f64) -> Result<COptimizer> {
         COptimizer::rms_prop(
             lr,
             self.alpha,

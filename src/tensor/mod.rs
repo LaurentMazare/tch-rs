@@ -1,6 +1,6 @@
 //! A Torch tensor.
 use crate::{Device, Kind};
-use failure::Fallible;
+use anyhow::Result;
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use torch_sys::*;
@@ -257,7 +257,7 @@ impl Shape for (i64, i64, i64, i64) {
 }
 
 impl Tensor {
-    pub fn f_view<T: Shape>(&self, s: T) -> Fallible<Tensor> {
+    pub fn f_view<T: Shape>(&self, s: T) -> Result<Tensor> {
         self.f_view_(&*s.to_shape())
     }
 
@@ -265,7 +265,7 @@ impl Tensor {
         self.view_(&*s.to_shape())
     }
 
-    pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Fallible<Tensor> {
+    pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Result<Tensor> {
         ensure!(
             self.dim() == 3,
             "expected a 3 dimension tensor, got {:?}",
@@ -278,7 +278,7 @@ impl Tensor {
         self.f_zero_pad1d(left, right).unwrap()
     }
 
-    pub fn f_zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Fallible<Tensor> {
+    pub fn f_zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Result<Tensor> {
         ensure!(
             self.dim() == 4,
             "expected a 4 dimension tensor, got {:?}",
@@ -345,7 +345,7 @@ impl Tensor {
         self.totype(kind)
     }
 
-    pub fn f_to_kind(&self, kind: Kind) -> Fallible<Tensor> {
+    pub fn f_to_kind(&self, kind: Kind) -> Result<Tensor> {
         self.f_totype(kind)
     }
 
@@ -474,7 +474,7 @@ impl Tensor {
         self.to(device)
     }
 
-    pub fn f_to_device(&self, device: Device) -> Fallible<Tensor> {
+    pub fn f_to_device(&self, device: Device) -> Result<Tensor> {
         self.f_to(device)
     }
 
@@ -575,12 +575,12 @@ macro_rules! try_from_impl {
         where
             D: ndarray::Dimension,
         {
-            type Error = failure::Error;
+            type Error = anyhow::Error;
 
             fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
                 // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
                 let slice = match value.as_slice() {
-                    None => failure::bail!("cannot convert to slice"),
+                    None => Err(anyhow::anyhow!("cannot convert to slice"))?,
                     Some(v) => v,
                 };
                 let tn = Self::f_of_slice(slice)?;
@@ -590,7 +590,7 @@ macro_rules! try_from_impl {
         }
 
         impl TryFrom<Vec<$type>> for Tensor {
-            type Error = failure::Error;
+            type Error = anyhow::Error;
 
             fn try_from(value: Vec<$type>) -> Result<Self, Self::Error> {
                 let tn = Self::f_of_slice(value.as_slice())?;
