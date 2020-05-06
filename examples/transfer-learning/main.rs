@@ -3,13 +3,12 @@
 //
 // The pre-trained weight files containing the pre-trained weights can be found here:
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
-#[macro_use]
-extern crate failure;
 extern crate tch;
+use anyhow::{bail, Result};
 use tch::nn::{self, OptimizerConfig};
 use tch::vision::{imagenet, resnet};
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     let (weights, dataset_dir) = match args.as_slice() {
         [_, w, d] => (std::path::Path::new(w), d.to_owned()),

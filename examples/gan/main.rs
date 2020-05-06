@@ -2,8 +2,7 @@
 // https://github.com/AlexiaJM/RelativisticGAN
 //
 // TODO: override the initializations if this does not converge well.
-#[macro_use]
-extern crate failure;
+use anyhow::{bail, Result};
 extern crate tch;
 use tch::{kind, nn, nn::OptimizerConfig, Device, Kind, Tensor};
 
@@ -77,7 +76,7 @@ fn mse_loss(x: &Tensor, y: &Tensor) -> Tensor {
 }
 
 // Generate a 2D matrix of images from a tensor with multiple images.
-fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
+fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
     let imgs = ((imgs + 1.) * 127.5).clamp(0., 255.).to_kind(Kind::Uint8);
     let mut ys: Vec<Tensor> = vec![];
     for i in 0..sz {
@@ -91,7 +90,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
     Ok(Tensor::cat(&ys, 3).squeeze1(0))
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let device = Device::cuda_if_available();
     let args: Vec<_> = std::env::args().collect();
     let image_dir = match args.as_slice() {

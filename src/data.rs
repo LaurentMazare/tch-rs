@@ -1,9 +1,8 @@
 //! Dataset iterators.
-use crate::{kind, Device, IndexOp, Tensor};
-use failure::Fallible;
+use crate::{kind, Device, IndexOp, TchError, Tensor};
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Result};
+use std::io::{BufReader, Read};
 
 /// An iterator over a pair of tensors which have the same first dimension
 /// size.
@@ -35,14 +34,14 @@ impl Iter2 {
     /// * `xs` - the features to be used by the model.
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
-    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Fallible<Iter2> {
+    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Result<Iter2, TchError> {
         let total_size = xs.size()[0];
-        ensure!(
-            ys.size()[0] == total_size,
-            "different dimension for the two inputs {:?} {:?}",
-            xs,
-            ys
-        );
+        if ys.size()[0] != total_size {
+            return Err(TchError::Shape(format!(
+                "different dimension for the two inputs {:?} {:?}",
+                xs, ys
+            )));
+        }
         Ok(Iter2 {
             xs: xs.shallow_clone(),
             ys: ys.shallow_clone(),
@@ -133,7 +132,7 @@ pub struct TextDataIter {
 
 impl TextData {
     /// Creates a text dataset from a file.
-    pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData> {
+    pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData, TchError> {
         let mut buf_reader = BufReader::new(File::open(filename)?);
         let mut buffer = Vec::new();
         buf_reader.read_to_end(&mut buffer)?;

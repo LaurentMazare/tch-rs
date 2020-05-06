@@ -1,5 +1,5 @@
 use super::Tensor;
-use failure::Fallible;
+use crate::TchError;
 
 pub struct Iter<T> {
     index: i64,
@@ -9,7 +9,7 @@ pub struct Iter<T> {
 }
 
 impl Tensor {
-    pub fn iter<T>(&self) -> Fallible<Iter<T>> {
+    pub fn iter<T>(&self) -> Result<Iter<T>, TchError> {
         Ok(Iter {
             index: 0,
             len: self.size1()?,

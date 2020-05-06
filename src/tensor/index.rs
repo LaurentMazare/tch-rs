@@ -52,8 +52,7 @@
 //! shape mismatch error due to advanced indexing rule. Another distinction
 //! is that `i` guarantees the input and result tensor shares the same
 //! underlying storage, while NumPy may copy the tensor in certain scenarios.
-use crate::Tensor;
-use failure::Fallible;
+use crate::{TchError, Tensor};
 use std::ops::{
     Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
@@ -258,7 +257,7 @@ where
 }
 
 impl Tensor {
-    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Fallible<Tensor> {
+    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Result<Tensor, TchError> {
         use std::ops::Bound::*;
         use TensorIndexer::*;
 
@@ -268,29 +267,29 @@ impl Tensor {
             .filter(|spec| *spec == &InsertNewAxis)
             .count();
 
-        ensure!(
-            index_spec.len() <= self.size().len() + n_newaxis,
-            format!(
+        if index_spec.len() > self.size().len() + n_newaxis {
+            return Err(TchError::Shape(format!(
                 "too many indices for tensor of dimension {}",
                 self.size().len()
-            )
-        );
+            )));
+        }
 
         // Make sure tensors conform the format
         for spec in index_spec.iter() {
             use super::Kind::*;
             if let IndexSelect(tensor) = spec {
-                ensure!(
-                    tensor.size().len() == 1,
-                    "Multi-dimensional tensor is not supported for indexing",
-                );
+                if tensor.size().len() != 1 {
+                    return Err(TchError::Shape(
+                        "Multi-dimensional tensor is not supported for indexing".to_string(),
+                    ));
+                }
                 match tensor.kind() {
                     Int64 => {}
                     Int16 => {}
                     Int8 => {}
                     Int => {}
                     _ => {
-                        bail!("the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}", Int64, Int16, Int8, Int);
+                        return Err(TchError::Kind(format!("the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}", Int64, Int16, Int8, Int)));
                     }
                 }
             }

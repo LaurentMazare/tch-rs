@@ -1,6 +1,6 @@
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind, kind::Kind};
-use failure::Fallible;
+use crate::TchError;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::path::Path;
@@ -42,34 +42,43 @@ impl Tensor {
     }
 
     /// Returns the tensor size for single dimension tensors.
-    pub fn size1(&self) -> Fallible<i64> {
+    pub fn size1(&self) -> Result<i64, TchError> {
         match self.size().as_slice() {
             &[s0] => Ok(s0),
-            size => bail!("expected one dim, got {:?}", size),
+            size => Err(TchError::Shape(format!("expected one dim, got {:?}", size))),
         }
     }
 
     /// Returns the tensor sizes for two dimension tensors.
-    pub fn size2(&self) -> Fallible<(i64, i64)> {
+    pub fn size2(&self) -> Result<(i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => bail!("expected two dims, got {:?}", size),
+            size => Err(TchError::Shape(format!(
+                "expected two dims, got {:?}",
+                size
+            ))),
         }
     }
 
     /// Returns the tensor sizes for three dimension tensors.
-    pub fn size3(&self) -> Fallible<(i64, i64, i64)> {
+    pub fn size3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => bail!("expected three dims, got {:?}", size),
+            size => Err(TchError::Shape(format!(
+                "expected three dims, got {:?}",
+                size
+            ))),
         }
     }
 
     /// Returns the tensor sizes for four dimension tensors.
-    pub fn size4(&self) -> Fallible<(i64, i64, i64, i64)> {
+    pub fn size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => bail!("expected four dims, got {:?}", size),
+            size => Err(TchError::Shape(format!(
+                "expected four dims, got {:?}",
+                size
+            ))),
         }
     }
 
@@ -95,7 +104,7 @@ impl Tensor {
 
     /// Returns a double value on tensors holding a single element. An error is
     /// returned otherwise.
-    pub fn f_double_value(&self, idx: &[i64]) -> Fallible<f64> {
+    pub fn f_double_value(&self, idx: &[i64]) -> Result<f64, TchError> {
         Ok(unsafe_torch_err!({
             at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
@@ -103,7 +112,7 @@ impl Tensor {
 
     /// Returns an int value on tensors holding a single element. An error is
     /// returned otherwise.
-    pub fn f_int64_value(&self, idx: &[i64]) -> Fallible<i64> {
+    pub fn f_int64_value(&self, idx: &[i64]) -> Result<i64, TchError> {
         Ok(unsafe_torch_err!({
             at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
@@ -151,7 +160,7 @@ impl Tensor {
     /// which gradients are tracked.
     ///
     /// Gradients tracking can be turned on via `set_requires_grad`.
-    pub fn f_backward(&self) -> Fallible<()> {
+    pub fn f_backward(&self) -> Result<(), TchError> {
         unsafe_torch_err!(at_backward(self.c_tensor, 0, 0));
         Ok(())
     }
@@ -170,7 +179,7 @@ impl Tensor {
         inputs: &[T2],
         keep_graph: bool,
         create_graph: bool,
-    ) -> Fallible<Vec<Tensor>>
+    ) -> Result<Vec<Tensor>, TchError>
     where
         T1: Borrow<Tensor>,
         T2: Borrow<Tensor>,
@@ -207,13 +216,11 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Fallible<()> {
+    pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Result<(), TchError> {
         let elt_size_in_bytes = self.kind().elt_size_in_bytes();
-        ensure!(
-            dst.len() >= numel * elt_size_in_bytes,
-            "slice len < {}",
-            numel
-        );
+        if dst.len() < numel * elt_size_in_bytes {
+            return Err(TchError::Shape(format!("slice len < {}", numel)));
+        }
         unsafe_torch_err!(at_copy_data(
             self.c_tensor,
             dst.as_mut_ptr() as *const c_void,
@@ -229,14 +236,17 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn f_copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) -> Fallible<()> {
-        ensure!(
-            T::KIND == self.kind(),
-            "incoherent elt kind, {:?} != {:?}",
-            self.kind(),
-            T::KIND
-        );
-        ensure!(dst.len() >= numel, "slice len < {}", numel);
+    pub fn f_copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) -> Result<(), TchError> {
+        if T::KIND != self.kind() {
+            return Err(TchError::Kind(format!(
+                "incoherent elt kind, {:?} != {:?}",
+                self.kind(),
+                T::KIND
+            )));
+        }
+        if dst.len() < numel {
+            return Err(TchError::Shape(format!("slice len < {}", numel)));
+        }
         unsafe_torch_err!(at_copy_data(
             self.c_tensor,
             dst.as_mut_ptr() as *const c_void,
@@ -258,7 +268,7 @@ impl Tensor {
 
     // This is similar to vec_... but faster as it directly blits the data.
     /// Converts a slice to a tensor.
-    pub fn f_of_slice<T: kind::T>(data: &[T]) -> Fallible<Tensor> {
+    pub fn f_of_slice<T: kind::T>(data: &[T]) -> Result<Tensor, TchError> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
@@ -277,7 +287,7 @@ impl Tensor {
     }
 
     /// Converts some byte data to a tensor with some specified kind and shape.
-    pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Fallible<Tensor> {
+    pub fn f_of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Result<Tensor, TchError> {
         let data = data.as_ptr() as *const c_void;
         let elt_size_in_bytes = kind.elt_size_in_bytes();
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
@@ -302,7 +312,7 @@ impl Tensor {
     }
 
     /// Gets the sub-tensor at the given index.
-    pub fn f_get(&self, index: i64) -> Fallible<Tensor> {
+    pub fn f_get(&self, index: i64) -> Result<Tensor, TchError> {
         let c_tensor = unsafe_torch_err!(at_get(self.c_tensor, index as c_int));
         Ok(Tensor { c_tensor })
     }
@@ -313,7 +323,7 @@ impl Tensor {
     }
 
     /// Copies values from the argument tensor to the input tensor.
-    pub fn f_copy_(&mut self, src: &Tensor) -> Fallible<()> {
+    pub fn f_copy_(&mut self, src: &Tensor) -> Result<(), TchError> {
         unsafe_torch_err!(at_copy_(self.c_tensor, src.c_tensor));
         Ok(())
     }
@@ -326,7 +336,7 @@ impl Tensor {
     /// Loads a tensor from a file.
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn load<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+    pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
         let path = path_to_cstring(path)?;
         let c_tensor = unsafe_torch_err!(at_load(path.as_ptr()));
         Ok(Tensor { c_tensor })
@@ -335,7 +345,7 @@ impl Tensor {
     /// Saves a tensor to a file.
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn save<T: AsRef<Path>>(&self, path: T) -> Fallible<()> {
+    pub fn save<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
         let path = path_to_cstring(path)?;
         unsafe_torch_err!(at_save(self.c_tensor, path.as_ptr()));
         Ok(())
@@ -347,7 +357,7 @@ impl Tensor {
     pub fn save_multi<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
         named_tensors: &[(S, T)],
         path: P,
-    ) -> Fallible<()> {
+    ) -> Result<(), TchError> {
         let path = path_to_cstring(path)?;
         let c_tensors = named_tensors
             .iter()
@@ -371,7 +381,7 @@ impl Tensor {
     /// Loads some named tensors from a file
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn load_multi<T: AsRef<Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
+    pub fn load_multi<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!(at_load_callback(
@@ -388,7 +398,7 @@ impl Tensor {
     pub fn load_multi_with_device<T: AsRef<Path>>(
         path: T,
         device: Device,
-    ) -> Fallible<Vec<(String, Tensor)>> {
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!(at_load_callback_with_device(
@@ -404,13 +414,13 @@ impl Tensor {
     ///
     /// The representation will contain all the tensor element hence may be huge for
     /// large tensors.
-    pub fn to_string(&self, lw: i64) -> Fallible<String> {
+    pub fn to_string(&self, lw: i64) -> Result<String, TchError> {
         let s = unsafe_torch_err!(ptr_to_string(torch_sys::at_to_string(
             self.c_tensor,
             lw as c_int
         )));
         match s {
-            None => bail!("nullptr representation"),
+            None => Err(TchError::Kind("nullptr representation".to_string())),
             Some(s) => Ok(s),
         }
     }

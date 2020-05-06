@@ -1,21 +1,6 @@
-use failure::Fallible;
+use crate::TchError;
 use libc::c_char;
-use std::convert::From;
-
-/// Errors returned by the torch C++ api.
-#[derive(Fail, Debug)]
-#[fail(display = "Internal torch error: {}", c_error)]
-pub struct TorchError {
-    c_error: String,
-}
-
-impl From<std::ffi::NulError> for TorchError {
-    fn from(_err: std::ffi::NulError) -> Self {
-        TorchError {
-            c_error: "ffi nul error".to_string(),
-        }
-    }
-}
+use std::io;
 
 // This returns None on the null pointer. If not null, the pointer gets
 // freed.
@@ -29,11 +14,11 @@ pub(super) unsafe fn ptr_to_string(ptr: *mut c_char) -> Option<String> {
     }
 }
 
-pub(super) fn read_and_clean_error() -> Result<(), TorchError> {
+pub(super) fn read_and_clean_error() -> Result<(), TchError> {
     unsafe {
         match ptr_to_string(torch_sys::get_and_reset_last_err()) {
             None => Ok(()),
-            Some(c_error) => Err(TorchError { c_error }),
+            Some(c_error) => Err(TchError::Torch(c_error)),
         }
     }
 }
@@ -57,11 +42,16 @@ macro_rules! unsafe_torch_err {
 // Be cautious when using this function as the returned CString should be stored
 // in a variable when using as_ptr. Otherwise dangling pointer issues are likely
 // to happen.
-pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(path: T) -> Fallible<std::ffi::CString> {
+pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(
+    path: T,
+) -> Result<std::ffi::CString, TchError> {
     let path = path.as_ref();
     match path.to_str() {
         Some(path) => Ok(std::ffi::CString::new(path)?),
-        None => Err(format_err!("path {:?} is none", path)),
+        None => Err(TchError::Io(io::Error::new(
+            io::ErrorKind::Other,
+            format!("path {:?} cannot be converted to UTF-8", path),
+        ))),
     }
 }
 

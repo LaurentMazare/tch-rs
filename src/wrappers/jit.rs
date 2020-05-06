@@ -1,8 +1,7 @@
 //! JIT interface to run model trained/saved using PyTorch Python API.
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind::Kind};
-use crate::Tensor;
-use failure::Fallible;
+use crate::{TchError, Tensor};
 use libc::c_int;
 use std::borrow::Borrow;
 use torch_sys::*;
@@ -82,7 +81,7 @@ impl From<&str> for IValue {
 }
 
 impl IValue {
-    pub(super) fn to_c(&self) -> Fallible<*mut CIValue> {
+    pub(super) fn to_c(&self) -> Result<*mut CIValue, TchError> {
         let c = unsafe_torch_err!(match self {
             IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
             IValue::Int(i) => ati_int(*i),
@@ -90,7 +89,10 @@ impl IValue {
             IValue::Double(f) => ati_double(*f),
             IValue::Bool(b) => ati_bool(if *b { 1 } else { 0 }),
             IValue::Tuple(v) => {
-                let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
+                let v = v
+                    .iter()
+                    .map(Self::to_c)
+                    .collect::<Result<Vec<_>, TchError>>()?;
                 let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
                 for x in v {
                     ati_free(x);
@@ -99,7 +101,10 @@ impl IValue {
                 tuple
             }
             IValue::GenericList(v) => {
-                let v = v.iter().map(Self::to_c).collect::<Fallible<Vec<_>>>()?;
+                let v = v
+                    .iter()
+                    .map(Self::to_c)
+                    .collect::<Result<Vec<_>, TchError>>()?;
                 let list = ati_generic_list(v.as_ptr(), v.len() as c_int);
                 for x in v {
                     ati_free(x);
@@ -124,7 +129,7 @@ impl IValue {
                 let v = dict
                     .iter()
                     .flat_map(|(k, v)| vec![Self::to_c(k), Self::to_c(v)])
-                    .collect::<Fallible<Vec<_>>>()?;
+                    .collect::<Result<Vec<_>, TchError>>()?;
                 let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
                 for x in v {
                     ati_free(x);
@@ -136,7 +141,7 @@ impl IValue {
     }
 
     // This consumes the pointer and frees the associated memory.
-    pub(super) fn of_c(c_ivalue: *mut CIValue) -> Fallible<Self> {
+    pub(super) fn of_c(c_ivalue: *mut CIValue) -> Result<Self, TchError> {
         let tag = unsafe_torch_err!(ati_tag(c_ivalue));
         let v = match tag {
             0 => IValue::None,
@@ -148,7 +153,9 @@ impl IValue {
             3 => IValue::Int(unsafe_torch_err!(ati_to_int(c_ivalue))),
             4 => {
                 let b = unsafe_torch_err!(ati_to_bool(c_ivalue));
-                ensure!(b >= 0, "unexpected bool value {}", b);
+                if b < 0 {
+                    return Err(TchError::Kind(format!("unexpected bool value {}", b)));
+                }
                 IValue::Bool(b != 0)
             }
             5 => {
@@ -183,7 +190,7 @@ impl IValue {
             9 => {
                 let ptr = unsafe_torch_err!(ati_to_string(c_ivalue));
                 let string = match unsafe { ptr_to_string(ptr) } {
-                    None => bail!("unable to decode string"),
+                    None => return Err(TchError::Kind("nullptr representation".to_string())),
                     Some(s) => s,
                 };
                 IValue::String(string)
@@ -224,7 +231,7 @@ impl IValue {
                 }
                 IValue::GenericDict(res)
             }
-            _ => bail!("unhandled tag {}", tag),
+            _ => return Err(TchError::Kind(format!("unhandled tag {}", tag))),
         };
         unsafe_torch_err!(ati_free(c_ivalue));
         Ok(v)
@@ -252,7 +259,7 @@ impl Drop for CModule {
 
 impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
-    pub fn load<T: AsRef<std::path::Path>>(path: T) -> Fallible<CModule> {
+    pub fn load<T: AsRef<std::path::Path>>(path: T) -> Result<CModule, TchError> {
         let path = path_to_cstring(path)?;
         let c_module = unsafe_torch_err!(atm_load(path.as_ptr()));
         Ok(CModule { c_module })
@@ -262,14 +269,17 @@ impl CModule {
     ///
     /// This function loads the model directly on the specified device,
     /// which means it also allows loading a GPU model on the CPU without having a CUDA enabled GPU.
-    pub fn load_on_device<T: AsRef<std::path::Path>>(path: T, device: Device) -> Fallible<CModule> {
+    pub fn load_on_device<T: AsRef<std::path::Path>>(
+        path: T,
+        device: Device,
+    ) -> Result<CModule, TchError> {
         let path = path_to_cstring(path)?;
         let c_module = unsafe_torch_err!(atm_load_on_device(path.as_ptr(), device.c_int()));
         Ok(CModule { c_module })
     }
 
     /// Loads a PyTorch saved JIT model from a read instance.
-    pub fn load_data<T: std::io::Read>(f: &mut T) -> Fallible<CModule> {
+    pub fn load_data<T: std::io::Read>(f: &mut T) -> Result<CModule, TchError> {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
@@ -281,7 +291,10 @@ impl CModule {
     ///
     /// This function loads the model directly on the specified device,
     /// which means it also allows loading a GPU model on the CPU without having a CUDA enabled GPU.
-    pub fn load_data_on_device<T: std::io::Read>(f: &mut T, device: Device) -> Fallible<CModule> {
+    pub fn load_data_on_device<T: std::io::Read>(
+        f: &mut T,
+        device: Device,
+    ) -> Result<CModule, TchError> {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         let buffer_ptr = buffer.as_ptr() as *const i8;
@@ -294,7 +307,7 @@ impl CModule {
     }
 
     /// Performs the forward pass for a model on some specified tensor inputs.
-    pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Fallible<Tensor> {
+    pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_tensor =
             unsafe_torch_err!(atm_forward(self.c_module, ts.as_ptr(), ts.len() as c_int));
@@ -302,11 +315,11 @@ impl CModule {
     }
 
     /// Performs the forward pass for a model on some specified ivalue input.
-    pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Fallible<IValue> {
+    pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Result<IValue, TchError> {
         let ts = ts
             .iter()
             .map(|x| x.borrow().to_c())
-            .collect::<Fallible<Vec<_>>>()?;
+            .collect::<Result<Vec<_>, TchError>>()?;
         let c_ivalue =
             unsafe_torch_err!(atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int));
         for x in ts {

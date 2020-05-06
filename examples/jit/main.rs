@@ -1,12 +1,11 @@
 // This example illustrates how to use a PyTorch model trained and exported using the
 // Python JIT API.
 // See https://pytorch.org/tutorials/advanced/cpp_export.html for more details.
-#[macro_use]
-extern crate failure;
 extern crate tch;
+use anyhow::{bail, Result};
 use tch::vision::imagenet;
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     let (model_file, image_file) = match args.as_slice() {
         [_, m, i] => (m.to_owned(), i.to_owned()),

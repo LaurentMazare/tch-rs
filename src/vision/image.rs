@@ -1,7 +1,7 @@
 //! Utility functions to manipulate images.
 use crate::wrappers::image::{load_hwc, resize_hwc, save_hwc};
-use crate::Tensor;
-use failure::Fallible;
+use crate::{TchError, Tensor};
+use std::io;
 use std::path::Path;
 
 fn hwc_to_chw(tensor: &Tensor) -> Tensor {
@@ -15,7 +15,7 @@ fn chw_to_hwc(tensor: &Tensor) -> Tensor {
 /// Loads an image from a file.
 ///
 /// On success returns a tensor of shape [channel, height, width].
-pub fn load<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     let tensor = load_hwc(path)?;
     Ok(hwc_to_chw(&tensor))
 }
@@ -25,11 +25,14 @@ pub fn load<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
 /// This expects as input a tensor of shape [channel, height, width].
 /// The image format is based on the filename suffix, supported suffixes
 /// are jpg, png, tga, and bmp.
-pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Fallible<()> {
+pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     match t.size().as_slice() {
         [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze1(0)), path),
         [_, _, _] => save_hwc(&chw_to_hwc(t), path),
-        sz => bail!("unexpected size for image tensor {:?}", sz),
+        sz => Err(TchError::FileFormat(format!(
+            "unexpected size for image tensor {:?}",
+            sz
+        ))),
     }
 }
 
@@ -37,11 +40,15 @@ pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Fallible<()> {
 ///
 /// This expects as input a tensor of shape [channel, height, width] and returns
 /// a tensor of shape [channel, out_h, out_w].
-pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
     Ok(hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h)?))
 }
 
-pub fn resize_preserve_aspect_ratio_hwc(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+pub fn resize_preserve_aspect_ratio_hwc(
+    t: &Tensor,
+    out_w: i64,
+    out_h: i64,
+) -> Result<Tensor, TchError> {
     let tensor_size = t.size();
     let (w, h) = (tensor_size[0], tensor_size[1]);
     if w * out_h == h * out_w {
@@ -73,17 +80,25 @@ pub fn resize_preserve_aspect_ratio_hwc(t: &Tensor, out_w: i64, out_h: i64) -> F
 /// Resize an image, preserve the aspect ratio by taking a center crop.
 ///
 /// This expects as input a tensor of shape [channel, height, width] and returns
-pub fn resize_preserve_aspect_ratio(t: &Tensor, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+pub fn resize_preserve_aspect_ratio(
+    t: &Tensor,
+    out_w: i64,
+    out_h: i64,
+) -> Result<Tensor, TchError> {
     resize_preserve_aspect_ratio_hwc(&chw_to_hwc(t), out_w, out_h)
 }
 
 /// Loads and resize an image, preserve the aspect ratio by taking a center crop.
-pub fn load_and_resize<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+pub fn load_and_resize<T: AsRef<Path>>(
+    path: T,
+    out_w: i64,
+    out_h: i64,
+) -> Result<Tensor, TchError> {
     let tensor = load_hwc(path)?;
     resize_preserve_aspect_ratio_hwc(&tensor, out_w, out_h)
 }
 
-fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Fallible<()> {
+fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Result<(), TchError> {
     if dir.is_dir() {
         for entry in std::fs::read_dir(dir)? {
             let entry = entry?;
@@ -103,10 +118,15 @@ fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Fallible<()> {
 }
 
 /// Loads all the images in a director.
-pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Fallible<Tensor> {
+pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
     let mut files: Vec<std::fs::DirEntry> = vec![];
     visit_dirs(&path.as_ref(), &mut files)?;
-    ensure!(!files.is_empty(), "no image found in {:?}", path.as_ref());
+    if files.is_empty() {
+        return Err(TchError::Io(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("no image found in {:?}", path.as_ref(),),
+        )));
+    }
     let v: Vec<_> = files
         .iter()
         // Silently discard image errors.
