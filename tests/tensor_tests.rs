@@ -1,4 +1,4 @@
-use failure::Fallible;
+use anyhow::Result;
 use std::convert::{TryFrom, TryInto};
 use tch::{Device, Tensor};
 
@@ -215,7 +215,7 @@ fn from_ndarray_bool() {
 }
 
 #[test]
-fn from_primitive() -> Fallible<()> {
+fn from_primitive() -> Result<()> {
     assert_eq!(Vec::<i32>::from(Tensor::try_from(1_i32)?), vec![1]);
     assert_eq!(Vec::<i64>::from(Tensor::try_from(1_i64)?), vec![1]);
     assert_eq!(Vec::<f32>::from(Tensor::try_from(1_f32)?), vec![1.0]);
@@ -225,7 +225,7 @@ fn from_primitive() -> Fallible<()> {
 }
 
 #[test]
-fn from_vec() -> Fallible<()> {
+fn from_vec() -> Result<()> {
     assert_eq!(
         Vec::<i32>::from(Tensor::try_from(vec![-1_i32, 0, 1])?),
         vec![-1, 0, 1]
@@ -250,7 +250,7 @@ fn from_vec() -> Fallible<()> {
 }
 
 #[test]
-fn from_slice() -> Fallible<()> {
+fn from_slice() -> Result<()> {
     assert_eq!(
         Vec::<i32>::from(Tensor::try_from(&[-1_i32, 0, 1] as &[_])?),
         vec![-1, 0, 1]

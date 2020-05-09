@@ -1,6 +1,7 @@
 // This should rearch 97% accuracy.
 
 extern crate tch;
+use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Device};
 
 const IMAGE_DIM: i64 = 784;
@@ -19,7 +20,7 @@ fn net(vs: &nn::Path) -> impl Module {
         .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
 }
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = net(&vs.root());

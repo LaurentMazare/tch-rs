@@ -7,6 +7,7 @@
 */
 
 extern crate tch;
+use anyhow::Result;
 use tch::nn::{FuncT, ModuleT, OptimizerConfig, SequentialT};
 use tch::{nn, Device};
 
@@ -55,7 +56,7 @@ fn learning_rate(epoch: i64) -> f64 {
     }
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let m = tch::vision::cifar::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = fast_resnet(&vs.root());

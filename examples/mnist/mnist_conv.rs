@@ -1,5 +1,6 @@
 // CNN model. This should rearch 99.1% accuracy.
 
+use anyhow::Result;
 use tch::{nn, nn::ModuleT, nn::OptimizerConfig, Device, Tensor};
 
 #[derive(Debug)]
@@ -40,7 +41,7 @@ impl nn::ModuleT for Net {
     }
 }
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = Net::new(&vs.root());

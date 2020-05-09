@@ -11,6 +11,7 @@
 */
 
 extern crate tch;
+use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Kind, Reduction, Tensor};
 
 struct VAE {
@@ -61,7 +62,7 @@ fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
 }
 
 // Generate a 2D matrix of images from a tensor with multiple images.
-fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
+fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
     let imgs = (imgs * 256.).clamp(0., 255.).to_kind(Kind::Uint8);
     let mut ys: Vec<Tensor> = vec![];
     for i in 0..sz {
@@ -75,7 +76,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> failure::Fallible<Tensor> {
     Ok(Tensor::cat(&ys, 3).squeeze1(0))
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let device = tch::Device::cuda_if_available();
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(device);

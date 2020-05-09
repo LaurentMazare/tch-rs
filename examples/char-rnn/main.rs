@@ -5,6 +5,7 @@
 */
 
 extern crate tch;
+use anyhow::Result;
 use tch::data::TextData;
 use tch::nn::{Linear, Module, OptimizerConfig, LSTM, RNN};
 use tch::{nn, Device, Kind, Tensor};
@@ -36,7 +37,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     result
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;

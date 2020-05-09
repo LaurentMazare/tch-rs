@@ -8,11 +8,11 @@
 //   or
 //     tensor-tools cp src.ot dst.npz
 
-#[macro_use]
-extern crate failure;
 extern crate tch;
 
-pub fn main() -> failure::Fallible<()> {
+use anyhow::{bail, ensure, Result};
+
+pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     ensure!(args.len() >= 2, "usage: {} (ls|cp) ...", args[0]);
     match args[1].as_str() {

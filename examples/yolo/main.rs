@@ -1,12 +1,11 @@
 // The pre-trained weights can be downloaded here:
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/yolo-v3.ot
-#[macro_use]
-extern crate failure;
 extern crate tch;
 
 mod coco_classes;
 mod darknet;
 
+use anyhow::{ensure, Result};
 use tch::nn::ModuleT;
 use tch::vision::image;
 use tch::Tensor;
@@ -45,7 +44,7 @@ pub fn draw_rect(t: &mut Tensor, x1: i64, x2: i64, y1: i64, y2: i64) {
         .copy_(&color)
 }
 
-pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<Tensor> {
+pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
     let (npreds, pred_size) = pred.size2()?;
     let nclasses = (pred_size - 5) as usize;
     // The bounding boxes grouped by (maximum) class index.
@@ -116,7 +115,7 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> failure::Fallible<
     Ok((img * 255.).to_kind(tch::Kind::Uint8))
 }
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     ensure!(args.len() >= 3, "usage: main yolo-v3.ot img.jpg ...");
 

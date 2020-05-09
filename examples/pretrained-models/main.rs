@@ -16,15 +16,14 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b2.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b3.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b4.ot
-#[macro_use]
-extern crate failure;
 extern crate tch;
+use anyhow::{bail, Result};
 use tch::nn::ModuleT;
 use tch::vision::{
     alexnet, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet, vgg,
 };
 
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     let (weights, image) = match args.as_slice() {
         [_, w, i] => (std::path::Path::new(w), i.to_owned()),

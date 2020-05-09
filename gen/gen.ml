@@ -308,7 +308,7 @@ module Func = struct
           |> String.concat ~sep:", " |> Printf.sprintf "(%s)"
       | `dynamic -> "Vec<Tensor>"
     in
-    if fallible then Printf.sprintf " -> failure::Fallible<%s>" returns
+    if fallible then Printf.sprintf " -> Result<%s, TchError>" returns
     else Printf.sprintf " -> %s" returns
 
   let rust_binding_args t ~self =
@@ -505,7 +505,7 @@ let write_fallible_wrapper funcs filename =
       pm "#[allow(clippy::all)]";
       pm "use torch_sys::*;";
       pm "use torch_sys::c_generated::*;";
-      pm "use crate::{Device, Kind, Scalar, Tensor};";
+      pm "use crate::{Device, Kind, Scalar, TchError, Tensor};";
       pm "use std::convert::Into;";
       pm "use std::borrow::Borrow;";
       pm "";

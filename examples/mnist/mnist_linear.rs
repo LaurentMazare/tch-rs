@@ -1,11 +1,12 @@
 // This should rearch 91.5% accuracy.
 
+use anyhow::Result;
 use tch::{kind, no_grad, vision, Kind, Tensor};
 
 const IMAGE_DIM: i64 = 784;
 const LABELS: i64 = 10;
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> Result<()> {
     let m = vision::mnist::load_dir("data")?;
     println!("train-images: {:?}", m.train_images.size());
     println!("train-labels: {:?}", m.train_labels.size());

@@ -1,5 +1,5 @@
 use super::lang;
-use failure::Fallible;
+use anyhow::{bail, Result};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -56,7 +56,7 @@ fn filter_prefix(s: &str) -> bool {
     PREFIXES.iter().any(|prefix| s.starts_with(prefix))
 }
 
-fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Fallible<Vec<(String, String)>> {
+fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Result<Vec<(String, String)>> {
     let file = File::open(format!("data/{}-{}.txt", ilang, olang))?;
     let mut res: Vec<(String, String)> = vec![];
     for line in BufReader::new(file).lines() {
@@ -79,7 +79,7 @@ fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Fallible<Vec<(Stri
 }
 
 impl Dataset {
-    pub fn new(ilang: &str, olang: &str, max_length: usize) -> Fallible<Dataset> {
+    pub fn new(ilang: &str, olang: &str, max_length: usize) -> Result<Dataset> {
         let pairs = read_pairs(ilang, olang, max_length)?;
         let mut input_lang = lang::Lang::new(ilang);
         let mut output_lang = lang::Lang::new(olang);

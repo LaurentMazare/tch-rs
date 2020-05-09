@@ -1,5 +1,6 @@
 //! Scalar elements.
-use failure::Fallible;
+
+use crate::TchError;
 
 /// A single scalar value.
 pub struct Scalar {
@@ -20,24 +21,24 @@ impl Scalar {
     }
 
     /// Returns an integer value.
-    pub fn to_int(&self) -> Fallible<i64> {
+    pub fn to_int(&self) -> Result<i64, TchError> {
         let i = unsafe_torch_err!(torch_sys::ats_to_int(self.c_scalar));
         Ok(i)
     }
 
     /// Returns a float value.
-    pub fn to_float(&self) -> Fallible<f64> {
+    pub fn to_float(&self) -> Result<f64, TchError> {
         let f = unsafe_torch_err!(torch_sys::ats_to_float(self.c_scalar));
         Ok(f)
     }
 
     /// Returns a string representation of the scalar.
-    pub fn to_string(&self) -> Fallible<String> {
+    pub fn to_string(&self) -> Result<String, TchError> {
         let s = unsafe_torch_err!({
             super::utils::ptr_to_string(torch_sys::ats_to_string(self.c_scalar))
         });
         match s {
-            None => bail!("nullptr representation"),
+            None => Err(TchError::Kind("nullptr representation".to_string())),
             Some(s) => Ok(s),
         }
     }

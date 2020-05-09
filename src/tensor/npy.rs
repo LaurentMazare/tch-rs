@@ -2,8 +2,7 @@
 //!
 //! Format spec:
 //! https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html
-use crate::{Kind, Tensor};
-use failure::Fallible;
+use crate::{Kind, TchError, Tensor};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -12,16 +11,23 @@ use std::path::Path;
 const NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
 const NPY_SUFFIX: &str = ".npy";
 
-fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Fallible<String> {
+fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String, TchError> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];
     buf_reader.read_exact(&mut magic_string)?;
-    ensure!(magic_string == NPY_MAGIC_STRING, "magic string mismatch");
+    if magic_string != NPY_MAGIC_STRING {
+        return Err(TchError::FileFormat("magic string mismatch".to_string()));
+    }
     let mut version = [0u8; 2];
     buf_reader.read_exact(&mut version)?;
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
-        otherwise => bail!("unsupported version {}", otherwise),
+        otherwise => {
+            return Err(TchError::FileFormat(format!(
+                "unsupported version {}",
+                otherwise
+            )))
+        }
     };
     let mut header_len = vec![0u8; header_len_len];
     buf_reader.read_exact(&mut header_len)?;
@@ -42,7 +48,7 @@ struct Header {
 }
 
 impl Header {
-    fn to_string(&self) -> Fallible<String> {
+    fn to_string(&self) -> Result<String, TchError> {
         let fortran_order = if self.fortran_order { "True" } else { "False" };
         let mut shape = self
             .shape
@@ -58,7 +64,12 @@ impl Header {
             Kind::Int16 => "i2",
             Kind::Int8 => "i1",
             Kind::Uint8 => "u1",
-            descr => bail!("unsupported kind {:?}", descr),
+            descr => {
+                return Err(TchError::FileFormat(format!(
+                    "unsupported kind {:?}",
+                    descr
+                )))
+            }
         };
         if !shape.is_empty() {
             shape.push(',')
@@ -71,7 +82,7 @@ impl Header {
 
     // Hacky parser for the npy header, a typical example would be:
     // {'descr': '<f8', 'fortran_order': False, 'shape': (128,), }
-    fn parse(header: &str) -> Fallible<Header> {
+    fn parse(header: &str) -> Result<Header, TchError> {
         let header =
             header.trim_matches(|c: char| c == '{' || c == '}' || c == ',' || c.is_whitespace());
 
@@ -102,7 +113,12 @@ impl Header {
                         let value = value.trim_matches(|c: char| c == '\'' || c.is_whitespace());
                         let _ = part_map.insert(key.to_owned(), value.to_owned());
                     }
-                    _ => bail!("unable to parse header {}", header),
+                    _ => {
+                        return Err(TchError::FileFormat(format!(
+                            "unable to parse header {}",
+                            header
+                        )))
+                    }
                 }
             }
         }
@@ -111,14 +127,26 @@ impl Header {
             Some(fortran_order) => match fortran_order.as_ref() {
                 "False" => false,
                 "True" => true,
-                _ => bail!("unknown fortran_order {}", fortran_order),
+                _ => {
+                    return Err(TchError::FileFormat(format!(
+                        "unknown fortran_order {}",
+                        fortran_order
+                    )))
+                }
             },
         };
         let descr = match part_map.get("descr") {
-            None => bail!("no descr in header"),
+            None => return Err(TchError::FileFormat("no descr in header".to_string())),
             Some(descr) => {
-                ensure!(!descr.is_empty(), "empty descr");
-                ensure!(!descr.starts_with('>'), "little-endian descr {}", descr);
+                if descr.is_empty() {
+                    return Err(TchError::FileFormat("empty descr".to_string()));
+                }
+                if descr.starts_with('>') {
+                    return Err(TchError::FileFormat(format!(
+                        "little-endian descr {}",
+                        descr
+                    )));
+                }
                 match descr.trim_matches(|c: char| c == '=' || c == '<') {
                     "f4" => Kind::Float,
                     "f8" => Kind::Double,
@@ -127,12 +155,17 @@ impl Header {
                     "i2" => Kind::Int16,
                     "i1" => Kind::Int8,
                     "u1" => Kind::Uint8,
-                    descr => bail!("unrecognized descr {}", descr),
+                    descr => {
+                        return Err(TchError::FileFormat(format!(
+                            "unrecognized descr {}",
+                            descr
+                        )))
+                    }
                 }
             }
         };
         let shape = match part_map.get("shape") {
-            None => bail!("no shape in header"),
+            None => return Err(TchError::FileFormat("no shape in header".to_string())),
             Some(shape) => {
                 let shape = shape.trim_matches(|c: char| c == '(' || c == ')' || c == ',');
                 if shape.is_empty() {
@@ -155,18 +188,22 @@ impl Header {
 
 impl crate::Tensor {
     /// Reads a npy file and return the stored tensor.
-    pub fn read_npy<T: AsRef<Path>>(path: T) -> Fallible<Tensor> {
+    pub fn read_npy<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
         let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
         let header = read_header(&mut buf_reader)?;
         let header = Header::parse(&header)?;
-        ensure!(!header.fortran_order, "fortran order not supported");
+        if header.fortran_order {
+            return Err(TchError::FileFormat(
+                "fortran order not supported".to_string(),
+            ));
+        }
         let mut data: Vec<u8> = vec![];
         buf_reader.read_to_end(&mut data)?;
         Tensor::f_of_data_size(&data, &header.shape, header.descr)
     }
 
     /// Reads a npz file and returns some named tensors.
-    pub fn read_npz<T: AsRef<Path>>(path: T) -> Fallible<Vec<(String, Tensor)>> {
+    pub fn read_npz<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
         let zip_reader = BufReader::new(File::open(path.as_ref())?);
         let mut zip = zip::ZipArchive::new(zip_reader)?;
         let mut result = vec![];
@@ -183,7 +220,11 @@ impl crate::Tensor {
             let mut buf_reader = BufReader::new(file);
             let header = read_header(&mut buf_reader)?;
             let header = Header::parse(&header)?;
-            ensure!(!header.fortran_order, "fortran order not supported");
+            if header.fortran_order {
+                return Err(TchError::FileFormat(
+                    "fortran order not supported".to_string(),
+                ));
+            }
             let mut data: Vec<u8> = vec![];
             buf_reader.read_to_end(&mut data)?;
             let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
@@ -192,7 +233,7 @@ impl crate::Tensor {
         Ok(result)
     }
 
-    fn write<T: Write>(&self, f: &mut T) -> Fallible<()> {
+    fn write<T: Write>(&self, f: &mut T) -> Result<(), TchError> {
         f.write_all(NPY_MAGIC_STRING)?;
         f.write_all(&[1u8, 0u8])?;
         let kind = self.kind();
@@ -217,7 +258,7 @@ impl crate::Tensor {
     }
 
     /// Writes a tensor in the npy format so that it can be read using python.
-    pub fn write_npy<T: AsRef<Path>>(&self, path: T) -> Fallible<()> {
+    pub fn write_npy<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
         let mut f = File::create(path.as_ref())?;
         self.write(&mut f)
     }
@@ -225,7 +266,7 @@ impl crate::Tensor {
     pub fn write_npz<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
         ts: &[(S, T)],
         path: P,
-    ) -> Fallible<()> {
+    ) -> Result<(), TchError> {
         let mut zip = zip::ZipWriter::new(File::create(path.as_ref())?);
         let options =
             zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
