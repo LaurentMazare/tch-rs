@@ -6,7 +6,6 @@ use thiserror::Error;
 use zip::result::ZipError;
 
 /// Main library error type.
-#[non_exhaustive]
 #[derive(Error, Debug)]
 pub enum TchError {
     /// Conversion error.
