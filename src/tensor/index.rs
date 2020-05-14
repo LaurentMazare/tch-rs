@@ -343,10 +343,13 @@ impl Tensor {
                     curr_tensor.narrow(curr_idx, *start + 1, *end - *start - 1),
                     curr_idx + 1,
                 ),
-                IndexSelect(index_tensor) => (
-                    curr_tensor.index_select(curr_idx, index_tensor),
-                    curr_idx + 1,
-                ),
+                IndexSelect(index_tensor) => {
+                    let index_tensor = index_tensor.to_device(curr_tensor.device());
+                    (
+                        curr_tensor.index_select(curr_idx, &index_tensor),
+                        curr_idx + 1,
+                    )
+                }
             };
 
             curr_tensor = next_tensor;
