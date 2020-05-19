@@ -50,8 +50,7 @@ impl Sequential {
     /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
-        F: 'static,
-        F: Fn(&Tensor) -> Tensor,
+        F: 'static + Fn(&Tensor) -> Tensor + Send,
     {
         self.add(super::func(f))
     }
@@ -123,8 +122,7 @@ impl SequentialT {
     /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
-        F: 'static,
-        F: Fn(&Tensor) -> Tensor,
+        F: 'static + Fn(&Tensor) -> Tensor + Send,
     {
         self.add(super::func(f))
     }
@@ -132,8 +130,7 @@ impl SequentialT {
     /// Appends a closure after all the current layers.
     pub fn add_fn_t<F>(self, f: F) -> Self
     where
-        F: 'static,
-        F: Fn(&Tensor, bool) -> Tensor,
+        F: 'static + Fn(&Tensor, bool) -> Tensor + Send,
     {
         self.add(super::func_t(f))
     }
