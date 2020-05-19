@@ -1,6 +1,6 @@
 //! Utility functions to manipulate images.
 use crate::wrappers::image::{load_hwc, resize_hwc, save_hwc};
-use crate::{TchError, Tensor};
+use crate::{Device, TchError, Tensor};
 use std::io;
 use std::path::Path;
 
@@ -27,8 +27,8 @@ pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
 /// are jpg, png, tga, and bmp.
 pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     match t.size().as_slice() {
-        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze1(0)), path),
-        [_, _, _] => save_hwc(&chw_to_hwc(t), path),
+        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze1(0)).to_device(Device::Cpu), path),
+        [_, _, _] => save_hwc(&chw_to_hwc(t).to_device(Device::Cpu), path),
         sz => Err(TchError::FileFormat(format!(
             "unexpected size for image tensor {:?}",
             sz
