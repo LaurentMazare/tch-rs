@@ -7,3 +7,5 @@ gen/.merlin
 *.swo
 Cargo.lock
 __pycache__
+*~
+.*~
