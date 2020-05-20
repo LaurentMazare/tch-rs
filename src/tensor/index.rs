@@ -276,7 +276,7 @@ impl Tensor {
 
         // Make sure tensors conform the format
         for spec in index_spec.iter() {
-            use super::Kind::*;
+            use crate::Kind::*;
             if let IndexSelect(tensor) = spec {
                 if tensor.size().len() != 1 {
                     return Err(TchError::Shape(

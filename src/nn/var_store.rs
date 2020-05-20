@@ -1,7 +1,6 @@
 //! Variable stores.
 use super::Init;
-use crate::tensor::Tensor;
-use crate::{Device, Kind, TchError};
+use crate::{Device, Kind, TchError, Tensor};
 use std::collections::HashMap;
 use std::ops::Div;
 use std::sync::{Arc, Mutex, MutexGuard};

@@ -1,5 +1,4 @@
-use super::Tensor;
-use crate::TchError;
+use crate::{TchError, Tensor};
 
 pub struct Iter<T> {
     index: i64,
