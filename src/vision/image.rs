@@ -25,6 +25,8 @@ pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
 /// This expects as input a tensor of shape [channel, height, width].
 /// The image format is based on the filename suffix, supported suffixes
 /// are jpg, png, tga, and bmp.
+/// The tensor input should be of kind UInt8 with values ranging from
+/// 0 to 255.
 pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     let t = t.to_kind(crate::Kind::Uint8);
     match t.size().as_slice() {
