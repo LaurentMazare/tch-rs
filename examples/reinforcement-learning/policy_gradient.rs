@@ -38,7 +38,7 @@ pub fn run() -> cpython::PyResult<()> {
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let model = model(&vs.root(), env.observation_space(), env.action_space());
-    let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
+    let mut opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
     for epoch_idx in 0..50 {
         let mut obs = env.reset()?;

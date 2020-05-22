@@ -76,7 +76,7 @@ pub fn train() -> cpython::PyResult<()> {
     let device = tch::Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let model = model(&vs.root(), env.action_space());
-    let opt = nn::Adam::default().build(&vs, 1e-4).unwrap();
+    let mut opt = nn::Adam::default().build(&vs, 1e-4).unwrap();
 
     let mut sum_rewards = Tensor::zeros(&[NPROCS], FLOAT_CPU);
     let mut total_rewards = 0f64;
