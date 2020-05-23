@@ -38,7 +38,7 @@ pub fn run() -> cpython::PyResult<()> {
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let model = model(&vs.root(), env.observation_space(), env.action_space());
-    let opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
+    let mut opt = nn::Adam::default().build(&vs, 1e-2).unwrap();
 
     for epoch_idx in 0..50 {
         let mut obs = env.reset()?;
@@ -74,11 +74,8 @@ pub fn run() -> cpython::PyResult<()> {
         let actions = Tensor::of_slice(&actions).unsqueeze(1);
         let rewards = accumulate_rewards(&steps);
         let rewards = Tensor::of_slice(&rewards).to_kind(Float);
-        let action_mask = Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter_(
-            1,
-            &actions,
-            &Tensor::from(1f32),
-        );
+        let action_mask =
+            Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter1(1, &actions, 1.0);
         let obs: Vec<Tensor> = steps.into_iter().map(|s| s.obs).collect();
         let logits = Tensor::stack(&obs, 0).apply(&model);
         let log_probs = (action_mask * logits.log_softmax(1, Float)).sum1(&[1], false, Float);
