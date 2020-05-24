@@ -17,7 +17,7 @@ fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
         .add(nn::linear(p / "lin2", 32, nact, Default::default()))
 }
 
-fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
+fn accumulate_rewards(steps: &[Step<i64>]) -> Vec<f64> {
     let mut rewards: Vec<f64> = steps.iter().map(|s| s.reward).collect();
     let mut acc_reward = 0f64;
     for (i, reward) in rewards.iter_mut().enumerate().rev() {
@@ -33,7 +33,7 @@ fn accumulate_rewards(steps: &[Step]) -> Vec<f64> {
 /// Trains an agent using the policy gradient algorithm.
 pub fn run() -> cpython::PyResult<()> {
     let env = GymEnv::new("CartPole-v0")?;
-    println!("action space: {}", env.action_space());
+    println!("action space: {:?}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
@@ -42,7 +42,7 @@ pub fn run() -> cpython::PyResult<()> {
 
     for epoch_idx in 0..50 {
         let mut obs = env.reset()?;
-        let mut steps: Vec<Step> = vec![];
+        let mut steps: Vec<Step<i64>> = vec![];
         // Perform some rollouts with the current model.
         loop {
             let action = tch::no_grad(|| {
