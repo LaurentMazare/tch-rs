@@ -1,19 +1,19 @@
 //! Wrappers around the Python API of the OpenAI gym.
-use cpython::{NoArgs, ObjectProtocol, PyObject, PyResult, Python};
+use cpython::{NoArgs, ObjectProtocol, PyObject, PyResult, Python, ToPyObject};
 use tch::Tensor;
 
 /// The return value for a step.
 #[derive(Debug)]
-pub struct Step {
+pub struct Step<A> {
     pub obs: Tensor,
-    pub action: i64,
+    pub action: A,
     pub reward: f64,
     pub is_done: bool,
 }
 
-impl Step {
+impl<A: Copy> Step<A> {
     /// Returns a copy of this step changing the observation tensor.
-    pub fn copy_with_obs(&self, obs: &Tensor) -> Step {
+    pub fn copy_with_obs(&self, obs: &Tensor) -> Step<A> {
         Step {
             obs: obs.copy(),
             action: self.action,
@@ -39,7 +39,12 @@ impl GymEnv {
         let env = gym.call(py, "make", (name,), None)?;
         let _ = env.call_method(py, "seed", (42,), None)?;
         let action_space = env.getattr(py, "action_space")?;
-        let action_space = action_space.getattr(py, "n")?.extract(py)?;
+        let action_space = if let Ok(val) = action_space.getattr(py, "n") {
+            val.extract(py)?
+        } else {
+            let action_space: Vec<i64> = action_space.getattr(py, "shape")?.extract(py)?;
+            action_space[0]
+        };
         let observation_space = env.getattr(py, "observation_space")?;
         let observation_space = observation_space.getattr(py, "shape")?.extract(py)?;
         Ok(GymEnv {
@@ -58,10 +63,10 @@ impl GymEnv {
     }
 
     /// Applies an environment step using the specified action.
-    pub fn step(&self, action: i64) -> PyResult<Step> {
+    pub fn step<A: ToPyObject + Copy>(&self, action: A) -> PyResult<Step<A>> {
         let gil = Python::acquire_gil();
         let py = gil.python();
-        let step = self.env.call_method(py, "step", (action,), None)?;
+        let step = self.env.call_method(py, "step", (vec![action],), None)?;
         Ok(Step {
             obs: Tensor::of_slice(&step.get_item(py, 0)?.extract::<Vec<f32>>(py)?),
             reward: step.get_item(py, 1)?.extract(py)?,

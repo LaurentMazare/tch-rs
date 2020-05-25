@@ -2,6 +2,7 @@ extern crate cpython;
 extern crate tch;
 
 mod a2c;
+mod ddpg;
 mod gym_env;
 mod policy_gradient;
 mod ppo;
@@ -15,7 +16,8 @@ fn main() -> cpython::PyResult<()> {
         [_, "pg"] => policy_gradient::run()?,
         [_, "ppo"] => ppo::train()?,
         [_, "ppo-sample", weight_file] => ppo::sample(weight_file)?,
-        _ => println!("usage: main pg|a2c|a2c-sample|ppo|ppo-sample"),
+        [_, "ddpg"] => ddpg::run()?,
+        _ => println!("usage: main pg|a2c|a2c-sample|ppo|ppo-sample|ddpg"),
     }
     Ok(())
 }
