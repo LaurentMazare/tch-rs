@@ -6,26 +6,27 @@ mod coco_classes;
 mod darknet;
 
 use anyhow::{ensure, Result};
+use std::convert::TryFrom;
 use tch::nn::ModuleT;
 use tch::vision::image;
 use tch::Tensor;
 const CONFIG_NAME: &'static str = "examples/yolo/yolo-v3.cfg";
-const CONFIDENCE_THRESHOLD: f64 = 0.5;
-const NMS_THRESHOLD: f64 = 0.4;
+const CONFIDENCE_THRESHOLD: f32 = 0.5;
+const NMS_THRESHOLD: f32 = 0.4;
 
 #[derive(Debug, Clone, Copy)]
 struct Bbox {
-    xmin: f64,
-    ymin: f64,
-    xmax: f64,
-    ymax: f64,
-    confidence: f64,
+    xmin: f32,
+    ymin: f32,
+    xmax: f32,
+    ymax: f32,
+    confidence: f32,
     class_index: usize,
-    class_confidence: f64,
+    class_confidence: f32,
 }
 
 // Intersection over union of two bounding boxes.
-fn iou(b1: &Bbox, b2: &Bbox) -> f64 {
+fn iou(b1: &Bbox, b2: &Bbox) -> f32 {
     let b1_area = (b1.xmax - b1.xmin + 1.) * (b1.ymax - b1.ymin + 1.);
     let b2_area = (b2.xmax - b2.xmin + 1.) * (b2.ymax - b2.ymin + 1.);
     let i_xmin = b1.xmin.max(b2.xmin);
@@ -51,7 +52,7 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
     let mut bboxes: Vec<Vec<Bbox>> = (0..nclasses).map(|_| vec![]).collect();
     // Extract the bounding boxes for which confidence is above the threshold.
     for index in 0..npreds {
-        let pred = Vec::<f64>::from(pred.get(index));
+        let pred = Vec::<f32>::try_from(pred.get(index))?;
         let confidence = pred[4];
         if confidence > CONFIDENCE_THRESHOLD {
             let mut class_index = 0;
@@ -97,8 +98,8 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
     // Annotate the original image and print boxes information.
     let (_, initial_h, initial_w) = img.size3()?;
     let mut img = img.to_kind(tch::Kind::Float) / 255.;
-    let w_ratio = initial_w as f64 / w as f64;
-    let h_ratio = initial_h as f64 / h as f64;
+    let w_ratio = initial_w as f32 / w as f32;
+    let h_ratio = initial_h as f32 / h as f32;
     for (class_index, bboxes_for_class) in bboxes.iter().enumerate() {
         for b in bboxes_for_class.iter() {
             println!("{}: {:?}", coco_classes::NAMES[class_index], b);

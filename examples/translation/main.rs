@@ -14,6 +14,7 @@ extern crate rand;
 use rand::prelude::*;
 extern crate tch;
 use anyhow::Result;
+use std::convert::TryFrom;
 use tch::nn::{GRUState, Module, OptimizerConfig, RNN};
 use tch::{nn, Device, Kind, Tensor};
 
@@ -127,7 +128,12 @@ impl Model {
         }
     }
 
-    fn train_loss(&self, input_: &[usize], target: &[usize], rng: &mut ThreadRng) -> Tensor {
+    fn train_loss(
+        &self,
+        input_: &[usize],
+        target: &[usize],
+        rng: &mut ThreadRng,
+    ) -> Result<Tensor> {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
         for &s in input_.iter() {
@@ -146,7 +152,7 @@ impl Model {
             let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
             loss = loss + output.nll_loss(&target_tensor);
             let (_, output) = output.topk(1, -1, true, true);
-            if self.decoder_eos == i64::from(&output) as usize {
+            if self.decoder_eos == i64::try_from(&output)? as usize {
                 break;
             }
             prev = if use_teacher_forcing {
@@ -155,10 +161,10 @@ impl Model {
                 output
             };
         }
-        loss
+        Ok(loss)
     }
 
-    fn predict(&self, input_: &[usize]) -> Vec<usize> {
+    fn predict(&self, input_: &[usize]) -> Result<Vec<usize>> {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
         for &s in input_.iter() {
@@ -173,7 +179,7 @@ impl Model {
         for _i in 0..MAX_LENGTH {
             let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
             let (_, output) = output.topk(1, -1, true, true);
-            let output_ = i64::from(&output) as usize;
+            let output_ = i64::try_from(&output)? as usize;
             output_seq.push(output_);
             if self.decoder_eos == output_ {
                 break;
@@ -181,12 +187,12 @@ impl Model {
             state = state_;
             prev = output;
         }
-        output_seq
+        Ok(output_seq)
     }
 }
 
 struct LossStats {
-    total_loss: f64,
+    total_loss: f32,
     samples: usize,
 }
 
@@ -198,13 +204,13 @@ impl LossStats {
         }
     }
 
-    fn update(&mut self, loss: f64) {
+    fn update(&mut self, loss: f32) {
         self.total_loss += loss;
         self.samples += 1;
     }
 
-    fn avg_and_reset(&mut self) -> f64 {
-        let avg = self.total_loss / self.samples as f64;
+    fn avg_and_reset(&mut self) -> f32 {
+        let avg = self.total_loss / self.samples as f32;
         self.total_loss = 0.;
         self.samples = 0;
         avg
@@ -227,14 +233,14 @@ pub fn main() -> Result<()> {
     let mut loss_stats = LossStats::new();
     for idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
-        let loss = model.train_loss(&input_, &target, &mut rng);
+        let loss = model.train_loss(&input_, &target, &mut rng)?;
         opt.backward_step(&loss);
-        loss_stats.update(f64::from(loss) / target.len() as f64);
+        loss_stats.update(f32::try_from(loss)? / target.len() as f32);
         if idx % 1000 == 0 {
             println!("{} {}", idx, loss_stats.avg_and_reset());
             for _pred_index in 1..5 {
                 let (input_, target) = pairs.choose(&mut rng).unwrap();
-                let predict = model.predict(&input_);
+                let predict = model.predict(&input_)?;
                 println!("in:  {}", ilang.seq_to_string(input_));
                 println!("tgt: {}", olang.seq_to_string(target));
                 println!("out: {}", olang.seq_to_string(&predict));

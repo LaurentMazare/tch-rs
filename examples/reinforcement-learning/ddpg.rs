@@ -7,6 +7,7 @@
    reference python implementation.
 */
 use super::gym_env::GymEnv;
+use std::convert::TryFrom;
 use tch::{
     kind::{FLOAT_CPU, INT64_CPU},
     nn,
@@ -356,7 +357,7 @@ pub fn run() -> cpython::PyResult<()> {
 
         let mut total_reward = 0.0;
         for _ in 0..EPISODE_LENGTH {
-            let mut actions = 2.0 * f64::from(agent.actions(&obs));
+            let mut actions = 2.0 * f32::try_from(agent.actions(&obs)).unwrap();
             actions = actions.max(-2.0).min(2.0);
 
             let step = env.step(actions)?;

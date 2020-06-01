@@ -1,5 +1,6 @@
 //! Basic module traits defining the forward pass.
 use crate::{data::Iter2, Device, Tensor};
+use std::convert::TryFrom;
 
 /// The simplest module trait, defining a forward function.
 pub trait Module: std::fmt::Debug + Send {
@@ -19,16 +20,16 @@ pub trait ModuleT: std::fmt::Debug + Send {
         ys: &Tensor,
         d: Device,
         batch_size: i64,
-    ) -> f64 {
+    ) -> f32 {
         let _no_grad = crate::no_grad_guard();
-        let mut sum_accuracy = 0f64;
-        let mut sample_count = 0f64;
+        let mut sum_accuracy = 0f32;
+        let mut sample_count = 0f32;
         for (xs, ys) in Iter2::new(xs, ys, batch_size).return_smaller_last_batch() {
             let acc = self
                 .forward_t(&xs.to_device(d), false)
                 .accuracy_for_logits(&ys.to_device(d));
-            let size = xs.size()[0] as f64;
-            sum_accuracy += f64::from(&acc) * size;
+            let size = xs.size()[0] as f32;
+            sum_accuracy += f32::try_from(&acc).unwrap() * size;
             sample_count += size;
         }
         sum_accuracy / sample_count

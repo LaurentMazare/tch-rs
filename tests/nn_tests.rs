@@ -1,9 +1,12 @@
+use anyhow::Result;
+use approx::assert_abs_diff_eq;
+use std::convert::TryFrom;
 use tch::nn::layer_norm;
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
 #[test]
-fn optimizer_test() {
+fn optimizer_test() -> Result<()> {
     tch::manual_seed(42);
     // Create some linear data.
     let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>())
@@ -22,7 +25,7 @@ fn optimizer_test() {
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss = f32::try_from(&loss)?;
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
@@ -31,7 +34,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f32::try_from(loss)?;
     assert!(final_loss < 0.25, "final loss {}", final_loss);
 
     // Reset the weights to their initial values.
@@ -39,8 +42,8 @@ fn optimizer_test() {
         linear.ws.init(nn::Init::Const(0.));
         linear.bs.init(nn::Init::Const(0.));
     });
-    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
-    assert_eq!(initial_loss, initial_loss2);
+    let initial_loss2 = f32::try_from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean))?;
+    assert_abs_diff_eq!(initial_loss, initial_loss2);
 
     // Set the learning-rate to be very small and check that the loss does not change
     // much.
@@ -50,12 +53,15 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f32::try_from(loss)?;
+    // assert_abs_diff_eq!(final_loss, initial_loss);
     assert!(
         (final_loss - initial_loss) < 1e-5,
         "final loss {}",
         final_loss
-    )
+    );
+
+    Ok(())
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
@@ -96,7 +102,7 @@ fn layer_norm_test() {
 }
 
 #[test]
-fn layer_norm_parameters_test() {
+fn layer_norm_parameters_test() -> Result<()> {
     tch::manual_seed(42);
     // Create some linear data.
     let xs = Tensor::of_slice(&[42.0, 42.0, 42.0, 24.0])
@@ -110,7 +116,7 @@ fn layer_norm_parameters_test() {
     let mut ln = layer_norm(vs.root(), vec![2], Default::default());
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss = f32::try_from(&loss)?;
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
@@ -119,7 +125,7 @@ fn layer_norm_parameters_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f32::try_from(loss)?;
     assert!(final_loss < 0.25, "final loss {:?}", final_loss);
 
     //     Reset the weights to their initial values.
@@ -131,8 +137,9 @@ fn layer_norm_parameters_test() {
             bs.init(nn::Init::Const(0.));
         }
     });
-    let initial_loss2 = f64::from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
-    assert_eq!(initial_loss, initial_loss2)
+    let initial_loss2 = f32::try_from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean))?;
+    assert_abs_diff_eq!(initial_loss, initial_loss2);
+    Ok(())
 }
 
 fn gru_test(rnn_config: nn::RNNConfig) {

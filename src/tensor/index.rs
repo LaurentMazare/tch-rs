@@ -18,19 +18,29 @@
 //!
 //! ```
 //! use crate::tch::{IndexOp, Tensor};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+//! use std::convert::TryFrom;
+//! let tensor = Tensor::of_slice(&[1i64, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i((.., 1..));
 //! assert_eq!(t.size(), [2, 2]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
+//! assert_eq!(
+//!     Vec::<Vec<i64>>::try_from(t).unwrap(),
+//!     vec![vec![2, 3], vec![5, 6]]
+//! );
 //! let t = tensor.i((..1, ..));
 //! assert_eq!(t.size(), [1, 3]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [1, 2, 3]);
+//! assert_eq!(Vec::<Vec<i64>>::try_from(t).unwrap(), vec![vec![1, 2, 3]]);
 //! let t = tensor.i((.., 1..2));
 //! assert_eq!(t.size(), [2, 1]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 5]);
+//! assert_eq!(
+//!     Vec::<Vec<i64>>::try_from(t).unwrap(),
+//!     vec![vec![2], vec![5]]
+//! );
 //! let t = tensor.i((.., 1..=2));
 //! assert_eq!(t.size(), [2, 2]);
-//! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
+//! assert_eq!(
+//!     Vec::<Vec<i64>>::try_from(t).unwrap(),
+//!     vec![vec![2, 3], vec![5, 6]]
+//! );
 //! ```
 //!
 //! The `NewAxis` index can be used to insert a dimension.

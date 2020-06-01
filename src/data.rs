@@ -1,6 +1,7 @@
 //! Dataset iterators.
 use crate::{kind, Device, IndexOp, TchError, Tensor};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
@@ -192,7 +193,7 @@ impl Iterator for TextDataIter {
             None
         } else {
             self.batch_index += 1;
-            let indexes = Vec::<i64>::from(&self.indexes.i(start..start + size));
+            let indexes = Vec::<i64>::try_from(&self.indexes.i(start..start + size)).unwrap();
             let batch: Vec<_> = indexes
                 .iter()
                 .map(|&i| self.data.i(i..i + self.seq_len))

@@ -4,6 +4,7 @@
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
 extern crate tch;
 use anyhow::{bail, Result};
+use std::convert::TryFrom;
 use tch::vision::{imagenet, vgg};
 use tch::{nn, nn::OptimizerConfig, Device, Tensor};
 
@@ -64,7 +65,7 @@ pub fn main() -> Result<()> {
         let loss = style_loss * STYLE_WEIGHT + content_loss;
         opt.backward_step(&loss);
         if step_idx % 1000 == 0 {
-            println!("{} {}", step_idx, f64::from(loss));
+            println!("{} {}", step_idx, f32::try_from(loss)?);
             imagenet::save_image(&input_var, &format!("out{}.jpg", step_idx))?;
         }
     }

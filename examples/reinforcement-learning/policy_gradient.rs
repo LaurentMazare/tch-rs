@@ -7,6 +7,7 @@
 // https://github.com/openai/spinningup/blob/master/spinup/examples/pg_math/2_rtg_pg.py
 
 use super::gym_env::{GymEnv, Step};
+use std::convert::TryFrom;
 use tch::{nn, nn::OptimizerConfig, Kind::Float, Tensor};
 
 fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
@@ -51,7 +52,7 @@ pub fn run() -> cpython::PyResult<()> {
                     .softmax(1, Float)
                     .multinomial(1, true)
             });
-            let action = i64::from(action);
+            let action = i64::try_from(action).unwrap();
             let step = env.step(action)?;
             steps.push(step.copy_with_obs(&obs));
             obs = if step.is_done { env.reset()? } else { step.obs };

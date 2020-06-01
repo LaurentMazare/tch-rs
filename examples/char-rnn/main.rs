@@ -6,6 +6,7 @@
 
 extern crate tch;
 use anyhow::Result;
+use std::convert::TryFrom;
 use tch::data::TextData;
 use tch::nn::{Linear, Module, OptimizerConfig, LSTM, RNN};
 use tch::{nn, Device, Kind, Tensor};
@@ -18,7 +19,7 @@ const EPOCHS: i64 = 100;
 const SAMPLING_LEN: i64 = 1024;
 
 /// Generates some sample string using the LSTM + Linear model.
-fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> String {
+fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Result<String> {
     let labels = data.labels();
     let mut state = lstm.zero_state(1);
     let mut last_label = 0i64;
@@ -31,10 +32,10 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
             .forward(&state.h())
             .softmax(-1, Kind::Float)
             .multinomial(1, false);
-        last_label = i64::from(sampled_y);
+        last_label = i64::try_from(sampled_y)?;
         result.push(data.label_to_char(last_label))
     }
-    result
+    Ok(result)
 }
 
 pub fn main() -> Result<()> {
@@ -58,11 +59,11 @@ pub fn main() -> Result<()> {
                 .view([BATCH_SIZE * SEQ_LEN, labels])
                 .cross_entropy_for_logits(&ys.to_device(device).view([BATCH_SIZE * SEQ_LEN]));
             opt.backward_step_clip(&loss, 0.5);
-            sum_loss += f64::from(loss);
+            sum_loss += f32::try_from(loss)?;
             cnt_loss += 1.0;
         }
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
-        println!("Sample: {}", sample(&data, &lstm, &linear, device));
+        println!("Sample: {}", sample(&data, &lstm, &linear, device)?);
     }
     Ok(())
 }

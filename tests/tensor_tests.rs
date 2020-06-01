@@ -1,29 +1,32 @@
 use anyhow::Result;
-use std::convert::{TryFrom, TryInto};
+use approx::assert_abs_diff_eq;
+use std::convert::TryFrom;
 use tch::{Device, Tensor};
 
 #[test]
-fn assign_ops() {
+fn assign_ops() -> Result<()> {
     let mut t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
     t += 1;
     t *= 2;
     t -= 1;
-    assert_eq!(Vec::<i64>::from(&t), [7, 3, 9, 3, 11]);
+    assert_eq!(Vec::<i32>::try_from(&t)?, [7, 3, 9, 3, 11]);
+    Ok(())
 }
 
 #[test]
-fn constant_ops() {
+fn constant_ops() -> Result<()> {
     let mut t = Tensor::of_slice(&[7i64, 3, 9, 3, 11]);
     t = -t;
-    assert_eq!(Vec::<i64>::from(&t), [-7, -3, -9, -3, -11]);
+    assert_eq!(Vec::<i64>::try_from(&t)?, [-7, -3, -9, -3, -11]);
     t = 1 - t;
-    assert_eq!(Vec::<i64>::from(&t), [8, 4, 10, 4, 12]);
+    assert_eq!(Vec::<i64>::try_from(&t)?, [8, 4, 10, 4, 12]);
     t = 2 * t;
-    assert_eq!(Vec::<i64>::from(&t), [16, 8, 20, 8, 24]);
+    assert_eq!(Vec::<i64>::try_from(&t)?, [16, 8, 20, 8, 24]);
 
     let mut t = Tensor::of_slice(&[0.2f64, 0.1]);
     t = 2 / t;
-    assert_eq!(Vec::<f64>::from(&t), [10.0, 20.0]);
+    assert_eq!(Vec::<f64>::try_from(&t)?, [10.0, 20.0]);
+    Ok(())
 }
 
 #[test]
@@ -37,41 +40,44 @@ fn iter() {
 }
 
 #[test]
-fn array_conversion() {
+fn array_conversion() -> Result<()> {
     let vec: Vec<_> = (0..6).map(|x| (x * x) as f64).collect();
     let t = Tensor::of_slice(&vec);
-    assert_eq!(Vec::<f64>::from(&t), [0.0, 1.0, 4.0, 9.0, 16.0, 25.0]);
+    assert_eq!(Vec::<f64>::try_from(&t)?, [0.0, 1.0, 4.0, 9.0, 16.0, 25.0]);
     let t = t.view([3, 2]);
     assert_eq!(
-        Vec::<Vec<f64>>::from(&t),
+        Vec::<Vec<f64>>::try_from(&t)?,
         [[0.0, 1.0], [4.0, 9.0], [16.0, 25.0]]
     );
     let t = t.view([2, 3]);
     assert_eq!(
-        Vec::<Vec<f64>>::from(&t),
+        Vec::<Vec<f64>>::try_from(&t)?,
         [[0.0, 1.0, 4.0], [9.0, 16.0, 25.0]]
-    )
+    );
+    Ok(())
 }
 
 #[test]
-fn binary_ops() {
+fn binary_ops() -> Result<()> {
     let t = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]);
     let t = (&t * &t) + &t - 1.5;
-    assert_eq!(Vec::<f64>::from(&t), [10.5, 0.5, 18.5, 0.5, 28.5]);
+    assert_eq!(Vec::<f64>::try_from(&t)?, [10.5, 0.5, 18.5, 0.5, 28.5]);
+    Ok(())
 }
 
 #[test]
-fn grad() {
-    let mut x = Tensor::from(2.0).set_requires_grad(true);
+fn grad() -> Result<()> {
+    let mut x = Tensor::from(2f64).set_requires_grad(true);
     let y = &x * &x + &x + 36;
     x.zero_grad();
     y.backward();
     let dy_over_dx = x.grad();
-    assert_eq!(Vec::<f64>::from(&dy_over_dx), [5.0]);
+    assert_eq!(f64::try_from(&dy_over_dx)?, 5.0);
+    Ok(())
 }
 
 #[test]
-fn grad_grad() {
+fn grad_grad() -> Result<()> {
     // Compute a second order derivative using run_backward.
     let mut x = Tensor::from(42.0).set_requires_grad(true);
     let y = &x * &x * &x + &x + &x * &x;
@@ -81,7 +87,8 @@ fn grad_grad() {
     let dy_over_dx = &dy_over_dx[0];
     dy_over_dx.backward();
     let dy_over_dx2 = x.grad();
-    assert_eq!(f64::from(&dy_over_dx2), 254.0);
+    assert_eq!(f64::try_from(&dy_over_dx2)?, 254.0);
+    Ok(())
 }
 
 #[test]
@@ -93,32 +100,50 @@ fn grad_without_requires() {
 }
 
 #[test]
-fn cat_and_stack() {
+fn cat_and_stack() -> Result<()> {
     let t = Tensor::of_slice(&[13.0, 37.0]);
     let t = Tensor::cat(&[&t, &t, &t], 0);
     assert_eq!(t.size(), [6]);
-    assert_eq!(Vec::<f64>::from(&t), [13.0, 37.0, 13.0, 37.0, 13.0, 37.0]);
+    assert_eq!(
+        Vec::<f64>::try_from(&t)?,
+        [13.0, 37.0, 13.0, 37.0, 13.0, 37.0]
+    );
 
     let t = Tensor::of_slice(&[13.0, 37.0]);
     let t = Tensor::stack(&[&t, &t, &t], 0);
     assert_eq!(t.size(), [3, 2]);
-    assert_eq!(Vec::<f64>::from(&t), [13.0, 37.0, 13.0, 37.0, 13.0, 37.0]);
+    assert_eq!(
+        Vec::<Vec<f64>>::try_from(&t)?,
+        &[vec![13.0, 37.0], vec![13.0, 37.0], vec![13.0, 37.0]]
+    );
 
     let t = Tensor::of_slice(&[13.0, 37.0]);
     let t = Tensor::stack(&[&t, &t, &t], 1);
     assert_eq!(t.size(), [2, 3]);
-    assert_eq!(Vec::<f64>::from(&t), [13.0, 13.0, 13.0, 37.0, 37.0, 37.0]);
+    assert_eq!(
+        Vec::<Vec<f64>>::try_from(&t)?,
+        &[vec![13.0, 13.0, 13.0], vec![37.0, 37.0, 37.0]]
+    );
+    Ok(())
 }
 
 #[test]
-fn onehot() {
+fn onehot() -> Result<()> {
     let xs = Tensor::of_slice(&[0, 1, 2, 3]);
     let onehot = xs.onehot(4);
-    assert_eq!(
-        Vec::<f64>::from(&onehot),
-        vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+
+    assert_eq!(onehot.size(), vec![4, 4]);
+    assert_abs_diff_eq!(
+        ndarray::ArrayD::<f32>::try_from(onehot)?,
+        ndarray::arr2(&[
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0]
+        ])
+        .into_dyn()
     );
-    assert_eq!(onehot.size(), vec![4, 4])
+    Ok(())
 }
 
 #[test]
@@ -131,23 +156,25 @@ fn fallible() {
 }
 
 #[test]
-fn chunk() {
+fn chunk() -> Result<()> {
     let xs = Tensor::of_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     let tensors = xs.chunk(3, 0);
     assert_eq!(tensors.len(), 3);
-    assert_eq!(Vec::<i64>::from(&tensors[0]), vec![0, 1, 2, 3]);
-    assert_eq!(Vec::<i64>::from(&tensors[1]), vec![4, 5, 6, 7]);
-    assert_eq!(Vec::<i64>::from(&tensors[2]), vec![8, 9]);
+    assert_eq!(Vec::<i32>::try_from(&tensors[0])?, vec![0, 1, 2, 3]);
+    assert_eq!(Vec::<i32>::try_from(&tensors[1])?, vec![4, 5, 6, 7]);
+    assert_eq!(Vec::<i32>::try_from(&tensors[2])?, vec![8, 9]);
+    Ok(())
 }
 
 #[test]
-fn broadcast() {
+fn broadcast() -> Result<()> {
     let xs = Tensor::of_slice(&[4, 5, 3]);
     let ys = Tensor::from(42);
     let tensors = Tensor::broadcast_tensors(&[xs, ys]);
     assert_eq!(tensors.len(), 2);
-    assert_eq!(Vec::<i64>::from(&tensors[0]), vec![4, 5, 3]);
-    assert_eq!(Vec::<i64>::from(&tensors[1]), vec![42, 42, 42]);
+    assert_eq!(Vec::<i32>::try_from(&tensors[0])?, vec![4, 5, 3]);
+    assert_eq!(Vec::<i32>::try_from(&tensors[1])?, vec![42, 42, 42]);
+    Ok(())
 }
 
 #[test]
@@ -180,70 +207,81 @@ fn values_at_index() {
 }
 
 #[test]
-fn into_ndarray_f64() {
-    let tensor = Tensor::of_slice(&[1., 2., 3., 4.]).reshape(&[2, 2]);
-    let nd: ndarray::ArrayD<f64> = (&tensor).try_into().unwrap();
-    assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+fn into_ndarray_f64() -> Result<()> {
+    let tensor = Tensor::of_slice(&[1f64, 2., 3., 4.]).reshape(&[2, 2]);
+    let nd = ndarray::ArrayD::<f64>::try_from(&tensor)?;
+    assert_eq!(
+        ndarray::arr2(&[[1f64, 2.], [3., 4.]]).as_slice().unwrap(),
+        nd.as_slice().unwrap()
+    );
+    Ok(())
 }
 
 #[test]
-fn into_ndarray_i64() {
-    let tensor = Tensor::of_slice(&[1, 2, 3, 4]).reshape(&[2, 2]);
-    let nd: ndarray::ArrayD<i64> = (&tensor).try_into().unwrap();
-    assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+fn into_ndarray_i64() -> Result<()> {
+    let tensor = Tensor::of_slice(&[1i64, 2, 3, 4]).reshape(&[2, 2]);
+    let nd = ndarray::ArrayD::<i64>::try_from(&tensor)?;
+    assert_eq!(
+        ndarray::arr2(&[[1i64, 2], [3, 4]]).as_slice().unwrap(),
+        nd.as_slice().unwrap()
+    );
+    Ok(())
 }
 
 #[test]
-fn from_ndarray_f64() {
+fn from_ndarray_f64() -> Result<()> {
     let nd = ndarray::arr2(&[[1f64, 2.], [3., 4.]]);
     let tensor = Tensor::try_from(nd.clone()).unwrap();
-    assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+    assert_eq!(tensor.f_to_flat_vec::<f64>()?, nd.as_slice().unwrap());
+    Ok(())
 }
 
 #[test]
-fn from_ndarray_i64() {
+fn from_ndarray_i64() -> Result<()> {
     let nd = ndarray::arr2(&[[1i64, 2], [3, 4]]);
-    let tensor = Tensor::try_from(nd.clone()).unwrap();
-    assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+    let tensor = Tensor::try_from(nd.clone())?;
+    assert_eq!(tensor.f_to_flat_vec::<i64>()?, nd.as_slice().unwrap());
+    Ok(())
 }
 
 #[test]
-fn from_ndarray_bool() {
+fn from_ndarray_bool() -> Result<()> {
     let nd = ndarray::arr2(&[[true, false], [true, true]]);
-    let tensor = Tensor::try_from(nd.clone()).unwrap();
-    assert_eq!(Vec::<bool>::from(tensor).as_slice(), nd.as_slice().unwrap());
+    let tensor = Tensor::try_from(&nd)?;
+    assert_eq!(tensor.f_to_flat_vec::<bool>()?, nd.as_slice().unwrap());
+    Ok(())
 }
 
 #[test]
 fn from_primitive() -> Result<()> {
-    assert_eq!(Vec::<i32>::from(Tensor::try_from(1_i32)?), vec![1]);
-    assert_eq!(Vec::<i64>::from(Tensor::try_from(1_i64)?), vec![1]);
-    assert_eq!(Vec::<f32>::from(Tensor::try_from(1_f32)?), vec![1.0]);
-    assert_eq!(Vec::<f64>::from(Tensor::try_from(1_f64)?), vec![1.0]);
-    assert_eq!(Vec::<bool>::from(Tensor::try_from(true)?), vec![true]);
+    assert_eq!(i32::try_from(Tensor::from(1_i32))?, 1);
+    assert_eq!(i64::try_from(Tensor::from(1_i64))?, 1);
+    assert_eq!(f32::try_from(Tensor::from(1_f32))?, 1.0);
+    assert_eq!(f64::try_from(Tensor::from(1_f64))?, 1.0);
+    assert_eq!(bool::try_from(Tensor::from(true))?, true);
     Ok(())
 }
 
 #[test]
 fn from_vec() -> Result<()> {
     assert_eq!(
-        Vec::<i32>::from(Tensor::try_from(vec![-1_i32, 0, 1])?),
+        Vec::<i32>::try_from(Tensor::from(vec![-1_i32, 0, 1]))?,
         vec![-1, 0, 1]
     );
     assert_eq!(
-        Vec::<i64>::from(Tensor::try_from(vec![-1_i64, 0, 1])?),
+        Vec::<i64>::try_from(Tensor::from(vec![-1_i64, 0, 1]))?,
         vec![-1, 0, 1]
     );
     assert_eq!(
-        Vec::<f32>::from(Tensor::try_from(vec![-1_f32, 0.0, 1.0])?),
+        Vec::<f32>::try_from(Tensor::try_from(vec![-1_f32, 0.0, 1.0])?)?,
         vec![-1.0, 0.0, 1.0]
     );
     assert_eq!(
-        Vec::<f64>::from(Tensor::try_from(vec![-1_f64, 0.0, 1.0])?),
+        Vec::<f64>::try_from(Tensor::from(vec![-1_f64, 0.0, 1.0]))?,
         vec![-1.0, 0.0, 1.0]
     );
     assert_eq!(
-        Vec::<bool>::from(Tensor::try_from(vec![true, false])?),
+        Vec::<bool>::try_from(Tensor::from(vec![true, false]))?,
         vec![true, false]
     );
     Ok(())
@@ -252,23 +290,23 @@ fn from_vec() -> Result<()> {
 #[test]
 fn from_slice() -> Result<()> {
     assert_eq!(
-        Vec::<i32>::from(Tensor::try_from(&[-1_i32, 0, 1] as &[_])?),
+        Vec::<i32>::try_from(Tensor::from(&[-1_i32, 0, 1] as &[_]))?,
         vec![-1, 0, 1]
     );
     assert_eq!(
-        Vec::<i64>::from(Tensor::try_from(&[-1_i64, 0, 1] as &[_])?),
+        Vec::<i64>::try_from(Tensor::from(&[-1_i64, 0, 1] as &[_]))?,
         vec![-1, 0, 1]
     );
     assert_eq!(
-        Vec::<f32>::from(Tensor::try_from(&[-1_f32, 0.0, 1.0] as &[_])?),
+        Vec::<f32>::try_from(Tensor::from(&[-1_f32, 0.0, 1.0] as &[_]))?,
         vec![-1.0, 0.0, 1.0]
     );
     assert_eq!(
-        Vec::<f64>::from(Tensor::try_from(&[-1_f64, 0.0, 1.0] as &[_])?),
+        Vec::<f64>::try_from(Tensor::from(&[-1_f64, 0.0, 1.0] as &[_]))?,
         vec![-1.0, 0.0, 1.0]
     );
     assert_eq!(
-        Vec::<bool>::from(Tensor::try_from(&[true, false] as &[_])?),
+        Vec::<bool>::try_from(Tensor::from(&[true, false] as &[_]))?,
         vec![true, false]
     );
     Ok(())
@@ -291,28 +329,29 @@ fn test_device() {
 }
 
 #[test]
-fn where_() {
+fn where_() -> Result<()> {
     let t1 = Tensor::of_slice(&[3, 1, 4, 1, 5, 9]);
     let t2 = Tensor::of_slice(&[2, 7, 1, 8, 2, 8]);
     let t = t1.where1(&t1.lt(4), &t2);
-    assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
+    assert_eq!(Vec::<i32>::try_from(&t)?, [3, 1, 1, 1, 2, 8]);
+    Ok(())
 }
 
 #[test]
-fn bool_tensor() {
+fn bool_tensor() -> Result<()> {
     let t1 = Tensor::of_slice(&[true, true, false]);
-    assert_eq!(Vec::<i64>::from(&t1), [1, 1, 0]);
-    assert_eq!(Vec::<bool>::from(&t1), [true, true, false]);
+    assert_eq!(Vec::<bool>::try_from(&t1)?, [true, true, false]);
     let t1 = Tensor::of_slice(&[0, 1, 0]).to_kind(tch::Kind::Bool);
     let t2 = Tensor::of_slice(&[1, 1, 1]).to_kind(tch::Kind::Bool);
     let t1_any = t1.any();
     let t2_any = t2.any();
     let t1_all = t1.all();
     let t2_all = t2.all();
-    assert_eq!(bool::from(&t1_any), true);
-    assert_eq!(bool::from(&t1_all), false);
-    assert_eq!(bool::from(&t2_any), true);
-    assert_eq!(bool::from(&t2_all), true);
+    assert_eq!(bool::try_from(&t1_any)?, true);
+    assert_eq!(bool::try_from(&t1_all)?, false);
+    assert_eq!(bool::try_from(&t2_any)?, true);
+    assert_eq!(bool::try_from(&t2_all)?, true);
+    Ok(())
 }
 
 #[test]
@@ -333,25 +372,52 @@ fn sparse() {
 }
 
 #[test]
-fn einsum() {
+fn einsum() -> Result<()> {
     // Element-wise squaring of a vector.
     let t = Tensor::of_slice(&[1.0, 2.0, 3.0]);
     let t = Tensor::einsum("i, i -> i", &[&t, &t]);
-    assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 9.0]);
+    assert_abs_diff_eq!(
+        ndarray::ArrayD::<f64>::try_from(&t)?,
+        ndarray::arr1(&[1.0, 4.0, 9.0]).into_dyn()
+    );
     // Matrix transpose
     let t = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape(&[2, 3]);
     let t = Tensor::einsum("ij -> ji", &[t]);
-    assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 2.0, 5.0, 3.0, 6.0]);
+    assert_abs_diff_eq!(
+        ndarray::ArrayD::<f64>::try_from(&t)?,
+        ndarray::arr2(&[[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]).into_dyn()
+    );
     // Sum all elements
     let t = Tensor::einsum("ij -> ", &[t]);
-    assert_eq!(Vec::<f64>::from(&t), [21.0]);
+    assert_abs_diff_eq!(f64::try_from(&t)?, 21.0);
+    Ok(())
 }
 
 #[test]
-fn vec2() {
+fn vec2() -> Result<()> {
     let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
     assert_eq!(
-        Vec::<Vec::<f64>>::from(tensor),
+        Vec::<Vec::<f64>>::try_from(tensor)?,
         [[1., 2., 3.], [4., 5., 6.]]
-    )
+    );
+    Ok(())
+}
+
+#[test]
+fn from_shape() -> Result<()> {
+    let tensor = Tensor::from_shape((2, 3), vec![1i64, 2, 3, 4, 5, 6])?;
+    assert_eq!(Vec::<Vec::<i64>>::try_from(tensor)?, [[1, 2, 3], [4, 5, 6]]);
+
+    let tensor = Tensor::from_shape((2, 3), &[1i64, 2, 3, 4, 5, 6])?;
+    assert_eq!(Vec::<Vec::<i64>>::try_from(tensor)?, [[1, 2, 3], [4, 5, 6]]);
+
+    let tensor = Tensor::from_shape_fn((2, 3), |index| {
+        let (i, j) = match index {
+            &[i, j] => (i, j),
+            _ => unreachable!(),
+        };
+        i + j * j
+    })?;
+    assert_eq!(Vec::<Vec::<i64>>::try_from(tensor)?, [[0, 1, 4], [1, 2, 5]]);
+    Ok(())
 }

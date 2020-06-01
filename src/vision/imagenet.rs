@@ -1,6 +1,7 @@
 //! Helper functions for ImageNet like datasets.
 use super::dataset::Dataset;
 use crate::{kind, Device, Kind, TchError, Tensor};
+use std::convert::TryFrom;
 use std::io;
 use std::path::Path;
 use std::sync::Mutex;
@@ -1135,7 +1136,7 @@ pub const CLASSES: [&str; 1000] = [
 ];
 
 /// Returns the top k classes as well as the associated scores.
-pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
+pub fn top(tensor: &Tensor, k: i64) -> Vec<(f32, String)> {
     let tensor = match tensor.size().as_slice() {
         [CLASS_COUNT] => tensor.shallow_clone(),
         [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
@@ -1143,8 +1144,8 @@ pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
         _ => panic!("unexpected tensor shape {:?}", tensor),
     };
     let (values, indexes) = tensor.topk(k, 0, true, true);
-    let values = Vec::<f64>::from(values);
-    let indexes = Vec::<i64>::from(indexes);
+    let values = Vec::<f32>::try_from(values).unwrap();
+    let indexes = Vec::<i64>::try_from(indexes).unwrap();
     values
         .iter()
         .zip(indexes.iter())

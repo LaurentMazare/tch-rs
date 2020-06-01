@@ -12,6 +12,7 @@
 
 extern crate tch;
 use anyhow::Result;
+use std::convert::TryFrom;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Kind, Reduction, Tensor};
 
 struct VAE {
@@ -83,14 +84,14 @@ pub fn main() -> Result<()> {
     let vae = VAE::new(&vs.root());
     let mut opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..21 {
-        let mut train_loss = 0f64;
-        let mut samples = 0f64;
+        let mut train_loss = 0f32;
+        let mut samples = 0f32;
         for (bimages, _) in m.train_iter(128).shuffle().to_device(vs.device()) {
             let (recon_batch, mu, logvar) = vae.forward(&bimages);
             let loss = loss(&recon_batch, &bimages, &mu, &logvar);
             opt.backward_step(&loss);
-            train_loss += f64::from(&loss);
-            samples += bimages.size()[0] as f64;
+            train_loss += f32::try_from(&loss)?;
+            samples += bimages.size()[0] as f32;
         }
         println!("Epoch: {}, loss: {}", epoch, train_loss / samples);
         let s = Tensor::randn(&[64, 20], tch::kind::FLOAT_CPU).to(device);
