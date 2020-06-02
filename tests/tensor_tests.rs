@@ -85,7 +85,7 @@ fn grad_grad() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "one of the input tensor does not use set_requires_grad")]
 fn grad_without_requires() {
     let x = Tensor::from(2.0);
     let y = &x * &x + &x + 36;
