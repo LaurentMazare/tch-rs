@@ -40,14 +40,12 @@ pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
 ) -> LayerNorm {
     let vs = vs.borrow();
 
-    let ws = match config.elementwise_affine {
-        true => Some(vs.var("weight", normalized_shape.as_slice(), config.ws_init)),
-        false => None,
-    };
-
-    let bs = match config.elementwise_affine {
-        true => Some(vs.var("bias", normalized_shape.as_slice(), config.bs_init)),
-        false => None,
+    let (ws, bs) = if config.elementwise_affine {
+        let ws = vs.var("weight", normalized_shape.as_slice(), config.ws_init);
+        let bs = vs.var("bias", normalized_shape.as_slice(), config.bs_init);
+        (Some(ws), Some(bs))
+    } else {
+        (None, None)
     };
 
     LayerNorm {

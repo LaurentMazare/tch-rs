@@ -18,7 +18,7 @@ extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mu
     let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
     let name = name.replace("|", ".");
     let v: &mut Vec<(String, Tensor)> = unsafe { &mut *(data as *mut Vec<(String, Tensor)>) };
-    v.push((name.to_owned(), Tensor { c_tensor }))
+    v.push((name, Tensor { c_tensor }))
 }
 
 impl Tensor {
