@@ -1,5 +1,5 @@
 //! A Torch tensor.
-use crate::{Device, Kind, TchError};
+use crate::{Device, Kind, Scalar, TchError};
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use torch_sys::*;
@@ -47,38 +47,102 @@ macro_rules! impl_op {
     };
 }
 
+impl<S> Add<S> for &Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn add(self, rhs: S) -> Self::Output {
+        self.g_add1(rhs)
+    }
+}
+
+impl<S> Add<S> for Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn add(self, rhs: S) -> Self::Output {
+        (&self).add(rhs)
+    }
+}
+
+impl<S> Sub<S> for &Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn sub(self, rhs: S) -> Self::Output {
+        self.g_sub1(rhs)
+    }
+}
+
+impl<S> Sub<S> for Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn sub(self, rhs: S) -> Self::Output {
+        (&self).sub(rhs)
+    }
+}
+
+impl<S> Mul<S> for &Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn mul(self, rhs: S) -> Self::Output {
+        self.g_mul1(rhs)
+    }
+}
+
+impl<S> Mul<S> for Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn mul(self, rhs: S) -> Self::Output {
+        (&self).mul(rhs)
+    }
+}
+
+impl<S> Div<S> for &Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn div(self, rhs: S) -> Self::Output {
+        self.g_div1(rhs)
+    }
+}
+
+impl<S> Div<S> for Tensor
+where
+    S: Into<Scalar>,
+{
+    type Output = Tensor;
+
+    fn div(self, rhs: S) -> Self::Output {
+        (&self).div(rhs)
+    }
+}
+
 macro_rules! impl_op_basic {
     /* rev such that rev(op(b, a)) = op(a, b) */
     ($trait:ident, $func:ident, $op:ident, $rev:ident) => {
-        impl $trait<i64> for Tensor {
+        impl $trait<Tensor> for i32 {
             type Output = Tensor;
 
-            fn $func(self, rhs: i64) -> Self::Output {
-                self.$op(rhs)
-            }
-        }
-
-        impl $trait<f64> for Tensor {
-            type Output = Tensor;
-
-            fn $func(self, rhs: f64) -> Self::Output {
-                self.$op(rhs)
-            }
-        }
-
-        impl $trait<i64> for &Tensor {
-            type Output = Tensor;
-
-            fn $func(self, rhs: i64) -> Self::Output {
-                self.$op(rhs)
-            }
-        }
-
-        impl $trait<f64> for &Tensor {
-            type Output = Tensor;
-
-            fn $func(self, rhs: f64) -> Self::Output {
-                self.$op(rhs)
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
             }
         }
 
@@ -86,7 +150,15 @@ macro_rules! impl_op_basic {
             type Output = Tensor;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
-                $rev(rhs.$op(self))
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<Tensor> for f32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
             }
         }
 
@@ -94,7 +166,15 @@ macro_rules! impl_op_basic {
             type Output = Tensor;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
-                $rev(rhs.$op(self))
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<&Tensor> for i32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self as i64))
             }
         }
 
@@ -103,6 +183,14 @@ macro_rules! impl_op_basic {
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 $rev(rhs.$op(self))
+            }
+        }
+
+        impl $trait<&Tensor> for f32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self as f64))
             }
         }
 
@@ -134,11 +222,24 @@ macro_rules! impl_op_assign {
 
 macro_rules! impl_op_assign_basic {
     ($trait:ident, $func:ident, $op:ident) => {
+        impl $trait<i32> for Tensor {
+            fn $func(&mut self, rhs: i32) {
+                let _ = self.$op(rhs as i64);
+            }
+        }
+
         impl $trait<i64> for Tensor {
             fn $func(&mut self, rhs: i64) {
                 let _ = self.$op(rhs);
             }
         }
+
+        impl $trait<f32> for Tensor {
+            fn $func(&mut self, rhs: f32) {
+                let _ = self.$op(rhs as f64);
+            }
+        }
+
         impl $trait<f64> for Tensor {
             fn $func(&mut self, rhs: f64) {
                 let _ = self.$op(rhs);
