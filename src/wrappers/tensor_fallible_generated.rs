@@ -18049,8 +18049,8 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d(
@@ -18059,8 +18059,10 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18072,8 +18074,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward(
@@ -18084,8 +18086,10 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18098,8 +18102,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward_out(
@@ -18111,8 +18115,10 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18124,8 +18130,8 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_out(
@@ -18135,8 +18141,10 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18147,8 +18155,8 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d(
@@ -18157,8 +18165,10 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18170,8 +18180,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward(
@@ -18182,8 +18192,10 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18196,8 +18208,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward_out(
@@ -18209,8 +18221,10 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18222,8 +18236,8 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_out(
@@ -18233,8 +18247,10 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18245,7 +18261,7 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d(
@@ -18254,7 +18270,8 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18266,7 +18283,7 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward(
@@ -18277,7 +18294,8 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18290,7 +18308,7 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward_out(
@@ -18302,7 +18320,8 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18314,7 +18333,7 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_out(
@@ -18324,7 +18343,8 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18334,7 +18354,7 @@ impl Tensor {
     pub fn f_upsample_nearest1d(
         &self,
         output_size: &[i64],
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d(
@@ -18342,7 +18362,8 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18353,7 +18374,7 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward(
@@ -18363,7 +18384,8 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18375,7 +18397,7 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward_out(
@@ -18386,7 +18408,8 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18397,7 +18420,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales: f64,
+        scales: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_out(
@@ -18406,7 +18429,8 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales
+            scales.unwrap_or(std::f64::NAN),
+            scales.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18416,8 +18440,8 @@ impl Tensor {
     pub fn f_upsample_nearest2d(
         &self,
         output_size: &[i64],
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d(
@@ -18425,8 +18449,10 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18437,8 +18463,8 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward(
@@ -18448,8 +18474,10 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18461,8 +18489,8 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward_out(
@@ -18473,8 +18501,10 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18485,8 +18515,8 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_h: f64,
-        scales_w: f64,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_out(
@@ -18495,8 +18525,10 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales_h,
-            scales_w
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18506,9 +18538,9 @@ impl Tensor {
     pub fn f_upsample_nearest3d(
         &self,
         output_size: &[i64],
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d(
@@ -18516,9 +18548,12 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18529,9 +18564,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward(
@@ -18541,9 +18576,12 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18555,9 +18593,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward_out(
@@ -18568,9 +18606,12 @@ impl Tensor {
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18581,9 +18622,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_out(
@@ -18592,9 +18633,12 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len() as i32,
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18605,9 +18649,9 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d(
@@ -18616,9 +18660,12 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18630,9 +18677,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward(
@@ -18643,9 +18690,12 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18658,9 +18708,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward_out(
@@ -18672,9 +18722,12 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -18686,9 +18739,9 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: f64,
-        scales_h: f64,
-        scales_w: f64,
+        scales_d: Option<f64>,
+        scales_h: Option<f64>,
+        scales_w: Option<f64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_out(
@@ -18698,9 +18751,12 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len() as i32,
             if align_corners { 1 } else { 0 },
-            scales_d,
-            scales_h,
-            scales_w
+            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.is_none() as i8,
+            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.is_none() as i8,
+            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],

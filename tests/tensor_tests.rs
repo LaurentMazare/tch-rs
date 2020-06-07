@@ -355,3 +355,19 @@ fn vec2() {
         [[1., 2., 3.], [4., 5., 6.]]
     )
 }
+
+#[test]
+fn upsample1d() {
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3, 1]);
+    let up1 = tensor.upsample_linear1d(&[2], false, Some(1.));
+    assert_eq!(
+        // Exclude the last element because of some numerical instability.
+        Vec::<f64>::from(up1)[0..11],
+        [1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0]
+    );
+    let up1 = tensor.upsample_linear1d(&[2], false, None);
+    assert_eq!(
+        Vec::<f64>::from(up1),
+        [1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0]
+    );
+}
