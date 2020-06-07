@@ -1431,16 +1431,16 @@ void atg_arange_out1(tensor *out__, tensor out, scalar start, scalar end) {
   )
 }
 
-void atg_argmax(tensor *out__, tensor self, int64_t dim, int keepdim) {
+void atg_argmax(tensor *out__, tensor self, int64_t dim_v, uint8_t dim_null, int keepdim) {
   PROTECT(
-    auto outputs__ = torch::argmax(*self, dim, (bool)keepdim);
+    auto outputs__ = torch::argmax(*self, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v), (bool)keepdim);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_argmin(tensor *out__, tensor self, int64_t dim, int keepdim) {
+void atg_argmin(tensor *out__, tensor self, int64_t dim_v, uint8_t dim_null, int keepdim) {
   PROTECT(
-    auto outputs__ = torch::argmin(*self, dim, (bool)keepdim);
+    auto outputs__ = torch::argmin(*self, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v), (bool)keepdim);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1452,16 +1452,16 @@ void atg_argsort(tensor *out__, tensor self, int64_t dim, int descending) {
   )
 }
 
-void atg_as_strided(tensor *out__, tensor self, int64_t *size_data, int size_len, int64_t *stride_data, int stride_len, int64_t storage_offset) {
+void atg_as_strided(tensor *out__, tensor self, int64_t *size_data, int size_len, int64_t *stride_data, int stride_len, int64_t storage_offset_v, uint8_t storage_offset_null) {
   PROTECT(
-    auto outputs__ = torch::as_strided(*self, torch::IntArrayRef(size_data, size_len), torch::IntArrayRef(stride_data, stride_len), storage_offset);
+    auto outputs__ = torch::as_strided(*self, torch::IntArrayRef(size_data, size_len), torch::IntArrayRef(stride_data, stride_len), storage_offset_null ? c10::nullopt : c10::optional<int64_t>(storage_offset_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_as_strided_(tensor *out__, tensor self, int64_t *size_data, int size_len, int64_t *stride_data, int stride_len, int64_t storage_offset) {
+void atg_as_strided_(tensor *out__, tensor self, int64_t *size_data, int size_len, int64_t *stride_data, int stride_len, int64_t storage_offset_v, uint8_t storage_offset_null) {
   PROTECT(
-    auto outputs__ = torch::as_strided_(*self, torch::IntArrayRef(size_data, size_len), torch::IntArrayRef(stride_data, stride_len), storage_offset);
+    auto outputs__ = torch::as_strided_(*self, torch::IntArrayRef(size_data, size_len), torch::IntArrayRef(stride_data, stride_len), storage_offset_null ? c10::nullopt : c10::optional<int64_t>(storage_offset_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -1536,58 +1536,58 @@ void atg_avg_pool1d(tensor *out__, tensor self, int64_t *kernel_size_data, int k
   )
 }
 
-void atg_avg_pool2d(tensor *out__, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool2d(tensor *out__, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool2d(*self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool2d(*self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool2d_backward(tensor *out__, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool2d_backward(tensor *out__, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool2d_backward(*grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool2d_backward(*grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool2d_backward_out(tensor *out__, tensor grad_input, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool2d_backward_out(tensor *out__, tensor grad_input, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool2d_backward_out(*grad_input, *grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool2d_backward_out(*grad_input, *grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool2d_out(tensor *out__, tensor out, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool2d_out(tensor *out__, tensor out, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool2d_out(*out, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool2d_out(*out, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool3d(tensor *out__, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool3d(tensor *out__, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool3d(*self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool3d(*self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool3d_backward(tensor *out__, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool3d_backward(tensor *out__, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool3d_backward(*grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool3d_backward(*grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool3d_backward_out(tensor *out__, tensor grad_input, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool3d_backward_out(tensor *out__, tensor grad_input, tensor grad_output, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool3d_backward_out(*grad_input, *grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool3d_backward_out(*grad_input, *grad_output, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_avg_pool3d_out(tensor *out__, tensor out, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override) {
+void atg_avg_pool3d_out(tensor *out__, tensor out, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int ceil_mode, int count_include_pad, int64_t divisor_override_v, uint8_t divisor_override_null) {
   PROTECT(
-    auto outputs__ = torch::avg_pool3d_out(*out, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override);
+    auto outputs__ = torch::avg_pool3d_out(*out, *self, torch::IntArrayRef(kernel_size_data, kernel_size_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(padding_data, padding_len), (bool)ceil_mode, (bool)count_include_pad, divisor_override_null ? c10::nullopt : c10::optional<int64_t>(divisor_override_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2004,9 +2004,9 @@ void atg_cauchy_(tensor *out__, tensor self, double median, double sigma) {
   )
 }
 
-void atg_cdist(tensor *out__, tensor x1, tensor x2, double p, int64_t compute_mode) {
+void atg_cdist(tensor *out__, tensor x1, tensor x2, double p, int64_t compute_mode_v, uint8_t compute_mode_null) {
   PROTECT(
-    auto outputs__ = torch::cdist(*x1, *x2, p, compute_mode);
+    auto outputs__ = torch::cdist(*x1, *x2, p, compute_mode_null ? c10::nullopt : c10::optional<int64_t>(compute_mode_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -2376,16 +2376,16 @@ void atg_cosine_similarity(tensor *out__, tensor x1, tensor x2, int64_t dim, dou
   )
 }
 
-void atg_cross(tensor *out__, tensor self, tensor other, int64_t dim) {
+void atg_cross(tensor *out__, tensor self, tensor other, int64_t dim_v, uint8_t dim_null) {
   PROTECT(
-    auto outputs__ = torch::cross(*self, *other, dim);
+    auto outputs__ = torch::cross(*self, *other, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_cross_out(tensor *out__, tensor out, tensor self, tensor other, int64_t dim) {
+void atg_cross_out(tensor *out__, tensor out, tensor self, tensor other, int64_t dim_v, uint8_t dim_null) {
   PROTECT(
-    auto outputs__ = torch::cross_out(*out, *self, *other, dim);
+    auto outputs__ = torch::cross_out(*out, *self, *other, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -3403,9 +3403,9 @@ void atg_frobenius_norm_out(tensor *out__, tensor out, tensor self, int64_t *dim
   )
 }
 
-void atg_from_file(tensor *out__, char* filename_ptr, int filename_len, int shared, int64_t size, int options_kind, int options_device) {
+void atg_from_file(tensor *out__, char* filename_ptr, int filename_len, int shared, int64_t size_v, uint8_t size_null, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::from_file(std::string(filename_ptr, filename_len), (bool)shared, size, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::from_file(std::string(filename_ptr, filename_len), (bool)shared, size_null ? c10::nullopt : c10::optional<int64_t>(size_v), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -6107,9 +6107,9 @@ void atg_random_1(tensor *out__, tensor self, int64_t to) {
   )
 }
 
-void atg_random_2(tensor *out__, tensor self, int64_t from, int64_t to) {
+void atg_random_2(tensor *out__, tensor self, int64_t from, int64_t to_v, uint8_t to_null) {
   PROTECT(
-    auto outputs__ = self->random_(from, to);
+    auto outputs__ = self->random_(from, to_null ? c10::nullopt : c10::optional<int64_t>(to_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -6324,16 +6324,16 @@ void atg_repeat_interleave(tensor *out__, tensor repeats) {
   )
 }
 
-void atg_repeat_interleave1(tensor *out__, tensor self, tensor repeats, int64_t dim) {
+void atg_repeat_interleave1(tensor *out__, tensor self, tensor repeats, int64_t dim_v, uint8_t dim_null) {
   PROTECT(
-    auto outputs__ = torch::repeat_interleave(*self, *repeats, dim);
+    auto outputs__ = torch::repeat_interleave(*self, *repeats, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_repeat_interleave2(tensor *out__, tensor self, int64_t repeats, int64_t dim) {
+void atg_repeat_interleave2(tensor *out__, tensor self, int64_t repeats, int64_t dim_v, uint8_t dim_null) {
   PROTECT(
-    auto outputs__ = torch::repeat_interleave(*self, repeats, dim);
+    auto outputs__ = torch::repeat_interleave(*self, repeats, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -7236,9 +7236,9 @@ void atg_std_out(tensor *out__, tensor out, tensor self, int64_t *dim_data, int 
   )
 }
 
-void atg_stft(tensor *out__, tensor self, int64_t n_fft, int64_t hop_length, int64_t win_length, tensor window, int normalized, int onesided) {
+void atg_stft(tensor *out__, tensor self, int64_t n_fft, int64_t hop_length_v, uint8_t hop_length_null, int64_t win_length_v, uint8_t win_length_null, tensor window, int normalized, int onesided) {
   PROTECT(
-    auto outputs__ = torch::stft(*self, n_fft, hop_length, win_length, (window ? *window : torch::Tensor()), (bool)normalized, (bool)onesided);
+    auto outputs__ = torch::stft(*self, n_fft, hop_length_null ? c10::nullopt : c10::optional<int64_t>(hop_length_v), win_length_null ? c10::nullopt : c10::optional<int64_t>(win_length_v), (window ? *window : torch::Tensor()), (bool)normalized, (bool)onesided);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -7763,9 +7763,9 @@ void atg_uniform_(tensor *out__, tensor self, double from, double to) {
   )
 }
 
-void atg_unique_consecutive(tensor *out__, tensor self, int return_inverse, int return_counts, int64_t dim) {
+void atg_unique_consecutive(tensor *out__, tensor self, int return_inverse, int return_counts, int64_t dim_v, uint8_t dim_null) {
   PROTECT(
-    auto outputs__ = torch::unique_consecutive(*self, (bool)return_inverse, (bool)return_counts, dim);
+    auto outputs__ = torch::unique_consecutive(*self, (bool)return_inverse, (bool)return_counts, dim_null ? c10::nullopt : c10::optional<int64_t>(dim_v));
     out__[0] = new torch::Tensor(std::get<0>(outputs__));
     out__[1] = new torch::Tensor(std::get<1>(outputs__));
     out__[2] = new torch::Tensor(std::get<2>(outputs__));

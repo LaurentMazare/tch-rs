@@ -28,7 +28,7 @@ pub fn run() -> Result<()> {
         });
         let test_logits = m.test_images.mm(&ws) + &bs;
         let test_accuracy = test_logits
-            .argmax(-1, false)
+            .argmax(Some(-1), false)
             .eq1(&m.test_labels)
             .to_kind(Kind::Float)
             .mean(Kind::Float)

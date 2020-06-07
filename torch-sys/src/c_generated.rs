@@ -1032,8 +1032,20 @@ extern "C" {
         start_: *mut C_scalar,
         end_: *mut C_scalar,
     );
-    pub fn atg_argmax(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim_: i64, keepdim_: c_int);
-    pub fn atg_argmin(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim_: i64, keepdim_: c_int);
+    pub fn atg_argmax(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        dim_v: i64,
+        dim_null: i8,
+        keepdim_: c_int,
+    );
+    pub fn atg_argmin(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        dim_v: i64,
+        dim_null: i8,
+        keepdim_: c_int,
+    );
     pub fn atg_argsort(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -1047,7 +1059,8 @@ extern "C" {
         size_len: c_int,
         stride_data: *const i64,
         stride_len: c_int,
-        storage_offset_: i64,
+        storage_offset_v: i64,
+        storage_offset_null: i8,
     );
     pub fn atg_as_strided_(
         out__: *mut *mut C_tensor,
@@ -1056,7 +1069,8 @@ extern "C" {
         size_len: c_int,
         stride_data: *const i64,
         stride_len: c_int,
-        storage_offset_: i64,
+        storage_offset_v: i64,
+        storage_offset_null: i8,
     );
     pub fn atg_asin(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_asin_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
@@ -1095,7 +1109,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool2d_backward(
         out__: *mut *mut C_tensor,
@@ -1109,7 +1124,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool2d_backward_out(
         out__: *mut *mut C_tensor,
@@ -1124,7 +1140,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool2d_out(
         out__: *mut *mut C_tensor,
@@ -1138,7 +1155,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool3d(
         out__: *mut *mut C_tensor,
@@ -1151,7 +1169,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool3d_backward(
         out__: *mut *mut C_tensor,
@@ -1165,7 +1184,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool3d_backward_out(
         out__: *mut *mut C_tensor,
@@ -1180,7 +1200,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_avg_pool3d_out(
         out__: *mut *mut C_tensor,
@@ -1194,7 +1215,8 @@ extern "C" {
         padding_len: c_int,
         ceil_mode_: c_int,
         count_include_pad_: c_int,
-        divisor_override_: i64,
+        divisor_override_v: i64,
+        divisor_override_null: i8,
     );
     pub fn atg_baddbmm(
         out__: *mut *mut C_tensor,
@@ -1489,7 +1511,8 @@ extern "C" {
         x1_: *mut C_tensor,
         x2_: *mut C_tensor,
         p_: f64,
-        compute_mode_: i64,
+        compute_mode_v: i64,
+        compute_mode_null: i8,
     );
     pub fn atg_ceil(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_ceil_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
@@ -1796,14 +1819,16 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         other_: *mut C_tensor,
-        dim_: i64,
+        dim_v: i64,
+        dim_null: i8,
     );
     pub fn atg_cross_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
         self_: *mut C_tensor,
         other_: *mut C_tensor,
-        dim_: i64,
+        dim_v: i64,
+        dim_null: i8,
     );
     pub fn atg_ctc_loss(
         out__: *mut *mut C_tensor,
@@ -2515,7 +2540,8 @@ extern "C" {
         filename_ptr: *const u8,
         filename_len: c_int,
         shared_: c_int,
-        size_: i64,
+        size_v: i64,
+        size_null: i8,
         options_kind: c_int,
         options_device: c_int,
     );
@@ -4769,7 +4795,13 @@ extern "C" {
     );
     pub fn atg_random_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_random_1(out__: *mut *mut C_tensor, self_: *mut C_tensor, to_: i64);
-    pub fn atg_random_2(out__: *mut *mut C_tensor, self_: *mut C_tensor, from_: i64, to_: i64);
+    pub fn atg_random_2(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        from_: i64,
+        to_v: i64,
+        to_null: i8,
+    );
     pub fn atg_randperm(
         out__: *mut *mut C_tensor,
         n_: i64,
@@ -4908,13 +4940,15 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         repeats_: *mut C_tensor,
-        dim_: i64,
+        dim_v: i64,
+        dim_null: i8,
     );
     pub fn atg_repeat_interleave2(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         repeats_: i64,
-        dim_: i64,
+        dim_v: i64,
+        dim_null: i8,
     );
     pub fn atg_replication_pad1d(
         out__: *mut *mut C_tensor,
@@ -5581,8 +5615,10 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         n_fft_: i64,
-        hop_length_: i64,
-        win_length_: i64,
+        hop_length_v: i64,
+        hop_length_null: i8,
+        win_length_v: i64,
+        win_length_null: i8,
         window_: *mut C_tensor,
         normalized_: c_int,
         onesided_: c_int,
@@ -5872,7 +5908,8 @@ extern "C" {
         self_: *mut C_tensor,
         return_inverse_: c_int,
         return_counts_: c_int,
-        dim_: i64,
+        dim_v: i64,
+        dim_null: i8,
     );
     pub fn atg_unique_dim(
         out__: *mut *mut C_tensor,

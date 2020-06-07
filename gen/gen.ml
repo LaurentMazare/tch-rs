@@ -83,6 +83,7 @@ module Func = struct
   type arg_type =
     | Bool
     | Int64
+    | Int64Option
     | Double
     | DoubleOption
     | Tensor
@@ -112,7 +113,7 @@ module Func = struct
   let arg_type_of_string str ~is_nullable =
     match String.lowercase str with
     | "bool" -> Some Bool
-    | "int64_t" -> Some Int64
+    | "int64_t" -> Some (if is_nullable then Int64Option else Int64)
     | "double" -> Some (if is_nullable then DoubleOption else Double)
     | "booltensor" | "indextensor" | "tensor" ->
         Some (if is_nullable then TensorOption else Tensor)
@@ -135,6 +136,8 @@ module Func = struct
         | TensorOptions ->
             Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
         | String -> Printf.sprintf "char* %s_ptr, int %s_len" arg_name arg_name
+        | Int64Option ->
+            Printf.sprintf "int64_t %s_v, uint8_t %s_null" arg_name arg_name
         | DoubleOption ->
             Printf.sprintf "double %s_v, uint8_t %s_null" arg_name arg_name
         | otherwise ->
@@ -148,7 +151,8 @@ module Func = struct
               | ScalarType -> "int"
               | Device -> "int"
               | Scalar -> "scalar"
-              | DoubleOption | String | IntList | TensorList | TensorOptions ->
+              | Int64Option | DoubleOption | String | IntList | TensorList
+              | TensorOptions ->
                   assert false
             in
             Printf.sprintf "%s %s" simple_type_cstring arg_name)
@@ -172,6 +176,10 @@ module Func = struct
             Printf.sprintf
               "at::device(device_of_int(%s_device)).dtype(at::ScalarType(%s_kind))"
               arg_name arg_name
+        | Int64Option ->
+            Printf.sprintf
+              "%s_null ? c10::nullopt : c10::optional<int64_t>(%s_v)" arg_name
+              arg_name
         | DoubleOption ->
             Printf.sprintf
               "%s_null ? c10::nullopt : c10::optional<double>(%s_v)" arg_name
@@ -227,6 +235,7 @@ module Func = struct
         | IntList -> Printf.sprintf "%s_data: *const i64, %s_len: c_int" an an
         | TensorList ->
             Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
+        | Int64Option -> Printf.sprintf "%s_v: i64, %s_null: i8" an an
         | DoubleOption -> Printf.sprintf "%s_v: f64, %s_null: i8" an an
         | TensorOptions ->
             Printf.sprintf "%s_kind: c_int, %s_device: c_int" an an)
@@ -287,6 +296,7 @@ module Func = struct
             | TensorList -> "&[T]"
             | String -> "&str"
             | TensorOptions -> "(Kind, Device)"
+            | Int64Option -> "Option<i64>"
             | DoubleOption -> "Option<f64>"
             | Scalar -> "S"
             | ScalarType -> "Kind"
@@ -335,6 +345,8 @@ module Func = struct
         | ScalarType -> Printf.sprintf "%s.c_int()" name
         | Device -> Printf.sprintf "%s.c_int()" name
         | TensorOptions -> Printf.sprintf "%s.0.c_int(), %s.1.c_int()" name name
+        | Int64Option ->
+            Printf.sprintf "%s.unwrap_or(0i64), %s.is_none() as i8" name name
         | DoubleOption ->
             Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8"
               name name

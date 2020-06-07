@@ -3307,12 +3307,13 @@ impl Tensor {
         })
     }
 
-    pub fn f_argmax(&self, dim: i64, keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_argmax(&self, dim: Option<i64>, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_argmax(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim,
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8,
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor {
@@ -3320,12 +3321,13 @@ impl Tensor {
         })
     }
 
-    pub fn f_argmin(&self, dim: i64, keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_argmin(&self, dim: Option<i64>, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_argmin(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim,
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8,
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor {
@@ -3350,7 +3352,7 @@ impl Tensor {
         &self,
         size: &[i64],
         stride: &[i64],
-        storage_offset: i64,
+        storage_offset: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_as_strided(
@@ -3360,7 +3362,8 @@ impl Tensor {
             size.len() as i32,
             stride.as_ptr(),
             stride.len() as i32,
-            storage_offset
+            storage_offset.unwrap_or(0i64),
+            storage_offset.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3371,7 +3374,7 @@ impl Tensor {
         &mut self,
         size: &[i64],
         stride: &[i64],
-        storage_offset: i64,
+        storage_offset: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_as_strided_(
@@ -3381,7 +3384,8 @@ impl Tensor {
             size.len() as i32,
             stride.as_ptr(),
             stride.len() as i32,
-            storage_offset
+            storage_offset.unwrap_or(0i64),
+            storage_offset.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3514,7 +3518,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d(
@@ -3528,7 +3532,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3543,7 +3548,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_backward(
@@ -3558,7 +3563,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3574,7 +3580,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_backward_out(
@@ -3590,7 +3596,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3605,7 +3612,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_out(
@@ -3620,7 +3627,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3634,7 +3642,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d(
@@ -3648,7 +3656,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3663,7 +3672,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_backward(
@@ -3678,7 +3687,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3694,7 +3704,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_backward_out(
@@ -3710,7 +3720,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -3725,7 +3736,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: i64,
+        divisor_override: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_out(
@@ -3740,7 +3751,8 @@ impl Tensor {
             padding.len() as i32,
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
-            divisor_override
+            divisor_override.unwrap_or(0i64),
+            divisor_override.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -4684,7 +4696,7 @@ impl Tensor {
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
-        compute_mode: i64,
+        compute_mode: Option<i64>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cdist(
@@ -4692,7 +4704,8 @@ impl Tensor {
             x1.c_tensor,
             x2.c_tensor,
             p,
-            compute_mode
+            compute_mode.unwrap_or(0i64),
+            compute_mode.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -5551,27 +5564,34 @@ impl Tensor {
         })
     }
 
-    pub fn f_cross(&self, other: &Tensor, dim: i64) -> Result<Tensor, TchError> {
+    pub fn f_cross(&self, other: &Tensor, dim: Option<i64>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cross(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             other.c_tensor,
-            dim
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
     }
 
-    pub fn f_cross_out(&self, out: &Tensor, other: &Tensor, dim: i64) -> Result<Tensor, TchError> {
+    pub fn f_cross_out(
+        &self,
+        out: &Tensor,
+        other: &Tensor,
+        dim: Option<i64>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cross_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             other.c_tensor,
-            dim
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -7824,7 +7844,7 @@ impl Tensor {
     pub fn f_from_file(
         filename: &str,
         shared: bool,
-        size: i64,
+        size: Option<i64>,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -7833,7 +7853,8 @@ impl Tensor {
             filename.as_ptr(),
             filename.len() as i32,
             if shared { 1 } else { 0 },
-            size,
+            size.unwrap_or(0i64),
+            size.is_none() as i8,
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -14393,13 +14414,14 @@ impl Tensor {
         })
     }
 
-    pub fn f_random_2(&mut self, from: i64, to: i64) -> Result<Tensor, TchError> {
+    pub fn f_random_2(&mut self, from: i64, to: Option<i64>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_random_2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             from,
-            to
+            to.unwrap_or(0i64),
+            to.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -14831,26 +14853,32 @@ impl Tensor {
         })
     }
 
-    pub fn f_repeat_interleave1(&self, repeats: &Tensor, dim: i64) -> Result<Tensor, TchError> {
+    pub fn f_repeat_interleave1(
+        &self,
+        repeats: &Tensor,
+        dim: Option<i64>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat_interleave1(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             repeats.c_tensor,
-            dim
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
     }
 
-    pub fn f_repeat_interleave2(&self, repeats: i64, dim: i64) -> Result<Tensor, TchError> {
+    pub fn f_repeat_interleave2(&self, repeats: i64, dim: Option<i64>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat_interleave2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             repeats,
-            dim
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -16894,8 +16922,8 @@ impl Tensor {
     pub fn f_stft<T: Borrow<Tensor>>(
         &self,
         n_fft: i64,
-        hop_length: i64,
-        win_length: i64,
+        hop_length: Option<i64>,
+        win_length: Option<i64>,
         window: Option<T>,
         normalized: bool,
         onesided: bool,
@@ -16905,8 +16933,10 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             n_fft,
-            hop_length,
-            win_length,
+            hop_length.unwrap_or(0i64),
+            hop_length.is_none() as i8,
+            win_length.unwrap_or(0i64),
+            win_length.is_none() as i8,
             window.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if normalized { 1 } else { 0 },
             if onesided { 1 } else { 0 }
@@ -17950,7 +17980,7 @@ impl Tensor {
         &self,
         return_inverse: bool,
         return_counts: bool,
-        dim: i64,
+        dim: Option<i64>,
     ) -> Result<(Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch_err!(atg_unique_consecutive(
@@ -17958,7 +17988,8 @@ impl Tensor {
             self.c_tensor,
             if return_inverse { 1 } else { 0 },
             if return_counts { 1 } else { 0 },
-            dim
+            dim.unwrap_or(0i64),
+            dim.is_none() as i8
         ));
         Ok((
             Tensor {

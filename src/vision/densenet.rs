@@ -94,7 +94,7 @@ fn densenet(
     seq.add(nn::batch_norm2d(&fp / "norm5", nfeat, Default::default()))
         .add_fn(|xs| {
             xs.relu()
-                .avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true, 1)
+                .avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true, Some(1))
                 .flat_view()
         })
         .add(nn::linear(
