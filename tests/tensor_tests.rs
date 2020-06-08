@@ -376,6 +376,8 @@ fn upsample1d() {
 fn argmax() {
     let tensor = Tensor::of_slice(&[7., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
     let argmax = tensor.argmax(None, false);
+    assert_eq!(Vec::<i64>::from(argmax), [0],);
+    let argmax = tensor.argmax(Some(0), false);
     assert_eq!(Vec::<i64>::from(argmax), [0, 1, 1],);
     let argmax = tensor.argmax(Some(-1), false);
     assert_eq!(Vec::<i64>::from(argmax), [0, 2],);

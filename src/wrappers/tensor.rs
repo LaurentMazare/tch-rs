@@ -236,7 +236,11 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn f_copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) -> Result<(), TchError> {
+    pub fn f_copy_data<T: kind::Element>(
+        &self,
+        dst: &mut [T],
+        numel: usize,
+    ) -> Result<(), TchError> {
         if T::KIND != self.kind() {
             return Err(TchError::Kind(format!(
                 "incoherent elt kind, {:?} != {:?}",
@@ -257,7 +261,7 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn copy_data<T: kind::T>(&self, dst: &mut [T], numel: usize) {
+    pub fn copy_data<T: kind::Element>(&self, dst: &mut [T], numel: usize) {
         self.f_copy_data(dst, numel).unwrap()
     }
 
@@ -268,7 +272,7 @@ impl Tensor {
 
     // This is similar to vec_... but faster as it directly blits the data.
     /// Converts a slice to a tensor.
-    pub fn f_of_slice<T: kind::T>(data: &[T]) -> Result<Tensor, TchError> {
+    pub fn f_of_slice<T: kind::Element>(data: &[T]) -> Result<Tensor, TchError> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
@@ -282,7 +286,7 @@ impl Tensor {
     }
 
     /// Converts a slice to a tensor.
-    pub fn of_slice<T: kind::T>(data: &[T]) -> Tensor {
+    pub fn of_slice<T: kind::Element>(data: &[T]) -> Tensor {
         Self::f_of_slice(data).unwrap()
     }
 

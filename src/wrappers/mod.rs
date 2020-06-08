@@ -7,7 +7,7 @@ pub use utils::{
 pub(crate) mod device;
 pub(crate) mod image;
 pub(crate) mod jit;
-pub(crate) mod kind;
+pub mod kind;
 pub(crate) mod optimizer;
 pub(crate) mod scalar;
 pub(crate) mod tensor;

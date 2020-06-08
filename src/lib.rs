@@ -13,7 +13,7 @@ pub use error::TchError;
 pub(crate) mod wrappers;
 pub use wrappers::device::{Cuda, Device};
 pub use wrappers::jit::{CModule, IValue};
-pub use wrappers::kind::Kind;
+pub use wrappers::kind::{self, Kind};
 pub use wrappers::scalar::Scalar;
 pub use wrappers::{
     get_num_interop_threads, get_num_threads, manual_seed, set_num_interop_threads, set_num_threads,
@@ -27,8 +27,3 @@ pub use tensor::{
 
 pub mod nn;
 pub mod vision;
-
-pub mod kind {
-    pub(crate) use super::wrappers::kind::T;
-    pub use super::wrappers::kind::*;
-}

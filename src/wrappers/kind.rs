@@ -79,38 +79,38 @@ pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda(
 pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda(0));
 pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda(0));
 
-pub trait T {
+pub trait Element {
     const KIND: Kind;
 }
 
-impl T for u8 {
+impl Element for u8 {
     const KIND: Kind = Kind::Uint8;
 }
 
-impl T for i8 {
+impl Element for i8 {
     const KIND: Kind = Kind::Int8;
 }
 
-impl T for i16 {
+impl Element for i16 {
     const KIND: Kind = Kind::Int16;
 }
 
-impl T for i32 {
+impl Element for i32 {
     const KIND: Kind = Kind::Int;
 }
 
-impl T for i64 {
+impl Element for i64 {
     const KIND: Kind = Kind::Int64;
 }
 
-impl T for f32 {
+impl Element for f32 {
     const KIND: Kind = Kind::Float;
 }
 
-impl T for f64 {
+impl Element for f64 {
     const KIND: Kind = Kind::Double;
 }
 
-impl T for bool {
+impl Element for bool {
     const KIND: Kind = Kind::Bool;
 }

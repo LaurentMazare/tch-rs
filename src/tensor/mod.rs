@@ -315,13 +315,13 @@ impl Neg for &Tensor {
     }
 }
 
-impl<T: crate::kind::T> From<&[T]> for Tensor {
+impl<T: crate::kind::Element> From<&[T]> for Tensor {
     fn from(v: &[T]) -> Tensor {
         Tensor::of_slice(v)
     }
 }
 
-impl<T: crate::kind::T> From<T> for Tensor {
+impl<T: crate::kind::Element> From<T> for Tensor {
     fn from(v: T) -> Tensor {
         Tensor::of_slice(&[v]).view(())
     }
