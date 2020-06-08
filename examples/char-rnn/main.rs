@@ -29,6 +29,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
         state = lstm.step(&input, &state);
         let sampled_y = linear
             .forward(&state.h())
+            .squeeze1(0)
             .softmax(-1, Kind::Float)
             .multinomial(1, false);
         last_label = i64::from(sampled_y);

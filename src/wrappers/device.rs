@@ -63,4 +63,11 @@ impl Device {
             Device::Cpu
         }
     }
+
+    pub fn is_cuda(self) -> bool {
+        match self {
+            Device::Cuda(_) => true,
+            Device::Cpu => false,
+        }
+    }
 }
