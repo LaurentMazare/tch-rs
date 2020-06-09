@@ -34,7 +34,9 @@ pub fn main() -> Result<()> {
 
     let mut net_vs = tch::nn::VarStore::new(device);
     let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
-    net_vs.load(weights).expect("Could not load weights file please check the path");
+    net_vs
+        .load(weights)
+        .expect("Could not load weights file please check the path");
     net_vs.freeze();
 
     let style_img = imagenet::load_image(style_img)
