@@ -135,6 +135,13 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool) {
     } else {
         "libtch/fake_cuda_dependency.cpp"
     };
+    println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
+    println!("cargo:rerun-if-changed=libtch/torch_api.h");
+    println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
+    println!("cargo:rerun-if-changed=libtch/torch_api_generated.h");
+    println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
+    println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
+    println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
         "linux" | "macos" => {
             let libtorch_cxx11_abi = env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
