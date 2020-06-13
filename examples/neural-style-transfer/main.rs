@@ -35,16 +35,16 @@ pub fn main() -> Result<()> {
     let mut net_vs = tch::nn::VarStore::new(device);
     let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
     net_vs
-        .load(weights)
-        .expect("Could not load weights file please check the path");
+        .load(&weights)
+        .expect(&format!("Could not load weights file {}", &weights));
     net_vs.freeze();
 
-    let style_img = imagenet::load_image(style_img)
-        .expect("Could not load the style file please check the path")
+    let style_img = imagenet::load_image(&style_img)
+        .expect(&format!("Could not load the style file {}", &style_img))
         .unsqueeze(0)
         .to_device(device);
-    let content_img = imagenet::load_image(content_img)
-        .expect("Could not load the content file please check the path")
+    let content_img = imagenet::load_image(&content_img)
+        .expect(&format!("Could not load the content file {}", &content_img))
         .unsqueeze(0)
         .to_device(device);
     let max_layer = STYLE_INDEXES.iter().max().unwrap() + 1;
