@@ -73,13 +73,13 @@ impl From<f64> for Scalar {
 
 impl From<Scalar> for i64 {
     fn from(s: Scalar) -> i64 {
-        s.to_int().unwrap()
+        Self::from(&s)
     }
 }
 
 impl From<Scalar> for f64 {
     fn from(s: Scalar) -> f64 {
-        s.to_float().unwrap()
+        Self::from(&s)
     }
 }
 
