@@ -103,6 +103,10 @@ impl Element for i64 {
     const KIND: Kind = Kind::Int64;
 }
 
+impl Element for f16 {
+    const KIND: Kind = Kind::Half;
+}
+
 impl Element for f32 {
     const KIND: Kind = Kind::Float;
 }
