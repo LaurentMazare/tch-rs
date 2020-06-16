@@ -1,7 +1,9 @@
 //! VGG models.
 //!
-//! Pre-trained weights for the vgg-16 models can be found here:
+//! Pre-trained weights for the vgg-13/16/19 models can be found here:
+//! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg13.ot
 //! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
+//! https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg19.ot
 use crate::{nn, nn::Conv2D, nn::SequentialT};
 
 // Each list element contains multiple convolutions with some specified number

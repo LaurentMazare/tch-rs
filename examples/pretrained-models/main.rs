@@ -5,7 +5,9 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/densenet121.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg13.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg19.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_0.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_1.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot
@@ -38,7 +40,9 @@ pub fn main() -> Result<()> {
         "resnet18.ot" => Box::new(resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT)),
         "resnet34.ot" => Box::new(resnet::resnet34(&vs.root(), imagenet::CLASS_COUNT)),
         "densenet121.ot" => Box::new(densenet::densenet121(&vs.root(), imagenet::CLASS_COUNT)),
+        "vgg13.ot" => Box::new(vgg::vgg13(&vs.root(), imagenet::CLASS_COUNT)),
         "vgg16.ot" => Box::new(vgg::vgg16(&vs.root(), imagenet::CLASS_COUNT)),
+        "vgg19.ot" => Box::new(vgg::vgg19(&vs.root(), imagenet::CLASS_COUNT)),
         "squeezenet1_0.ot" => Box::new(squeezenet::v1_0(&vs.root(), imagenet::CLASS_COUNT)),
         "squeezenet1_1.ot" => Box::new(squeezenet::v1_1(&vs.root(), imagenet::CLASS_COUNT)),
         "alexnet.ot" => Box::new(alexnet::alexnet(&vs.root(), imagenet::CLASS_COUNT)),
