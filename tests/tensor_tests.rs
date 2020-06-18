@@ -1,4 +1,5 @@
 use anyhow::Result;
+use half::f16;
 use std::convert::{TryFrom, TryInto};
 use tch::{Device, Tensor};
 
@@ -218,6 +219,10 @@ fn from_ndarray_bool() {
 fn from_primitive() -> Result<()> {
     assert_eq!(Vec::<i32>::from(Tensor::try_from(1_i32)?), vec![1]);
     assert_eq!(Vec::<i64>::from(Tensor::try_from(1_i64)?), vec![1]);
+    assert_eq!(
+        Vec::<f16>::from(Tensor::try_from(f16::from_f64(1.0))?),
+        vec![f16::from_f64(1.0)]
+    );
     assert_eq!(Vec::<f32>::from(Tensor::try_from(1_f32)?), vec![1.0]);
     assert_eq!(Vec::<f64>::from(Tensor::try_from(1_f64)?), vec![1.0]);
     assert_eq!(Vec::<bool>::from(Tensor::try_from(true)?), vec![true]);
@@ -233,6 +238,14 @@ fn from_vec() -> Result<()> {
     assert_eq!(
         Vec::<i64>::from(Tensor::try_from(vec![-1_i64, 0, 1])?),
         vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f16>::from(Tensor::try_from(vec![
+            f16::from_f64(-1.0),
+            f16::from_f64(0.0),
+            f16::from_f64(1.0)
+        ])?),
+        vec![f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)]
     );
     assert_eq!(
         Vec::<f32>::from(Tensor::try_from(vec![-1_f32, 0.0, 1.0])?),
@@ -258,6 +271,14 @@ fn from_slice() -> Result<()> {
     assert_eq!(
         Vec::<i64>::from(Tensor::try_from(&[-1_i64, 0, 1] as &[_])?),
         vec![-1, 0, 1]
+    );
+    assert_eq!(
+        Vec::<f16>::from(Tensor::try_from(&[
+            f16::from_f64(-1.0),
+            f16::from_f64(0.0),
+            f16::from_f64(1.0)
+        ] as &[_])?),
+        vec![f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)]
     );
     assert_eq!(
         Vec::<f32>::from(Tensor::try_from(&[-1_f32, 0.0, 1.0] as &[_])?),

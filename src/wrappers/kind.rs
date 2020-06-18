@@ -1,7 +1,9 @@
 //! The different kind of elements supported in Torch.
 
+use half::f16;
+
 /// The different kind of elements that a Tensor can hold.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Kind {
     Uint8,
     Int8,
@@ -101,6 +103,10 @@ impl Element for i32 {
 
 impl Element for i64 {
     const KIND: Kind = Kind::Int64;
+}
+
+impl Element for f16 {
+    const KIND: Kind = Kind::Half;
 }
 
 impl Element for f32 {

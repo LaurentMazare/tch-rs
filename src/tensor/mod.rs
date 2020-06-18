@@ -1,5 +1,6 @@
 //! A Torch tensor.
 use crate::{Device, Kind, Scalar, TchError};
+use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use torch_sys::*;
@@ -529,6 +530,7 @@ macro_rules! from_tensor {
 
 from_tensor!(f64, 0f64, Double);
 from_tensor!(f32, 0f32, Float);
+from_tensor!(f16, f16::from_f64(0.0), Half);
 from_tensor!(i64, 0i64, Int64);
 from_tensor!(i32, 0i32, Int);
 from_tensor!(i8, 0i8, Int8);
@@ -678,6 +680,7 @@ macro_rules! try_into_impl {
     };
 }
 
+try_into_impl!(f16);
 try_into_impl!(f32);
 try_into_impl!(i32);
 try_into_impl!(f64);
@@ -715,6 +718,7 @@ macro_rules! try_from_impl {
     };
 }
 
+try_from_impl!(f16);
 try_from_impl!(f32);
 try_from_impl!(i32);
 try_from_impl!(f64);
