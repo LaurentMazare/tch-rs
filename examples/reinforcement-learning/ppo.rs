@@ -18,7 +18,7 @@ const UPDATES: i64 = 1000000;
 const OPTIM_BATCHSIZE: i64 = 64;
 const OPTIM_EPOCHS: i64 = 4;
 
-fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
+fn model(p: &nn::Path, nact: i64) -> Box<dyn Fn(&Tensor) -> (Tensor, Tensor)> {
     let stride = |s| nn::ConvConfig {
         stride: s,
         ..Default::default()

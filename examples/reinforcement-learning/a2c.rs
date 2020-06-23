@@ -15,7 +15,7 @@ const NSTEPS: i64 = 5;
 const NSTACK: i64 = 4;
 const UPDATES: i64 = 1000000;
 
-fn model(p: &nn::Path, nact: i64) -> Box<Fn(&Tensor) -> (Tensor, Tensor)> {
+fn model(p: &nn::Path, nact: i64) -> Box<dyn Fn(&Tensor) -> (Tensor, Tensor)> {
     let stride = |s| nn::ConvConfig {
         stride: s,
         ..Default::default()
