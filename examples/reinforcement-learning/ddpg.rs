@@ -359,7 +359,8 @@ pub fn run() -> cpython::PyResult<()> {
             let mut actions = 2.0 * f64::from(agent.actions(&obs));
             actions = actions.max(-2.0).min(2.0);
 
-            let step = env.step(actions)?;
+            let action_vec = vec![actions];
+            let step = env.step(&action_vec)?;
             total_reward += step.reward;
 
             agent.remember(&obs, &actions.into(), &step.reward.into(), &step.obs);

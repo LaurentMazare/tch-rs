@@ -66,7 +66,7 @@ impl GymEnv {
     pub fn step<A: ToPyObject + Copy>(&self, action: A) -> PyResult<Step<A>> {
         let gil = Python::acquire_gil();
         let py = gil.python();
-        let step = self.env.call_method(py, "step", (vec![action],), None)?;
+        let step = self.env.call_method(py, "step", (action,), None)?;
         Ok(Step {
             obs: Tensor::of_slice(&step.get_item(py, 0)?.extract::<Vec<f32>>(py)?),
             reward: step.get_item(py, 1)?.extract(py)?,
