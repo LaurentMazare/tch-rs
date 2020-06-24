@@ -57,6 +57,7 @@ impl Header {
             .collect::<Vec<_>>()
             .join(",");
         let descr = match self.descr {
+            Kind::Half => "f2",
             Kind::Float => "f4",
             Kind::Double => "f8",
             Kind::Int => "i4",
@@ -148,6 +149,7 @@ impl Header {
                     )));
                 }
                 match descr.trim_matches(|c: char| c == '=' || c == '<') {
+                    "f2" => Kind::Half,
                     "f4" => Kind::Float,
                     "f8" => Kind::Double,
                     "i4" => Kind::Int,
