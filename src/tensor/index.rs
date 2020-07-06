@@ -283,7 +283,7 @@ impl Tensor {
                         "Multi-dimensional tensor is not supported for indexing".to_string(),
                     ));
                 }
-                match tensor.kind() {
+                match tensor.kind()? {
                     Int64 => {}
                     Int16 => {}
                     Int8 => {}

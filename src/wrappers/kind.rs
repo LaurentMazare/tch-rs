@@ -37,21 +37,21 @@ impl Kind {
         }
     }
 
-    pub(super) fn of_c_int(v: libc::c_int) -> Kind {
+    pub(super) fn of_c_int(v: libc::c_int) -> Result<Kind, crate::TchError> {
         match v {
-            0 => Kind::Uint8,
-            1 => Kind::Int8,
-            2 => Kind::Int16,
-            3 => Kind::Int,
-            4 => Kind::Int64,
-            5 => Kind::Half,
-            6 => Kind::Float,
-            7 => Kind::Double,
-            8 => Kind::ComplexHalf,
-            9 => Kind::ComplexFloat,
-            10 => Kind::ComplexDouble,
-            11 => Kind::Bool,
-            _ => panic!("unexpected kind {}", v),
+            0 => Ok(Kind::Uint8),
+            1 => Ok(Kind::Int8),
+            2 => Ok(Kind::Int16),
+            3 => Ok(Kind::Int),
+            4 => Ok(Kind::Int64),
+            5 => Ok(Kind::Half),
+            6 => Ok(Kind::Float),
+            7 => Ok(Kind::Double),
+            8 => Ok(Kind::ComplexHalf),
+            9 => Ok(Kind::ComplexFloat),
+            10 => Ok(Kind::ComplexDouble),
+            11 => Ok(Kind::Bool),
+            _ => Err(crate::TchError::UnknownKind(v)),
         }
     }
 

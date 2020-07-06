@@ -40,6 +40,10 @@ pub enum TchError {
     #[error("invalid shape: {0}")]
     Shape(String),
 
+    /// Unknown kind
+    #[error("unknown kind: {0}")]
+    UnknownKind(libc::c_int),
+
     /// Errors returned by the Torch C++ API.
     #[error("Internal torch error: {0}")]
     Torch(String),
