@@ -6,6 +6,8 @@ pub struct COptimizer {
     c_optimizer: *mut torch_sys::C_optimizer,
 }
 
+unsafe impl Send for COptimizer {}
+
 impl std::fmt::Debug for COptimizer {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "optimizer")
