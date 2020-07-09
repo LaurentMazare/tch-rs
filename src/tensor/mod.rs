@@ -432,7 +432,7 @@ impl<T: crate::kind::Element> From<T> for Tensor {
 impl std::fmt::Debug for Tensor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.defined() {
-            match self.kind() {
+            match self.f_kind() {
                 Err(err) => write!(f, "Tensor[{:?}, {:?}]", self.size(), err),
                 Ok(kind) => {
                     let (is_int, is_float) = match kind {
@@ -450,7 +450,7 @@ impl std::fmt::Debug for Tensor {
                         ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
                         ([], false, true) => write!(f, "[{}]", f64::from(self)),
                         ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
-                        _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), self.kind()),
+                        _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), self.f_kind()),
                     }
                 }
             }

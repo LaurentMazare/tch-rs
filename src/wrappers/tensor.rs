@@ -82,10 +82,17 @@ impl Tensor {
         }
     }
 
-    /// Returns the kind of elements stored in the input tensor.
-    pub fn kind(&self) -> Result<Kind, TchError> {
+    /// Returns the kind of elements stored in the input tensor. Returns
+    /// an error on undefined tensors and unsupported data types.
+    pub fn f_kind(&self) -> Result<Kind, TchError> {
         let kind = unsafe_torch!(at_scalar_type(self.c_tensor));
         Kind::of_c_int(kind)
+    }
+
+    /// Returns the kind of elements stored in the input tensor. Panics
+    /// an error on undefined tensors and unsupported data types.
+    pub fn kind(&self) -> Kind {
+        self.f_kind().unwrap()
     }
 
     /// Returns the device on which the input tensor is located.
@@ -217,7 +224,7 @@ impl Tensor {
 
     /// Copies `numel` elements from `self` to `dst`.
     pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Result<(), TchError> {
-        let elt_size_in_bytes = self.kind()?.elt_size_in_bytes();
+        let elt_size_in_bytes = self.f_kind()?.elt_size_in_bytes();
         if dst.len() < numel * elt_size_in_bytes {
             return Err(TchError::Shape(format!("slice len < {}", numel)));
         }
@@ -241,10 +248,10 @@ impl Tensor {
         dst: &mut [T],
         numel: usize,
     ) -> Result<(), TchError> {
-        if T::KIND != self.kind()? {
+        if T::KIND != self.f_kind()? {
             return Err(TchError::Kind(format!(
                 "incoherent elt kind, {:?} != {:?}",
-                self.kind(),
+                self.f_kind(),
                 T::KIND
             )));
         }

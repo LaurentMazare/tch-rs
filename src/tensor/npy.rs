@@ -238,7 +238,7 @@ impl crate::Tensor {
     fn write<T: Write>(&self, f: &mut T) -> Result<(), TchError> {
         f.write_all(NPY_MAGIC_STRING)?;
         f.write_all(&[1u8, 0u8])?;
-        let kind = self.kind()?;
+        let kind = self.f_kind()?;
         let header = Header {
             descr: kind,
             fortran_order: false,
