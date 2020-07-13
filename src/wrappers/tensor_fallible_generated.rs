@@ -3307,7 +3307,8 @@ impl Tensor {
         })
     }
 
-    pub fn f_argmax(&self, dim: Option<i64>, keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_argmax(&self, dim: impl Into<Option<i64>>, keepdim: bool) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_argmax(
             c_tensors.as_mut_ptr(),
@@ -3321,7 +3322,8 @@ impl Tensor {
         })
     }
 
-    pub fn f_argmin(&self, dim: Option<i64>, keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_argmin(&self, dim: impl Into<Option<i64>>, keepdim: bool) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_argmin(
             c_tensors.as_mut_ptr(),
@@ -3352,8 +3354,9 @@ impl Tensor {
         &self,
         size: &[i64],
         stride: &[i64],
-        storage_offset: Option<i64>,
+        storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let storage_offset = storage_offset.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_as_strided(
             c_tensors.as_mut_ptr(),
@@ -3374,8 +3377,9 @@ impl Tensor {
         &mut self,
         size: &[i64],
         stride: &[i64],
-        storage_offset: Option<i64>,
+        storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let storage_offset = storage_offset.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_as_strided_(
             c_tensors.as_mut_ptr(),
@@ -3518,8 +3522,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d(
             c_tensors.as_mut_ptr(),
@@ -3548,8 +3553,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_backward(
             c_tensors.as_mut_ptr(),
@@ -3580,8 +3586,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -3612,8 +3619,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool2d_out(
             c_tensors.as_mut_ptr(),
@@ -3642,8 +3650,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d(
             c_tensors.as_mut_ptr(),
@@ -3672,8 +3681,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_backward(
             c_tensors.as_mut_ptr(),
@@ -3704,8 +3714,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -3736,8 +3747,9 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let divisor_override = divisor_override.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool3d_out(
             c_tensors.as_mut_ptr(),
@@ -4696,8 +4708,9 @@ impl Tensor {
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
-        compute_mode: Option<i64>,
+        compute_mode: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let compute_mode = compute_mode.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cdist(
             c_tensors.as_mut_ptr(),
@@ -5564,7 +5577,8 @@ impl Tensor {
         })
     }
 
-    pub fn f_cross(&self, other: &Tensor, dim: Option<i64>) -> Result<Tensor, TchError> {
+    pub fn f_cross(&self, other: &Tensor, dim: impl Into<Option<i64>>) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cross(
             c_tensors.as_mut_ptr(),
@@ -5582,8 +5596,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         other: &Tensor,
-        dim: Option<i64>,
+        dim: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cross_out(
             c_tensors.as_mut_ptr(),
@@ -7844,9 +7859,10 @@ impl Tensor {
     pub fn f_from_file(
         filename: &str,
         shared: bool,
-        size: Option<i64>,
+        size: impl Into<Option<i64>>,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
+        let size = size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_from_file(
             c_tensors.as_mut_ptr(),
@@ -14414,7 +14430,12 @@ impl Tensor {
         })
     }
 
-    pub fn f_random_2(&mut self, from: i64, to: Option<i64>) -> Result<Tensor, TchError> {
+    pub fn f_random_2(
+        &mut self,
+        from: i64,
+        to: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let to = to.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_random_2(
             c_tensors.as_mut_ptr(),
@@ -14856,8 +14877,9 @@ impl Tensor {
     pub fn f_repeat_interleave1(
         &self,
         repeats: &Tensor,
-        dim: Option<i64>,
+        dim: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat_interleave1(
             c_tensors.as_mut_ptr(),
@@ -14871,7 +14893,12 @@ impl Tensor {
         })
     }
 
-    pub fn f_repeat_interleave2(&self, repeats: i64, dim: Option<i64>) -> Result<Tensor, TchError> {
+    pub fn f_repeat_interleave2(
+        &self,
+        repeats: i64,
+        dim: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat_interleave2(
             c_tensors.as_mut_ptr(),
@@ -16922,12 +16949,14 @@ impl Tensor {
     pub fn f_stft<T: Borrow<Tensor>>(
         &self,
         n_fft: i64,
-        hop_length: Option<i64>,
-        win_length: Option<i64>,
+        hop_length: impl Into<Option<i64>>,
+        win_length: impl Into<Option<i64>>,
         window: Option<T>,
         normalized: bool,
         onesided: bool,
     ) -> Result<Tensor, TchError> {
+        let hop_length = hop_length.into();
+        let win_length = win_length.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_stft(
             c_tensors.as_mut_ptr(),
@@ -17980,8 +18009,9 @@ impl Tensor {
         &self,
         return_inverse: bool,
         return_counts: bool,
-        dim: Option<i64>,
+        dim: impl Into<Option<i64>>,
     ) -> Result<(Tensor, Tensor, Tensor), TchError> {
+        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch_err!(atg_unique_consecutive(
             c_tensors.as_mut_ptr(),
@@ -18080,9 +18110,11 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d(
             c_tensors.as_mut_ptr(),
@@ -18105,9 +18137,11 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward(
             c_tensors.as_mut_ptr(),
@@ -18133,9 +18167,11 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18161,9 +18197,11 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_out(
             c_tensors.as_mut_ptr(),
@@ -18186,9 +18224,11 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d(
             c_tensors.as_mut_ptr(),
@@ -18211,9 +18251,11 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward(
             c_tensors.as_mut_ptr(),
@@ -18239,9 +18281,11 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18267,9 +18311,11 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_out(
             c_tensors.as_mut_ptr(),
@@ -18292,8 +18338,9 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d(
             c_tensors.as_mut_ptr(),
@@ -18314,8 +18361,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward(
             c_tensors.as_mut_ptr(),
@@ -18339,8 +18387,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18364,8 +18413,9 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_out(
             c_tensors.as_mut_ptr(),
@@ -18385,8 +18435,9 @@ impl Tensor {
     pub fn f_upsample_nearest1d(
         &self,
         output_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d(
             c_tensors.as_mut_ptr(),
@@ -18405,8 +18456,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward(
             c_tensors.as_mut_ptr(),
@@ -18428,8 +18480,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18451,8 +18504,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales = scales.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_out(
             c_tensors.as_mut_ptr(),
@@ -18471,9 +18525,11 @@ impl Tensor {
     pub fn f_upsample_nearest2d(
         &self,
         output_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d(
             c_tensors.as_mut_ptr(),
@@ -18494,9 +18550,11 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward(
             c_tensors.as_mut_ptr(),
@@ -18520,9 +18578,11 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18546,9 +18606,11 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_out(
             c_tensors.as_mut_ptr(),
@@ -18569,10 +18631,13 @@ impl Tensor {
     pub fn f_upsample_nearest3d(
         &self,
         output_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d(
             c_tensors.as_mut_ptr(),
@@ -18595,10 +18660,13 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward(
             c_tensors.as_mut_ptr(),
@@ -18624,10 +18692,13 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18653,10 +18724,13 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_out(
             c_tensors.as_mut_ptr(),
@@ -18680,10 +18754,13 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d(
             c_tensors.as_mut_ptr(),
@@ -18708,10 +18785,13 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward(
             c_tensors.as_mut_ptr(),
@@ -18739,10 +18819,13 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward_out(
             c_tensors.as_mut_ptr(),
@@ -18770,10 +18853,13 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
+        let scales_d = scales_d.into();
+        let scales_h = scales_h.into();
+        let scales_w = scales_w.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_out(
             c_tensors.as_mut_ptr(),

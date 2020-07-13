@@ -558,7 +558,7 @@ impl Tensor {
     /// Returns the average accuracy for some given logits assuming that
     /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.argmax(Some(-1), false)
+        self.argmax(-1, false)
             .eq1(&targets)
             .to_kind(Kind::Float)
             .mean(Kind::Float)
@@ -601,14 +601,7 @@ impl Tensor {
     }
 
     pub fn avg_pool2d_default(&self, ksize: i64) -> Tensor {
-        self.avg_pool2d(
-            &[ksize, ksize],
-            &[ksize, ksize],
-            &[0, 0],
-            false,
-            true,
-            Some(1),
-        )
+        self.avg_pool2d(&[ksize, ksize], &[ksize, ksize], &[0, 0], false, true, 1)
     }
 
     pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {

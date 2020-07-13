@@ -380,7 +380,7 @@ fn vec2() {
 #[test]
 fn upsample1d() {
     let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3, 1]);
-    let up1 = tensor.upsample_linear1d(&[2], false, Some(1.));
+    let up1 = tensor.upsample_linear1d(&[2], false, 1.);
     assert_eq!(
         // Exclude the last element because of some numerical instability.
         Vec::<f64>::from(up1)[0..11],
@@ -398,8 +398,8 @@ fn argmax() {
     let tensor = Tensor::of_slice(&[7., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
     let argmax = tensor.argmax(None, false);
     assert_eq!(Vec::<i64>::from(argmax), [0],);
-    let argmax = tensor.argmax(Some(0), false);
+    let argmax = tensor.argmax(0, false);
     assert_eq!(Vec::<i64>::from(argmax), [0, 1, 1],);
-    let argmax = tensor.argmax(Some(-1), false);
+    let argmax = tensor.argmax(-1, false);
     assert_eq!(Vec::<i64>::from(argmax), [0, 2],);
 }

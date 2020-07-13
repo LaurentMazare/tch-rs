@@ -296,8 +296,8 @@ module Func = struct
             | TensorList -> "&[T]"
             | String -> "&str"
             | TensorOptions -> "(Kind, Device)"
-            | Int64Option -> "Option<i64>"
-            | DoubleOption -> "Option<f64>"
+            | Int64Option -> "impl Into<Option<i64>>"
+            | DoubleOption -> "impl Into<Option<f64>>"
             | Scalar -> "S"
             | ScalarType -> "Kind"
             | Device -> "Device"
@@ -546,6 +546,11 @@ let write_fallible_wrapper funcs filename =
           pm "    pub fn f_%s%s(" rust_name (Func.type_parameters func);
           pm "        %s" rust_args_list;
           pm "    )%s {" (Func.rust_return_type func ~fallible:true);
+          List.iter func.args ~f:(fun arg ->
+              match arg.arg_type with
+              | DoubleOption | Int64Option ->
+                  pm "        let %s = %s.into();" arg.arg_name arg.arg_name
+              | _ -> ());
           match func.returns with
           | `dynamic ->
               pm "        let c_tensors = unsafe_torch_err!(";

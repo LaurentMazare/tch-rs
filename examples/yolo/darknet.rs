@@ -158,7 +158,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
 fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
     let layer = nn::func_t(|xs, _is_training| {
         let (_n, _c, h, w) = xs.size4().unwrap();
-        xs.upsample_nearest2d(&[2 * h, 2 * w], Some(2.0), Some(2.0))
+        xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
     });
     Ok((prev_channels, Bl::Layer(Box::new(layer))))
 }

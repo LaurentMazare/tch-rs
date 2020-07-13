@@ -1334,11 +1334,11 @@ impl Tensor {
         Tensor::f_arange_out1(out, start, end).unwrap()
     }
 
-    pub fn argmax(&self, dim: Option<i64>, keepdim: bool) -> Tensor {
+    pub fn argmax(&self, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
         self.f_argmax(dim, keepdim).unwrap()
     }
 
-    pub fn argmin(&self, dim: Option<i64>, keepdim: bool) -> Tensor {
+    pub fn argmin(&self, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
         self.f_argmin(dim, keepdim).unwrap()
     }
 
@@ -1346,7 +1346,12 @@ impl Tensor {
         self.f_argsort(dim, descending).unwrap()
     }
 
-    pub fn as_strided(&self, size: &[i64], stride: &[i64], storage_offset: Option<i64>) -> Tensor {
+    pub fn as_strided(
+        &self,
+        size: &[i64],
+        stride: &[i64],
+        storage_offset: impl Into<Option<i64>>,
+    ) -> Tensor {
         self.f_as_strided(size, stride, storage_offset).unwrap()
     }
 
@@ -1354,7 +1359,7 @@ impl Tensor {
         &mut self,
         size: &[i64],
         stride: &[i64],
-        storage_offset: Option<i64>,
+        storage_offset: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_as_strided_(size, stride, storage_offset).unwrap()
     }
@@ -1414,7 +1419,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool2d(
             kernel_size,
@@ -1435,7 +1440,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool2d_backward(
             grad_output,
@@ -1458,7 +1463,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool2d_backward_out(
             grad_input,
@@ -1481,7 +1486,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool2d_out(
             out,
@@ -1502,7 +1507,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool3d(
             kernel_size,
@@ -1523,7 +1528,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool3d_backward(
             grad_output,
@@ -1546,7 +1551,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool3d_backward_out(
             grad_input,
@@ -1569,7 +1574,7 @@ impl Tensor {
         padding: &[i64],
         ceil_mode: bool,
         count_include_pad: bool,
-        divisor_override: Option<i64>,
+        divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
         self.f_avg_pool3d_out(
             out,
@@ -1963,7 +1968,7 @@ impl Tensor {
         self.f_cauchy_(median, sigma).unwrap()
     }
 
-    pub fn cdist(x1: &Tensor, x2: &Tensor, p: f64, compute_mode: Option<i64>) -> Tensor {
+    pub fn cdist(x1: &Tensor, x2: &Tensor, p: f64, compute_mode: impl Into<Option<i64>>) -> Tensor {
         Tensor::f_cdist(x1, x2, p, compute_mode).unwrap()
     }
 
@@ -2342,11 +2347,11 @@ impl Tensor {
         Tensor::f_cosine_similarity(x1, x2, dim, eps).unwrap()
     }
 
-    pub fn cross(&self, other: &Tensor, dim: Option<i64>) -> Tensor {
+    pub fn cross(&self, other: &Tensor, dim: impl Into<Option<i64>>) -> Tensor {
         self.f_cross(other, dim).unwrap()
     }
 
-    pub fn cross_out(&self, out: &Tensor, other: &Tensor, dim: Option<i64>) -> Tensor {
+    pub fn cross_out(&self, out: &Tensor, other: &Tensor, dim: impl Into<Option<i64>>) -> Tensor {
         self.f_cross_out(out, other, dim).unwrap()
     }
 
@@ -3389,7 +3394,7 @@ impl Tensor {
     pub fn from_file(
         filename: &str,
         shared: bool,
-        size: Option<i64>,
+        size: impl Into<Option<i64>>,
         options: (Kind, Device),
     ) -> Tensor {
         Tensor::f_from_file(filename, shared, size, options).unwrap()
@@ -6286,7 +6291,7 @@ impl Tensor {
         self.f_random_1(to).unwrap()
     }
 
-    pub fn random_2(&mut self, from: i64, to: Option<i64>) -> Tensor {
+    pub fn random_2(&mut self, from: i64, to: impl Into<Option<i64>>) -> Tensor {
         self.f_random_2(from, to).unwrap()
     }
 
@@ -6424,11 +6429,11 @@ impl Tensor {
         Tensor::f_repeat_interleave(repeats).unwrap()
     }
 
-    pub fn repeat_interleave1(&self, repeats: &Tensor, dim: Option<i64>) -> Tensor {
+    pub fn repeat_interleave1(&self, repeats: &Tensor, dim: impl Into<Option<i64>>) -> Tensor {
         self.f_repeat_interleave1(repeats, dim).unwrap()
     }
 
-    pub fn repeat_interleave2(&self, repeats: i64, dim: Option<i64>) -> Tensor {
+    pub fn repeat_interleave2(&self, repeats: i64, dim: impl Into<Option<i64>>) -> Tensor {
         self.f_repeat_interleave2(repeats, dim).unwrap()
     }
 
@@ -7254,8 +7259,8 @@ impl Tensor {
     pub fn stft<T: Borrow<Tensor>>(
         &self,
         n_fft: i64,
-        hop_length: Option<i64>,
-        win_length: Option<i64>,
+        hop_length: impl Into<Option<i64>>,
+        win_length: impl Into<Option<i64>>,
         window: Option<T>,
         normalized: bool,
         onesided: bool,
@@ -7608,7 +7613,7 @@ impl Tensor {
         &self,
         return_inverse: bool,
         return_counts: bool,
-        dim: Option<i64>,
+        dim: impl Into<Option<i64>>,
     ) -> (Tensor, Tensor, Tensor) {
         self.f_unique_consecutive(return_inverse, return_counts, dim)
             .unwrap()
@@ -7647,8 +7652,8 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bicubic2d(output_size, align_corners, scales_h, scales_w)
             .unwrap()
@@ -7659,8 +7664,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_bicubic2d_backward(
             grad_output,
@@ -7679,8 +7684,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_bicubic2d_backward_out(
             grad_input,
@@ -7699,8 +7704,8 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bicubic2d_out(out, output_size, align_corners, scales_h, scales_w)
             .unwrap()
@@ -7710,8 +7715,8 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bilinear2d(output_size, align_corners, scales_h, scales_w)
             .unwrap()
@@ -7722,8 +7727,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_bilinear2d_backward(
             grad_output,
@@ -7742,8 +7747,8 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_bilinear2d_backward_out(
             grad_input,
@@ -7762,8 +7767,8 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bilinear2d_out(out, output_size, align_corners, scales_h, scales_w)
             .unwrap()
@@ -7773,7 +7778,7 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_linear1d(output_size, align_corners, scales)
             .unwrap()
@@ -7784,7 +7789,7 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_linear1d_backward(
             grad_output,
@@ -7802,7 +7807,7 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_linear1d_backward_out(
             grad_input,
@@ -7820,13 +7825,17 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_linear1d_out(out, output_size, align_corners, scales)
             .unwrap()
     }
 
-    pub fn upsample_nearest1d(&self, output_size: &[i64], scales: Option<f64>) -> Tensor {
+    pub fn upsample_nearest1d(
+        &self,
+        output_size: &[i64],
+        scales: impl Into<Option<f64>>,
+    ) -> Tensor {
         self.f_upsample_nearest1d(output_size, scales).unwrap()
     }
 
@@ -7834,7 +7843,7 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest1d_backward(grad_output, output_size, input_size, scales).unwrap()
     }
@@ -7844,7 +7853,7 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest1d_backward_out(
             grad_input,
@@ -7860,7 +7869,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales: Option<f64>,
+        scales: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest1d_out(out, output_size, scales)
             .unwrap()
@@ -7869,8 +7878,8 @@ impl Tensor {
     pub fn upsample_nearest2d(
         &self,
         output_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest2d(output_size, scales_h, scales_w)
             .unwrap()
@@ -7880,8 +7889,8 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest2d_backward(
             grad_output,
@@ -7898,8 +7907,8 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest2d_backward_out(
             grad_input,
@@ -7916,8 +7925,8 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest2d_out(out, output_size, scales_h, scales_w)
             .unwrap()
@@ -7926,9 +7935,9 @@ impl Tensor {
     pub fn upsample_nearest3d(
         &self,
         output_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest3d(output_size, scales_d, scales_h, scales_w)
             .unwrap()
@@ -7938,9 +7947,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest3d_backward(
             grad_output,
@@ -7958,9 +7967,9 @@ impl Tensor {
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_nearest3d_backward_out(
             grad_input,
@@ -7978,9 +7987,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         output_size: &[i64],
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest3d_out(out, output_size, scales_d, scales_h, scales_w)
             .unwrap()
@@ -7990,9 +7999,9 @@ impl Tensor {
         &self,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_trilinear3d(output_size, align_corners, scales_d, scales_h, scales_w)
             .unwrap()
@@ -8003,9 +8012,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_trilinear3d_backward(
             grad_output,
@@ -8025,9 +8034,9 @@ impl Tensor {
         output_size: &[i64],
         input_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         Tensor::f_upsample_trilinear3d_backward_out(
             grad_input,
@@ -8047,9 +8056,9 @@ impl Tensor {
         out: &Tensor,
         output_size: &[i64],
         align_corners: bool,
-        scales_d: Option<f64>,
-        scales_h: Option<f64>,
-        scales_w: Option<f64>,
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_trilinear3d_out(
             out,
