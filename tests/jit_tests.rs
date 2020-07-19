@@ -60,6 +60,13 @@ fn jit4() {
     assert_eq!(result, 14.0.into());
 }
 
+#[test]
+fn profiling_mode() {
+    assert_eq!(tch::jit::get_profiling_mode(), false);
+    tch::jit::set_profiling_mode(true);
+    assert_eq!(tch::jit::get_profiling_mode(), true);
+}
+
 /*
 #[test]
 fn jit5() {

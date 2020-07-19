@@ -134,6 +134,8 @@ ivalue atm_forward_(module,
                     int nivalues);
 void atm_free(module);
 void atm_to(module m, int device, int dtype, bool non_blocking);
+int atm_get_profiling_mode();
+void atm_set_profiling_mode(int);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);

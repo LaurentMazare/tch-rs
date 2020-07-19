@@ -1,4 +1,5 @@
 #include<torch/csrc/autograd/engine.h>
+#include<torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<torch/script.h>
 #include<stdexcept>
@@ -620,6 +621,20 @@ void atm_to(module m, int device, int dtype, bool non_blocking) {
     m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);
   )
 }
+
+int atm_get_profiling_mode() {
+  PROTECT(
+    return torch::jit::getProfilingMode();
+  )
+  return 0;
+}
+
+void atm_set_profiling_mode(int b) {
+  PROTECT(
+    torch::jit::getProfilingMode() = (bool)b;
+  )
+}
+
 
 ivalue ati_tensor(tensor t) {
   PROTECT(

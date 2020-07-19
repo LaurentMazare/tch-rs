@@ -338,6 +338,23 @@ impl CModule {
     }
 }
 
+pub fn f_get_profiling_mode() -> Result<bool, TchError> {
+    Ok(unsafe_torch_err!(atm_get_profiling_mode()) != 0)
+}
+
+pub fn get_profiling_mode() -> bool {
+    f_get_profiling_mode().unwrap()
+}
+
+pub fn f_set_profiling_mode(b: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(atm_set_profiling_mode(b as c_int));
+    Ok(())
+}
+
+pub fn set_profiling_mode(b: bool) {
+    f_set_profiling_mode(b).unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::IValue;
