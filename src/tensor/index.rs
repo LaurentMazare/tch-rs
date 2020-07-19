@@ -7,7 +7,7 @@
 //! the specified index. Negative values can be used for the index, and `..` can
 //! be used to get all the indexes from a given dimension.
 //!
-//! ```
+//! ```ignore
 //! use crate::tch::{IndexOp, Tensor};
 //! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i(1);
@@ -16,7 +16,7 @@
 //!
 //! Indexes like `1..`, `..1`, or `1..2`, can be used to narrow a dimension.
 //!
-//! ```
+//! ```ignore
 //! use crate::tch::{IndexOp, Tensor};
 //! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i((.., 1..));
@@ -35,7 +35,7 @@
 //!
 //! The `NewAxis` index can be used to insert a dimension.
 //!
-//! ```
+//! ```ignore
 //! use crate::tch::{IndexOp, NewAxis, Tensor};
 //! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i((NewAxis,));
