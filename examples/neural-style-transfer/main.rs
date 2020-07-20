@@ -14,7 +14,7 @@ const STYLE_INDEXES: [usize; 5] = [0, 2, 5, 7, 10];
 const CONTENT_INDEXES: [usize; 1] = [7];
 
 fn gram_matrix(m: &Tensor) -> Tensor {
-    let (a, b, c, d) = m.size4().unwrap();
+    let (a, b, c, d) = m.size4();
     let m = m.view([a * b, c * d]);
     let g = m.matmul(&m.tr());
     g / (a * b * c * d)

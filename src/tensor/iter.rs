@@ -12,7 +12,7 @@ impl Tensor {
     pub fn iter<T>(&self) -> Result<Iter<T>, TchError> {
         Ok(Iter {
             index: 0,
-            len: self.size1()?,
+            len: self.f_size1()?,
             content: self.shallow_clone(),
             phantom: std::marker::PhantomData,
         })

@@ -42,7 +42,44 @@ impl Tensor {
     }
 
     /// Returns the tensor size for single dimension tensors.
-    pub fn size1(&self) -> Result<i64, TchError> {
+    /// Panics if the dimension count does not match.
+    pub fn size1(&self) -> i64 {
+        self.f_size1().unwrap()
+    }
+
+    /// Returns the tensor sizes for two dimension tensors.
+    /// Panics if the dimension count does not match.
+    pub fn size2(&self) -> (i64, i64) {
+        self.f_size2().unwrap()
+    }
+
+    /// Returns the tensor sizes for three dimension tensors.
+    /// Panics if the dimension count does not match.
+    pub fn size3(&self) -> (i64, i64, i64) {
+        self.f_size3().unwrap()
+    }
+
+    /// Returns the tensor sizes for four dimension tensors.
+    /// Panics if the dimension count does not match.
+    pub fn size4(&self) -> (i64, i64, i64, i64) {
+        self.f_size4().unwrap()
+    }
+
+    /// Returns the tensor sizes for five dimension tensors.
+    /// Panics if the dimension count does not match.
+    pub fn size5(&self) -> (i64, i64, i64, i64, i64) {
+        self.f_size5().unwrap()
+    }
+
+    /// Returns the tensor sizes for six dimension tensors.
+    /// Panics if the dimension count does not match.
+    pub fn size6(&self) -> (i64, i64, i64, i64, i64, i64) {
+        self.f_size6().unwrap()
+    }
+
+    /// Returns the tensor size for single dimension tensors.
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size1(&self) -> Result<i64, TchError> {
         match self.size().as_slice() {
             &[s0] => Ok(s0),
             size => Err(TchError::Shape(format!("expected one dim, got {:?}", size))),
@@ -50,7 +87,8 @@ impl Tensor {
     }
 
     /// Returns the tensor sizes for two dimension tensors.
-    pub fn size2(&self) -> Result<(i64, i64), TchError> {
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size2(&self) -> Result<(i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
             size => Err(TchError::Shape(format!(
@@ -61,7 +99,8 @@ impl Tensor {
     }
 
     /// Returns the tensor sizes for three dimension tensors.
-    pub fn size3(&self) -> Result<(i64, i64, i64), TchError> {
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
             size => Err(TchError::Shape(format!(
@@ -72,11 +111,36 @@ impl Tensor {
     }
 
     /// Returns the tensor sizes for four dimension tensors.
-    pub fn size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
             size => Err(TchError::Shape(format!(
                 "expected four dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor sizes for five dimension tensors.
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
+        match self.size().as_slice() {
+            &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
+            size => Err(TchError::Shape(format!(
+                "expected five dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor sizes for six dimension tensors.
+    /// Returns an error if the dimension count does not match.
+    pub fn f_size6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
+        match self.size().as_slice() {
+            &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
+            size => Err(TchError::Shape(format!(
+                "expected six dims, got {:?}",
                 size
             ))),
         }

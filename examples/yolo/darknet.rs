@@ -157,7 +157,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
 
 fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
     let layer = nn::func_t(|xs, _is_training| {
-        let (_n, _c, h, w) = xs.size4().unwrap();
+        let (_n, _c, h, w) = xs.size4();
         xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
     });
     Ok((prev_channels, Bl::Layer(Box::new(layer))))
@@ -214,7 +214,7 @@ where
 }
 
 fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
-    let (bsize, _channels, height, _width) = xs.size4().unwrap();
+    let (bsize, _channels, height, _width) = xs.size4();
     let stride = image_height / height;
     let grid_size = image_height / stride;
     let bbox_attrs = 5 + classes;

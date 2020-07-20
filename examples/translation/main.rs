@@ -86,7 +86,7 @@ impl Decoder {
         let attn_weights = Tensor::cat(&[&xs, &state.value()], 1)
             .apply(&self.attn)
             .unsqueeze(0);
-        let (sz1, sz2, sz3) = enc_outputs.size3().unwrap();
+        let (sz1, sz2, sz3) = enc_outputs.size3();
         let enc_outputs = if sz2 == MAX_LENGTH as i64 {
             enc_outputs.shallow_clone()
         } else {

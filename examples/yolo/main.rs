@@ -45,7 +45,7 @@ pub fn draw_rect(t: &mut Tensor, x1: i64, x2: i64, y1: i64, y2: i64) {
 }
 
 pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
-    let (npreds, pred_size) = pred.size2()?;
+    let (npreds, pred_size) = pred.size2();
     let nclasses = (pred_size - 5) as usize;
     // The bounding boxes grouped by (maximum) class index.
     let mut bboxes: Vec<Vec<Bbox>> = (0..nclasses).map(|_| vec![]).collect();
@@ -95,7 +95,7 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
         bboxes_for_class.truncate(current_index);
     }
     // Annotate the original image and print boxes information.
-    let (_, initial_h, initial_w) = img.size3()?;
+    let (_, initial_h, initial_w) = img.size3();
     let mut img = img.to_kind(tch::Kind::Float) / 255.;
     let w_ratio = initial_w as f64 / w as f64;
     let h_ratio = initial_h as f64 / h as f64;
