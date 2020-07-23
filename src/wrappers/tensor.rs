@@ -82,6 +82,28 @@ impl Tensor {
         }
     }
 
+    /// Returns the tensor sizes for five dimension tensors.
+    pub fn size5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
+        match self.size().as_slice() {
+            &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
+            size => Err(TchError::Shape(format!(
+                "expected five dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor sizes for six dimension tensors.
+    pub fn size6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
+        match self.size().as_slice() {
+            &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
+            size => Err(TchError::Shape(format!(
+                "expected six dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
     /// Returns the kind of elements stored in the input tensor. Returns
     /// an error on undefined tensors and unsupported data types.
     pub fn f_kind(&self) -> Result<Kind, TchError> {
