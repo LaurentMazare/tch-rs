@@ -111,7 +111,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                     TORCH_VERSION
                 ),
                 "windows" => format!(
-                    "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}.zip",
+                    "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}%2Bcpu.zip",
                     device,
                     TORCH_VERSION
                 ),
