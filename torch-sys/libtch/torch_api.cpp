@@ -1,6 +1,7 @@
 #include<torch/csrc/autograd/engine.h>
 #include<torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
+#include<ATen/autocast_mode.h>
 #include<torch/script.h>
 #include<stdexcept>
 #include<vector>
@@ -111,6 +112,40 @@ void at_shape(tensor t, int64_t *dims) {
 int at_scalar_type(tensor t) {
   PROTECT(
     return static_cast<int>(t->scalar_type());
+  )
+  return -1;
+}
+
+void at_autocast_clear_cache() {
+  at::autocast::clear_cache();
+}
+
+int at_autocast_decrement_nesting() {
+  PROTECT(
+    return at::autocast::decrement_nesting();
+  )
+  return -1;
+}
+
+int at_autocast_increment_nesting() {
+  PROTECT(
+    return at::autocast::increment_nesting();
+  )
+  return -1;
+}
+
+bool at_autocast_is_enabled() {
+  PROTECT(
+    return at::autocast::is_enabled();
+  )
+  return -1;
+}
+
+bool at_autocast_set_enabled(bool b) {
+  PROTECT(
+    bool is_enabled = at::autocast::is_enabled();
+    at::autocast::set_enabled(b);
+    return is_enabled;
   )
   return -1;
 }
