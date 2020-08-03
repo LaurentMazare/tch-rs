@@ -1,5 +1,9 @@
 use super::utils::{path_to_cstring, ptr_to_string};
-use super::{device::Device, kind, kind::Kind};
+use super::{
+    device::{Cuda, Device},
+    kind,
+    kind::Kind,
+};
 use crate::TchError;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
@@ -469,6 +473,50 @@ impl Drop for Tensor {
     fn drop(&mut self) {
         unsafe_torch!(at_free(self.c_tensor))
     }
+}
+
+fn autocast_clear_cache() {
+    unsafe_torch!(at_autocast_clear_cache())
+}
+
+fn autocast_decrement_nesting() -> isize {
+    unsafe_torch!(at_autocast_decrement_nesting() as isize)
+}
+
+fn autocast_increment_nesting() -> isize {
+    unsafe_torch!(at_autocast_increment_nesting() as isize)
+}
+
+fn autocast_is_enabled() -> bool {
+    unsafe_torch!(at_autocast_is_enabled() != 0)
+}
+
+fn autocast_set_enabled(b: bool) -> bool {
+    unsafe_torch!(at_autocast_set_enabled(if b { 1 } else { 0 }) != 0)
+}
+
+/// Runs a closure in mixed precision.
+pub fn autocast<T, F>(enabled: bool, f: F) -> T
+where
+    F: FnOnce() -> T,
+{
+    if !Cuda::is_available() {
+        return f();
+    }
+
+    // Check whether we are using CUDA.
+    let prev = autocast_is_enabled();
+    autocast_set_enabled(enabled);
+    autocast_increment_nesting();
+
+    let result = f();
+
+    if autocast_decrement_nesting() == 0 {
+        autocast_clear_cache();
+    }
+    autocast_set_enabled(prev);
+
+    result
 }
 
 fn grad_set_enabled(b: bool) -> bool {

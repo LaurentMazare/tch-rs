@@ -32,6 +32,7 @@ members = ["torch-sys"]
 [features]
 python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
+autocast-tests = []
 
 [package.metadata.docs.rs]
 features = [ "doc-only" ]

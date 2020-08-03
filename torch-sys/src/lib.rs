@@ -56,6 +56,11 @@ extern "C" {
         elt_size_in_bytes: size_t,
     );
     pub fn at_scalar_type(arg: *mut C_tensor) -> c_int;
+    pub fn at_autocast_clear_cache();
+    pub fn at_autocast_decrement_nesting() -> c_int;
+    pub fn at_autocast_increment_nesting() -> c_int;
+    pub fn at_autocast_is_enabled() -> c_int;
+    pub fn at_autocast_set_enabled(b: c_int) -> c_int;
     pub fn at_device(arg: *mut C_tensor) -> c_int;
     pub fn at_tensor_of_data(
         vs: *const c_void,

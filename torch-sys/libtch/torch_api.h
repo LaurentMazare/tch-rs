@@ -40,6 +40,13 @@ size_t at_dim(tensor);
 void at_shape(tensor, int64_t *);
 int at_scalar_type(tensor);
 
+
+void at_autocast_clear_cache();
+int at_autocast_decrement_nesting();
+int at_autocast_increment_nesting();
+bool at_autocast_is_enabled();
+bool at_autocast_set_enabled(bool b);
+
 void at_backward(tensor, int, int);
 int at_requires_grad(tensor);
 int at_grad_set_enabled(int);
