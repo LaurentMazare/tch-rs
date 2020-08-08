@@ -108,6 +108,77 @@ impl Tensor {
         }
     }
 
+    /// Returns the stride of the input tensor.
+    pub fn stride(&self) -> Vec<i64> {
+        let dim = unsafe_torch!(at_dim(self.c_tensor));
+        let mut sz = vec![0i64; dim];
+        unsafe_torch!(at_stride(self.c_tensor, sz.as_mut_ptr()));
+        sz
+    }
+
+    /// Returns the tensor strides for single dimension tensors.
+    pub fn stride1(&self) -> Result<i64, TchError> {
+        match self.stride().as_slice() {
+            &[s0] => Ok(s0),
+            size => Err(TchError::Shape(format!("expected one dim, got {:?}", size))),
+        }
+    }
+
+    /// Returns the tensor strides for two dimension tensors.
+    pub fn stride2(&self) -> Result<(i64, i64), TchError> {
+        match self.stride().as_slice() {
+            &[s0, s1] => Ok((s0, s1)),
+            size => Err(TchError::Shape(format!(
+                "expected two dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor strides for three dimension tensors.
+    pub fn stride3(&self) -> Result<(i64, i64, i64), TchError> {
+        match self.stride().as_slice() {
+            &[s0, s1, s2] => Ok((s0, s1, s2)),
+            size => Err(TchError::Shape(format!(
+                "expected three dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor strides for four dimension tensors.
+    pub fn stride4(&self) -> Result<(i64, i64, i64, i64), TchError> {
+        match self.stride().as_slice() {
+            &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
+            size => Err(TchError::Shape(format!(
+                "expected four dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor strides for five dimension tensors.
+    pub fn stride5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
+        match self.stride().as_slice() {
+            &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
+            size => Err(TchError::Shape(format!(
+                "expected five dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
+    /// Returns the tensor strides for six dimension tensors.
+    pub fn stride6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
+        match self.stride().as_slice() {
+            &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
+            size => Err(TchError::Shape(format!(
+                "expected six dims, got {:?}",
+                size
+            ))),
+        }
+    }
+
     /// Returns the kind of elements stored in the input tensor. Returns
     /// an error on undefined tensors and unsupported data types.
     pub fn f_kind(&self) -> Result<Kind, TchError> {

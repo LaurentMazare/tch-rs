@@ -403,3 +403,26 @@ fn argmax() {
     let argmax = tensor.argmax(-1, false);
     assert_eq!(Vec::<i64>::from(argmax), [0, 2],);
 }
+
+#[test]
+fn strides() {
+    fn check_stride(t: &Tensor) {
+        let shape = t.size();
+        let ndim = shape.len();
+        let mut c = 1;
+        let mut strides = vec![0i64; ndim];
+        strides[ndim - 1] = c;
+        for i in (1..ndim).rev() {
+            c *= shape[i];
+            strides[i - 1] = c;
+        }
+
+        assert_eq!(t.stride(), strides);
+    }
+
+    let tensor = Tensor::zeros(&[2, 3, 4], tch::kind::FLOAT_CPU);
+    check_stride(&tensor);
+
+    let tensor: Tensor = Tensor::ones(&[3, 4, 5, 6, 7, 8], tch::kind::FLOAT_CPU);
+    check_stride(&tensor);
+}

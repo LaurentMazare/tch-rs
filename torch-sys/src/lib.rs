@@ -33,6 +33,7 @@ extern "C" {
     pub fn at_get(arg: *mut C_tensor, index: c_int) -> *mut C_tensor;
     pub fn at_requires_grad(arg: *mut C_tensor) -> c_int;
     pub fn at_shape(arg: *mut C_tensor, sz: *mut i64);
+    pub fn at_stride(arg: *mut C_tensor, sz: *mut i64);
     pub fn at_double_value_at_indexes(arg: *mut C_tensor, idx: *const i64, idx_len: c_int) -> f64;
     pub fn at_int64_value_at_indexes(arg: *mut C_tensor, idx: *const i64, idx_len: c_int) -> i64;
     pub fn at_get_num_interop_threads() -> c_int;
