@@ -605,6 +605,18 @@ where
     result
 }
 
+/// Runs a closure explicitly keeping track of gradients, this could be
+/// run within a no_grad closure for example.
+pub fn with_grad<T, F>(f: F) -> T
+where
+    F: FnOnce() -> T,
+{
+    let prev = grad_set_enabled(true);
+    let result = f();
+    let _false = grad_set_enabled(prev);
+    result
+}
+
 /// A RAII guard that prevents gradient tracking until deallocated.
 pub struct NoGradGuard {
     enabled: bool,
