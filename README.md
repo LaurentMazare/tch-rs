@@ -33,12 +33,12 @@ export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
 - For Windows users, navigate to Control Panel -> View advanced system settings -> Environment variables.
-Create `LIBTORCH` variable and set to `X:\path\to\libtorch`. Then, append `X:\path\to\libtorch`
+Create `LIBTORCH` variable and set to `X:\path\to\libtorch`. Then, append `X:\path\to\libtorch\lib`
 to `Path` variable, where `X:\path\to\libtorch` is the unzipped libtorch directory.
 If you prefer to temporarily set environment variables, in PowerShell you can run
 ```powershell
 $Env:LIBTORCH = "X:\path\to\libtorch"
-$Env:Path += ";X:\path\to\libtorch"
+$Env:Path += ";X:\path\to\libtorch\lib"
 ```
 - You should now be able to run some examples, e.g. `cargo run --example basics`.
 
