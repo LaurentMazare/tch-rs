@@ -36,6 +36,7 @@ export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
     - Navigate to Control Panel -> View advanced system settings -> Environment variables.
     - Create the `LIBTORCH` variable and set it to `X:\path\to\libtorch`.
     - Append `X:\path\to\libtorch\lib` to the `Path` variable.
+  
   If you prefer to temporarily set environment variables, in PowerShell you can run
 ```powershell
 $Env:LIBTORCH = "X:\path\to\libtorch"
