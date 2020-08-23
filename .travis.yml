@@ -17,4 +17,8 @@ branches:
   only:
     - master
 
+os:
+  - linux
+  - windows
+
 dist: xenial
