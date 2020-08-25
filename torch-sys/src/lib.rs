@@ -196,6 +196,18 @@ extern "C" {
     pub fn atm_load_str_on_device(data: *const c_char, sz: size_t, device: c_int) -> *mut CModule_;
     pub fn atm_forward(m: *mut CModule_, args: *const *mut C_tensor, n: c_int) -> *mut C_tensor;
     pub fn atm_forward_(m: *mut CModule_, args: *const *mut CIValue, n: c_int) -> *mut CIValue;
+    pub fn atm_method(
+        m: *mut CModule_,
+        method_name: *const c_char,
+        args: *const *mut C_tensor,
+        n: c_int,
+    ) -> *mut C_tensor;
+    pub fn atm_method_(
+        m: *mut CModule_,
+        method_name: *const c_char,
+        args: *const *mut CIValue,
+        n: c_int,
+    ) -> *mut CIValue;
     pub fn atm_free(m: *mut CModule_);
     pub fn atm_to(m: *mut CModule_, device: c_int, kind: c_int, non_blocking: bool);
     pub fn atm_get_profiling_mode() -> c_int;

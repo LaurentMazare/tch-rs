@@ -29,6 +29,10 @@ fn jit1() {
         .forward_ts(&[Tensor::from(42), Tensor::from(1337)])
         .unwrap();
     assert_eq!(i64::from(&result), 1421);
+    let result = foo
+        .method_ts("forward", &[Tensor::from(42), Tensor::from(1337)])
+        .unwrap();
+    assert_eq!(i64::from(&result), 1421);
 }
 
 #[test]
@@ -39,6 +43,18 @@ fn jit2() {
             IValue::from(Tensor::from(42)),
             IValue::from(Tensor::from(1337)),
         ])
+        .unwrap();
+    let expected1 = Tensor::from(1421);
+    let expected2 = Tensor::from(-1295);
+    assert_eq!(result, IValue::from((expected1, expected2)));
+    let result = foo
+        .method_is(
+            "forward",
+            &[
+                IValue::from(Tensor::from(42)),
+                IValue::from(Tensor::from(1337)),
+            ],
+        )
         .unwrap();
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);

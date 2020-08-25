@@ -314,7 +314,7 @@ impl CModule {
         Ok(Tensor { c_tensor })
     }
 
-    /// Performs the forward pass for a model on some specified ivalue input.
+    /// Performs the forward pass for a model on some specified ivalue inputs.
     pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Result<IValue, TchError> {
         let ts = ts
             .iter()
@@ -322,6 +322,46 @@ impl CModule {
             .collect::<Result<Vec<_>, TchError>>()?;
         let c_ivalue =
             unsafe_torch_err!(atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int));
+        for x in ts {
+            unsafe { ati_free(x) }
+        }
+        IValue::of_c(c_ivalue)
+    }
+
+    /// Runs a specified entry point for a model on some given tensor inputs.
+    pub fn method_ts<T: Borrow<Tensor>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<Tensor, TchError> {
+        let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
+        let method_name = std::ffi::CString::new(method_name)?;
+        let c_tensor = unsafe_torch_err!(atm_method(
+            self.c_module,
+            method_name.as_ptr(),
+            ts.as_ptr(),
+            ts.len() as c_int
+        ));
+        Ok(Tensor { c_tensor })
+    }
+
+    /// Runs a specified entry point for a model on some given ivalue inputs.
+    pub fn method_is<T: Borrow<IValue>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
+        let ts = ts
+            .iter()
+            .map(|x| x.borrow().to_c())
+            .collect::<Result<Vec<_>, TchError>>()?;
+        let method_name = std::ffi::CString::new(method_name)?;
+        let c_ivalue = unsafe_torch_err!(atm_method_(
+            self.c_module,
+            method_name.as_ptr(),
+            ts.as_ptr(),
+            ts.len() as c_int
+        ));
         for x in ts {
             unsafe { ati_free(x) }
         }

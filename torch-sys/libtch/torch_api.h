@@ -140,6 +140,14 @@ tensor atm_forward(module, tensor *tensors, int ntensors);
 ivalue atm_forward_(module,
                     ivalue *ivalues,
                     int nivalues);
+tensor atm_method(module,
+                  char *method_name,
+                  tensor *tensors,
+                  int ntensors);
+ivalue atm_method_(module,
+                   char *method_name,
+                   ivalue *ivalues,
+                   int nivalues);
 void atm_free(module);
 void atm_to(module m, int device, int dtype, bool non_blocking);
 int atm_get_profiling_mode();

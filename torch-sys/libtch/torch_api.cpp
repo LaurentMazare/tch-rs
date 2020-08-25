@@ -633,7 +633,7 @@ tensor atm_forward(module m, tensor *tensors, int ntensors) {
     std::vector<torch::jit::IValue> inputs;
     for (int i = 0; i < ntensors; ++i)
       inputs.push_back(*(tensors[i]));
-    torch::jit::IValue output = m->forward(inputs);
+    torch::jit::IValue output = m->forward(std::move(inputs));
     if (!output.isTensor())
       throw std::invalid_argument("forward did not return a tensor");
     return new torch::Tensor(output.toTensor());
@@ -648,7 +648,31 @@ ivalue atm_forward_(module m,
     std::vector<torch::jit::IValue> inputs;
     for (int i = 0; i < nivalues; ++i)
       inputs.push_back(*(ivalues[i]));
-    torch::jit::IValue output = m->forward(inputs);
+    torch::jit::IValue output = m->forward(std::move(inputs));
+    return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
+
+tensor atm_method(module m, char *method_name, tensor *tensors, int ntensors) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < ntensors; ++i)
+      inputs.push_back(*(tensors[i]));
+    torch::jit::IValue output = m->get_method(method_name)(std::move(inputs));
+    if (!output.isTensor())
+      throw std::invalid_argument("method did not return a tensor");
+    return new torch::Tensor(output.toTensor());
+  )
+  return nullptr;
+}
+
+ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < nivalues; ++i)
+      inputs.push_back(*(ivalues[i]));
+    torch::jit::IValue output = m->get_method(method_name)(std::move(inputs));
     return new torch::jit::IValue(output);
   )
   return nullptr;
