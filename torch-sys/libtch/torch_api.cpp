@@ -682,6 +682,12 @@ void atm_free(module m) {
   delete(m);
 }
 
+void atm_save(module m, char *filename) {
+  PROTECT(
+    m->save(filename);
+  )
+}
+
 void atm_to(module m, int device, int dtype, bool non_blocking) {
   PROTECT(
     m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);

@@ -376,6 +376,12 @@ impl CModule {
             non_blocking
         ));
     }
+
+    pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<(), TchError> {
+        let path = path_to_cstring(path)?;
+        unsafe_torch_err!(atm_save(self.c_module, path.as_ptr()));
+        Ok(())
+    }
 }
 
 pub fn f_get_profiling_mode() -> Result<bool, TchError> {

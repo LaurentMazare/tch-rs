@@ -210,6 +210,7 @@ extern "C" {
     ) -> *mut CIValue;
     pub fn atm_free(m: *mut CModule_);
     pub fn atm_to(m: *mut CModule_, device: c_int, kind: c_int, non_blocking: bool);
+    pub fn atm_save(m: *mut CModule_, filename: *const c_char);
     pub fn atm_get_profiling_mode() -> c_int;
     pub fn atm_set_profiling_mode(profiling_mode: c_int);
 }
