@@ -707,6 +707,14 @@ void atm_set_profiling_mode(int b) {
   )
 }
 
+void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
+  PROTECT(
+    for (const auto &p : m->named_parameters()) {
+      auto v = p.value;
+      f(data, (char*)p.name.c_str(), new torch::Tensor(v));
+    }
+  )
+}
 
 ivalue ati_tensor(tensor t) {
   PROTECT(

@@ -2,7 +2,7 @@
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind::Kind};
 use crate::{TchError, Tensor};
-use libc::c_int;
+use libc::{c_int, c_void};
 use std::borrow::Borrow;
 use torch_sys::*;
 
@@ -377,10 +377,22 @@ impl CModule {
         ));
     }
 
+    /// Saves a module to a given path.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<(), TchError> {
         let path = path_to_cstring(path)?;
         unsafe_torch_err!(atm_save(self.c_module, path.as_ptr()));
         Ok(())
+    }
+
+    /// Loads some named tensors from a module
+    pub fn named_parameters(&self) -> Result<Vec<(String, Tensor)>, TchError> {
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!(atm_named_parameters(
+            self.c_module,
+            &mut v as *mut _ as *mut c_void,
+            super::tensor::add_callback
+        ));
+        Ok(v)
     }
 }
 

@@ -153,6 +153,7 @@ void atm_to(module m, int device, int dtype, bool non_blocking);
 void atm_save(module m, char*);
 int atm_get_profiling_mode();
 void atm_set_profiling_mode(int);
+void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor));
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);

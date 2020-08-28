@@ -213,6 +213,11 @@ extern "C" {
     pub fn atm_save(m: *mut CModule_, filename: *const c_char);
     pub fn atm_get_profiling_mode() -> c_int;
     pub fn atm_set_profiling_mode(profiling_mode: c_int);
+    pub fn atm_named_parameters(
+        m: *mut CModule_,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+    );
 }
 
 extern "C" {
