@@ -11,9 +11,10 @@ use tch::nn::{ModuleT, OptimizerConfig};
 use tch::{nn, Device, Kind, Tensor, IndexOp};
 
 const LEARNING_RATE: f64 = 0.0003;
-const SEQ_LEN: i64 = 128;
+const BLOCK_SIZE: i64 = 128;
 const BATCH_SIZE: i64 = 64;
 const EPOCHS: i64 = 100;
+const SAMPLING_LEN: i64 = 1024;
 
 #[derive(Debug, Copy, Clone)]
 struct Config {
@@ -80,6 +81,22 @@ fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
     })
 }
 
+/// Generates some sample string using the GPT model.
+fn sample(data: &TextData, gpt: &impl ModuleT, device: Device) -> String {
+    let mut input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+    let mut result = String::new();
+    for _index in 0..SAMPLING_LEN {
+        let logits = input.apply_t(gpt, false).i((0, -1, ..));
+        let sampled_y = logits
+            .softmax(-1, Kind::Float)
+            .multinomial(1, true);
+        let last_label = i64::from(&sampled_y);
+        result.push(data.label_to_char(last_label));
+        input = Tensor::cat(&[input, sampled_y.view([1, 1])], 1).narrow(1, 1, BLOCK_SIZE);
+    }
+    result
+}
+
 pub fn main() -> Result<()> {
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
@@ -91,7 +108,7 @@ pub fn main() -> Result<()> {
         n_embd: 512,
         n_head: 8,
         n_layer: 8,
-        block_size: 128,
+        block_size: BLOCK_SIZE,
         attn_pdrop: 0.1,
         resid_pdrop: 0.1,
         embd_pdrop: 0.1,
@@ -101,17 +118,19 @@ pub fn main() -> Result<()> {
     for epoch in 1..(1 + EPOCHS) {
         let mut sum_loss = 0.;
         let mut cnt_loss = 0.;
-        for batch in data.iter_shuffle(SEQ_LEN + 1, BATCH_SIZE) {
-            let xs = batch.narrow(1, 0, SEQ_LEN).to_kind(Kind::Int64).to_device(device);
+        for batch in data.iter_shuffle(BLOCK_SIZE + 1, BATCH_SIZE) {
+            let xs = batch.narrow(1, 0, BLOCK_SIZE).to_kind(Kind::Int64).to_device(device);
+            let ys = batch.narrow(1, 1, BLOCK_SIZE).to_kind(Kind::Int64).to_device(device);
             let logits = xs.apply_t(&gpt, true);
             let loss = logits
-                .view([BATCH_SIZE * SEQ_LEN, labels])
-                .cross_entropy_for_logits(&xs.view([BATCH_SIZE * SEQ_LEN]));
+                .view([BATCH_SIZE * BLOCK_SIZE, labels])
+                .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
             opt.backward_step_clip(&loss, 0.5);
             sum_loss += f64::from(loss);
             cnt_loss += 1.0;
         }
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
+        println!("Sample: {}", sample(&data, &gpt, device));
     }
     Ok(())
 }
