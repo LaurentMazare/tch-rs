@@ -1,5 +1,9 @@
+## minGPT-rs
+
 This example implements a character-level language model using
 a simplified version of [minGPT](https://github.com/karpathy/minGPT).
+All the model details as well as the training loop can be found
+in `main.rs`.
 
 Besides the model being different, this example is in line with the LSTM
 version [char-rnn](https://github.com/LaurentMazare/tch-rs/tree/master/examples/char-rnn).
