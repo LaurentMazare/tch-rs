@@ -23,7 +23,7 @@ The training text file should be stored in `data/input.txt`.
 
 Compiling and running the example is done via the following command lines:
 ```bash
-cargo run --example min_gpt
+cargo run --example min-gpt
 ```
 
 Here is an example of generated data when training on the Shakespeare dataset at
