@@ -5,7 +5,7 @@
 */
 
 extern crate tch;
-use anyhow::Result;
+use anyhow::{bail, Result};
 use tch::data::TextData;
 use tch::nn::{ModuleT, OptimizerConfig};
 use tch::{nn, Device, IndexOp, Kind, Tensor};
@@ -14,7 +14,7 @@ const LEARNING_RATE: f64 = 0.0003;
 const BLOCK_SIZE: i64 = 128;
 const BATCH_SIZE: i64 = 64;
 const EPOCHS: i64 = 100;
-const SAMPLING_LEN: i64 = 1024;
+const SAMPLING_LEN: i64 = 4096;
 
 #[derive(Debug, Copy, Clone)]
 struct Config {
@@ -112,8 +112,8 @@ fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
 }
 
 /// Generates some sample string using the GPT model.
-fn sample(data: &TextData, gpt: &impl ModuleT, device: Device) -> String {
-    let mut input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+fn sample(data: &TextData, gpt: &impl ModuleT, input: Tensor) -> String {
+    let mut input = input;
     let mut result = String::new();
     for _index in 0..SAMPLING_LEN {
         let logits = input.apply_t(gpt, false).i((0, -1, ..));
@@ -127,7 +127,7 @@ fn sample(data: &TextData, gpt: &impl ModuleT, device: Device) -> String {
 
 pub fn main() -> Result<()> {
     let device = Device::cuda_if_available();
-    let vs = nn::VarStore::new(device);
+    let mut vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
     println!("Dataset loaded, {} labels.", labels);
@@ -142,29 +142,64 @@ pub fn main() -> Result<()> {
         embd_pdrop: 0.1,
     };
     let gpt = gpt(&(&vs.root() / "gpt"), cfg);
-    let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
-    for epoch in 1..(1 + EPOCHS) {
-        let mut sum_loss = 0.;
-        let mut cnt_loss = 0.;
-        for batch in data.iter_shuffle(BLOCK_SIZE + 1, BATCH_SIZE) {
-            let xs = batch
-                .narrow(1, 0, BLOCK_SIZE)
-                .to_kind(Kind::Int64)
-                .to_device(device);
-            let ys = batch
-                .narrow(1, 1, BLOCK_SIZE)
-                .to_kind(Kind::Int64)
-                .to_device(device);
-            let logits = xs.apply_t(&gpt, true);
-            let loss = logits
-                .view([BATCH_SIZE * BLOCK_SIZE, labels])
-                .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
-            opt.backward_step_clip(&loss, 0.5);
-            sum_loss += f64::from(loss);
-            cnt_loss += 1.0;
-        }
-        println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
-        println!("Sample: {}", sample(&data, &gpt, device));
+    let args: Vec<_> = std::env::args().collect();
+    if args.len() < 2 {
+        bail!("usage: main (train|predict weights.ot seqstart)")
     }
+    match args[1].as_str() {
+        "train" => {
+            let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
+            let mut idx = 0;
+            for epoch in 1..(1 + EPOCHS) {
+                let mut sum_loss = 0.;
+                let mut cnt_loss = 0.;
+                for batch in data.iter_shuffle(BLOCK_SIZE + 1, BATCH_SIZE) {
+                    let xs = batch
+                        .narrow(1, 0, BLOCK_SIZE)
+                        .to_kind(Kind::Int64)
+                        .to_device(device);
+                    let ys = batch
+                        .narrow(1, 1, BLOCK_SIZE)
+                        .to_kind(Kind::Int64)
+                        .to_device(device);
+                    let logits = xs.apply_t(&gpt, true);
+                    let loss = logits
+                        .view([BATCH_SIZE * BLOCK_SIZE, labels])
+                        .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
+                    opt.backward_step_clip(&loss, 0.5);
+                    sum_loss += f64::from(loss);
+                    cnt_loss += 1.0;
+                    idx += 1;
+                    if idx % 10000 == 0 {
+                        println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
+                        let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+                        println!("Sample: {}", sample(&data, &gpt, input));
+                        if let Err(err) = vs.save(format!("gpt{}.ot", idx)) {
+                            println!("error while saving {}", err);
+                        }
+                        sum_loss = 0.;
+                        cnt_loss = 0.;
+                    }
+                }
+            }
+        }
+        "predict" => {
+            vs.load(args[2].as_str())?;
+            let seqstart = args[3].as_str();
+            let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+            for (idx, c) in seqstart.chars().rev().enumerate() {
+                let idx = idx as i64;
+                if idx >= BLOCK_SIZE {
+                    break;
+                }
+                let _filled = input
+                    .i(BLOCK_SIZE - 1 - idx)
+                    .fill_(data.char_to_label(c)? as i64);
+            }
+            println!("Sample: {}", sample(&data, &gpt, input));
+        }
+        _ => bail!("usage: main (train|predict weights.ot seqstart)"),
+    };
+
     Ok(())
 }

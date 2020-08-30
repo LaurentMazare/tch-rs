@@ -117,6 +117,7 @@ impl Iterator for Iter2 {
 pub struct TextData {
     data: Tensor,
     char_for_label: Vec<char>,
+    label_for_char: HashMap<u8, u8>,
 }
 
 /// Text data iterator.
@@ -150,6 +151,7 @@ impl TextData {
         Ok(TextData {
             data: Tensor::of_slice(&buffer),
             char_for_label,
+            label_for_char,
         })
     }
 
@@ -165,6 +167,13 @@ impl TextData {
 
     pub fn label_to_char(&self, label: i64) -> char {
         self.char_for_label[label as usize]
+    }
+
+    pub fn char_to_label(&self, c: char) -> Result<u8, TchError> {
+        match self.label_for_char.get(&(c as u8)) {
+            None => Err(TchError::Convert(format!("cannot find char {}", c))),
+            Some(v) => Ok(*v),
+        }
     }
 
     /// Returns a batch iterator over the dataset.
