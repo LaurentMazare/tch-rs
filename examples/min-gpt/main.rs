@@ -193,7 +193,7 @@ pub fn main() -> Result<()> {
                     break;
                 }
                 let _filled = input
-                    .i(BLOCK_SIZE - 1 - idx)
+                    .i((0, BLOCK_SIZE - 1 - idx))
                     .fill_(data.char_to_label(c)? as i64);
             }
             println!("Sample: {}", sample(&data, &gpt, input));
