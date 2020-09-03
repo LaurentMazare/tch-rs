@@ -13,7 +13,7 @@ fn optimizer_test() {
 
     // Fit a linear model (with deterministic initialization) on the data.
     let vs = nn::VarStore::new(Device::Cpu);
-    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    let mut opt = nn::Sgd::default().build(&vs, 0.).unwrap();
     let cfg = nn::LinearConfig {
         ws_init: nn::Init::Const(0.),
         bs_init: Some(nn::Init::Const(0.)),
@@ -25,6 +25,7 @@ fn optimizer_test() {
     let initial_loss = f64::from(&loss);
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
+    opt.set_lr(1e-2);
     // Optimization loop.
     for _idx in 1..50 {
         let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
