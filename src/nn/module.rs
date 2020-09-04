@@ -67,3 +67,9 @@ impl Tensor {
         }
     }
 }
+
+/// Modules that support processing by MKL-DNN/oneDNN.
+pub trait ToMKLDNN {
+    /// Convert a module to use MKL-DNN/oneDNN.
+    fn to_mkldnn(&self) -> Self;
+}

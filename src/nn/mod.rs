@@ -9,7 +9,7 @@ mod var_store;
 pub use var_store::{Path, VarStore, Variables};
 
 mod module;
-pub use module::{Module, ModuleT};
+pub use module::{Module, ModuleT, ToMKLDNN};
 
 mod linear;
 pub use linear::*;

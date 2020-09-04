@@ -1,5 +1,5 @@
 use tch::nn::layer_norm;
-use tch::nn::{Module, OptimizerConfig};
+use tch::nn::{Module, OptimizerConfig, ToMKLDNN};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
 #[test]
@@ -295,4 +295,45 @@ fn linear() {
         bias: false,
         ..Default::default()
     });
+}
+
+#[test]
+fn linear_mkldnn() {
+    linear_mkldnn_test(Default::default());
+    linear_mkldnn_test(nn::LinearConfig {
+        bias: true,
+        ..Default::default()
+    });
+    linear_test(nn::LinearConfig {
+        bias: false,
+        ..Default::default()
+    });
+}
+
+fn linear_mkldnn_test(linear_config: nn::LinearConfig) {
+    let batch_dim = 5;
+    let input_dim = 10;
+    let output_dim = 4;
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let linear = nn::linear(&vs.root(), input_dim, output_dim, linear_config);
+    let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
+
+    // Value that we will check against.
+    let linear_check = linear.forward(&input);
+
+    let linear_mkldnn = linear.to_mkldnn();
+
+    assert!(bool::from(
+        linear_mkldnn
+            .forward(&input)
+            .isclose(&linear_check, 1e-5, 1e-8, false)
+            .all()
+    ));
+    assert!(bool::from(
+        linear_mkldnn
+            .forward(&input.to_mkldnn())
+            .to_dense()
+            .isclose(&linear_check, 1e-5, 1e-8, false)
+            .all()
+    ));
 }

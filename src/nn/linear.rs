@@ -57,6 +57,30 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
 
 impl super::module::Module for Linear {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.matmul(&self.ws.tr()) + &self.bs
+        if self.ws.is_mkldnn() {
+            let input_is_mkldnn = xs.is_mkldnn();
+            let xs = if input_is_mkldnn {
+                xs.shallow_clone()
+            } else {
+                xs.to_mkldnn()
+            };
+            let output = xs.mkldnn_linear(&self.ws, Some(&self.bs));
+            if input_is_mkldnn {
+                output
+            } else {
+                output.to_dense()
+            }
+        } else {
+            xs.matmul(&self.ws.tr()) + &self.bs
+        }
+    }
+}
+
+impl super::module::ToMKLDNN for Linear {
+    fn to_mkldnn(&self) -> Self {
+        Linear {
+            ws: self.ws.to_mkldnn(),
+            bs: self.bs.to_mkldnn(),
+        }
     }
 }
