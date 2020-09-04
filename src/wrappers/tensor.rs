@@ -252,7 +252,7 @@ impl Tensor {
         unsafe_torch!(at_is_mkldnn(self.c_tensor) != 0)
     }
 
-    /// Returns true if the tensor is spare.
+    /// Returns true if the tensor is sparse.
     pub fn is_sparse(&self) -> bool {
         unsafe_torch!(at_is_sparse(self.c_tensor) != 0)
     }
