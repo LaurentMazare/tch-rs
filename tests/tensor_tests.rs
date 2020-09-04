@@ -348,6 +348,13 @@ fn copy_overflow() {
 }
 
 #[test]
+fn mkldnn() {
+    let t = Tensor::randn(&[5, 5, 5], (tch::Kind::Float, Device::Cpu));
+    assert!(!t.is_mkldnn());
+    assert!(t.to_mkldnn().is_mkldnn());
+}
+
+#[test]
 fn sparse() {
     let t = Tensor::of_slice(&[1, 2, 3]);
     assert!(!t.is_sparse());
