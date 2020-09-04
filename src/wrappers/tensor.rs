@@ -242,12 +242,17 @@ impl Tensor {
         unsafe_torch!(at_data_ptr(self.c_tensor))
     }
 
-    /// Returns true is the tensor is defined.
+    /// Returns true if the tensor is defined.
     pub fn defined(&self) -> bool {
         unsafe_torch!(at_defined(self.c_tensor) != 0)
     }
 
-    /// Returns true is the tensor is spare.
+    /// Returns true if the tensor is compatible with MKL-DNN (oneDNN).
+    pub fn is_mkldnn(&self) -> bool {
+        unsafe_torch!(at_is_mkldnn(self.c_tensor) != 0)
+    }
+
+    /// Returns true if the tensor is spare.
     pub fn is_sparse(&self) -> bool {
         unsafe_torch!(at_is_sparse(self.c_tensor) != 0)
     }

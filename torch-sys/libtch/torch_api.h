@@ -34,6 +34,7 @@ tensor at_shallow_clone(tensor);
 
 void *at_data_ptr(tensor);
 int at_defined(tensor);
+int at_is_mkldnn(tensor);
 int at_is_sparse(tensor);
 int at_device(tensor);
 size_t at_dim(tensor);

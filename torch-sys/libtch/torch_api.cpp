@@ -92,6 +92,11 @@ int at_defined(tensor t) {
   return -1;
 }
 
+int at_is_mkldnn(tensor t) {
+  PROTECT(return t->is_mkldnn();)
+  return -1;
+}
+
 int at_is_sparse(tensor t) {
   PROTECT(return t->is_sparse();)
   return -1;
