@@ -127,11 +127,10 @@ impl VarStore {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
                 None => {
-                    return Err(TchError::FileFormat(format!(
-                        "cannot find {} in {:?}",
-                        name,
-                        path.as_ref()
-                    )))
+                    return Err(TchError::TensorNameNotFound(
+                        name.to_string(),
+                        path.as_ref().to_string_lossy().into_owned(),
+                    ));
                 }
             }
         }
@@ -198,10 +197,10 @@ impl VarStore {
         let device = self.device;
         for name in variables.named_variables.keys() {
             if !src_variables.named_variables.contains_key(name) {
-                return Err(TchError::FileFormat(format!(
-                    "cannot find {} in the source var store",
-                    name
-                )));
+                return Err(TchError::TensorNameNotFound(
+                    name.to_string(),
+                    "src var-store".to_string(),
+                ));
             }
         }
         for (name, var) in variables.named_variables.iter_mut() {

@@ -16,6 +16,10 @@ pub enum TchError {
     #[error("invalid file format: {0}")]
     FileFormat(String),
 
+    /// Missing tensor with name.
+    #[error("cannot find the tensor named {0} in {1}")]
+    TensorNameNotFound(String, String),
+
     /// I/O error.
     #[error(transparent)]
     Io(#[from] io::Error),
