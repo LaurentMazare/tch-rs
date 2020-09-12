@@ -128,6 +128,12 @@ int at_scalar_type(tensor t) {
   return -1;
 }
 
+void at__amp_non_finite_check_and_unscale(tensor t, tensor found_inf, tensor inf_scale) {
+  PROTECT(
+    at::_amp_non_finite_check_and_unscale_(*t, *found_inf, *inf_scale);
+  )
+}
+
 void at_autocast_clear_cache() {
   at::autocast::clear_cache();
 }

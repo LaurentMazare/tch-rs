@@ -1,5 +1,5 @@
 #[cfg(test)]
-#[cfg(feature = "autocast-tests")]
+#[cfg(feature = "cuda-tests")]
 mod tests {
     use tch::{autocast, Device, Kind, Tensor};
 

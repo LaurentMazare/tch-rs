@@ -42,6 +42,7 @@ void at_shape(tensor, int64_t *);
 void at_stride(tensor, int64_t *);
 int at_scalar_type(tensor);
 
+void at__amp_non_finite_check_and_unscale(tensor, tensor, tensor);
 
 void at_autocast_clear_cache();
 int at_autocast_decrement_nesting();

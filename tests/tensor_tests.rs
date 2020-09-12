@@ -1,7 +1,29 @@
 use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
+use std::f32;
 use tch::{Device, Tensor};
+
+#[test]
+#[cfg(feature = "cuda-tests")]
+fn amp_non_finite_check_and_unscale() {
+    let mut u = Tensor::of_slice(&[10f32, 20f32]).to_device(Device::Cuda(0));
+    let mut found_inf = Tensor::of_slice(&[0f32]).to_device(Device::Cuda(0));
+    let inv_scale = Tensor::of_slice(&[0.1f32]).to_device(Device::Cuda(0));
+    u.internal_amp_non_finite_check_and_unscale(&mut found_inf, &inv_scale);
+    assert_eq!(Vec::<f32>::from(&u), &[1f32, 2f32]);
+    assert_eq!(Vec::<f32>::from(&found_inf), [0f32]);
+
+    let mut v = Tensor::of_slice(&[1f32, f32::INFINITY]).to_device(Device::Cuda(0));
+    v.internal_amp_non_finite_check_and_unscale(&mut found_inf, &inv_scale);
+    assert_eq!(Vec::<f32>::from(&v), &[0.1, f32::INFINITY]);
+    assert_eq!(Vec::<f32>::from(&found_inf), [1f32]);
+
+    u.internal_amp_non_finite_check_and_unscale(&mut found_inf, &inv_scale);
+    assert_eq!(Vec::<f32>::from(&u), &[0.1, 0.2]);
+    // found_inf is sticky
+    assert_eq!(Vec::<f32>::from(&found_inf), [1f32]);
+}
 
 #[test]
 fn assign_ops() {

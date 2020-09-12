@@ -339,6 +339,41 @@ impl Tensor {
         Ok(())
     }
 
+    /// Unscale tensor while checking for infinities.
+    ///
+    /// `found_inf` is a singleton tensor that is used to record the
+    /// presence of infinite values. `inv_scale` is a scalar containing
+    /// the inverse scaling factor. This method is only available
+    /// for CUDA tensors.
+    pub fn f_internal_amp_non_finite_check_and_unscale(
+        &mut self,
+        found_inf: &mut Tensor,
+        inv_scale: &Tensor,
+    ) -> Result<(), TchError> {
+        unsafe_torch_err!(at__amp_non_finite_check_and_unscale(
+            self.c_tensor,
+            found_inf.c_tensor,
+            inv_scale.c_tensor
+        ));
+
+        Ok(())
+    }
+
+    /// Unscale tensor while checking for infinities.
+    ///
+    /// `found_inf` is a singleton tensor that is used to record the
+    /// presence of infinite values. `inv_scale` is a scalar containing
+    /// the inverse scaling factor. This method is only available
+    /// for CUDA tensors.
+    pub fn internal_amp_non_finite_check_and_unscale(
+        &mut self,
+        found_inf: &mut Tensor,
+        inv_scale: &Tensor,
+    ) {
+        self.f_internal_amp_non_finite_check_and_unscale(found_inf, inv_scale)
+            .unwrap()
+    }
+
     /// Copies `numel` elements from `self` to `dst`.
     pub fn copy_data_u8(&self, dst: &mut [u8], numel: usize) {
         self.f_copy_data_u8(dst, numel).unwrap()
