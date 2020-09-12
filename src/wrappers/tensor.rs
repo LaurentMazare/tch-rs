@@ -342,7 +342,7 @@ impl Tensor {
     /// Unscale tensor while checking for infinities.
     ///
     /// `found_inf` is a singleton tensor that is used to record the
-    /// precense of infinite values. `inv` is a singleton containing
+    /// presence of infinite values. `inv_scale` is a scalar containing
     /// the inverse scaling factor. This method is only available
     /// for CUDA tensors.
     pub fn f_internal_amp_non_finite_check_and_unscale(
@@ -362,7 +362,7 @@ impl Tensor {
     /// Unscale tensor while checking for infinities.
     ///
     /// `found_inf` is a singleton tensor that is used to record the
-    /// precense of infinite values. `inv` is a singleton containing
+    /// presence of infinite values. `inv_scale` is a scalar containing
     /// the inverse scaling factor. This method is only available
     /// for CUDA tensors.
     pub fn internal_amp_non_finite_check_and_unscale(
