@@ -58,6 +58,11 @@ extern "C" {
         elt_size_in_bytes: size_t,
     );
     pub fn at_scalar_type(arg: *mut C_tensor) -> c_int;
+    pub fn at__amp_non_finite_check_and_unscale(
+        t: *mut C_tensor,
+        found_inf: *mut C_tensor,
+        inf_scale: *mut C_tensor,
+    );
     pub fn at_autocast_clear_cache();
     pub fn at_autocast_decrement_nesting() -> c_int;
     pub fn at_autocast_increment_nesting() -> c_int;
