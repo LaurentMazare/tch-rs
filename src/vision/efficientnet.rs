@@ -16,6 +16,7 @@ pub struct BlockArgs {
     stride: i64,
 }
 
+#[allow(clippy::many_single_char_names)]
 fn ba(k: i64, r: i64, i: i64, o: i64, er: i64, sr: f64, s: i64) -> BlockArgs {
     BlockArgs {
         kernel_size: k,
@@ -67,6 +68,7 @@ impl Params {
 }
 
 // Conv2D with same padding.
+#[allow(clippy::many_single_char_names)]
 fn conv2d(vs: nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl Module {
     let conv2d = nn::conv2d(vs, i, o, k, c);
     let s = c.stride;
