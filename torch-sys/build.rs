@@ -135,10 +135,10 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool) {
+fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
-    let cuda_dependency = if use_cuda {
+    let cuda_dependency = if use_cuda || use_hip {
         "libtch/dummy_cuda_dependency.cpp"
     } else {
         "libtch/fake_cuda_dependency.cpp"
@@ -210,6 +210,8 @@ fn main() {
         // flags: -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
         let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
             || libtorch.join("lib").join("torch_cuda.dll").exists();
+        let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
+            || libtorch.join("lib").join("torch_hip.dll").exists();
         println!(
             "cargo:rustc-link-search=native={}",
             libtorch.join("lib").display()
@@ -218,16 +220,22 @@ fn main() {
         if env_var_rerun("LIBTORCH_USE_CMAKE").is_ok() {
             cmake(&libtorch)
         } else {
-            make(&libtorch, use_cuda)
+            make(&libtorch, use_cuda, use_hip)
         }
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
             println!("cargo:rustc-link-lib=torch_cuda");
         }
+        if use_hip {
+            println!("cargo:rustc-link-lib=torch_hip");
+        }
         println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=c10");
+        if use_hip {
+            println!("cargo:rustc-link-lib=c10_hip");
+        }
 
         let target = env::var("TARGET").unwrap();
 
