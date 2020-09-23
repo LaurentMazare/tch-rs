@@ -19,6 +19,7 @@ pub enum IValue {
     DoubleList(Vec<f64>),
     BoolList(Vec<bool>),
     String(String),
+    StringList(Vec<String>),
     TensorList(Vec<crate::Tensor>),
     GenericList(Vec<IValue>),
     // We use a vec to represent dictionaries as f64 does not implement
@@ -70,6 +71,7 @@ impl_from!(Tensor, Tensor);
 impl_from!(Vec<i64>, IntList);
 impl_from!(Vec<f64>, DoubleList);
 impl_from!(Vec<bool>, BoolList);
+impl_from!(Vec<String>, StringList);
 impl_from!(Vec<crate::Tensor>, TensorList);
 impl_from!(Vec<IValue>, GenericList);
 impl_from!(Vec<(IValue, IValue)>, GenericDict);
@@ -124,6 +126,14 @@ impl IValue {
             IValue::String(string) => {
                 let c_str = std::ffi::CString::new(string.as_str())?;
                 ati_string(c_str.as_ptr())
+            }
+            IValue::StringList(strings) => {
+                let mut v = vec![];
+                for s in strings {
+                    v.push(std::ffi::CString::new(s.as_str())?);
+                }
+                let v_ptr: Vec<_> = v.iter().map(|s| s.as_ptr()).collect();
+                ati_string_list(v_ptr.as_ptr(), v.len() as c_int)
             }
             IValue::GenericDict(dict) => {
                 let v = dict

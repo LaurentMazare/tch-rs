@@ -870,6 +870,15 @@ ivalue ati_bool_list(char *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_string_list(char **is, int nvalues) {
+  PROTECT(
+    c10::List<string> vec;
+    for (int i = 0; i < nvalues; ++i) vec.push_back(string(is[i]));
+    return new torch::jit::IValue(vec);
+  )
+  return nullptr;
+}
+
 ivalue ati_tensor_list(tensor *is, int nvalues) {
   PROTECT(
     c10::List<at::Tensor> vec;

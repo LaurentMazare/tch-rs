@@ -173,6 +173,7 @@ extern "C" {
     pub fn ati_int_list(v: *const i64, n: c_int) -> *mut CIValue;
     pub fn ati_double_list(v: *const f64, n: c_int) -> *mut CIValue;
     pub fn ati_bool_list(v: *const c_char, n: c_int) -> *mut CIValue;
+    pub fn ati_string_list(v: *const *const c_char, n: c_int) -> *mut CIValue;
     pub fn ati_tensor_list(v: *const *mut C_tensor, n: c_int) -> *mut CIValue;
 
     // Type query

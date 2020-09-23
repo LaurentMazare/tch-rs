@@ -85,15 +85,14 @@ fn profiling_mode() {
     assert_eq!(tch::jit::get_profiling_mode(), true);
 }
 
-/*
 #[test]
 fn jit5() {
     let foo = tch::CModule::load("tests/foo5.pt").unwrap();
     let result = foo
-        .forward_is(&[IValue::GenericList(vec![
-            IValue::from("foo"),
-            IValue::from("bar"),
-            IValue::from("foobar"),
+        .forward_is(&[IValue::StringList(vec![
+            "foo".to_string(),
+            "bar".to_string(),
+            "foobar".to_string(),
         ])])
         .unwrap();
     assert_eq!(
@@ -105,4 +104,3 @@ fn jit5() {
         ])
     );
 }
-*/
