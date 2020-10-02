@@ -472,17 +472,17 @@ optimizer ato_adam(double learning_rate,
 }
 
 optimizer ato_adamw(double learning_rate,
-                   double beta1,
-                   double beta2,
-                   double weight_decay) {
-    PROTECT(
-            auto options =
-                         torch::optim::AdamWOptions(learning_rate)
-                                 .betas(std::tuple<double, double>(beta1, beta2))
-                                 .weight_decay(weight_decay);
+                    double beta1,
+                    double beta2,
+                    double weight_decay) {
+  PROTECT(
+    auto options =
+      torch::optim::AdamWOptions(learning_rate)
+        .betas(std::tuple<double, double>(beta1, beta2))
+        .weight_decay(weight_decay);
     return new torch::optim::AdamW(vector<torch::Tensor>(), options);
-    )
-    return nullptr;
+  )
+  return nullptr;
 }
 
 optimizer ato_rms_prop(double learning_rate,
