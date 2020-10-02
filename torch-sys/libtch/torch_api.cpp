@@ -471,6 +471,20 @@ optimizer ato_adam(double learning_rate,
   return nullptr;
 }
 
+optimizer ato_adamw(double learning_rate,
+                   double beta1,
+                   double beta2,
+                   double weight_decay) {
+    PROTECT(
+            auto options =
+                         torch::optim::AdamWOptions(learning_rate)
+                                 .betas(std::tuple<double, double>(beta1, beta2))
+                                 .weight_decay(weight_decay);
+    return new torch::optim::AdamW(vector<torch::Tensor>(), options);
+    )
+    return nullptr;
+}
+
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,
@@ -527,6 +541,16 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
           else throw std::invalid_argument("unexpected param group type");
       }
     }
+    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+        adamw->lr(learning_rate);
+        for (auto &param_group: t->param_groups()) {
+            torch::optim::OptimizerOptions* d = &(param_group.options());
+            if (auto adamw2 = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+                adamw2->lr(learning_rate);
+            }
+            else throw std::invalid_argument("unexpected param group type");
+        }
+    }
     else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
       rms->lr(learning_rate);
       for (auto &param_group: t->param_groups()) {
@@ -565,6 +589,17 @@ void ato_set_momentum(optimizer t, double momentum) {
           }
           else throw std::invalid_argument("unexpected param group type");
       }
+    }
+    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+        auto betas = adamw->betas();
+        adamw->betas(std::tuple<double, double>(momentum, get<1>(betas)));
+        for (auto &param_group: t->param_groups()) {
+            torch::optim::OptimizerOptions* d = &(param_group.options());
+            if (auto adamw2 = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+                adamw2->betas(std::tuple<double, double>(momentum, get<1>(betas)));
+            }
+            else throw std::invalid_argument("unexpected param group type");
+        }
     }
     else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
       for (auto &param_group: t->param_groups()) {

@@ -104,6 +104,10 @@ optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
                    double weight_decay);
+optimizer ato_adamw(double learning_rate,
+                   double beta1,
+                   double beta2,
+                   double weight_decay);
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,

@@ -20,6 +20,11 @@ impl COptimizer {
         Ok(COptimizer { c_optimizer })
     }
 
+    pub fn adamw(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Result<COptimizer, TchError> {
+        let c_optimizer = unsafe_torch_err!(torch_sys::ato_adamw(lr, beta1, beta2, wd));
+        Ok(COptimizer { c_optimizer })
+    }
+
     // Maybe we should use the builder pattern to provide default values for these ?
     pub fn rms_prop(
         lr: f64,
