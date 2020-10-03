@@ -3,14 +3,14 @@ use super::var_store::{VarStore, Variables};
 use crate::wrappers::optimizer::COptimizer;
 use crate::{TchError, Tensor};
 use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
 
 /// An optimizer to run gradient descent.
-#[derive(Debug)]
-pub struct Optimizer<T> {
+pub struct Optimizer {
     opt: COptimizer,
     variables: Arc<Mutex<Variables>>,
-    variables_in_optimizer: usize,
-    config: T,
+    variables_in_optimizer: HashSet<String>,
+    partition_fun: Box<dyn Fn(&str) -> usize>,
 }
 
 /// Optimizer configurations. These configs can be used to build optimizer.
@@ -21,15 +21,76 @@ where
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError>;
 
     /// Builds an optimizer with the specified learning rate handling variables stored in `vs`.
-    fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer<Self>, TchError> {
+    fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer, TchError> {
+        self.build_with_groups(vs, lr, |_| 0)
+    }
+
+    /// Builds an optimizer, partitioning variables into groups.
+    ///
+    /// This function builds an optimizer, dividing variables in parameter
+    /// groups defined by the `partition_fun` closure. For example:
+    ///
+    /// ```
+    /// use tch::Device;
+    /// use tch::nn::{Adam, OptimizerConfig, VarStore};
+    ///
+    /// let adam = Adam::default();
+    /// let vs = VarStore::new(Device::Cpu);
+    /// let optimizer = adam.build_with_groups(&vs, 0.01, |var_name| {
+    ///     if var_name.starts_with("classifier") {
+    ///         0
+    ///     } else if var_name.starts_with("encoder") {
+    ///         1
+    ///     } else { unimplemented!() }
+    /// });
+    /// ```
+    ///
+    /// Would create an optimizer where all trainable variables that
+    /// start with the name *classifier* are put in parameter group *0*,
+    /// whereas those starting with *encoder* are put in parameter group
+    /// *1*.
+    ///
+    /// Initially all parameter groups have the same learning rate `lr`.
+    /// However, the learning rate can be set independently per group with
+    /// `Optimizer::set_lr_group`.
+    fn build_with_groups<F>(
+        self,
+        vs: &VarStore,
+        lr: f64,
+        partition_fun: F,
+    ) -> Result<Optimizer, TchError>
+    where
+        F: 'static + Fn(&str) -> usize,
+    {
         let mut opt = self.build_copt(lr)?;
+
         let v = vs.variables_.lock().unwrap();
-        opt.add_parameters(&v.trainable_variables)?;
+
+        let mut n_groups = 1;
+        let mut variables_in_optimizer = HashSet::new();
+        let mut params_per_group = vec![vec![]];
+        for (variable_name, tensor) in &v.trainable_variables {
+            let group = partition_fun(variable_name);
+            if group >= n_groups {
+                n_groups = group + 1;
+                params_per_group.resize_with(n_groups, Default::default);
+            }
+
+            params_per_group[group].push(tensor.shallow_clone());
+            variables_in_optimizer.insert(variable_name.clone());
+        }
+
+        opt.ensure_n_parameter_groups(n_groups)?;
+
+        for group in 0..n_groups {
+            opt.add_parameters(group, &params_per_group[group])?;
+        }
+
         Ok(Optimizer {
             opt,
             variables: vs.variables_.clone(),
-            variables_in_optimizer: v.trainable_variables.len(),
-            config: self,
+            variables_in_optimizer,
+            partition_fun: Box::new(partition_fun),
         })
     }
 }
@@ -174,16 +235,34 @@ impl OptimizerConfig for RmsProp {
     }
 }
 
-impl<T> Optimizer<T> {
+impl Optimizer {
     fn add_missing_variables(&mut self) {
         let v = self.variables.lock().unwrap();
-        let missing_variables = v.trainable_variables.len() - self.variables_in_optimizer;
 
-        if missing_variables > 0 {
-            self.opt
-                .add_parameters(&v.trainable_variables[self.variables_in_optimizer..])
-                .unwrap();
-            self.variables_in_optimizer = v.trainable_variables.len();
+        if self.variables_in_optimizer.len() < v.trainable_variables.len() {
+            let mut params_per_group: Vec<Vec<Tensor>> = Vec::new();
+            let mut n_groups = 0;
+            for (variable_name, tensor) in &v.trainable_variables {
+                if !self.variables_in_optimizer.contains(variable_name) {
+                    let group = (self.partition_fun)(variable_name);
+
+                    if group >= n_groups {
+                        n_groups = group + 1;
+                        params_per_group.resize_with(n_groups, Default::default);
+                    }
+
+                    params_per_group[group].push(tensor.shallow_clone());
+                    self.variables_in_optimizer.insert(variable_name.clone());
+                }
+            }
+
+            self.opt.ensure_n_parameter_groups(n_groups).unwrap();
+
+            for group in 0..n_groups {
+                self.opt
+                    .add_parameters(group, &params_per_group[group])
+                    .unwrap();
+            }
         }
     }
 
@@ -196,7 +275,7 @@ impl<T> Optimizer<T> {
     /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
         let v = self.variables.lock().unwrap();
-        for tensor in v.trainable_variables.iter() {
+        for tensor in v.trainable_variables.values() {
             let _t = tensor.grad().clamp_(-max, max);
         }
     }
@@ -231,8 +310,18 @@ impl<T> Optimizer<T> {
         self.opt.set_learning_rate(lr).unwrap()
     }
 
+    /// Sets the optimizer learning rate for a group.
+    pub fn set_lr_group(&mut self, group: usize, lr: f64) {
+        self.opt.set_learning_rate_group(group, lr).unwrap()
+    }
+
     /// Sets the optimizer momentum.
     pub fn set_momentum(&mut self, m: f64) {
         self.opt.set_momentum(m).unwrap()
+    }
+
+    /// Sets the optimizer momentum of a group.
+    pub fn set_momentum_group(&mut self, group: usize, m: f64) {
+        self.opt.set_momentum_group(group, m).unwrap()
     }
 }

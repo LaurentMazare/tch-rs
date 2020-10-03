@@ -58,7 +58,7 @@ impl SparseAdam {
             .lock()
             .unwrap()
             .trainable_variables
-            .iter()
+            .values()
             .map(|x| Buffer::new(&x.size()))
             .collect();
 
@@ -82,7 +82,7 @@ impl SparseAdam {
         let mut vars = self.vars.lock().unwrap();
 
         // iterate through all trainable variables
-        for (tensor, buffer) in vars.trainable_variables.iter_mut().zip(&mut self.buffers) {
+        for (tensor, buffer) in vars.trainable_variables.values_mut().zip(&mut self.buffers) {
             let mut grad = tensor.grad();
 
             // calculate both bias correction values
@@ -152,7 +152,7 @@ impl SparseAdam {
     // zero the gradient of all trainable variables
     pub fn zero_grad(&mut self) {
         let mut vars = self.vars.lock().unwrap();
-        for var in &mut vars.trainable_variables {
+        for var in &mut vars.trainable_variables.values_mut() {
             var.zero_grad();
         }
     }

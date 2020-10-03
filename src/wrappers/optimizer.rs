@@ -54,11 +54,19 @@ impl COptimizer {
         Ok(COptimizer { c_optimizer })
     }
 
-    pub fn add_parameters(&mut self, ts: &[Tensor]) -> Result<(), TchError> {
-        let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
+    pub fn add_parameters<'a, I>(&mut self, group: usize, ts: I) -> Result<(), TchError>
+    where
+        I: IntoIterator<Item = &'a Tensor>,
+    {
+        let ts: Vec<_> = ts.into_iter().map(|x| x.c_tensor).collect();
         unsafe_torch_err!({
-            torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int)
+            torch_sys::ato_add_parameters(self.c_optimizer, group, ts.as_ptr(), ts.len() as c_int)
         });
+        Ok(())
+    }
+
+    pub fn ensure_n_parameter_groups(&mut self, n_groups: usize) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_ensure_n_parameter_groups(self.c_optimizer, n_groups));
         Ok(())
     }
 
@@ -67,8 +75,26 @@ impl COptimizer {
         Ok(())
     }
 
+    pub fn set_learning_rate_group(&mut self, group: usize, lr: f64) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_learning_rate_group(
+            self.c_optimizer,
+            group,
+            lr
+        ));
+        Ok(())
+    }
+
     pub fn set_momentum(&mut self, m: f64) -> Result<(), TchError> {
         unsafe_torch_err!(torch_sys::ato_set_momentum(self.c_optimizer, m));
+        Ok(())
+    }
+
+    pub fn set_momentum_group(&mut self, group: usize, m: f64) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_momentum_group(
+            self.c_optimizer,
+            group,
+            m
+        ));
         Ok(())
     }
 

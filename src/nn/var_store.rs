@@ -14,7 +14,7 @@ const SEP: char = '.';
 #[derive(Debug)]
 pub struct Variables {
     pub named_variables: HashMap<String, Tensor>,
-    pub trainable_variables: Vec<Tensor>,
+    pub trainable_variables: HashMap<String, Tensor>,
 }
 
 /// A VarStore is used to store variables used by one or multiple layers.
@@ -46,7 +46,7 @@ impl VarStore {
     pub fn new(device: Device) -> VarStore {
         let variables = Variables {
             named_variables: HashMap::new(),
-            trainable_variables: Vec::new(),
+            trainable_variables: HashMap::new(),
         };
         VarStore {
             variables_: Arc::new(Mutex::new(variables)),
@@ -72,12 +72,12 @@ impl VarStore {
     }
 
     /// Returns all the trainable variables for this var-store.
-    pub fn trainable_variables(&self) -> Vec<Tensor> {
+    pub fn trainable_variables(&self) -> HashMap<String, Tensor> {
         let variables = self.variables_.lock().unwrap();
         variables
             .trainable_variables
             .iter()
-            .map(|v| v.shallow_clone())
+            .map(|(k, v)| (k.clone(), v.shallow_clone()))
             .collect()
     }
 
@@ -172,7 +172,7 @@ impl VarStore {
     /// anymore.
     pub fn freeze(&mut self) {
         let variables = self.variables_.lock().unwrap();
-        for variable in variables.trainable_variables.iter() {
+        for variable in variables.trainable_variables.values() {
             let _v = variable.set_requires_grad(false);
         }
     }
@@ -182,7 +182,7 @@ impl VarStore {
     /// Gradients for the variables in this store are tracked again.
     pub fn unfreeze(&mut self) {
         let variables = self.variables_.lock().unwrap();
-        for variable in variables.trainable_variables.iter() {
+        for variable in variables.trainable_variables.values() {
             let _v = variable.set_requires_grad(true);
         }
     }
@@ -256,7 +256,9 @@ impl<'a> Path<'a> {
             tensor
         };
         if trainable {
-            variables.trainable_variables.push(tensor.shallow_clone());
+            variables
+                .trainable_variables
+                .insert(path.clone(), tensor.shallow_clone());
         };
         variables
             .named_variables
@@ -282,7 +284,9 @@ impl<'a> Path<'a> {
             tensor
         };
         if trainable {
-            variables.trainable_variables.push(tensor.shallow_clone());
+            variables
+                .trainable_variables
+                .insert(path.clone(), tensor.shallow_clone());
         }
         variables
             .named_variables
