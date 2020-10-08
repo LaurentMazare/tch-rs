@@ -213,8 +213,8 @@ impl crate::Tensor {
             let file = zip.by_index(i).unwrap();
             let name = {
                 let name = file.name();
-                if name.ends_with(NPY_SUFFIX) {
-                    name[..name.len() - NPY_SUFFIX.len()].to_owned()
+                if let Some(stripped) = name.strip_suffix(NPY_SUFFIX) {
+                    stripped.to_owned()
                 } else {
                     name.to_owned()
                 }

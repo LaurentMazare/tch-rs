@@ -144,7 +144,7 @@ impl Model {
             let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
             state = state_;
             let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
-            loss = loss + output.nll_loss(&target_tensor);
+            loss += output.nll_loss(&target_tensor);
             let (_, output) = output.topk(1, -1, true, true);
             if self.decoder_eos == i64::from(&output) as usize {
                 break;

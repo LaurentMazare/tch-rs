@@ -9,7 +9,7 @@ use anyhow::{ensure, Result};
 use tch::nn::ModuleT;
 use tch::vision::image;
 use tch::Tensor;
-const CONFIG_NAME: &'static str = "examples/yolo/yolo-v3.cfg";
+const CONFIG_NAME: &str = "examples/yolo/yolo-v3.cfg";
 const CONFIDENCE_THRESHOLD: f64 = 0.5;
 const NMS_THRESHOLD: f64 = 0.4;
 

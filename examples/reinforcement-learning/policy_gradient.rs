@@ -10,7 +10,7 @@ use super::gym_env::{GymEnv, Step};
 use tch::{nn, nn::OptimizerConfig, Kind::Float, Tensor};
 
 fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
-    let nin = input_shape.iter().fold(1, |acc, x| acc * x);
+    let nin = input_shape.iter().product();
     nn::seq()
         .add(nn::linear(p / "lin1", nin, 32, Default::default()))
         .add_fn(|xs| xs.tanh())

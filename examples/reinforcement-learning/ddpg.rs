@@ -335,7 +335,7 @@ pub fn run() -> cpython::PyResult<()> {
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
-    let num_obs = env.observation_space().iter().fold(1, |acc, x| acc * x) as usize;
+    let num_obs = env.observation_space().iter().product::<i64>() as usize;
     let num_actions = env.action_space() as usize;
 
     let actor = Actor::new(num_obs, num_actions, ACTOR_LEARNING_RATE);

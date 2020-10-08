@@ -1,4 +1,3 @@
-use tch;
 use tch::{nn, vision, Tensor};
 
 #[test]

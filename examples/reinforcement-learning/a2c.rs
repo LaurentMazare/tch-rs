@@ -9,7 +9,7 @@ use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
 use tch::{nn, nn::OptimizerConfig, Kind::Float, Tensor};
 
-const ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
+const ENV_NAME: &str = "SpaceInvadersNoFrameskip-v4";
 const NPROCS: i64 = 16;
 const NSTEPS: i64 = 5;
 const NSTACK: i64 = 4;

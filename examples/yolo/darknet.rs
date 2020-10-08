@@ -82,17 +82,17 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> Result<Darknet> {
     let mut acc = Accumulator::new();
     for line in BufReader::new(file).lines() {
         let line = line?;
-        if line.is_empty() || line.starts_with("#") {
+        if line.is_empty() || line.starts_with('#') {
             continue;
         }
         let line = line.trim();
-        if line.starts_with("[") {
-            ensure!(line.ends_with("]"), "line does not end with ']' {}", line);
+        if line.starts_with('[') {
+            ensure!(line.ends_with(']'), "line does not end with ']' {}", line);
             let line = &line[1..line.len() - 1];
             acc.finish_block();
             acc.block_type = Some(line.to_string());
         } else {
-            let key_value: Vec<&str> = line.splitn(2, "=").collect();
+            let key_value: Vec<&str> = line.splitn(2, '=').collect();
             ensure!(key_value.len() == 2, "missing equal {}", line);
             let prev = acc.parameters.insert(
                 key_value[0].trim().to_owned(),
@@ -164,7 +164,7 @@ fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
 }
 
 fn int_list_of_string(s: &str) -> Result<Vec<i64>> {
-    let res: Result<Vec<_>, _> = s.split(",").map(|xs| xs.trim().parse::<i64>()).collect();
+    let res: Result<Vec<_>, _> = s.split(',').map(|xs| xs.trim().parse::<i64>()).collect();
     Ok(res?)
 }
 
@@ -176,7 +176,7 @@ fn usize_of_index(index: usize, i: i64) -> usize {
     }
 }
 
-fn route(index: usize, p: &Vec<(i64, Bl)>, block: &Block) -> Result<(i64, Bl)> {
+fn route(index: usize, p: &[(i64, Bl)], block: &Block) -> Result<(i64, Bl)> {
     let layers = int_list_of_string(block.get("layers")?)?;
     let layers: Vec<usize> = layers
         .into_iter()
@@ -213,7 +213,7 @@ where
     slice.copy_(&src)
 }
 
-fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
+fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &[(i64, i64)]) -> Tensor {
     let (bsize, _channels, height, _width) = xs.size4().unwrap();
     let stride = image_height / height;
     let grid_size = image_height / stride;

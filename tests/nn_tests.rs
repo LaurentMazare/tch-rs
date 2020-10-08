@@ -245,7 +245,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let input = Tensor::of_slice(&[padding_idx]);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [1, output_dim]);
     assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
@@ -274,7 +274,7 @@ fn linear_test(linear_config: nn::LinearConfig) {
     // forward test
     let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
     let expected_var_store_size = if linear_config.bias { 2 } else { 1 };
-    let bias_in_var_store = if linear_config.bias { true } else { false };
+    let bias_in_var_store = linear_config.bias;
 
     let output = linear.forward(&input);
     assert_eq!(output.size(), [batch_dim, output_dim]);

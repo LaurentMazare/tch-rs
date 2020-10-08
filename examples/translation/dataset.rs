@@ -61,7 +61,7 @@ fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Result<Vec<(String
     let mut res: Vec<(String, String)> = vec![];
     for line in BufReader::new(file).lines() {
         let line = line?;
-        match line.split("\t").collect::<Vec<_>>().as_slice() {
+        match line.split('\t').collect::<Vec<_>>().as_slice() {
             [lhs, rhs] => {
                 let lhs = normalize(lhs);
                 let rhs = normalize(rhs);

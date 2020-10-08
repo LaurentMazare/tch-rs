@@ -2,7 +2,7 @@
 //   https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 // The pre-trained weights for the VGG16 model can be downloaded from:
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
-extern crate tch;
+#![allow(clippy::many_single_char_names)]
 use anyhow::{bail, Result};
 use tch::vision::{imagenet, vgg};
 use tch::{nn, nn::OptimizerConfig, Device, Tensor};
@@ -36,15 +36,15 @@ pub fn main() -> Result<()> {
     let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
     net_vs
         .load(&weights)
-        .expect(&format!("Could not load weights file {}", &weights));
+        .unwrap_or_else(|_| panic!("Could not load weights file {}", &weights));
     net_vs.freeze();
 
     let style_img = imagenet::load_image(&style_img)
-        .expect(&format!("Could not load the style file {}", &style_img))
+        .unwrap_or_else(|_| panic!("Could not load the style file {}", &style_img))
         .unsqueeze(0)
         .to_device(device);
     let content_img = imagenet::load_image(&content_img)
-        .expect(&format!("Could not load the content file {}", &content_img))
+        .unwrap_or_else(|_| panic!("Could not load the content file {}", &content_img))
         .unsqueeze(0)
         .to_device(device);
     let max_layer = STYLE_INDEXES.iter().max().unwrap() + 1;
