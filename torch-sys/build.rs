@@ -17,9 +17,8 @@ use std::path::{Path, PathBuf};
 use cmake::Config;
 use curl::easy::Easy;
 use failure::Fallible;
-use zip;
 
-const TORCH_VERSION: &'static str = "1.6.0";
+const TORCH_VERSION: &str = "1.6.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
@@ -46,7 +45,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
     let mut archive = zip::ZipArchive::new(buf)?;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        let outpath = outpath.as_ref().join(file.sanitized_name());
+        let outpath = outpath.as_ref().join(file.name());
         if !(&*file.name()).ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
@@ -80,7 +79,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 .trim()
                 .to_lowercase()
                 .trim_start_matches("cu")
-                .split(".")
+                .split('.')
                 .take(2)
                 .fold("cu".to_string(), |mut acc, curr| {
                     acc += curr;
@@ -152,7 +151,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
         "linux" | "macos" => {
-            let libtorch_cxx11_abi = env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
+            let libtorch_cxx11_abi =
+                env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_string());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)

@@ -1,3 +1,4 @@
+#![allow(clippy::approx_constant, clippy::float_cmp)]
 use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};

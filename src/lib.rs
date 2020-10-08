@@ -1,3 +1,8 @@
+#![allow(
+    clippy::many_single_char_names,
+    clippy::approx_constant,
+    clippy::float_cmp
+)]
 #[macro_use]
 extern crate lazy_static;
 
