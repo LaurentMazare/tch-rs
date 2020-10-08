@@ -1,4 +1,4 @@
-#![allow(clippy::approx_constant, clippy::float_cmp)]
+#![allow(clippy::float_cmp)]
 use tch::{IValue, Kind, Tensor};
 
 #[test]

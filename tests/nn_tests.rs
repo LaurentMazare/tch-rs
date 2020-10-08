@@ -1,4 +1,4 @@
-#![allow(clippy::approx_constant, clippy::float_cmp)]
+#![allow(clippy::float_cmp)]
 use tch::nn::layer_norm;
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
