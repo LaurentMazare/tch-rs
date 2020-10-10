@@ -9,8 +9,9 @@ use std::sync::{Arc, Mutex, MutexGuard};
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '.';
 
-// When the variable store is frozen, trainable still is set to tree,
-// however the tensor is not set to require gradients.
+// When the variable store is frozen, the trainable_variables vector
+// still contains the same tensors however these tensors are set not
+// to require gradients.
 #[derive(Debug)]
 pub struct Variables {
     pub named_variables: HashMap<String, Tensor>,
