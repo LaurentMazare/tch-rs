@@ -140,7 +140,7 @@ fn tensor_index() {
 #[test]
 fn tensor_multi_index() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
-    
+
     let select_1 = Tensor::of_slice(&[0i64, 1, 0]);
     let select_2 = Tensor::of_slice(&[1i64, 0, 0]);
     let select_final = Tensor::stack(&[select_1, select_2], 0);
@@ -148,12 +148,10 @@ fn tensor_multi_index() {
 
     let selected = t.index(&[select_final]); // index only rows
     assert_eq!(selected.size(), &[2, 3, 3]);
-    assert_eq!(Vec::<i64>::from(selected), &[0, 1, 2, 
-                                            3, 4, 5, 
-                                            0, 1, 2, 
-                                            3, 4, 5, 
-                                            0, 1, 2, 
-                                            0, 1, 2]); // after flattening
+    assert_eq!(
+        Vec::<i64>::from(selected),
+        &[0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 0, 1, 2]
+    ); // after flattening
 }
 
 #[test]
@@ -165,4 +163,33 @@ fn tensor_put() {
 
     let updated = t.index_put(&[rows_select, column_select], &values, false);
     assert_eq!(Vec::<i64>::from(updated), &[0i64, 10, 24, 3, 4, 12]); // after flattening
+}
+
+#[test]
+fn indexing_doc() {
+    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let t = tensor.i(1);
+    assert_eq!(Vec::<i64>::from(t), [4, 5, 6]);
+    let t = tensor.i((.., -2));
+    assert_eq!(Vec::<i64>::from(t), [2, 5]);
+
+    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let t = tensor.i((.., 1..));
+    assert_eq!(t.size(), [2, 2]);
+    assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
+    let t = tensor.i((..1, ..));
+    assert_eq!(t.size(), [1, 3]);
+    assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [1, 2, 3]);
+    let t = tensor.i((.., 1..2));
+    assert_eq!(t.size(), [2, 1]);
+    assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 5]);
+    let t = tensor.i((.., 1..=2));
+    assert_eq!(t.size(), [2, 2]);
+    assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
+
+    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let t = tensor.i((NewAxis,));
+    assert_eq!(t.size(), &[1, 2, 3]);
+    let t = tensor.i((.., .., NewAxis));
+    assert_eq!(t.size(), &[2, 3, 1]);
 }
