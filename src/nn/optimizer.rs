@@ -235,4 +235,14 @@ impl<T> Optimizer<T> {
     pub fn set_momentum(&mut self, m: f64) {
         self.opt.set_momentum(m).unwrap()
     }
+
+    /// Sets the optimizer learning rate for a parameter group.
+    pub fn set_lr_group(&mut self, group: usize, lr: f64) {
+        self.opt.set_learning_rate_group(group, lr).unwrap()
+    }
+
+    /// Sets the optimizer momentum.
+    pub fn set_momentum_group(&mut self, group: usize, m: f64) {
+        self.opt.set_momentum_group(group, m).unwrap()
+    }
 }

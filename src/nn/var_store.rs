@@ -36,6 +36,7 @@ pub struct VarStore {
 #[derive(Debug)]
 pub struct Path<'a> {
     path: Vec<String>,
+    group: usize,
     var_store: &'a VarStore,
 }
 
@@ -106,6 +107,7 @@ impl VarStore {
     pub fn root(&self) -> Path {
         Path {
             path: vec![],
+            group: 0,
             var_store: self,
         }
     }
@@ -229,6 +231,15 @@ impl<'a> Path<'a> {
         path.push(s);
         Path {
             path,
+            group: self.group,
+            var_store: self.var_store,
+        }
+    }
+
+    pub fn set_group(&'a self, group: usize) -> Path<'a> {
+        Path {
+            path: self.path.clone(),
+            group,
             var_store: self.var_store,
         }
     }
@@ -249,7 +260,7 @@ impl<'a> Path<'a> {
         }
     }
 
-    fn add_with_group(&self, name: &str, tensor: Tensor, trainable: bool, group: usize) -> Tensor {
+    fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
         let mut variables = self.var_store.variables_.lock().unwrap();
         let path = if variables.named_variables.contains_key(&path) {
@@ -265,7 +276,7 @@ impl<'a> Path<'a> {
         if trainable {
             let var = Var {
                 tensor: tensor.shallow_clone(),
-                group,
+                group: self.group,
             };
             variables.trainable_variables.push(var);
         };
@@ -275,17 +286,12 @@ impl<'a> Path<'a> {
         tensor
     }
 
-    fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
-        self.add_with_group(name, tensor, trainable, 0)
-    }
-
-    fn get_or_add_with_lock_and_group(
+    fn get_or_add_with_lock(
         &self,
         name: &str,
         tensor: Tensor,
         trainable: bool,
         mut variables: MutexGuard<Variables>,
-        group: usize,
     ) -> Tensor {
         let path = self.path(name);
         if let Some(var) = variables.named_variables.get(&path) {
@@ -300,7 +306,7 @@ impl<'a> Path<'a> {
         if trainable {
             let var = Var {
                 tensor: tensor.shallow_clone(),
-                group,
+                group: self.group,
             };
             variables.trainable_variables.push(var);
         }
@@ -308,16 +314,6 @@ impl<'a> Path<'a> {
             .named_variables
             .insert(path, tensor.shallow_clone());
         tensor
-    }
-
-    fn get_or_add_with_lock(
-        &self,
-        name: &str,
-        tensor: Tensor,
-        trainable: bool,
-        variables: MutexGuard<Variables>,
-    ) -> Tensor {
-        self.get_or_add_with_lock_and_group(name, tensor, trainable, variables, 0)
     }
 
     /// Creates a new variable initialized with zeros.
