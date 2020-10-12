@@ -136,7 +136,7 @@ extern "C" {
         wd: f64,
         nesterov: c_int,
     ) -> *mut C_optimizer;
-    pub fn ato_add_parameters(arg: *mut C_optimizer, ts: *const *mut C_tensor, n: c_int);
+    pub fn ato_add_parameters(arg: *mut C_optimizer, ts: *mut C_tensor, group: c_int);
     pub fn ato_set_learning_rate(arg: *mut C_optimizer, lr: f64);
     pub fn ato_set_momentum(arg: *mut C_optimizer, momentum: f64);
     pub fn ato_zero_grad(arg: *mut C_optimizer);

@@ -54,10 +54,9 @@ impl COptimizer {
         Ok(COptimizer { c_optimizer })
     }
 
-    pub fn add_parameters(&mut self, ts: &[Tensor]) -> Result<(), TchError> {
-        let ts: Vec<_> = ts.iter().map(|x| x.c_tensor).collect();
+    pub fn add_parameters(&mut self, t: &Tensor, group: usize) -> Result<(), TchError> {
         unsafe_torch_err!({
-            torch_sys::ato_add_parameters(self.c_optimizer, ts.as_ptr(), ts.len() as c_int)
+            torch_sys::ato_add_parameters(self.c_optimizer, t.c_tensor, group as c_int)
         });
         Ok(())
     }

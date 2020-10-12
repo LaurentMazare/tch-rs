@@ -59,7 +59,7 @@ impl SparseAdam {
             .unwrap()
             .trainable_variables
             .iter()
-            .map(|x| Buffer::new(&x.size()))
+            .map(|x| Buffer::new(&x.tensor.size()))
             .collect();
 
         SparseAdam {
@@ -82,8 +82,8 @@ impl SparseAdam {
         let mut vars = self.vars.lock().unwrap();
 
         // iterate through all trainable variables
-        for (tensor, buffer) in vars.trainable_variables.iter_mut().zip(&mut self.buffers) {
-            let mut grad = tensor.grad();
+        for (var, buffer) in vars.trainable_variables.iter_mut().zip(&mut self.buffers) {
+            let mut grad = var.tensor.grad();
 
             // calculate both bias correction values
             let buffer_idx = buffer.inc();
@@ -128,7 +128,7 @@ impl SparseAdam {
                     .sqrt()
                     + self.eps;
 
-                let _ = tensor.index_add_(0, &indices, &(part1 / part2));
+                let _ = var.tensor.index_add_(0, &indices, &(part1 / part2));
             } else {
                 // update first moment
                 buffer.first_moment *= self.beta1;
@@ -144,7 +144,7 @@ impl SparseAdam {
                 let part2 = (&buffer.second_moment / bias_correction2).sqrt() + self.eps;
 
                 // calculate fraction and update parameters
-                let _ = tensor.addcdiv_(&part1, &part2);
+                let _ = var.tensor.addcdiv_(&part1, &part2);
             }
         }
     }
@@ -153,7 +153,7 @@ impl SparseAdam {
     pub fn zero_grad(&mut self) {
         let mut vars = self.vars.lock().unwrap();
         for var in &mut vars.trainable_variables {
-            var.zero_grad();
+            var.tensor.zero_grad();
         }
     }
 }

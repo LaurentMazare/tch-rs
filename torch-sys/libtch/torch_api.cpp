@@ -521,10 +521,13 @@ optimizer ato_sgd(double learning_rate,
   return nullptr;
 }
 
-void ato_add_parameters(optimizer t, tensor *tensors, int ntensors) {
+void ato_add_parameters(optimizer t, tensor tensor, int group) {
   PROTECT(
-    for (int i = 0; i < ntensors; ++i)
-      t->param_groups()[0].params().push_back(*(tensors[i]));
+    auto &groups = t->param_groups();
+    while (groups.size() <= group) {
+      groups.push_back(torch::optim::OptimizerParamGroup({}, t->defaults().clone()));
+    }
+    groups[group].params().push_back(*tensor);
   )
 }
 

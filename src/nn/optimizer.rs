@@ -24,7 +24,9 @@ where
     fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer<Self>, TchError> {
         let mut opt = self.build_copt(lr)?;
         let v = vs.variables_.lock().unwrap();
-        opt.add_parameters(&v.trainable_variables)?;
+        for var in &v.trainable_variables {
+            opt.add_parameters(&var.tensor, var.group)?;
+        }
         Ok(Optimizer {
             opt,
             variables: vs.variables_.clone(),
@@ -177,12 +179,10 @@ impl OptimizerConfig for RmsProp {
 impl<T> Optimizer<T> {
     fn add_missing_variables(&mut self) {
         let v = self.variables.lock().unwrap();
-        let missing_variables = v.trainable_variables.len() - self.variables_in_optimizer;
-
-        if missing_variables > 0 {
-            self.opt
-                .add_parameters(&v.trainable_variables[self.variables_in_optimizer..])
-                .unwrap();
+        if v.trainable_variables.len() > self.variables_in_optimizer {
+            for var in &v.trainable_variables[self.variables_in_optimizer..] {
+                self.opt.add_parameters(&var.tensor, var.group).unwrap();
+            }
             self.variables_in_optimizer = v.trainable_variables.len();
         }
     }
@@ -196,8 +196,8 @@ impl<T> Optimizer<T> {
     /// Clips gradient value at some specified maximum value.
     pub fn clip_grad_value(&self, max: f64) {
         let v = self.variables.lock().unwrap();
-        for tensor in v.trainable_variables.iter() {
-            let _t = tensor.grad().clamp_(-max, max);
+        for var in v.trainable_variables.iter() {
+            let _t = var.tensor.grad().clamp_(-max, max);
         }
     }
 
