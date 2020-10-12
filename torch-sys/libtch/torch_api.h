@@ -119,9 +119,11 @@ optimizer ato_sgd(double learning_rate,
                   double dampening,
                   double weight_decay,
                   int nesterov);
-void ato_add_parameters(optimizer, tensor, int group);
+void ato_add_parameters(optimizer, tensor, size_t group);
 void ato_set_learning_rate(optimizer, double learning_rate);
 void ato_set_momentum(optimizer, double momentum);
+void ato_set_learning_rate_group(optimizer, size_t group, double learning_rate);
+void ato_set_momentum_group(optimizer, size_t group, double momentum);
 void ato_zero_grad(optimizer);
 void ato_step(optimizer);
 void ato_free(optimizer);

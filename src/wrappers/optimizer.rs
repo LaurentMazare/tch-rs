@@ -1,6 +1,5 @@
 use super::tensor::Tensor;
 use crate::TchError;
-use libc::c_int;
 
 pub struct COptimizer {
     c_optimizer: *mut torch_sys::C_optimizer,
@@ -55,9 +54,7 @@ impl COptimizer {
     }
 
     pub fn add_parameters(&mut self, t: &Tensor, group: usize) -> Result<(), TchError> {
-        unsafe_torch_err!({
-            torch_sys::ato_add_parameters(self.c_optimizer, t.c_tensor, group as c_int)
-        });
+        unsafe_torch_err!({ torch_sys::ato_add_parameters(self.c_optimizer, t.c_tensor, group) });
         Ok(())
     }
 
@@ -66,8 +63,26 @@ impl COptimizer {
         Ok(())
     }
 
+    pub fn set_learning_rate_group(&mut self, group: usize, lr: f64) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_learning_rate_group(
+            self.c_optimizer,
+            group,
+            lr
+        ));
+        Ok(())
+    }
+
     pub fn set_momentum(&mut self, m: f64) -> Result<(), TchError> {
         unsafe_torch_err!(torch_sys::ato_set_momentum(self.c_optimizer, m));
+        Ok(())
+    }
+
+    pub fn set_momentum_group(&mut self, group: usize, m: f64) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_momentum_group(
+            self.c_optimizer,
+            group,
+            m
+        ));
         Ok(())
     }
 

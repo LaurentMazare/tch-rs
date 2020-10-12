@@ -521,7 +521,7 @@ optimizer ato_sgd(double learning_rate,
   return nullptr;
 }
 
-void ato_add_parameters(optimizer t, tensor tensor, int group) {
+void ato_add_parameters(optimizer t, tensor tensor, size_t group) {
   PROTECT(
     auto &groups = t->param_groups();
     while (groups.size() <= group) {
@@ -579,6 +579,28 @@ void ato_set_learning_rate(optimizer t, double learning_rate) {
   )
 }
 
+void ato_set_learning_rate_group(optimizer t, size_t group, double learning_rate) {
+    PROTECT(
+    auto &param_group = t->param_groups().at(group);
+    torch::optim::OptimizerOptions* d = &(param_group.options());
+
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
+        adam->lr(learning_rate);
+    }
+    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+        adamw->lr(learning_rate);
+    }
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
+        rms->lr(learning_rate);
+    }
+    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
+        sgd->lr(learning_rate);
+    }
+    else
+        throw std::invalid_argument("unexpected optimizer");
+    )
+}
+
 void ato_set_momentum(optimizer t, double momentum) {
   PROTECT(
     torch::optim::OptimizerOptions* d = &(t->defaults());
@@ -626,6 +648,30 @@ void ato_set_momentum(optimizer t, double momentum) {
     else
      throw std::invalid_argument("unexpected optimizer");
   )
+}
+
+void ato_set_momentum_group(optimizer t, size_t group, double momentum) {
+    PROTECT(
+    auto &param_group = t->param_groups().at(group);
+    torch::optim::OptimizerOptions* d = &(param_group.options());
+
+    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
+        auto betas = adam->betas();
+        adam->betas(std::tuple<double, double>(momentum, get<1>(betas)));
+    }
+    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
+        auto betas = adamw->betas();
+        adamw->betas(std::tuple<double, double>(momentum, get<1>(betas)));
+    }
+    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
+        rms->momentum(momentum);
+    }
+    if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
+        sgd->momentum(momentum);
+    }
+    else
+        throw std::invalid_argument("unexpected optimizer");
+    )
 }
 
 void ato_zero_grad(optimizer t) {
