@@ -1,5 +1,6 @@
 use std::fs;
-use tch::{nn::Init, nn::VarStore, Device, Kind};
+use tch::nn::OptimizerConfig;
+use tch::{nn::Init, nn::VarStore, Device, Kind, Tensor};
 
 #[test]
 fn var_store_entry() {
@@ -189,4 +190,36 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
     vs2.copy(&vs).unwrap();
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
+}
+
+#[test]
+fn param_group() {
+    tch::manual_seed(42);
+    let vs = VarStore::new(Device::Cpu);
+    let mut opt = tch::nn::Sgd::default().build(&vs, 1.0).unwrap();
+    let root = vs.root();
+    let foo = root.set_group(0).zeros("foo", &[]);
+    let bar = root.set_group(7).zeros("bar", &[]);
+    opt.set_lr(0.1);
+    opt.set_lr_group(0, 0.);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.00");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.42");
+    opt.set_lr_group(0, 0.1);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(0f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "-0.21");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    opt.set_lr_group(7, 0.);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.22f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
 }

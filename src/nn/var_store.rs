@@ -9,13 +9,19 @@ use std::sync::{Arc, Mutex, MutexGuard};
 /// The separator is used to separate path elements in the tensor names.
 const SEP: char = '.';
 
+#[derive(Debug)]
+pub struct Var {
+    pub tensor: Tensor,
+    pub group: usize,
+}
+
 // When the variable store is frozen, the trainable_variables vector
 // still contains the same tensors however these tensors are set not
 // to require gradients.
 #[derive(Debug)]
 pub struct Variables {
     pub named_variables: HashMap<String, Tensor>,
-    pub trainable_variables: Vec<Tensor>,
+    pub trainable_variables: Vec<Var>,
 }
 
 /// A VarStore is used to store variables used by one or multiple layers.
@@ -30,6 +36,7 @@ pub struct VarStore {
 #[derive(Debug)]
 pub struct Path<'a> {
     path: Vec<String>,
+    group: usize,
     var_store: &'a VarStore,
 }
 
@@ -78,7 +85,7 @@ impl VarStore {
         variables
             .trainable_variables
             .iter()
-            .map(|v| v.shallow_clone())
+            .map(|v| v.tensor.shallow_clone())
             .collect()
     }
 
@@ -100,6 +107,7 @@ impl VarStore {
     pub fn root(&self) -> Path {
         Path {
             path: vec![],
+            group: 0,
             var_store: self,
         }
     }
@@ -174,7 +182,7 @@ impl VarStore {
     pub fn freeze(&mut self) {
         let variables = self.variables_.lock().unwrap();
         for variable in variables.trainable_variables.iter() {
-            let _v = variable.set_requires_grad(false);
+            let _v = variable.tensor.set_requires_grad(false);
         }
     }
 
@@ -184,7 +192,7 @@ impl VarStore {
     pub fn unfreeze(&mut self) {
         let variables = self.variables_.lock().unwrap();
         for variable in variables.trainable_variables.iter() {
-            let _v = variable.set_requires_grad(true);
+            let _v = variable.tensor.set_requires_grad(true);
         }
     }
 
@@ -223,6 +231,15 @@ impl<'a> Path<'a> {
         path.push(s);
         Path {
             path,
+            group: self.group,
+            var_store: self.var_store,
+        }
+    }
+
+    pub fn set_group(&'a self, group: usize) -> Path<'a> {
+        Path {
+            path: self.path.clone(),
+            group,
             var_store: self.var_store,
         }
     }
@@ -257,7 +274,11 @@ impl<'a> Path<'a> {
             tensor
         };
         if trainable {
-            variables.trainable_variables.push(tensor.shallow_clone());
+            let var = Var {
+                tensor: tensor.shallow_clone(),
+                group: self.group,
+            };
+            variables.trainable_variables.push(var);
         };
         variables
             .named_variables
@@ -283,7 +304,11 @@ impl<'a> Path<'a> {
             tensor
         };
         if trainable {
-            variables.trainable_variables.push(tensor.shallow_clone());
+            let var = Var {
+                tensor: tensor.shallow_clone(),
+                group: self.group,
+            };
+            variables.trainable_variables.push(var);
         }
         variables
             .named_variables
