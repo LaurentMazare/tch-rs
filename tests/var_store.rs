@@ -192,14 +192,7 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
 }
 
-#[test]
-fn param_group() {
-    tch::manual_seed(42);
-    let vs = VarStore::new(Device::Cpu);
-    let mut opt = tch::nn::Sgd::default().build(&vs, 1.0).unwrap();
-    let root = vs.root();
-    let foo = root.set_group(0).zeros("foo", &[]);
-    let bar = root.set_group(7).zeros("bar", &[]);
+fn check_param_group(mut opt: tch::nn::Optimizer<tch::nn::Sgd>, foo: Tensor, bar: Tensor) {
     opt.set_lr(0.1);
     opt.set_lr_group(0, 0.);
     for _idx in 1..100 {
@@ -222,4 +215,50 @@ fn param_group() {
     }
     assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
     assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+}
+
+#[test]
+fn param_group() {
+    tch::manual_seed(42);
+    let vs = VarStore::new(Device::Cpu);
+    let opt = tch::nn::Sgd::default().build(&vs, 1.0).unwrap();
+    let root = vs.root();
+    let foo = root.set_group(0).zeros("foo", &[]);
+    let bar = root.set_group(7).zeros("bar", &[]);
+    check_param_group(opt, foo, bar);
+}
+
+#[test]
+fn save_and_load_with_group() {
+    let filename = std::env::temp_dir().join(format!("tch-vs-load-grp-{}", std::process::id()));
+    let add = |vs: &tch::nn::Path| {
+        let v = vs.set_group(1).sub("a").sub("b").ones("t2", &[3]);
+        let u = vs.zeros("t1", &[4]);
+        let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
+        let _w = vs
+            .sub("a")
+            .set_group(4)
+            .sub("b")
+            .sub("ccc")
+            .ones("t123", &[3]);
+        (u, v)
+    };
+    let vs1 = VarStore::new(Device::Cpu);
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (mut u1, mut v1) = add(&vs1.root());
+    let (u2, v2) = add(&vs2.root());
+    tch::no_grad(|| {
+        u1 += 42.0;
+        v1 *= 2.0;
+    });
+    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    vs1.save(&filename).unwrap();
+    vs2.load(&filename).unwrap();
+    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    fs::remove_file(filename).unwrap();
 }
