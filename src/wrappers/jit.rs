@@ -307,7 +307,7 @@ impl CModule {
     ) -> Result<CModule, TchError> {
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
-        let buffer_ptr = buffer.as_ptr() as *const i8;
+        let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
         let c_module = unsafe_torch_err!(atm_load_str_on_device(
             buffer_ptr,
             buffer.len(),
