@@ -215,6 +215,21 @@ fn check_param_group(mut opt: tch::nn::Optimizer<tch::nn::Sgd>, foo: Tensor, bar
     }
     assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
     assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    // The following sets the learning rate for both groups.
+    opt.set_lr(0.);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    opt.set_lr(0.1);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.11");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.31");
 }
 
 #[test]
