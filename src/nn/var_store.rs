@@ -221,6 +221,11 @@ impl VarStore {
 }
 
 impl<'a> Path<'a> {
+    /// Get the components of the path.
+    pub fn components(&self) -> impl Iterator<Item = &str> {
+        self.path.iter().map(String::as_str)
+    }
+
     /// Gets a sub-path of the given path.
     pub fn sub<T: std::string::ToString>(&'a self, s: T) -> Path<'a> {
         let s = s.to_string();
