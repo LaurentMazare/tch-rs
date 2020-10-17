@@ -192,7 +192,7 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
 }
 
-fn check_param_group(mut opt: tch::nn::Optimizer<tch::nn::Sgd>, foo: Tensor, bar: Tensor) {
+fn check_param_group(mut opt: tch::nn::Optimizer, foo: Tensor, bar: Tensor) {
     opt.set_lr(0.1);
     opt.set_lr_group(0, 0.);
     for _idx in 1..100 {
