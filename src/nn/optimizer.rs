@@ -245,4 +245,14 @@ impl<T> Optimizer<T> {
     pub fn set_momentum_group(&mut self, group: usize, m: f64) {
         self.opt.set_momentum_group(group, m).unwrap()
     }
+
+    /// Returns all the trainable variables for this optimizer.
+    pub fn trainable_variables(&self) -> Vec<Tensor> {
+        let variables = self.variables.lock().unwrap();
+        variables
+            .trainable_variables
+            .iter()
+            .map(|v| v.tensor.shallow_clone())
+            .collect()
+    }
 }
