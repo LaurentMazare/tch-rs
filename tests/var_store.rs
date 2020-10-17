@@ -3,6 +3,15 @@ use tch::nn::OptimizerConfig;
 use tch::{nn::Init, nn::VarStore, Device, Kind, Tensor};
 
 #[test]
+fn path_components() {
+    let vs = VarStore::new(Device::Cpu);
+    let root = vs.root();
+    let path = root.sub("a");
+    let path = path.sub("test");
+    assert_eq!(path.components().collect::<Vec<_>>(), vec!["a", "test"]);
+}
+
+#[test]
 fn var_store_entry() {
     let vs = VarStore::new(Device::Cpu);
     let root = vs.root();
