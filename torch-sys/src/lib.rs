@@ -141,6 +141,8 @@ extern "C" {
     pub fn ato_set_learning_rate_group(arg: *mut C_optimizer, group: size_t, lr: f64);
     pub fn ato_set_momentum(arg: *mut C_optimizer, momentum: f64);
     pub fn ato_set_momentum_group(arg: *mut C_optimizer, group: size_t, momentum: f64);
+    pub fn ato_set_weight_decay(arg: *mut C_optimizer, weight_decay: f64);
+    pub fn ato_set_weight_decay_group(arg: *mut C_optimizer, group: size_t, weight_decay: f64);
     pub fn ato_zero_grad(arg: *mut C_optimizer);
     pub fn ato_step(arg: *mut C_optimizer);
     pub fn ato_free(arg: *mut C_optimizer);
