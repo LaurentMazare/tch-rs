@@ -54,7 +54,11 @@ impl COptimizer {
     }
 
     pub fn add_parameters(&mut self, t: &Tensor, group: usize) -> Result<(), TchError> {
-        unsafe_torch_err!({ torch_sys::ato_add_parameters(self.c_optimizer, t.c_tensor, group) });
+        unsafe_torch_err!(torch_sys::ato_add_parameters(
+            self.c_optimizer,
+            t.c_tensor,
+            group
+        ));
         Ok(())
     }
 
@@ -82,6 +86,27 @@ impl COptimizer {
             self.c_optimizer,
             group,
             m
+        ));
+        Ok(())
+    }
+
+    pub fn set_weight_decay(&mut self, weight_decay: f64) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_weight_decay(
+            self.c_optimizer,
+            weight_decay
+        ));
+        Ok(())
+    }
+
+    pub fn set_weight_decay_group(
+        &mut self,
+        group: usize,
+        weight_decay: f64,
+    ) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::ato_set_weight_decay_group(
+            self.c_optimizer,
+            group,
+            weight_decay
         ));
         Ok(())
     }

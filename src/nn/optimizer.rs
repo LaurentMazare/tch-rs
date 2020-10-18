@@ -245,4 +245,16 @@ impl<T> Optimizer<T> {
     pub fn set_momentum_group(&mut self, group: usize, m: f64) {
         self.opt.set_momentum_group(group, m).unwrap()
     }
+
+    /// Sets the optimizer weight decay.
+    pub fn set_weight_decay(&mut self, weight_decay: f64) {
+        self.opt.set_weight_decay(weight_decay).unwrap()
+    }
+
+    /// Sets the optimizer weight decay.
+    pub fn set_weight_decay_group(&mut self, group: usize, weight_decay: f64) {
+        self.opt
+            .set_weight_decay_group(group, weight_decay)
+            .unwrap()
+    }
 }
