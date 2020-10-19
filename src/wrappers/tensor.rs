@@ -448,6 +448,26 @@ impl Tensor {
         Ok(Tensor { c_tensor })
     }
 
+    /// Creates a tensor from data that is assumed to be initialized.
+    /// Resize operations are now allowed on this tensor without copying the data first.
+    pub fn f_of_blob(data: *const u8, size: &[i64], kind: Kind, device: Device) -> Result<Tensor, TchError> {
+        let data = data as *const c_void;
+        let c_tensor = unsafe_torch_err!(at_tensor_of_blob(
+            data,
+            size.as_ptr(),
+            size.len(),
+            kind.c_int(),
+            device.c_int()
+        ));
+        Ok(Tensor { c_tensor })
+    }
+
+    /// Creates a tensor from data that is assumed to be initialized.
+    /// Resize operations are now allowed on this tensor without copying the data first.
+    pub unsafe fn of_blob(data: *const u8, size: &[i64], kind: Kind, device: Device) -> Tensor {
+        Self::f_of_blob(data, size, kind, device).unwrap()
+    }
+
     /// Converts some byte data to a tensor with some specified kind and shape.
     pub fn of_data_size(data: &[u8], size: &[i64], kind: Kind) -> Tensor {
         Self::f_of_data_size(data, size, kind).unwrap()

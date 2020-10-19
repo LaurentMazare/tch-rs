@@ -28,6 +28,7 @@ typedef void *ivalue;
 char *get_and_reset_last_err(); // thread-local
 void at_manual_seed(int64_t);
 tensor at_new_tensor();
+tensor at_tensor_of_blob(void *data, int64_t *dims, size_t ndims, int type, int device);
 tensor at_tensor_of_data(void *vs, int64_t *dims, size_t ndims, size_t element_size_in_bytes, int type);
 void at_copy_data(tensor tensor, void *vs, size_t numel, size_t element_size_in_bytes);
 tensor at_shallow_clone(tensor);

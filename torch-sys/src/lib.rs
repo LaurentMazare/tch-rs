@@ -76,6 +76,13 @@ extern "C" {
         elt_size_in_bytes: size_t,
         kind: c_int,
     ) -> *mut C_tensor;
+    pub fn at_tensor_of_blob(
+        vs: *const c_void,
+        dims: *const i64,
+        ndims: size_t,
+        kind: c_int,
+        device: c_int
+    ) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;
     pub fn at_save(arg: *mut C_tensor, filename: *const c_char);
     pub fn at_load(filename: *const c_char) -> *mut C_tensor;
