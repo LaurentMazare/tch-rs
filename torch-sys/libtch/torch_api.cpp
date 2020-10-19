@@ -531,74 +531,46 @@ void ato_add_parameters(optimizer t, tensor tensor, size_t group) {
   )
 }
 
+template <class T>
+void set_lr(optimizer t, double learning_rate) {
+  torch::optim::OptimizerOptions* d = &(t->defaults());
+  if (auto p = dynamic_cast<T*>(d)) {
+    p->lr(learning_rate);
+    for (auto &param_group: t->param_groups()) {
+      torch::optim::OptimizerOptions* d = &(param_group.options());
+      if (auto p2 = dynamic_cast<T*>(d)) {
+        p2->lr(learning_rate);
+      }
+      else throw std::invalid_argument("unexpected param group type");
+    }
+  }
+}
+
 void ato_set_learning_rate(optimizer t, double learning_rate) {
   PROTECT(
-    torch::optim::OptimizerOptions* d = &(t->defaults());
-    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-      adam->lr(learning_rate);
-      for (auto &param_group: t->param_groups()) {
-          torch::optim::OptimizerOptions* d = &(param_group.options());
-          if (auto adam2 = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-              adam2->lr(learning_rate);
-          }
-          else throw std::invalid_argument("unexpected param group type");
-      }
-    }
-    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-        adamw->lr(learning_rate);
-        for (auto &param_group: t->param_groups()) {
-            torch::optim::OptimizerOptions* d = &(param_group.options());
-            if (auto adamw2 = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-                adamw2->lr(learning_rate);
-            }
-            else throw std::invalid_argument("unexpected param group type");
-        }
-    }
-    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-      rms->lr(learning_rate);
-      for (auto &param_group: t->param_groups()) {
-          torch::optim::OptimizerOptions* d = &(param_group.options());
-          if (auto rms2 = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-              rms2->lr(learning_rate);
-          }
-          else throw std::invalid_argument("unexpected param group type");
-      }
-    }
-    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-      sgd->lr(learning_rate);
-      for (auto &param_group: t->param_groups()) {
-          torch::optim::OptimizerOptions* d = &(param_group.options());
-          if (auto sgd2 = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-              sgd2->lr(learning_rate);
-          }
-          else throw std::invalid_argument("unexpected param group type");
-      }
-    }
-    else
-      throw std::invalid_argument("unexpected optimizer");
+    set_lr<torch::optim::AdamOptions>(t, learning_rate);
+    set_lr<torch::optim::AdamWOptions>(t, learning_rate);
+    set_lr<torch::optim::RMSpropOptions>(t, learning_rate);
+    set_lr<torch::optim::SGDOptions>(t, learning_rate);
   )
 }
 
-void ato_set_learning_rate_group(optimizer t, size_t group, double learning_rate) {
-    PROTECT(
-    auto &param_group = t->param_groups().at(group);
-    torch::optim::OptimizerOptions* d = &(param_group.options());
+template <class T>
+void set_lr_group(optimizer t, size_t group, double learning_rate) {
+  auto &param_group = t->param_groups().at(group);
+  torch::optim::OptimizerOptions* d = &(param_group.options());
+  if (auto p = dynamic_cast<T*>(d)) {
+    p->lr(learning_rate);
+  }
+}
 
-    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-        adam->lr(learning_rate);
-    }
-    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-        adamw->lr(learning_rate);
-    }
-    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-        rms->lr(learning_rate);
-    }
-    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-        sgd->lr(learning_rate);
-    }
-    else
-        throw std::invalid_argument("unexpected optimizer");
-    )
+void ato_set_learning_rate_group(optimizer t, size_t group, double learning_rate) {
+  PROTECT(
+    set_lr_group<torch::optim::AdamOptions>(t, group, learning_rate);
+    set_lr_group<torch::optim::AdamWOptions>(t, group, learning_rate);
+    set_lr_group<torch::optim::RMSpropOptions>(t, group, learning_rate);
+    set_lr_group<torch::optim::SGDOptions>(t, group, learning_rate);
+  )
 }
 
 void ato_set_momentum(optimizer t, double momentum) {
@@ -674,74 +646,46 @@ void ato_set_momentum_group(optimizer t, size_t group, double momentum) {
     )
 }
 
+template <class T>
+void set_weight_decay(optimizer t, double weight_decay) {
+  torch::optim::OptimizerOptions* d = &(t->defaults());
+  if (auto p = dynamic_cast<T*>(d)) {
+    p->weight_decay(weight_decay);
+    for (auto &param_group: t->param_groups()) {
+      torch::optim::OptimizerOptions* d = &(param_group.options());
+      if (auto p2 = dynamic_cast<T*>(d)) {
+        p2->weight_decay(weight_decay);
+      }
+      else throw std::invalid_argument("unexpected param group type");
+    }
+  }
+}
+
 void ato_set_weight_decay(optimizer t, double weight_decay) {
-    PROTECT(
-            torch::optim::OptimizerOptions* d = &(t->defaults());
-    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-        adam->weight_decay(weight_decay);
-        for (auto &param_group: t->param_groups()) {
-            torch::optim::OptimizerOptions* d = &(param_group.options());
-            if (auto adam2 = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-                adam2->weight_decay(weight_decay);
-            }
-            else throw std::invalid_argument("unexpected param group type");
-        }
-    }
-    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-        adamw->weight_decay(weight_decay);
-        for (auto &param_group: t->param_groups()) {
-            torch::optim::OptimizerOptions* d = &(param_group.options());
-            if (auto adamw2 = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-                adamw2->weight_decay(weight_decay);
-            }
-            else throw std::invalid_argument("unexpected param group type");
-        }
-    }
-    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-        rms->weight_decay(weight_decay);
-        for (auto &param_group: t->param_groups()) {
-            torch::optim::OptimizerOptions* d = &(param_group.options());
-            if (auto rms2 = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-                rms2->weight_decay(weight_decay);
-            }
-            else throw std::invalid_argument("unexpected param group type");
-        }
-    }
-    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-        sgd->weight_decay(weight_decay);
-        for (auto &param_group: t->param_groups()) {
-            torch::optim::OptimizerOptions* d = &(param_group.options());
-            if (auto sgd2 = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-                sgd2->weight_decay(weight_decay);
-            }
-            else throw std::invalid_argument("unexpected param group type");
-        }
-    }
-    else
-        throw std::invalid_argument("unexpected optimizer");
-    )
+  PROTECT(
+    set_weight_decay<torch::optim::AdamOptions>(t, weight_decay);
+    set_weight_decay<torch::optim::AdamWOptions>(t, weight_decay);
+    set_weight_decay<torch::optim::RMSpropOptions>(t, weight_decay);
+    set_weight_decay<torch::optim::SGDOptions>(t, weight_decay);
+  )
+}
+
+template <class T>
+void set_weight_decay_group(optimizer t, size_t group, double weight_decay) {
+  auto &param_group = t->param_groups().at(group);
+  torch::optim::OptimizerOptions* d = &(param_group.options());
+  if (auto p = dynamic_cast<T*>(d)) {
+    p->weight_decay(weight_decay);
+  }
 }
 
 void ato_set_weight_decay_group(optimizer t, size_t group, double weight_decay) {
-    PROTECT(
-            auto &param_group = t->param_groups().at(group);
-    torch::optim::OptimizerOptions* d = &(param_group.options());
-
-    if (auto adam = dynamic_cast<torch::optim::AdamOptions*>(d)) {
-        adam->weight_decay(weight_decay);
-    }
-    else if (auto adamw = dynamic_cast<torch::optim::AdamWOptions*>(d)) {
-        adamw->weight_decay(weight_decay);
-    }
-    else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
-        rms->weight_decay(weight_decay);
-    }
-    else if (auto sgd = dynamic_cast<torch::optim::SGDOptions*>(d)) {
-        sgd->weight_decay(weight_decay);
-    }
-    else
-        throw std::invalid_argument("unexpected optimizer");
-    )
+  PROTECT(
+    set_weight_decay_group<torch::optim::AdamOptions>(t, group, weight_decay);
+    set_weight_decay_group<torch::optim::AdamWOptions>(t, group, weight_decay);
+    set_weight_decay_group<torch::optim::RMSpropOptions>(t, group, weight_decay);
+    set_weight_decay_group<torch::optim::SGDOptions>(t, group, weight_decay);
+  )
 }
 
 void ato_zero_grad(optimizer t) {

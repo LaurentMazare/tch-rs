@@ -286,3 +286,34 @@ fn save_and_load_with_group() {
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
     fs::remove_file(filename).unwrap();
 }
+
+#[test]
+fn param_group_weight_decay() {
+    tch::manual_seed(42);
+    let vs = VarStore::new(Device::Cpu);
+    let mut opt = tch::nn::Sgd::default().build(&vs, 0.0).unwrap();
+    opt.set_lr(0.1);
+    let root = vs.root();
+    let foo = root.set_group(0).zeros("foo", &[]);
+    let bar = root.set_group(7).zeros("bar", &[]);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.50");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.50");
+    opt.set_weight_decay(0.1);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.49");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.49");
+    opt.set_weight_decay_group(7, 0.);
+    for _idx in 1..100 {
+        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        opt.backward_step(&loss);
+    }
+    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.30");
+    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.69");
+}
