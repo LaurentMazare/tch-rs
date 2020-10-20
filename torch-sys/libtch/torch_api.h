@@ -124,6 +124,8 @@ void ato_set_learning_rate(optimizer, double learning_rate);
 void ato_set_momentum(optimizer, double momentum);
 void ato_set_learning_rate_group(optimizer, size_t group, double learning_rate);
 void ato_set_momentum_group(optimizer, size_t group, double momentum);
+void ato_set_weight_decay(optimizer t, double weight_decay);
+void ato_set_weight_decay_group(optimizer t, size_t group, double weight_decay);
 void ato_zero_grad(optimizer);
 void ato_step(optimizer);
 void ato_free(optimizer);
