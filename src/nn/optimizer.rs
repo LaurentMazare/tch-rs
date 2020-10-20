@@ -246,6 +246,15 @@ impl<T> Optimizer<T> {
         self.opt.set_momentum_group(group, m).unwrap()
     }
 
+    /// Returns all the trainable variables for this optimizer.
+    pub fn trainable_variables(&self) -> Vec<Tensor> {
+        let variables = self.variables.lock().unwrap();
+        variables
+            .trainable_variables
+            .iter()
+            .map(|v| v.tensor.shallow_clone())
+            .collect()
+
     /// Sets the optimizer weight decay.
     pub fn set_weight_decay(&mut self, weight_decay: f64) {
         self.opt.set_weight_decay(weight_decay).unwrap()
