@@ -254,6 +254,7 @@ impl<T> Optimizer<T> {
             .iter()
             .map(|v| v.tensor.shallow_clone())
             .collect()
+    }
 
     /// Sets the optimizer weight decay.
     pub fn set_weight_decay(&mut self, weight_decay: f64) {
