@@ -80,8 +80,10 @@ extern "C" {
         vs: *const c_void,
         dims: *const i64,
         ndims: size_t,
+        strides: *const i64,
+        nstrides: size_t,
         kind: c_int,
-        device: c_int
+        device: c_int,
     ) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;
     pub fn at_save(arg: *mut C_tensor, filename: *const c_char);
