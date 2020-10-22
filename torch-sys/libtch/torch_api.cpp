@@ -623,7 +623,7 @@ void ato_set_momentum(optimizer t, double momentum) {
 }
 
 void ato_set_momentum_group(optimizer t, size_t group, double momentum) {
-    PROTECT(
+  PROTECT(
     auto &param_group = t->param_groups().at(group);
     torch::optim::OptimizerOptions* d = &(param_group.options());
 
@@ -643,7 +643,7 @@ void ato_set_momentum_group(optimizer t, size_t group, double momentum) {
     }
     else
         throw std::invalid_argument("unexpected optimizer");
-    )
+  )
 }
 
 template <class T>
@@ -1114,7 +1114,7 @@ void ati_to_int_list(ivalue i,
   PROTECT(
     auto vec = i->toIntList();
     if (vec.size() != noutputs) {
-      throw std::invalid_argument("unexpected list size");
+      throw std::invalid_argument("unexpected list<int> size");
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = vec[i];
@@ -1127,7 +1127,7 @@ void ati_to_double_list(ivalue i,
   PROTECT(
     auto vec = i->toDoubleList();
     if (vec.size() != noutputs) {
-      throw std::invalid_argument("unexpected list size");
+      throw std::invalid_argument("unexpected list<double> size");
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = vec[i];
@@ -1140,7 +1140,7 @@ void ati_to_bool_list(ivalue i,
   PROTECT(
     auto vec = i->toBoolList();
     if (vec.size() != noutputs) {
-      throw std::invalid_argument("unexpected list size");
+      throw std::invalid_argument("unexpected list<bool> size");
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = vec[i];
@@ -1153,7 +1153,7 @@ void ati_to_tensor_list(ivalue i,
   PROTECT(
     auto vec = i->toTensorList();
     if (vec.size() != noutputs) {
-      throw std::invalid_argument("unexpected tuple size");
+      throw std::invalid_argument("unexpected list<tensor> size");
     }
     for (int i = 0; i < noutputs; ++i)
       outputs[i] = new torch::Tensor(vec[i]);
