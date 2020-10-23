@@ -28,11 +28,47 @@ struct Config {
     embd_pdrop: f64,
 }
 
+// Weight decay only applies to the weight matrixes in the linear layers
+const NO_WEIGHT_DECAY_GROUP: usize = 0;
+const WEIGHT_DECAY_GROUP: usize = 1;
+
+// Custom linear layer so that different groups can be used for weight
+// and biases.
+#[derive(Debug)]
+struct Linear {
+    pub ws: Tensor,
+    pub bs: Tensor,
+}
+
+impl nn::Module for Linear {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.matmul(&self.ws.tr()) + &self.bs
+    }
+}
+
+fn linear(vs: nn::Path, in_dim: i64, out_dim: i64) -> Linear {
+    let wd = vs.set_group(WEIGHT_DECAY_GROUP);
+    let no_wd = vs.set_group(NO_WEIGHT_DECAY_GROUP);
+    Linear {
+        ws: wd.randn("weight", &[out_dim, in_dim], 0.0, 0.02),
+        bs: no_wd.zeros("bias", &[out_dim]),
+    }
+}
+
+fn linear_no_bias(vs: nn::Path, in_dim: i64, out_dim: i64) -> Linear {
+    let wd = vs.set_group(WEIGHT_DECAY_GROUP);
+    let no_wd = vs.set_group(NO_WEIGHT_DECAY_GROUP);
+    Linear {
+        ws: wd.randn("weight", &[out_dim, in_dim], 0.0, 0.02),
+        bs: no_wd.zeros_no_train("bias", &[out_dim]),
+    }
+}
+
 fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
-    let key = nn::linear(p / "key", cfg.n_embd, cfg.n_embd, Default::default());
-    let query = nn::linear(p / "query", cfg.n_embd, cfg.n_embd, Default::default());
-    let value = nn::linear(p / "value", cfg.n_embd, cfg.n_embd, Default::default());
-    let proj = nn::linear(p / "proj", cfg.n_embd, cfg.n_embd, Default::default());
+    let key = linear(p / "key", cfg.n_embd, cfg.n_embd);
+    let query = linear(p / "query", cfg.n_embd, cfg.n_embd);
+    let value = linear(p / "value", cfg.n_embd, cfg.n_embd);
+    let proj = linear(p / "proj", cfg.n_embd, cfg.n_embd);
     let mask_init =
         Tensor::ones(&[cfg.block_size, cfg.block_size], (Kind::Float, p.device())).tril(0);
     let mask_init = mask_init.view([1, 1, cfg.block_size, cfg.block_size]);
@@ -63,8 +99,8 @@ fn block(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let ln1 = nn::layer_norm(p / "ln1", vec![cfg.n_embd], Default::default());
     let ln2 = nn::layer_norm(p / "ln2", vec![cfg.n_embd], Default::default());
     let attn = causal_self_attention(p, cfg);
-    let lin1 = nn::linear(p / "lin1", cfg.n_embd, 4 * cfg.n_embd, Default::default());
-    let lin2 = nn::linear(p / "lin2", 4 * cfg.n_embd, cfg.n_embd, Default::default());
+    let lin1 = linear(p / "lin1", cfg.n_embd, 4 * cfg.n_embd);
+    let lin2 = linear(p / "lin2", 4 * cfg.n_embd, cfg.n_embd);
     nn::func_t(move |xs, train| {
         let xs = xs + xs.apply(&ln1).apply_t(&attn, train);
         let ys = xs
@@ -78,6 +114,7 @@ fn block(p: &nn::Path, cfg: Config) -> impl ModuleT {
 }
 
 fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
+    let p = &p.set_group(NO_WEIGHT_DECAY_GROUP);
     let tok_emb = nn::embedding(
         p / "tok_emb",
         cfg.vocab_size,
@@ -86,15 +123,7 @@ fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
     );
     let pos_emb = p.zeros("pos_emb", &[1, cfg.block_size, cfg.n_embd]);
     let ln_f = nn::layer_norm(p / "ln_f", vec![cfg.n_embd], Default::default());
-    let head = nn::linear(
-        p / "head",
-        cfg.n_embd,
-        cfg.vocab_size,
-        nn::LinearConfig {
-            bias: false,
-            ..Default::default()
-        },
-    );
+    let head = linear_no_bias(p / "head", cfg.n_embd, cfg.vocab_size);
     let mut blocks = nn::seq_t();
     for block_idx in 0..cfg.n_layer {
         blocks = blocks.add(block(&(p / block_idx), cfg));
@@ -148,7 +177,9 @@ pub fn main() -> Result<()> {
     }
     match args[1].as_str() {
         "train" => {
-            let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
+            let mut opt = nn::AdamW::default().build(&vs, LEARNING_RATE)?;
+            opt.set_weight_decay_group(NO_WEIGHT_DECAY_GROUP, 0.0);
+            opt.set_weight_decay_group(WEIGHT_DECAY_GROUP, 0.1);
             let mut idx = 0;
             for epoch in 1..(1 + EPOCHS) {
                 let mut sum_loss = 0.;
