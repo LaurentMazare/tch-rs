@@ -638,6 +638,18 @@ impl Tensor {
         result.copy_(&self);
         result
     }
+
+    pub fn of_slice2<T, U>(v: &[U]) -> Tensor
+    where
+        T: crate::kind::Element,
+        U: AsRef<[T]>,
+    {
+        let inner: Vec<Tensor> = v
+            .into_iter()
+            .map(|v| Tensor::of_slice(v.as_ref()))
+            .collect();
+        Tensor::stack(&inner, 0)
+    }
 }
 
 impl std::iter::Sum for Tensor {

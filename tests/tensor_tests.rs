@@ -455,3 +455,11 @@ fn strides() {
     let tensor: Tensor = Tensor::ones(&[3, 4, 5, 6, 7, 8], tch::kind::FLOAT_CPU);
     check_stride(&tensor);
 }
+
+#[test]
+fn nested_tensor() {
+    let vec: Vec<Vec<i32>> = vec![vec![1, 2], vec![1, 2], vec![4, 5]];
+    let t = Tensor::of_slice2(&vec);
+    assert_eq!(t.size(), [3, 2]);
+    assert_eq!(Vec::<i32>::from(t.view([-1])), [1, 2, 1, 2, 4, 5]);
+}
