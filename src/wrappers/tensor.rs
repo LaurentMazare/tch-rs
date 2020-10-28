@@ -451,7 +451,7 @@ impl Tensor {
     /// Creates a tensor from data that is assumed to be initialized.
     /// Resize operations are now allowed on this tensor without copying the data first.
     /// # Safety
-    ///   This will panic if `data` is points to invalid data.
+    ///   This will panic if `data` points to invalid data.
     pub unsafe fn f_of_blob(
         data: *const u8,
         size: &[i64],
@@ -475,7 +475,7 @@ impl Tensor {
     /// Creates a tensor from data that is assumed to be initialized.
     /// Resize operations are now allowed on this tensor without copying the data first.
     /// # Safety
-    ///   This will panic if `data` is points to invalid data.
+    ///   This will panic if `data` points to invalid data.
     pub unsafe fn of_blob(
         data: *const u8,
         size: &[i64],
