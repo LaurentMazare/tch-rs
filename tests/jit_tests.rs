@@ -80,6 +80,8 @@ fn jit4() {
 
 #[test]
 fn profiling_mode() {
+    assert_eq!(tch::jit::get_profiling_mode(), true);
+    tch::jit::set_profiling_mode(false);
     assert_eq!(tch::jit::get_profiling_mode(), false);
     tch::jit::set_profiling_mode(true);
     assert_eq!(tch::jit::get_profiling_mode(), true);
