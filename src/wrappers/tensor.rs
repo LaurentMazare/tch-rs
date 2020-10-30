@@ -460,6 +460,7 @@ impl Tensor {
         device: Device,
     ) -> Result<Tensor, TchError> {
         let data = data as *const c_void;
+        #[allow(unused_unsafe)]
         let c_tensor = unsafe_torch_err!(at_tensor_of_blob(
             data,
             size.as_ptr(),

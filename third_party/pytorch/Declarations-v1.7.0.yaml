@@ -85604,6 +85604,67 @@
   has_math_kernel: false
 - name: pow_out
   operator_name: pow
+  overload_name: Tensor_Scalar_out
+  use_c10_dispatcher: with_codegenerated_unboxing_wrapper
+  manual_kernel_registration: false
+  category_override: ''
+  matches_jit_signature: true
+  schema_string: aten::pow.Tensor_Scalar_out(Tensor self, Scalar exponent, *, Tensor(a!) out) -> Tensor(a!)
+  arguments:
+  - allocate: true
+    annotation: a!
+    dynamic_type: Tensor
+    is_nullable: false
+    name: out
+    output: true
+    type: Tensor &
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  schema_order_cpp_signature: Tensor & (const Tensor &, Scalar, Tensor &)
+  schema_order_arguments:
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  - allocate: true
+    annotation: a!
+    dynamic_type: Tensor
+    is_nullable: false
+    name: out
+    output: true
+    type: Tensor &
+  method_of:
+  - Type
+  - namespace
+  mode: native
+  python_module: ''
+  returns:
+  - dynamic_type: Tensor
+    name: out
+    type: Tensor &
+  inplace: false
+  is_factory_method: false
+  abstract: true
+  device_guard: true
+  with_gil: false
+  deprecated: false
+  has_math_kernel: false
+- name: pow_out
+  operator_name: pow
   overload_name: Tensor_Tensor_out
   use_c10_dispatcher: with_codegenerated_unboxing_wrapper
   manual_kernel_registration: false
@@ -85656,6 +85717,54 @@
   - dynamic_type: Tensor
     name: out
     type: Tensor &
+  inplace: false
+  is_factory_method: false
+  abstract: true
+  device_guard: true
+  with_gil: false
+  deprecated: false
+  has_math_kernel: false
+- name: pow
+  operator_name: pow
+  overload_name: Tensor_Scalar
+  use_c10_dispatcher: full
+  manual_kernel_registration: false
+  category_override: ''
+  matches_jit_signature: true
+  schema_string: aten::pow.Tensor_Scalar(Tensor self, Scalar exponent) -> Tensor
+  arguments:
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  schema_order_cpp_signature: Tensor (const Tensor &, Scalar)
+  schema_order_arguments:
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  method_of:
+  - Type
+  - Tensor
+  - namespace
+  mode: native
+  python_module: ''
+  returns:
+  - dynamic_type: Tensor
+    name: result
+    type: Tensor
   inplace: false
   is_factory_method: false
   abstract: true
@@ -85805,115 +85914,6 @@
     type: const Tensor &
   method_of:
   - Type
-  - namespace
-  mode: native
-  python_module: ''
-  returns:
-  - dynamic_type: Tensor
-    name: result
-    type: Tensor
-  inplace: false
-  is_factory_method: false
-  abstract: true
-  device_guard: true
-  with_gil: false
-  deprecated: false
-  has_math_kernel: false
-- name: pow_out
-  operator_name: pow
-  overload_name: Tensor_Scalar_out
-  use_c10_dispatcher: with_codegenerated_unboxing_wrapper
-  manual_kernel_registration: false
-  category_override: ''
-  matches_jit_signature: true
-  schema_string: aten::pow.Tensor_Scalar_out(Tensor self, Scalar exponent, *, Tensor(a!) out) -> Tensor(a!)
-  arguments:
-  - allocate: true
-    annotation: a!
-    dynamic_type: Tensor
-    is_nullable: false
-    name: out
-    output: true
-    type: Tensor &
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  schema_order_cpp_signature: Tensor & (const Tensor &, Scalar, Tensor &)
-  schema_order_arguments:
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  - allocate: true
-    annotation: a!
-    dynamic_type: Tensor
-    is_nullable: false
-    name: out
-    output: true
-    type: Tensor &
-  method_of:
-  - Type
-  - namespace
-  mode: native
-  python_module: ''
-  returns:
-  - dynamic_type: Tensor
-    name: out
-    type: Tensor &
-  inplace: false
-  is_factory_method: false
-  abstract: true
-  device_guard: true
-  with_gil: false
-  deprecated: false
-  has_math_kernel: false
-- name: pow
-  operator_name: pow
-  overload_name: Tensor_Scalar
-  use_c10_dispatcher: full
-  manual_kernel_registration: false
-  category_override: ''
-  matches_jit_signature: true
-  schema_string: aten::pow.Tensor_Scalar(Tensor self, Scalar exponent) -> Tensor
-  arguments:
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  schema_order_cpp_signature: Tensor (const Tensor &, Scalar)
-  schema_order_arguments:
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  method_of:
-  - Type
-  - Tensor
   - namespace
   mode: native
   python_module: ''

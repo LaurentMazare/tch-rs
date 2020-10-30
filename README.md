@@ -16,7 +16,7 @@ The code generation part for the C api on top of libtorch comes from
 
 ## Getting Started
 
-This crate requires the C++ PyTorch library (libtorch) in version *v1.6.0* to be available on
+This crate requires the C++ PyTorch library (libtorch) in version *v1.7.0* to be available on
 your system. You can either install it manually and let the build script know about
 it via the `LIBTORCH` environment variable. If not set, the build script will
 try downloading and extracting a pre-built binary version of libtorch.
@@ -36,7 +36,7 @@ export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
     - Navigate to Control Panel -> View advanced system settings -> Environment variables.
     - Create the `LIBTORCH` variable and set it to `X:\path\to\libtorch`.
     - Append `X:\path\to\libtorch\lib` to the `Path` variable.
-  
+
   If you prefer to temporarily set environment variables, in PowerShell you can run
 ```powershell
 $Env:LIBTORCH = "X:\path\to\libtorch"
