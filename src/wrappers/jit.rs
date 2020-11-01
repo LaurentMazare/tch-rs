@@ -5,6 +5,7 @@ use crate::{TchError, Tensor};
 use libc::{c_int, c_void};
 use std::borrow::Borrow;
 use torch_sys::*;
+use crate::nn::Path;
 
 /// Argument and output values for JIT models.
 #[derive(Debug, PartialEq)]
@@ -403,6 +404,37 @@ impl CModule {
             super::tensor::add_callback
         ));
         Ok(v)
+    }
+}
+
+#[derive(Debug)]
+pub struct TrainableCModule {
+    pub(crate) inner: CModule,
+}
+
+impl TrainableCModule {
+    pub fn load<T: AsRef<std::path::Path>>(module_path: T, path: Path) -> Result<Self, TchError> {
+        let inner = CModule::load_on_device(module_path, path.device())?;
+        for params in inner.named_parameters()? {
+            path.add_tensor(&params.0.replace(".", "_"), params.1)
+        }
+        Ok(TrainableCModule {
+            inner,
+        })
+    }
+
+    pub fn load_data<T: std::io::Read>(data: &mut T, path: Path) -> Result<Self, TchError> {
+        let inner = CModule::load_data_on_device(data, path.device())?;
+        for params in inner.named_parameters()? {
+            path.add_tensor(&params.0.replace(".", "_"), params.1)
+        }
+        Ok(TrainableCModule {
+            inner,
+        })
+    }
+
+    pub fn save<T: AsRef<std::path::Path>>(&self, module_path: T) -> Result<(), TchError>{
+        self.inner.save(module_path)
     }
 }
 
