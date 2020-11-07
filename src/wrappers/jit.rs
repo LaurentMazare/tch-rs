@@ -1,11 +1,10 @@
 //! JIT interface to run model trained/saved using PyTorch Python API.
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind::Kind};
-use crate::{TchError, Tensor};
+use crate::{nn::Path, TchError, Tensor};
 use libc::{c_int, c_void};
 use std::borrow::Borrow;
 use torch_sys::*;
-use crate::nn::Path;
 
 /// Argument and output values for JIT models.
 #[derive(Debug, PartialEq)]
@@ -407,33 +406,43 @@ impl CModule {
     }
 }
 
+/// The trainable version of a jit PyTorch module.
+///
+/// These modules can be created via the
+/// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
 #[derive(Debug)]
 pub struct TrainableCModule {
     pub(crate) inner: CModule,
 }
 
 impl TrainableCModule {
+    /// Loads a PyTorch saved JIT module from a file.
+    ///
+    /// This function also adds the tensors from the JIT module to the VarStore path
+    /// passed as argument so that the module can be trained.
     pub fn load<T: AsRef<std::path::Path>>(module_path: T, path: Path) -> Result<Self, TchError> {
         let inner = CModule::load_on_device(module_path, path.device())?;
-        for params in inner.named_parameters()? {
-            path.add_tensor(&params.0.replace(".", "_"), params.1)
+        for (name, tensor) in inner.named_parameters()? {
+            let requires_grad = tensor.requires_grad();
+            let _t = path.add(&name.replace(".", "_"), tensor, requires_grad);
         }
-        Ok(TrainableCModule {
-            inner,
-        })
+        Ok(TrainableCModule { inner })
     }
 
+    /// Loads a PyTorch saved JIT model from a read instance.
+    ///
+    /// This function also adds the tensors from the JIT module to the VarStore path
+    /// passed as argument so that the module can be trained.
     pub fn load_data<T: std::io::Read>(data: &mut T, path: Path) -> Result<Self, TchError> {
         let inner = CModule::load_data_on_device(data, path.device())?;
-        for params in inner.named_parameters()? {
-            path.add_tensor(&params.0.replace(".", "_"), params.1)
+        for (name, tensor) in inner.named_parameters()? {
+            let requires_grad = tensor.requires_grad();
+            let _t = path.add(&name.replace(".", "_"), tensor, requires_grad);
         }
-        Ok(TrainableCModule {
-            inner,
-        })
+        Ok(TrainableCModule { inner })
     }
 
-    pub fn save<T: AsRef<std::path::Path>>(&self, module_path: T) -> Result<(), TchError>{
+    pub fn save<T: AsRef<std::path::Path>>(&self, module_path: T) -> Result<(), TchError> {
         self.inner.save(module_path)
     }
 }

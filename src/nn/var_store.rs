@@ -265,27 +265,7 @@ impl<'a> Path<'a> {
         }
     }
 
-    pub(crate) fn add_tensor(&self, name: &str, tensor: Tensor) {
-        let path = self.path(name);
-        let mut variables = self.var_store.variables_.lock().unwrap();
-        let path = if variables.named_variables.contains_key(&path) {
-            format!("{}__{}", path, variables.named_variables.len())
-        } else {
-            path
-        };
-        if tensor.requires_grad() {
-            let var = Var {
-                tensor: tensor.shallow_clone(),
-                group: self.group,
-            };
-            variables.trainable_variables.push(var);
-        };
-        variables
-            .named_variables
-            .insert(path, tensor.shallow_clone());
-    }
-
-    fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
+    pub(crate) fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
         let mut variables = self.var_store.variables_.lock().unwrap();
         let path = if variables.named_variables.contains_key(&path) {

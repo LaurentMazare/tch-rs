@@ -1,20 +1,20 @@
-To execute these examples, you will have to unzip the [MNIST data
+To run this example, you will have to unzip the [MNIST data
 files](http://yann.lecun.com/exdb/mnist/) in `data/`.
 
 # Loading and Training a PyTorch Model in Rust
 
-In this tutorial this is illustrated using a demo model that hasn't been pre-trained.
+In this tutorial this is illustrated using a demo model that has not been pre-trained.
 We start by defining and serializing the model using the Python api.
-The resulting model file is later loaded from Rust and trained from mnist dataset.
+The resulting model file is later loaded from Rust and trained on the MNIST dataset.
 
 ## Converting a Python PyTorch Model to Torch Script
 
 There are various ways to create the Torch Script as detailed
 in the original [tutorial](https://pytorch.org/tutorials/advanced/cpp_export.html).
 
-Here we will use tracing. The following python script runs the
-defined model on some random image and uses tracing to create
-the Torch Script file based on this evaluation.
+Here we will use tracing. The following Python script runs the
+defined model on some random image and creates the Torch Script
+file based on this evaluation.
 
 ```python
 import torch
@@ -54,24 +54,37 @@ architecture and the weight values.
 The `model.pt` file can then be loaded and trained from Rust.
 
 ```rust
-fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<(), Box<dyn Error>> {
+fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<()> {
     let vs = VarStore::new(device);
 
     let trainable = TrainableCModule::load("model.pt", vs.root())?;
-    let initial_acc =
-        trainable.batch_accuracy_for_logits(&dataset.test_images.view([-1, 1, 28, 28]), &dataset.test_labels, vs.device(), 1024);
+    let initial_acc = trainable.batch_accuracy_for_logits(
+        &dataset.test_images,
+        &dataset.test_labels,
+        vs.device(),
+        1024,
+    );
     println!("Initial accuracy: {:5.2}%", 100. * initial_acc);
 
     let mut opt = Adam::default().build(&vs, 1e-4)?;
     for epoch in 1..20 {
-        for (images, labels) in dataset.train_iter(128).shuffle().to_device(vs.device()).take(50) {
+        for (images, labels) in dataset
+            .train_iter(128)
+            .shuffle()
+            .to_device(vs.device())
+            .take(50)
+        {
             let loss = trainable
-                .forward_t(&images.view([-1, 1, 28, 28]), true)
+                .forward_t(&images, true)
                 .cross_entropy_for_logits(&labels);
             opt.backward_step(&loss);
         }
-        let test_accuracy =
-            trainable.batch_accuracy_for_logits(&dataset.test_images.view([-1, 1, 28, 28]), &dataset.test_labels, vs.device(), 1024);
+        let test_accuracy = trainable.batch_accuracy_for_logits(
+            &dataset.test_images,
+            &dataset.test_labels,
+            vs.device(),
+            1024,
+        );
         println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
     }
 
@@ -80,20 +93,21 @@ fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<(), Box<dyn
 }
 ```
 
-After model was trained updated Torch Script saved to file `trained_model.pt` 
-Updated script can be loaded to execution later.
+After the model was trained, the updated Torch Script is saved to file `trained_model.pt`. 
+This can be used for executing the module later on either via Python or
+using Rust as per the following.
 
 ```rust
-fn load_trained_and_test_acc(dataset: &Dataset, device: Device) -> Result<(), Box<dyn Error>> {
+fn load_trained_and_test_acc(dataset: &Dataset, device: Device) -> Result<()> {
     let module = CModule::load_on_device("trained_model.pt", device)?;
-    let accuracy = module
-        .batch_accuracy_for_logits(&dataset.test_images.view([-1, 1, 28, 28]), &dataset.test_labels, device, 1024);
+    let accuracy =
+        module.batch_accuracy_for_logits(&dataset.test_images, &dataset.test_labels, device, 1024);
     println!("Updated accuracy: {:5.2}%", 100. * accuracy);
     Ok(())
 }
 ```
 
-Example output:
+Below is the typical output that this example would produce.
 
 ```
 Initial accuracy: 13.39%
