@@ -58,3 +58,9 @@ impl Module for crate::CModule {
         self.forward_ts(&[xs]).unwrap()
     }
 }
+
+impl ModuleT for crate::TrainableCModule {
+    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
+        self.inner.forward_ts(&[xs]).unwrap()
+    }
+}
