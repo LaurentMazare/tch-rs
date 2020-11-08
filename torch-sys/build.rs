@@ -46,6 +46,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> Fallible<()> {
     let mut archive = zip::ZipArchive::new(buf)?;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
+        #[allow(deprecated)]
         let outpath = outpath.as_ref().join(file.sanitized_name());
         if !(&*file.name()).ends_with('/') {
             println!(

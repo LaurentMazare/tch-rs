@@ -644,10 +644,7 @@ impl Tensor {
         T: crate::kind::Element,
         U: AsRef<[T]>,
     {
-        let inner: Vec<Tensor> = v
-            .into_iter()
-            .map(|v| Tensor::of_slice(v.as_ref()))
-            .collect();
+        let inner: Vec<Tensor> = v.iter().map(|v| Tensor::of_slice(v.as_ref())).collect();
         Tensor::stack(&inner, 0)
     }
 }
