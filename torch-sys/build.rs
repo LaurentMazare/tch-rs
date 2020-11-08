@@ -80,7 +80,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 .trim()
                 .to_lowercase()
                 .trim_start_matches("cu")
-                .split(".")
+                .split('.')
                 .take(2)
                 .fold("cu".to_string(), |mut acc, curr| {
                     acc += curr;
@@ -154,7 +154,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
         "linux" | "macos" => {
-            let libtorch_cxx11_abi = env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or("1".to_string());
+            let libtorch_cxx11_abi =
+                env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_string());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)

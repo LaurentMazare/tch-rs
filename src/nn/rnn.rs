@@ -142,7 +142,7 @@ impl RNN for LSTM {
 
     fn seq_init(&self, input: &Tensor, in_state: &LSTMState) -> (Tensor, LSTMState) {
         let LSTMState((h, c)) = in_state;
-        let flat_weights = self.flat_weights.iter().map(|x| x).collect::<Vec<_>>();
+        let flat_weights = self.flat_weights.iter().collect::<Vec<_>>();
         let (output, h, c) = input.lstm(
             &[h, c],
             &flat_weights,

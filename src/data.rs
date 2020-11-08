@@ -206,7 +206,7 @@ impl Iterator for TextDataIter {
                 .iter()
                 .map(|&i| self.data.i(i..i + self.seq_len))
                 .collect();
-            let batch: Vec<_> = batch.iter().map(|b| b).collect();
+            let batch: Vec<_> = batch.iter().collect();
             Some(Tensor::stack(&batch, 0))
         }
     }
