@@ -17,9 +17,8 @@ use std::path::{Path, PathBuf};
 use cmake::Config;
 use curl::easy::Easy;
 use failure::Fallible;
-use zip;
 
-const TORCH_VERSION: &'static str = "1.7.0";
+const TORCH_VERSION: &str = "1.7.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> Fallible<()> {
     let f = fs::File::create(&target_file)?;
