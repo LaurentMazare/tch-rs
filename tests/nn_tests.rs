@@ -273,7 +273,6 @@ fn linear_test(linear_config: nn::LinearConfig) {
     // forward test
     let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
     let expected_var_store_size = if linear_config.bias { 2 } else { 1 };
-    let bias_in_var_store = if linear_config.bias { true } else { false };
 
     let output = linear.forward(&input);
     assert_eq!(output.size(), [batch_dim, output_dim]);
@@ -281,7 +280,7 @@ fn linear_test(linear_config: nn::LinearConfig) {
     assert_eq!(output.size(), [batch_dim, output_dim]);
     assert_eq!(vs.variables().len(), expected_var_store_size);
     assert!(vs.variables().contains_key("weight"));
-    assert_eq!(vs.variables().contains_key("bias"), bias_in_var_store);
+    assert_eq!(vs.variables().contains_key("bias"), linear_config.bias);
 }
 
 #[test]
