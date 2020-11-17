@@ -57,7 +57,7 @@ tensor at_tensor_of_blob(void *data, int64_t *dims, size_t ndims, int64_t *strid
 tensor at_tensor_of_data(void *vs, int64_t *dims, size_t ndims, size_t element_size_in_bytes, int type) {
   PROTECT(
     torch::Tensor tensor = torch::zeros(torch::IntArrayRef(dims, ndims), torch::ScalarType(type));
-    if (element_size_in_bytes != tensor.element_size())
+    if ((int64_t)element_size_in_bytes != tensor.element_size())
       throw std::invalid_argument("incoherent element sizes in bytes");
     void *tensor_data = tensor.data_ptr();
     memcpy(tensor_data, vs, tensor.numel() * element_size_in_bytes);
@@ -68,9 +68,9 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, size_t ndims, size_t element_s
 
 void at_copy_data(tensor tensor, void *vs, size_t numel, size_t elt_size_in_bytes) {
   PROTECT(
-    if (elt_size_in_bytes != tensor->element_size())
+    if ((int64_t)elt_size_in_bytes != tensor->element_size())
       throw std::invalid_argument("incoherent element sizes in bytes");
-    if (numel > tensor->numel())
+    if ((int64_t)numel > tensor->numel())
       throw std::invalid_argument("target numel is larger than tensor numel");
     if (tensor->device().type() != at::kCPU) {
       torch::Tensor tmp_tensor = tensor->to(at::kCPU).contiguous();
@@ -608,6 +608,7 @@ void ato_set_momentum(optimizer t, double momentum) {
         }
     }
     else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
+      rms->momentum(momentum);
       for (auto &param_group: t->param_groups()) {
           torch::optim::OptimizerOptions* d = &(param_group.options());
           if (auto rms2 = dynamic_cast<torch::optim::RMSpropOptions*>(d)) {
