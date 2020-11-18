@@ -378,14 +378,26 @@ impl CModule {
         IValue::of_c(c_ivalue)
     }
 
-    pub fn eval(&mut self) -> Result<(), TchError> {
+    /// Switches the module to evaluation mode.
+    pub fn f_set_eval(&mut self) -> Result<(), TchError> {
         unsafe_torch_err!(atm_eval(self.c_module));
         Ok(())
     }
 
-    pub fn train(&mut self) -> Result<(), TchError> {
+    /// Switches the module to evaluation mode.
+    pub fn set_eval(&mut self) {
+        self.f_set_eval().unwrap();
+    }
+
+    /// Switches the module to training mode.
+    pub fn f_set_train(&mut self) -> Result<(), TchError> {
         unsafe_torch_err!(atm_train(self.c_module));
         Ok(())
+    }
+
+    /// Switches the module to training mode.
+    pub fn set_train(&mut self) {
+        self.f_set_train().unwrap();
     }
 
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
@@ -456,12 +468,24 @@ impl TrainableCModule {
         self.inner.save(module_path)
     }
 
-    pub fn train(&mut self) -> Result<(), TchError> {
-        self.inner.train()
+    /// Switches the module to training mode.
+    pub fn f_set_train(&mut self) -> Result<(), TchError> {
+        self.inner.f_set_train()
     }
 
-    pub fn eval(&mut self) -> Result<(), TchError> {
-        self.inner.eval()
+    /// Switches the module to training mode.
+    pub fn set_train(&mut self) {
+        self.inner.set_train()
+    }
+
+    /// Switches the module to evaluation mode.
+    pub fn f_set_eval(&mut self) -> Result<(), TchError> {
+        self.inner.f_set_eval()
+    }
+
+    /// Switches the module to evaluation mode.
+    pub fn set_eval(&mut self) {
+        self.inner.set_eval()
     }
 }
 

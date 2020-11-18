@@ -7,7 +7,7 @@ use tch::{CModule, Device};
 fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<()> {
     let vs = VarStore::new(device);
     let mut trainable = TrainableCModule::load("model.pt", vs.root())?;
-    trainable.train()?;
+    trainable.set_train();
     let initial_acc = trainable.batch_accuracy_for_logits(
         &dataset.test_images,
         &dataset.test_labels,
@@ -43,7 +43,7 @@ fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<()> {
 
 fn load_trained_and_test_acc(dataset: &Dataset, device: Device) -> Result<()> {
     let mut module = CModule::load_on_device("trained_model.pt", device)?;
-    module.eval()?;
+    module.set_eval();
     let accuracy =
         module.batch_accuracy_for_logits(&dataset.test_images, &dataset.test_labels, device, 1024);
     println!("Updated accuracy: {:5.2}%", 100. * accuracy);
