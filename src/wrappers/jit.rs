@@ -378,6 +378,16 @@ impl CModule {
         IValue::of_c(c_ivalue)
     }
 
+    pub fn eval(&mut self) -> Result<(), TchError> {
+        unsafe_torch_err!(atm_eval(self.c_module));
+        Ok(())
+    }
+
+    pub fn train(&mut self) -> Result<(), TchError> {
+        unsafe_torch_err!(atm_train(self.c_module));
+        Ok(())
+    }
+
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
         unsafe_torch!(atm_to(
             self.c_module,
@@ -444,6 +454,14 @@ impl TrainableCModule {
 
     pub fn save<T: AsRef<std::path::Path>>(&self, module_path: T) -> Result<(), TchError> {
         self.inner.save(module_path)
+    }
+
+    pub fn train(&mut self) -> Result<(), TchError> {
+        self.inner.train()
+    }
+
+    pub fn eval(&mut self) -> Result<(), TchError> {
+        self.inner.eval()
     }
 }
 

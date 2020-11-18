@@ -843,6 +843,18 @@ ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
   return nullptr;
 }
 
+void atm_eval(module m) {
+  PROTECT(
+    m->eval();
+  )
+}
+
+void atm_train(module m) {
+  PROTECT(
+    m->train();
+  )
+}
+
 void atm_free(module m) {
   delete(m);
 }
