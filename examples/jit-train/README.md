@@ -101,7 +101,7 @@ using Rust as per the following.
 ```rust
 fn load_trained_and_test_acc(dataset: &Dataset, device: Device) -> Result<()> {
     let mut module = CModule::load_on_device("trained_model.pt", device)?;
-        module.set_eval();
+    module.set_eval();
     let accuracy =
         module.batch_accuracy_for_logits(&dataset.test_images, &dataset.test_labels, device, 1024);
     println!("Updated accuracy: {:5.2}%", 100. * accuracy);
