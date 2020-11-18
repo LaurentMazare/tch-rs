@@ -159,6 +159,8 @@ ivalue atm_method_(module,
                    char *method_name,
                    ivalue *ivalues,
                    int nivalues);
+void atm_eval(module);
+void atm_train(module);
 void atm_free(module);
 void atm_to(module m, int device, int dtype, bool non_blocking);
 void atm_save(module m, char*);

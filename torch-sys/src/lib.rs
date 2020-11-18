@@ -229,6 +229,8 @@ extern "C" {
         args: *const *mut CIValue,
         n: c_int,
     ) -> *mut CIValue;
+    pub fn atm_eval(m: *mut CModule_);
+    pub fn atm_train(m: *mut CModule_);
     pub fn atm_free(m: *mut CModule_);
     pub fn atm_to(m: *mut CModule_, device: c_int, kind: c_int, non_blocking: bool);
     pub fn atm_save(m: *mut CModule_, filename: *const c_char);
