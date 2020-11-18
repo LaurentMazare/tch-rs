@@ -1,7 +1,7 @@
 //! Devices on which tensor computations are run.
 
 /// A torch device.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Device {
     /// The main CPU device.
     Cpu,
