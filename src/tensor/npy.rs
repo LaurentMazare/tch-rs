@@ -213,11 +213,7 @@ impl crate::Tensor {
             let file = zip.by_index(i).unwrap();
             let name = {
                 let name = file.name();
-                if name.ends_with(NPY_SUFFIX) {
-                    name[..name.len() - NPY_SUFFIX.len()].to_owned()
-                } else {
-                    name.to_owned()
-                }
+                name.strip_suffix(NPY_SUFFIX).unwrap_or(name).to_owned()
             };
             let mut buf_reader = BufReader::new(file);
             let header = read_header(&mut buf_reader)?;
