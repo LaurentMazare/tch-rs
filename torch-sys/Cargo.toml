@@ -16,10 +16,10 @@ license = "MIT/Apache-2.0"
 libc = "0.2.0"
 
 [build-dependencies]
+anyhow = "1.0"
 cc = "1.0"
 cmake = "0.1"
 curl = "0.4.9"
-failure = "0.1"
 zip = "0.5"
 
 [features]
