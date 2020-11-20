@@ -45,7 +45,7 @@ architecture and the trained weight values.
 The `model.pt` file can then be loaded and executed from Rust.
 
 ```rust
-pub fn main() -> failure::Fallible<()> {
+pub fn main() -> anyhow::Result<()> {
     let args: Vec<_> = std::env::args().collect();
     let (model_file, image_file) = match args.as_slice() {
         [_, m, i] => (m.to_owned(), i.to_owned()),
