@@ -82,6 +82,10 @@ Then on each step of the training loop:
 
 
 ```rust
+extern crate tch;
+use tch::nn;
+use tch::Tensor;
+
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
     let x1 = p.zeros("x1", &[dim]);
     let x2 = p.zeros("x2", &[dim]);
@@ -108,7 +112,9 @@ The `nn` api can be used to create neural network architectures, e.g. the follow
 a simple model with one hidden layer and trains it on the MNIST dataset using the Adam optimizer.
 
 ```rust
+extern crate anyhow;
 extern crate tch;
+use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Device};
 
 const IMAGE_DIM: i64 = 784;
@@ -117,16 +123,21 @@ const LABELS: i64 = 10;
 
 fn net(vs: &nn::Path) -> impl Module {
     nn::seq()
-        .add(nn::linear(vs / "layer1", IMAGE_DIM, HIDDEN_NODES, Default::default()))
+        .add(nn::linear(
+            vs / "layer1",
+            IMAGE_DIM,
+            HIDDEN_NODES,
+            Default::default(),
+        ))
         .add_fn(|xs| xs.relu())
         .add(nn::linear(vs, HIDDEN_NODES, LABELS, Default::default()))
 }
 
-pub fn run() -> failure::Fallible<()> {
+pub fn run() -> Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(Device::Cpu);
     let net = net(&vs.root());
-    let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    let mut opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..200 {
         let loss = net
             .forward(&m.train_images)
