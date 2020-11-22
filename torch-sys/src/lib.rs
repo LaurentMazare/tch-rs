@@ -41,6 +41,7 @@ extern "C" {
     pub fn at_get_num_threads() -> c_int;
     pub fn at_set_num_interop_threads(n_threads: c_int);
     pub fn at_set_num_threads(n_threads: c_int);
+    pub fn at_set_qengine(qengine: c_int);
     pub fn at_free(arg: *mut C_tensor);
     pub fn at_run_backward(
         arg: *const *mut C_tensor,
