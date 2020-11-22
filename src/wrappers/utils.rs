@@ -79,3 +79,25 @@ pub fn set_num_interop_threads(n_threads: i32) {
 pub fn set_num_threads(n_threads: i32) {
     unsafe_torch!(torch_sys::at_set_num_threads(n_threads))
 }
+
+/// Quantization engines
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum QEngine {
+    NoQEngine,
+    FBGEMM,
+    QNNPACK,
+}
+
+impl QEngine {
+    fn to_cint(self) -> i32 {
+        match self {
+            QEngine::NoQEngine => 0,
+            QEngine::FBGEMM => 1,
+            QEngine::QNNPACK => 2,
+        }
+    }
+    pub fn set(self) -> Result<(), TchError> {
+        unsafe_torch_err!(torch_sys::at_set_qengine(self.to_cint()));
+        Ok(())
+    }
+}

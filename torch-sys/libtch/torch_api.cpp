@@ -417,6 +417,27 @@ void at_set_num_threads(int n_threads) {
   PROTECT(at::set_num_threads(n_threads);)
 }
 
+void at_set_qengine(int qengine_id) {
+  PROTECT(
+    at::QEngine qengine = at::QEngine::NoQEngine;
+    switch (qengine_id) {
+      case 0:
+        break;
+      case 1:
+        qengine = at::QEngine::FBGEMM;
+        break;
+      case 2:
+        qengine = at::QEngine::QNNPACK;
+        break;
+    }
+    auto qengines = at::globalContext().supportedQEngines();
+    if (std::find(qengines.begin(), qengines.end(), qengine) != qengines.end()) {
+      at::globalContext().setQEngine(qengine);
+    }
+    else throw std::invalid_argument("unsupported qengine");
+  )
+}
+
 tensor at_resize_image(tensor tensor, int out_w, int out_h) {
   PROTECT(
     auto sizes = tensor->sizes();

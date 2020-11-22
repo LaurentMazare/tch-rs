@@ -91,6 +91,8 @@ void at_set_num_interop_threads(int n_threads);
 
 void at_set_num_threads(int n_threads);
 
+void at_set_qengine(int qengine);
+
 void at_free(tensor);
 
 void at_run_backward(tensor *tensors,
