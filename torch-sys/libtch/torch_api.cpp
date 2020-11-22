@@ -379,6 +379,8 @@ bool ends_with(const char *str, const char *suffix) {
 int at_save_image(tensor tensor, char *filename) {
   PROTECT(
     auto sizes = tensor->sizes();
+    if (tensor->device().type() != at::kCPU)
+      throw std::invalid_argument("the input tensor has to be on cpu");
     if (sizes.size() != 3)
       throw std::invalid_argument("invalid number of dimensions, should be 3");
     int h = sizes[0];
@@ -418,6 +420,8 @@ void at_set_num_threads(int n_threads) {
 tensor at_resize_image(tensor tensor, int out_w, int out_h) {
   PROTECT(
     auto sizes = tensor->sizes();
+    if (tensor->device().type() != at::kCPU)
+      throw std::invalid_argument("the input tensor has to be on cpu");
     if (sizes.size() != 3)
       throw std::invalid_argument("invalid number of dimensions, should be 3");
     int h = sizes[0];
