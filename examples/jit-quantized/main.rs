@@ -32,7 +32,7 @@ pub fn main() -> Result<()> {
     // Time inference
     let now = SystemTime::now();
     for _ in 1..10 {
-        image.unsqueeze(0).apply(&model);
+        let _output = image.unsqueeze(0).apply(&model);
     }
     println!(
         "Mean Inference Time: {} ms",

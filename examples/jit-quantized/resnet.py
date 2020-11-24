@@ -3,7 +3,7 @@ import torchvision
 
 
 def save_resnet18_script_module(
-    filename: str, pretrained: True, quantize: False
+    filename: str, pretrained: bool, quantize: bool
 ) -> None:
     """Save quantizable resnet18 as traced script module."""
     model = torchvision.models.quantization.resnet18(
