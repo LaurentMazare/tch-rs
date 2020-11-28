@@ -441,7 +441,13 @@ impl std::fmt::Debug for Tensor {
                         Kind::Int | Kind::Int8 | Kind::Uint8 | Kind::Int16 | Kind::Int64 => {
                             (true, false)
                         }
-                        Kind::Half | Kind::Float | Kind::Double => (false, true),
+                        Kind::BFloat16
+                        | Kind::QInt8
+                        | Kind::QUInt8
+                        | Kind::QInt32
+                        | Kind::Half
+                        | Kind::Float
+                        | Kind::Double => (false, true),
                         Kind::Bool
                         | Kind::ComplexHalf
                         | Kind::ComplexFloat

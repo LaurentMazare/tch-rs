@@ -17,10 +17,15 @@ pub enum Kind {
     ComplexFloat,
     ComplexDouble,
     Bool,
+    QInt8,
+    QUInt8,
+    QInt32,
+    BFloat16,
 }
 
 impl Kind {
     pub(super) fn c_int(self) -> libc::c_int {
+        // These values should be in sync with include/c10/core/ScalarType.h
         match self {
             Kind::Uint8 => 0,
             Kind::Int8 => 1,
@@ -34,6 +39,10 @@ impl Kind {
             Kind::ComplexFloat => 9,
             Kind::ComplexDouble => 10,
             Kind::Bool => 11,
+            Kind::QInt8 => 12,
+            Kind::QUInt8 => 13,
+            Kind::QInt32 => 14,
+            Kind::BFloat16 => 15,
         }
     }
 
@@ -51,6 +60,10 @@ impl Kind {
             9 => Ok(Kind::ComplexFloat),
             10 => Ok(Kind::ComplexDouble),
             11 => Ok(Kind::Bool),
+            12 => Ok(Kind::QInt8),
+            13 => Ok(Kind::QUInt8),
+            14 => Ok(Kind::QInt32),
+            15 => Ok(Kind::BFloat16),
             _ => Err(crate::TchError::UnknownKind(v)),
         }
     }
@@ -69,6 +82,10 @@ impl Kind {
             Kind::ComplexFloat => 8,
             Kind::ComplexDouble => 16,
             Kind::Bool => 1,
+            Kind::QInt8 => 1,
+            Kind::QUInt8 => 1,
+            Kind::QInt32 => 4,
+            Kind::BFloat16 => 2,
         }
     }
 }

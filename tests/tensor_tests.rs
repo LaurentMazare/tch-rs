@@ -463,3 +463,11 @@ fn nested_tensor() {
     assert_eq!(t.size(), [3, 2]);
     assert_eq!(Vec::<i32>::from(t.view([-1])), [1, 2, 1, 2, 4, 5]);
 }
+
+#[test]
+fn quantized() {
+    let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
+    let t = t.quantize_per_tensor(0.1, 10, tch::Kind::QUInt8);
+    let t = t.dequantize();
+    assert_eq!(Vec::<f32>::from(&t), [-1f32, 0., 1., 2., 24.5, 0.4]);
+}
