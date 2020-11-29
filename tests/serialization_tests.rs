@@ -48,3 +48,16 @@ fn save_and_load_npz_half() {
     assert_eq!(named_tensors[1].0, "e");
     assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
+
+#[test]
+fn save_and_load_npz_byte() {
+    let filename = std::env::temp_dir().join(format!("tch5-{}.npz", std::process::id()));
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to2(Kind::Int8, true, false);
+    let e = Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to2(Kind::Int8, true, false);
+    Tensor::write_npz(&[(&"pi", &pi), (&"e", &e)], &filename).unwrap();
+    let named_tensors = Tensor::read_npz(&filename).unwrap();
+    assert_eq!(named_tensors.len(), 2);
+    assert_eq!(named_tensors[0].0, "pi");
+    assert_eq!(named_tensors[1].0, "e");
+    assert_eq!(i8::from(&named_tensors[1].1.sum(tch::Kind::Int8)), 57);
+}
