@@ -148,7 +148,7 @@ impl Header {
                         descr
                     )));
                 }
-                match descr.trim_matches(|c: char| c == '=' || c == '<') {
+                match descr.trim_matches(|c: char| c == '=' || c == '<' || c == '|') {
                     "f2" => Kind::Half,
                     "f4" => Kind::Float,
                     "f8" => Kind::Double,
