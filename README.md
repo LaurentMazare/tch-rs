@@ -5,7 +5,7 @@ aims at staying as close as possible to the original C++ api. More idiomatic
 rust bindings could then be developed on top of this. The
 [documentation](https://docs.rs/tch/) can be found on docs.rs.
 
-[![Build Status](https://travis-ci.org/LaurentMazare/tch-rs.svg?branch=master)](https://travis-ci.org/LaurentMazare/tch-rs)
+[![Build Status](https://github.com/LaurentMazare/tch-rs/workflows/Continuous%20integration/badge.svg)](https://github.com/LaurentMazare/tch-rs/actions)
 [![Latest version](https://img.shields.io/crates/v/tch.svg)](https://crates.io/crates/tch)
 [![Documentation](https://docs.rs/tch/badge.svg)](https://docs.rs/tch)
 ![License](https://img.shields.io/crates/l/tch.svg)
