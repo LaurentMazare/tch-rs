@@ -87,16 +87,23 @@ pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNCon
     let gate_dim = 4 * hidden_dim;
     let mut flat_weights = vec![];
     for layer_idx in 0..c.num_layers {
-        for _direction_idx in 0..num_directions {
+        for direction_idx in 0..num_directions {
             let in_dim = if layer_idx == 0 {
                 in_dim
             } else {
                 hidden_dim * num_directions
             };
-            let w_ih = vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]);
-            let w_hh = vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]);
-            let b_ih = vs.zeros("b_ih", &[gate_dim]);
-            let b_hh = vs.zeros("b_hh", &[gate_dim]);
+            let suffix = if direction_idx == 1 { "_reverse" } else { "" };
+            let w_ih = vs.kaiming_uniform(
+                &format!("weight_ih_l{}{}", layer_idx, suffix),
+                &[gate_dim, in_dim],
+            );
+            let w_hh = vs.kaiming_uniform(
+                &format!("weight_hh_l{}{}", layer_idx, suffix),
+                &[gate_dim, hidden_dim],
+            );
+            let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
+            let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
             flat_weights.push(w_ih);
             flat_weights.push(w_hh);
             flat_weights.push(b_ih);
@@ -184,16 +191,23 @@ pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConf
     let gate_dim = 3 * hidden_dim;
     let mut flat_weights = vec![];
     for layer_idx in 0..c.num_layers {
-        for _direction_idx in 0..num_directions {
+        for direction_idx in 0..num_directions {
             let in_dim = if layer_idx == 0 {
                 in_dim
             } else {
                 hidden_dim * num_directions
             };
-            let w_ih = vs.kaiming_uniform("w_ih", &[gate_dim, in_dim]);
-            let w_hh = vs.kaiming_uniform("w_hh", &[gate_dim, hidden_dim]);
-            let b_ih = vs.zeros("b_ih", &[gate_dim]);
-            let b_hh = vs.zeros("b_hh", &[gate_dim]);
+            let suffix = if direction_idx == 1 { "_reverse" } else { "" };
+            let w_ih = vs.kaiming_uniform(
+                &format!("weight_ih_l{}{}", layer_idx, suffix),
+                &[gate_dim, in_dim],
+            );
+            let w_hh = vs.kaiming_uniform(
+                &format!("weight_hh_l{}{}", layer_idx, suffix),
+                &[gate_dim, hidden_dim],
+            );
+            let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
+            let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
             flat_weights.push(w_ih);
             flat_weights.push(w_hh);
             flat_weights.push(b_ih);
