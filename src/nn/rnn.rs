@@ -200,6 +200,18 @@ pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConf
             flat_weights.push(b_hh);
         }
     }
+    if vs.device().is_cuda() && crate::Cuda::cudnn_is_available() {
+        let _ = Tensor::internal_cudnn_rnn_flatten_weight(
+            &flat_weights,
+            4,
+            in_dim,
+            3, /* 3 for GRU see rnn.cpp in pytorch */
+            hidden_dim,
+            c.num_layers,
+            c.batch_first,
+            c.bidirectional,
+        );
+    }
     GRU {
         flat_weights,
         hidden_dim,
