@@ -166,6 +166,10 @@ fn gru_test(rnn_config: nn::RNNConfig) {
 fn gru() {
     gru_test(Default::default());
     gru_test(nn::RNNConfig {
+        has_biases: false,
+        ..Default::default()
+    });
+    gru_test(nn::RNNConfig {
         bidirectional: true,
         ..Default::default()
     });
@@ -210,6 +214,10 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
 #[test]
 fn lstm() {
     lstm_test(Default::default());
+    lstm_test(nn::RNNConfig {
+        has_biases: false,
+        ..Default::default()
+    });
     lstm_test(nn::RNNConfig {
         bidirectional: true,
         ..Default::default()
