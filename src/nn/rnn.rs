@@ -102,12 +102,14 @@ pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNCon
                 &format!("weight_hh_l{}{}", layer_idx, suffix),
                 &[gate_dim, hidden_dim],
             );
-            let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
-            let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
             flat_weights.push(w_ih);
             flat_weights.push(w_hh);
-            flat_weights.push(b_ih);
-            flat_weights.push(b_hh);
+            if c.has_biases {
+                let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
+                let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
+                flat_weights.push(b_ih);
+                flat_weights.push(b_hh);
+            }
         }
     }
     if vs.device().is_cuda() && crate::Cuda::cudnn_is_available() {
@@ -206,12 +208,14 @@ pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConf
                 &format!("weight_hh_l{}{}", layer_idx, suffix),
                 &[gate_dim, hidden_dim],
             );
-            let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
-            let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
             flat_weights.push(w_ih);
             flat_weights.push(w_hh);
-            flat_weights.push(b_ih);
-            flat_weights.push(b_hh);
+            if c.has_biases {
+                let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
+                let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
+                flat_weights.push(b_ih);
+                flat_weights.push(b_hh);
+            }
         }
     }
     if vs.device().is_cuda() && crate::Cuda::cudnn_is_available() {
