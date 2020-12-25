@@ -44,6 +44,10 @@ $Env:Path += ";X:\path\to\libtorch\lib"
 ```
 - You should now be able to run some examples, e.g. `cargo run --example basics`.
 
+### Windows Specific Notes
+
+As per [the pytorch docs](https://pytorch.org/cppdocs/installing.html) the Windows debug and release builds are not ABI-compatible. This could lead to some segfaults if the incorrect version of libtorch is used.
+
 ## Examples
 
 ### Basic Tensor Operations
