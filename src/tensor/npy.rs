@@ -34,7 +34,7 @@ fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String, TchErro
     let header_len = header_len
         .iter()
         .rev()
-        .fold(0 as usize, |acc, &v| 256 * acc + v as usize);
+        .fold(0_usize, |acc, &v| 256 * acc + v as usize);
     let mut header = vec![0u8; header_len];
     buf_reader.read_exact(&mut header)?;
     Ok(String::from_utf8_lossy(&header).to_string())
