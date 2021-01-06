@@ -201,6 +201,27 @@ impl<T> Optimizer<T> {
         }
     }
 
+    /// Clips gradient L2 norm over all trainable parameters.
+    ///
+    /// The norm is computed over all gradients together, as if they were
+    /// concatenated into a single vector.
+    pub fn clip_grad_norm(&self, max: f64) {
+        crate::no_grad(|| {
+            let v = self.variables.lock().unwrap();
+            let mut norms = vec![];
+            for var in v.trainable_variables.iter() {
+                norms.push(var.tensor.grad().norm());
+            }
+            let total_norm = f64::from(Tensor::stack(&norms, 0).norm());
+            let clip_coef = max / (total_norm + 1e-6);
+            if clip_coef < 1.0 {
+                for var in v.trainable_variables.iter() {
+                    let _t = var.tensor.grad().g_mul_1(clip_coef);
+                }
+            }
+        })
+    }
+
     /// Performs an optimization step, updating the tracked tensors based on their gradients.
     pub fn step(&mut self) {
         self.add_missing_variables();
@@ -223,6 +244,17 @@ impl<T> Optimizer<T> {
         self.opt.zero_grad().unwrap();
         loss.backward();
         self.clip_grad_value(max);
+        self.opt.step().unwrap()
+    }
+
+    /// Applies a backward step pass, update the gradients, and performs an optimization step.
+    ///
+    /// The gradients L2 norm is clipped based on `max`.
+    pub fn backward_step_clip_norm(&mut self, loss: &Tensor, max: f64) {
+        self.add_missing_variables();
+        self.opt.zero_grad().unwrap();
+        loss.backward();
+        self.clip_grad_norm(max);
         self.opt.step().unwrap()
     }
 

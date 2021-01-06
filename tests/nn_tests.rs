@@ -79,6 +79,19 @@ fn gradient_descent_test() {
 }
 
 #[test]
+fn gradient_descent_test_clip_norm() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let my_module = my_module(vs.root(), 7);
+    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    for _idx in 1..50 {
+        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let ys = Tensor::ones(&[7], kind::FLOAT_CPU);
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum(Kind::Float);
+        opt.backward_step_clip_norm(&loss, 0.1);
+    }
+}
+
+#[test]
 fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
