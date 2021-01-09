@@ -91,6 +91,50 @@ fn gradient_descent_test_clip_norm() {
     }
 }
 
+fn round4(t: Tensor) -> Vec<f64> {
+    let v = Vec::<f64>::from(t);
+    v.iter().map(|x| (10000. * x).round() / 10000.).collect()
+}
+
+#[test]
+fn gradient_clip_test() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    let root = vs.root();
+    let var1 = root.ones("v1", &[2]);
+    let var2 = root.ones("v2", &[1]);
+    let mut var3 = root.ones("v3", &[2]);
+    tch::no_grad(|| {
+        var3 *= -1;
+    });
+    let all = Tensor::cat(&[&var1, &(2 * &var2), &(2 * &var3)], 0);
+    let loss = all.pow(2).sum(Kind::Float);
+    opt.zero_grad();
+    loss.backward();
+    let g1 = var1.grad();
+    let g2 = var2.grad();
+    let g3 = var3.grad();
+    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
+    assert_eq!(Vec::<f64>::from(&g2), [8.0]);
+    assert_eq!(Vec::<f64>::from(&g3), [-8.0, -8.0]);
+    // Test clipping the gradient by value.
+    let loss = all.pow(2).sum(Kind::Float);
+    opt.zero_grad();
+    loss.backward();
+    opt.clip_grad_value(4.0);
+    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
+    assert_eq!(Vec::<f64>::from(&g2), [4.0]);
+    assert_eq!(Vec::<f64>::from(&g3), [-4.0, -4.0]);
+    // Test clipping the gradient norm.
+    let loss = all.pow(2).sum(Kind::Float);
+    opt.zero_grad();
+    loss.backward();
+    opt.clip_grad_norm(1.0);
+    assert_eq!(round4(g1), [0.1414, 0.1414]);
+    assert_eq!(round4(g2), [0.5657]);
+    assert_eq!(round4(g3), [-0.5657, -0.5657]);
+}
+
 #[test]
 fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
