@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use tch::{IValue, Kind, Tensor};
 
 #[test]
@@ -74,6 +75,8 @@ fn jit4() {
     let foo = tch::CModule::load("tests/foo4.pt").unwrap();
     let result = foo.forward_is(&[IValue::from((2.0, 3.0, 4))]).unwrap();
     assert_eq!(result, 14.0.into());
+    let v = f64::try_from(result).unwrap();
+    assert_eq!(v, 14.0);
     let named_parameters = foo.named_parameters().unwrap();
     assert_eq!(named_parameters, vec![]);
 }
@@ -105,4 +108,9 @@ fn jit5() {
             IValue::from("fooba")
         ])
     );
+    // Destructuring of ivalue.
+    let (v1, v2, v3) = <(String, String, String)>::try_from(result).unwrap();
+    assert_eq!(v1, "fo");
+    assert_eq!(v2, "ba");
+    assert_eq!(v3, "fooba");
 }
