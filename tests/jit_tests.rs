@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use tch::{IValue, Kind, Tensor};
 
 #[test]
@@ -47,6 +48,10 @@ fn jit2() {
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);
     assert_eq!(result, IValue::from((expected1, expected2)));
+    // Destructure the tuple, using an option.
+    let (v1, v2) = <(Tensor, Option<Tensor>)>::try_from(result).unwrap();
+    assert_eq!(i64::from(v1), 1421);
+    assert_eq!(i64::from(v2.unwrap()), -1295);
     let result = foo
         .method_is(
             "forward",
@@ -58,7 +63,10 @@ fn jit2() {
         .unwrap();
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);
-    assert_eq!(result, IValue::from((expected1, expected2)))
+    assert_eq!(result, IValue::from((expected1, expected2)));
+    let (v1, v2) = <(Tensor, Tensor)>::try_from(result).unwrap();
+    assert_eq!(i64::from(v1), 1421);
+    assert_eq!(i64::from(v2), -1295);
 }
 
 #[test]
@@ -74,6 +82,8 @@ fn jit4() {
     let foo = tch::CModule::load("tests/foo4.pt").unwrap();
     let result = foo.forward_is(&[IValue::from((2.0, 3.0, 4))]).unwrap();
     assert_eq!(result, 14.0.into());
+    let v = f64::try_from(result).unwrap();
+    assert_eq!(v, 14.0);
     let named_parameters = foo.named_parameters().unwrap();
     assert_eq!(named_parameters, vec![]);
 }
@@ -105,4 +115,9 @@ fn jit5() {
             IValue::from("fooba")
         ])
     );
+    // Destructuring of ivalue.
+    let (v1, v2, v3) = <(String, String, String)>::try_from(result).unwrap();
+    assert_eq!(v1, "fo");
+    assert_eq!(v2, "ba");
+    assert_eq!(v3, "fooba");
 }
