@@ -4,6 +4,7 @@ use super::{device::Device, kind::Kind};
 use crate::{nn::Path, TchError, Tensor};
 use libc::{c_int, c_void};
 use std::borrow::Borrow;
+use std::convert::TryFrom;
 use torch_sys::*;
 
 /// Argument and output values for JIT models.
@@ -25,6 +26,27 @@ pub enum IValue {
     // We use a vec to represent dictionaries as f64 does not implement
     // Eq or Hash out of the box in rust. TODO: improve this?
     GenericDict(Vec<(IValue, IValue)>),
+}
+
+impl IValue {
+    fn type_str(self) -> &'static str {
+        match self {
+            IValue::None => "None",
+            IValue::Tensor(_) => "Tensor",
+            IValue::Double(_) => "Double",
+            IValue::Int(_) => "Int",
+            IValue::Bool(_) => "Bool",
+            IValue::Tuple(_) => "Tuple",
+            IValue::IntList(_) => "IntList",
+            IValue::DoubleList(_) => "DoubleList",
+            IValue::BoolList(_) => "BoolList",
+            IValue::String(_) => "String",
+            IValue::StringList(_) => "StringList",
+            IValue::TensorList(_) => "TensorList",
+            IValue::GenericList(_) => "GenericList",
+            IValue::GenericDict(_) => "GenericDict",
+        }
+    }
 }
 
 impl From<()> for IValue {
@@ -53,11 +75,142 @@ impl<T1: Into<IValue>, T2: Into<IValue>, T3: Into<IValue>, T4: Into<IValue>> Fro
     }
 }
 
+impl<T1, T2, T1E, T2E> TryFrom<IValue> for (T1, T2)
+where
+    T1: TryFrom<IValue, Error = T1E>,
+    T1E: Into<TchError>,
+    T2: TryFrom<IValue, Error = T2E>,
+    T2E: Into<TchError>,
+{
+    type Error = TchError;
+    fn try_from(value: IValue) -> Result<Self, TchError> {
+        match value {
+            IValue::Tuple(mut vec) => {
+                if vec.len() == 2 {
+                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t2 = T2::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    Ok((t1, t2))
+                } else {
+                    Err(TchError::Kind(format!(
+                        "unable to unpack ivalue, expected a tuple of len 2 got {}",
+                        vec.len()
+                    )))
+                }
+            }
+            _ => Err(TchError::Kind(format!(
+                "unable to unpack ivalue, expected a tuple got {}",
+                value.type_str()
+            ))),
+        }
+    }
+}
+
+impl<T1, T2, T3, T1E, T2E, T3E> TryFrom<IValue> for (T1, T2, T3)
+where
+    T1: TryFrom<IValue, Error = T1E>,
+    T1E: Into<TchError>,
+    T2: TryFrom<IValue, Error = T2E>,
+    T2E: Into<TchError>,
+    T3: TryFrom<IValue, Error = T3E>,
+    T3E: Into<TchError>,
+{
+    type Error = TchError;
+    fn try_from(value: IValue) -> Result<Self, TchError> {
+        match value {
+            IValue::Tuple(mut vec) => {
+                if vec.len() == 3 {
+                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t2 = T2::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t3 = T3::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    Ok((t1, t2, t3))
+                } else {
+                    Err(TchError::Kind(format!(
+                        "unable to unpack ivalue, expected a tuple of len 3 got {}",
+                        vec.len()
+                    )))
+                }
+            }
+            _ => Err(TchError::Kind(format!(
+                "unable to unpack ivalue, expected a tuple got {}",
+                value.type_str()
+            ))),
+        }
+    }
+}
+
+impl<T1, T2, T3, T4, T1E, T2E, T3E, T4E> TryFrom<IValue> for (T1, T2, T3, T4)
+where
+    T1: TryFrom<IValue, Error = T1E>,
+    T1E: Into<TchError>,
+    T2: TryFrom<IValue, Error = T2E>,
+    T2E: Into<TchError>,
+    T3: TryFrom<IValue, Error = T3E>,
+    T3E: Into<TchError>,
+    T4: TryFrom<IValue, Error = T4E>,
+    T4E: Into<TchError>,
+{
+    type Error = TchError;
+    fn try_from(value: IValue) -> Result<Self, TchError> {
+        match value {
+            IValue::Tuple(mut vec) => {
+                if vec.len() == 4 {
+                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t2 = T2::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t3 = T3::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t4 = T4::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    Ok((t1, t2, t3, t4))
+                } else {
+                    Err(TchError::Kind(format!(
+                        "unable to unpack ivalue, expected a tuple of len 4 got {}",
+                        vec.len()
+                    )))
+                }
+            }
+            _ => Err(TchError::Kind(format!(
+                "unable to unpack ivalue, expected a tuple got {}",
+                value.type_str()
+            ))),
+        }
+    }
+}
+
 macro_rules! impl_from {
     ($type_:ty, $cons:ident) => {
         impl From<$type_> for IValue {
             fn from(v: $type_) -> Self {
                 IValue::$cons(v)
+            }
+        }
+
+        impl TryFrom<IValue> for $type_ {
+            type Error = TchError;
+            fn try_from(value: IValue) -> Result<$type_, TchError> {
+                match value {
+                    IValue::$cons(t) => Ok(t),
+                    _ => Err(TchError::Kind(format!(
+                        "unable to unpack ivalue, expected {} got {}",
+                        std::stringify!($cons),
+                        value.type_str()
+                    ))),
+                }
+            }
+        }
+
+        // A generic trait for Option<T> would seem nicer but because
+        // of E0119, this is currently hard to do.
+        // See https://github.com/rust-lang/rust/issues/50133
+        impl TryFrom<IValue> for Option<$type_> {
+            type Error = TchError;
+            fn try_from(value: IValue) -> Result<Self, TchError> {
+                match value {
+                    IValue::None => Ok(None),
+                    IValue::$cons(t) => Ok(Some(t)),
+                    _ => Err(TchError::Kind(format!(
+                        "unable to unpack ivalue, expected {} or None got {}",
+                        std::stringify!($cons),
+                        value.type_str()
+                    ))),
+                }
             }
         }
     };
