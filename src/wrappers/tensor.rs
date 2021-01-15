@@ -34,6 +34,8 @@ impl Tensor {
 
     /// Creates a new tensor from the pointer to an existing C++ tensor.
     ///
+    /// # Safety
+    ///
     /// The caller must ensures that the pointer outlives the Rust
     /// object.
     pub unsafe fn from_ptr(c_tensor: *mut C_tensor) -> Self {
@@ -41,6 +43,8 @@ impl Tensor {
     }
 
     /// Creates a new tensor from the pointer to an existing C++ tensor.
+    ///
+    /// # Safety
     ///
     /// A shallow copy of the pointer is made so there is no need for
     /// this pointer to remain valid for the whole lifetime of the Rust
