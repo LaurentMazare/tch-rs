@@ -32,6 +32,41 @@ impl Tensor {
         Tensor { c_tensor }
     }
 
+    /// Creates a new tensor from the pointer to an existing C++ tensor.
+    ///
+    /// The caller must ensures that the pointer outlives the Rust
+    /// object.
+    pub unsafe fn from_ptr(c_tensor: *mut C_tensor) -> Self {
+        Self { c_tensor }
+    }
+
+    /// Creates a new tensor from the pointer to an existing C++ tensor.
+    ///
+    /// A shallow copy of the pointer is made so there is no need for
+    /// this pointer to remain valid for the whole lifetime of the Rust
+    /// object.
+    pub unsafe fn clone_from_ptr(c_tensor: *mut C_tensor) -> Self {
+        let c_tensor = at_shallow_clone(c_tensor);
+        crate::wrappers::utils::read_and_clean_error().unwrap();
+        Self { c_tensor }
+    }
+
+    /// Returns a pointer to the underlying C++ tensor.
+    ///
+    /// The caller must ensures that the Rust tensor object outlives
+    /// this pointer.
+    pub fn as_ptr(&self) -> *const C_tensor {
+        self.c_tensor
+    }
+
+    /// Returns a mutable pointer to the underlying C++ tensor.
+    ///
+    /// The caller must ensures that the Rust tensor object outlives
+    /// this pointer.
+    pub fn as_mut_ptr(&mut self) -> *mut C_tensor {
+        self.c_tensor
+    }
+
     /// Returns the number of dimension of the tensor.
     pub fn dim(&self) -> usize {
         unsafe_torch!(at_dim(self.c_tensor))
