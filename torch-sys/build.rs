@@ -205,9 +205,15 @@ fn main() {
         // from the torch_cuda library.
         // It would be better to use -Wl,--no-as-needed but there is no way
         // to specify arbitrary linker flags at the moment.
-        // If https://github.com/rust-lang/cargo/pull/7811 gets released,
-        // we should switch to using this instead e.g. with the following
-        // flags: -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
+        //
+        // Once https://github.com/rust-lang/cargo/pull/8441 is available
+        // we should switch to using rustc-link-arg instead e.g. with the
+        // following flags:
+        //   -Wl,--no-as-needed -Wl,--copy-dt-needed-entries -ltorch
+        //
+        // This will be available starting from cargo 1.50 but will be a nightly
+        // only option to start with.
+        // https://github.com/rust-lang/cargo/blob/master/CHANGELOG.md
         let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
             || libtorch.join("lib").join("torch_cuda.dll").exists();
         let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
