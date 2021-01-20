@@ -1,7 +1,7 @@
 //! A Torch tensor.
 use crate::{Device, Kind, Scalar, TchError};
 use half::f16;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use torch_sys::*;
 
@@ -688,36 +688,16 @@ impl PartialEq for Tensor {
     }
 }
 
-macro_rules! try_into_impl {
-    ($type:ident) => {
-        impl TryInto<ndarray::ArrayD<$type>> for &Tensor {
-            type Error = ndarray::ShapeError;
-
-            fn try_into(self) -> Result<ndarray::ArrayD<$type>, Self::Error> {
-                let v: Vec<$type> = self.into();
-                let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
-                ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
-            }
-        }
-    };
-}
-
-try_into_impl!(f16);
-try_into_impl!(f32);
-try_into_impl!(i32);
-try_into_impl!(f64);
-try_into_impl!(i64);
-try_into_impl!(bool);
-
 macro_rules! try_from_impl {
     ($type:ident) => {
-        impl<D> TryFrom<ndarray::Array<$type, D>> for Tensor
+        #[cfg(feature = "ndarray")]
+        impl<D> TryFrom<&ndarray::Array<$type, D>> for Tensor
         where
             D: ndarray::Dimension,
         {
             type Error = TchError;
 
-            fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
+            fn try_from(value: &ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
                 // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
                 let slice = match value.as_slice() {
                     None => return Err(TchError::Convert("cannot convert to slice".to_string())),
@@ -729,12 +709,52 @@ macro_rules! try_from_impl {
             }
         }
 
+        #[cfg(feature = "ndarray")]
+        impl<D> TryFrom<ndarray::Array<$type, D>> for Tensor
+        where
+            D: ndarray::Dimension,
+        {
+            type Error = TchError;
+
+            fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
+                Self::try_from(&value)
+            }
+        }
+
+        #[cfg(feature = "ndarray")]
+        impl TryFrom<&Tensor> for ndarray::ArrayD<$type> {
+            type Error = ndarray::ShapeError;
+
+            fn try_from(from: &Tensor) -> Result<ndarray::ArrayD<$type>, Self::Error> {
+                let v: Vec<$type> = from.into();
+                let shape: Vec<usize> = from.size().iter().map(|s| *s as usize).collect();
+                ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
+            }
+        }
+
+        #[cfg(feature = "ndarray")]
+        impl TryFrom<Tensor> for ndarray::ArrayD<$type> {
+            type Error = ndarray::ShapeError;
+
+            fn try_from(from: Tensor) -> Result<ndarray::ArrayD<$type>, Self::Error> {
+                Self::try_from(&from)
+            }
+        }
+
+        impl TryFrom<&Vec<$type>> for Tensor {
+            type Error = TchError;
+
+            fn try_from(value: &Vec<$type>) -> Result<Self, Self::Error> {
+                let tn = Self::f_of_slice(value.as_slice())?;
+                Ok(tn)
+            }
+        }
+
         impl TryFrom<Vec<$type>> for Tensor {
             type Error = TchError;
 
             fn try_from(value: Vec<$type>) -> Result<Self, Self::Error> {
-                let tn = Self::f_of_slice(value.as_slice())?;
-                Ok(tn)
+                Self::try_from(&value)
             }
         }
     };
