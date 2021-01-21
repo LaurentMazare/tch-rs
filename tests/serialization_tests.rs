@@ -61,3 +61,20 @@ fn save_and_load_npz_byte() {
     assert_eq!(named_tensors[1].0, "e");
     assert_eq!(i8::from(&named_tensors[1].1.sum(tch::Kind::Int8)), 57);
 }
+
+#[test]
+fn save_and_load_npy() {
+    let filename = std::env::temp_dir().join(format!("tch6-{}.npy", std::process::id()));
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
+    pi.write_npy(&filename).unwrap();
+    let pi = Tensor::read_npy(&filename).unwrap();
+    assert_eq!(Vec::<f64>::from(&pi), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
+    let pi = pi.reshape(&[3, 1, 2]);
+    pi.write_npy(&filename).unwrap();
+    let pi = Tensor::read_npy(&filename).unwrap();
+    assert_eq!(pi.size(), [3, 1, 2]);
+    assert_eq!(
+        Vec::<f64>::from(pi.flatten(0, -1)),
+        [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]
+    );
+}

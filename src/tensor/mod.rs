@@ -718,7 +718,7 @@ macro_rules! try_from_impl {
             type Error = TchError;
 
             fn try_from(value: ndarray::Array<$type, D>) -> Result<Self, Self::Error> {
-                // TODO: Replace this with `?` once it works with `std::option::ErrorNone`
+                // TODO: Replace this with `?` once `std::option::NoneError` has been stabilized.
                 let slice = match value.as_slice() {
                     None => return Err(TchError::Convert("cannot convert to slice".to_string())),
                     Some(v) => v,
