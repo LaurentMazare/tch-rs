@@ -245,13 +245,15 @@ extern "C" {
     pub fn atm_create_by_tracing(
         modl_name: *const c_char,
         fn_name: *const c_char,
-        inputs: *const *mut CIValue,
+        inputs: *const *mut C_tensor,
         ninputs: c_int,
         noutputs: c_int,
         f: unsafe extern "C" fn(
             user_data: *mut c_void,
-            inputs: *const *mut CIValue,
-            outputs: *const *mut CIValue,
+            inputs: *const *mut C_tensor,
+            ninputs: c_int,
+            outputs: *mut *mut C_tensor,
+            noutputs: c_int,
         ),
         user_data: *mut c_void,
     ) -> *mut CModule_;

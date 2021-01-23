@@ -912,24 +912,25 @@ void atm_set_profiling_mode(int b) {
 module atm_create_by_tracing(
     char *modl_name,
     char *fn_name,
-    ivalue *inputs,
+    tensor *inputs,
     int ninputs,
     int noutputs,
-    void (*f)(void*, ivalue*, ivalue*),
+    void (*f)(void*, tensor*, int, tensor*, int),
     void *user_data) {
   PROTECT(
     torch::jit::script::Module modl(modl_name);
     vector<torch::jit::IValue> input_vec;
-    for (int i = 0; i < ninputs; ++i) input_vec.push_back(*(inputs[i]));
+    for (int i = 0; i < ninputs; ++i) input_vec.push_back(torch::jit::IValue(*(inputs[i])));
     auto outs = torch::jit::tracer::trace(
       c10::Stack(input_vec),
       [&f, ninputs, noutputs, user_data](c10::Stack input_stack) -> c10::Stack {
-        ivalue inputs[ninputs];
-        ivalue outputs[noutputs];
-        for (int i = 0; i < ninputs; ++i) inputs[i] = &input_stack[i];
-        f(user_data, inputs, outputs);
+        vector<tensor> inputs(ninputs, nullptr);
+        vector<tensor> outputs(noutputs, nullptr);
+        // TODO: release the memory for these.
+        for (int i = 0; i < ninputs; ++i) inputs[i] = new torch::Tensor(input_stack[i].toTensor());
+        f(user_data, inputs.data(), ninputs, outputs.data(), noutputs);
         vector<torch::jit::IValue> output_vec;
-        for (int i = 0; i < noutputs; ++i) output_vec.push_back(*(outputs[i]));
+        for (int i = 0; i < noutputs; ++i) output_vec.push_back(torch::jit::IValue(*(outputs[i])));
         return c10::Stack(output_vec);
       },
       [](const torch::autograd::Variable& var) { return "";},

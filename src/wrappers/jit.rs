@@ -420,8 +420,6 @@ impl Drop for CModule {
     }
 }
 
-type TracedFn = unsafe extern "C" fn(*mut c_void, *const *mut CIValue, *const *mut CIValue);
-
 impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
     pub fn load<T: AsRef<std::path::Path>>(path: T) -> Result<CModule, TchError> {
@@ -584,45 +582,52 @@ impl CModule {
 
     unsafe extern "C" fn traced_fn<F>(
         user_data: *mut c_void,
-        _inputs: *const *mut CIValue,
-        _outputs: *const *mut CIValue,
+        inputs: *const *mut C_tensor,
+        ninputs: c_int,
+        outputs: *mut *mut C_tensor,
+        noutputs: c_int,
     ) where
-        F: FnMut(),
+        F: FnMut(Vec<Tensor>) -> Vec<Tensor>,
     {
+        let inputs_vec = (0..ninputs as isize)
+            .map(|i| Tensor {
+                c_tensor: *(inputs.offset(i)),
+            })
+            .collect();
         let user_data = &mut *(user_data as *mut F);
-        user_data();
-    }
-
-    fn get_traced_fn<F>(_closure: &F) -> TracedFn
-    where
-        F: FnMut(),
-    {
-        CModule::traced_fn::<F>
+        let outputs_vec = user_data(inputs_vec);
+        for idx in 0..noutputs as isize {
+            *outputs.offset(idx) =
+                // TODO: free this allocation.
+                unsafe_torch!(at_shallow_clone(outputs_vec[idx as usize].c_tensor))
+        }
     }
 
     /// Create a new module by tracing the application of the specified function on
     /// the given inputs.
-    pub fn create_by_tracing(
+    pub fn create_by_tracing<F>(
         modl_name: &str,
         fn_name: &str,
-        inputs: &[IValue],
+        inputs: &[Tensor],
         noutputs: i32,
-    ) -> Result<CModule, TchError> {
+        mut closure: &F,
+    ) -> Result<CModule, TchError>
+    where
+        F: FnMut(Vec<Tensor>) -> Vec<Tensor>,
+    {
         let modl_name = std::ffi::CString::new(modl_name)?;
         let fn_name = std::ffi::CString::new(fn_name)?;
-        let mut closure = || println!("hello world!");
         let inputs = inputs
             .iter()
-            .map(IValue::to_c)
-            .collect::<Result<Vec<_>, TchError>>()?;
-        let traced_fn = CModule::get_traced_fn(&closure);
+            .map(|tensor| tensor.c_tensor)
+            .collect::<Vec<_>>();
         let c_module = unsafe_torch_err!(atm_create_by_tracing(
             modl_name.as_ptr(),
             fn_name.as_ptr(),
             inputs.as_ptr(),
             inputs.len() as c_int,
             noutputs,
-            traced_fn,
+            CModule::traced_fn::<F>,
             &mut closure as *mut _ as *mut c_void,
         ));
         Ok(CModule { c_module })

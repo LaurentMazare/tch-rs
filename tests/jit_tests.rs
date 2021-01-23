@@ -124,5 +124,21 @@ fn jit5() {
 
 #[test]
 fn create_traced() {
-    let modl = tch::CModule::create_by_tracing("MyModule", "MyFn", &[], 0);
+    let closure = |inputs: Vec<Tensor>| {
+        let v1 = inputs[0].shallow_clone();
+        let v2 = inputs[1].shallow_clone();
+        vec![v1 + v2]
+    };
+    let modl = tch::CModule::create_by_tracing(
+        "MyModule",
+        "MyFn",
+        &[Tensor::from(0.0), Tensor::from(1.0)],
+        1,
+        &closure,
+    )
+    .unwrap();
+    let xs = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
+    let ys = Tensor::of_slice(&[41.0, 1335.0, 0.1415, 4.0, 5.0]);
+    let result = modl.method_ts("MyFn", &[xs, ys]).unwrap();
+    assert_eq!(Vec::<f64>::from(&result), [42.0, 1337.0, 3.1415, 8.0, 10.0])
 }

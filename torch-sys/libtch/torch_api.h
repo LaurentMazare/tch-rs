@@ -172,10 +172,10 @@ void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor))
 module atm_create_by_tracing(
   char *modl_name,
   char *fn_name,
-  ivalue *inputs,
+  tensor *inputs,
   int ninputs,
   int noutputs,
-  void (*f)(void*, ivalue*, ivalue*),
+  void (*f)(void*, tensor*, int, tensor*, int),
   void *user_data);
 
 ivalue ati_none();
