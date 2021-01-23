@@ -909,6 +909,41 @@ void atm_set_profiling_mode(int b) {
   )
 }
 
+module atm_create_by_tracing(
+    char *modl_name,
+    char *fn_name,
+    ivalue *inputs,
+    int ninputs,
+    int noutputs,
+    void (*f)(void*, ivalue*, ivalue*),
+    void *user_data) {
+  PROTECT(
+    torch::jit::script::Module modl(modl_name);
+    vector<torch::jit::IValue> input_vec;
+    for (int i = 0; i < ninputs; ++i) input_vec.push_back(*(inputs[i]));
+    auto outs = torch::jit::tracer::trace(
+      c10::Stack(input_vec),
+      [&f, ninputs, noutputs, user_data](c10::Stack input_stack) -> c10::Stack {
+        ivalue inputs[ninputs];
+        ivalue outputs[noutputs];
+        for (int i = 0; i < ninputs; ++i) inputs[i] = &input_stack[i];
+        f(user_data, inputs, outputs);
+        vector<torch::jit::IValue> output_vec;
+        for (int i = 0; i < noutputs; ++i) output_vec.push_back(*(outputs[i]));
+        return c10::Stack(output_vec);
+      },
+      [](const torch::autograd::Variable& var) { return "";},
+      true,
+      false,
+      &modl);
+     auto graph = outs.first->graph;
+     auto fn = modl._ivalue()->compilation_unit()->create_function(fn_name, graph);
+     modl.type()->addMethod(fn);
+     return new torch::jit::script::Module(modl);
+  )
+  return nullptr;
+}
+
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
     for (const auto &p : m->named_parameters()) {

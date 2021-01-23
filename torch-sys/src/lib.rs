@@ -242,6 +242,19 @@ extern "C" {
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
     );
+    pub fn atm_create_by_tracing(
+        modl_name: *const c_char,
+        fn_name: *const c_char,
+        inputs: *const *mut CIValue,
+        ninputs: c_int,
+        noutputs: c_int,
+        f: unsafe extern "C" fn(
+            user_data: *mut c_void,
+            inputs: *const *mut CIValue,
+            outputs: *const *mut CIValue,
+        ),
+        user_data: *mut c_void,
+    ) -> *mut CModule_;
 }
 
 extern "C" {

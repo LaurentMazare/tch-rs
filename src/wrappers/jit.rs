@@ -420,6 +420,8 @@ impl Drop for CModule {
     }
 }
 
+type TracedFn = unsafe extern "C" fn(*mut c_void, *const *mut CIValue, *const *mut CIValue);
+
 impl CModule {
     /// Loads a PyTorch saved JIT model from a file.
     pub fn load<T: AsRef<std::path::Path>>(path: T) -> Result<CModule, TchError> {
@@ -578,6 +580,52 @@ impl CModule {
             super::tensor::add_callback
         ));
         Ok(v)
+    }
+
+    unsafe extern "C" fn traced_fn<F>(
+        user_data: *mut c_void,
+        _inputs: *const *mut CIValue,
+        _outputs: *const *mut CIValue,
+    ) where
+        F: FnMut(),
+    {
+        let user_data = &mut *(user_data as *mut F);
+        user_data();
+    }
+
+    fn get_traced_fn<F>(_closure: &F) -> TracedFn
+    where
+        F: FnMut(),
+    {
+        CModule::traced_fn::<F>
+    }
+
+    /// Create a new module by tracing the application of the specified function on
+    /// the given inputs.
+    pub fn create_by_tracing(
+        modl_name: &str,
+        fn_name: &str,
+        inputs: &[IValue],
+        noutputs: i32,
+    ) -> Result<CModule, TchError> {
+        let modl_name = std::ffi::CString::new(modl_name)?;
+        let fn_name = std::ffi::CString::new(fn_name)?;
+        let mut closure = || println!("hello world!");
+        let inputs = inputs
+            .iter()
+            .map(IValue::to_c)
+            .collect::<Result<Vec<_>, TchError>>()?;
+        let traced_fn = CModule::get_traced_fn(&closure);
+        let c_module = unsafe_torch_err!(atm_create_by_tracing(
+            modl_name.as_ptr(),
+            fn_name.as_ptr(),
+            inputs.as_ptr(),
+            inputs.len() as c_int,
+            noutputs,
+            traced_fn,
+            &mut closure as *mut _ as *mut c_void,
+        ));
+        Ok(CModule { c_module })
     }
 }
 

@@ -121,3 +121,8 @@ fn jit5() {
     assert_eq!(v2, "ba");
     assert_eq!(v3, "fooba");
 }
+
+#[test]
+fn create_traced() {
+    let modl = tch::CModule::create_by_tracing("MyModule", "MyFn", &[], 0);
+}

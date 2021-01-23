@@ -169,6 +169,14 @@ void atm_save(module m, char*);
 int atm_get_profiling_mode();
 void atm_set_profiling_mode(int);
 void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor));
+module atm_create_by_tracing(
+  char *modl_name,
+  char *fn_name,
+  ivalue *inputs,
+  int ninputs,
+  int noutputs,
+  void (*f)(void*, ivalue*, ivalue*),
+  void *user_data);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);
