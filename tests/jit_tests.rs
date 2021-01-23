@@ -137,6 +137,9 @@ fn create_traced() {
         &closure,
     )
     .unwrap();
+    let filename = std::env::temp_dir().join(format!("tch-modl-{}", std::process::id()));
+    modl.save(&filename).unwrap();
+    let modl = tch::CModule::load(&filename).unwrap();
     let xs = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
     let ys = Tensor::of_slice(&[41.0, 1335.0, 0.1415, 4.0, 5.0]);
     let result = modl.method_ts("MyFn", &[xs, ys]).unwrap();

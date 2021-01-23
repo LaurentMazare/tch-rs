@@ -248,7 +248,7 @@ extern "C" {
         inputs: *const *mut C_tensor,
         ninputs: c_int,
         noutputs: c_int,
-        f: unsafe extern "C" fn(
+        f: extern "C" fn(
             user_data: *mut c_void,
             inputs: *const *mut C_tensor,
             ninputs: c_int,

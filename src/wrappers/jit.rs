@@ -580,7 +580,7 @@ impl CModule {
         Ok(v)
     }
 
-    unsafe extern "C" fn traced_fn<F>(
+    extern "C" fn traced_fn<F>(
         user_data: *mut c_void,
         inputs: *const *mut C_tensor,
         ninputs: c_int,
@@ -591,15 +591,15 @@ impl CModule {
     {
         let inputs_vec = (0..ninputs as isize)
             .map(|i| Tensor {
-                c_tensor: *(inputs.offset(i)),
+                c_tensor: unsafe { *(inputs.offset(i)) },
             })
             .collect();
-        let user_data = &mut *(user_data as *mut F);
+        let user_data = unsafe { &mut *(user_data as *mut F) };
         let outputs_vec = user_data(inputs_vec);
         for idx in 0..noutputs as isize {
-            *outputs.offset(idx) =
-                // TODO: free this allocation.
-                unsafe_torch!(at_shallow_clone(outputs_vec[idx as usize].c_tensor))
+            // TODO: remove this allocation if not necessary?
+            let c_tensor = unsafe_torch!(at_shallow_clone(outputs_vec[idx as usize].c_tensor));
+            unsafe { *outputs.offset(idx) = c_tensor }
         }
     }
 
