@@ -327,9 +327,135 @@ impl<'a> Path<'a> {
     /// has the specified shape. The variable will not be trainable so
     /// gradients will not be tracked.
     /// The variable uses a float tensor initialized with zeros.
+    pub fn f_zeros_no_train(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        let z = Tensor::f_zeros(dims, (Kind::Float, self.device()))?;
+        Ok(self.add(name, z, false))
+    }
+
+    /// Creates a new variable initialized with ones.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable will not be trainable so
+    /// gradients will not be tracked.
+    /// The variable uses a float tensor initialized with ones.
+    pub fn f_ones_no_train(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        let o = Tensor::f_ones(dims, (Kind::Float, self.device()))?;
+        Ok(self.add(name, o, false))
+    }
+
+    /// Creates a new variable.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized as per the
+    /// related argument.
+    pub fn f_var(&self, name: &str, dims: &[i64], init: Init) -> Result<Tensor, TchError> {
+        let v = super::f_init(init, dims, self.device())?;
+        Ok(self.add(name, v, true))
+    }
+
+    /// Creates a new variable initialized with zeros.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized with zeros.
+    pub fn f_zeros(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Const(0.))
+    }
+
+    /// Creates a new variable initialized with ones.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized with ones.
+    pub fn f_ones(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Const(1.))
+    }
+
+    /// Creates a new variable initialized randomly with normal distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// standard normal distribution.
+    pub fn f_randn_standard(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        let init = Init::Randn {
+            mean: 0.,
+            stdev: 1.,
+        };
+        self.f_var(name, dims, init)
+    }
+
+    /// Creates a new variable initialized randomly with normal distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution with the specified mean and standard deviation.
+    pub fn f_randn(
+        &self,
+        name: &str,
+        dims: &[i64],
+        mean: f64,
+        stdev: f64,
+    ) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Randn { mean, stdev })
+    }
+
+    /// Creates a new variable initialized randomly with uniform distribution.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// uniform distribution between the specified bounds.
+    pub fn f_uniform(
+        &self,
+        name: &str,
+        dims: &[i64],
+        lo: f64,
+        up: f64,
+    ) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Uniform { lo, up })
+    }
+
+    /// Creates a new variable initialized randomly with kaiming uniform.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// uniform distribution which bounds follow Kaiming initialization.
+    pub fn f_kaiming_uniform(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::KaimingUniform)
+    }
+
+    /// Creates a new variable initialized by copying an existing tensor.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized by copying some
+    /// given tensor.
+    pub fn f_var_copy(&self, name: &str, t: &Tensor) -> Result<Tensor, TchError> {
+        let mut v = self.f_zeros(name, &t.size())?;
+        crate::no_grad(|| v.f_copy_(&t))?;
+        Ok(v)
+    }
+
+    /// Creates a new variable initialized with zeros.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable will not be trainable so
+    /// gradients will not be tracked.
+    /// The variable uses a float tensor initialized with zeros.
     pub fn zeros_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
-        let z = Tensor::zeros(dims, (Kind::Float, self.device()));
-        self.add(name, z, false)
+        self.f_zeros_no_train(name, dims).unwrap()
     }
 
     /// Creates a new variable initialized with ones.
@@ -339,8 +465,7 @@ impl<'a> Path<'a> {
     /// gradients will not be tracked.
     /// The variable uses a float tensor initialized with ones.
     pub fn ones_no_train(&self, name: &str, dims: &[i64]) -> Tensor {
-        let o = Tensor::ones(dims, (Kind::Float, self.device()));
-        self.add(name, o, false)
+        self.f_ones_no_train(name, dims).unwrap()
     }
 
     /// Creates a new variable.
@@ -351,8 +476,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized as per the
     /// related argument.
     pub fn var(&self, name: &str, dims: &[i64], init: Init) -> Tensor {
-        let v = super::init(init, dims, self.device());
-        self.add(name, v, true)
+        self.f_var(name, dims, init).unwrap()
     }
 
     /// Creates a new variable initialized with zeros.
@@ -362,7 +486,7 @@ impl<'a> Path<'a> {
     /// will be tracked.
     /// The variable uses a float tensor initialized with zeros.
     pub fn zeros(&self, name: &str, dims: &[i64]) -> Tensor {
-        self.var(name, dims, Init::Const(0.))
+        self.f_zeros(name, dims).unwrap()
     }
 
     /// Creates a new variable initialized with ones.
@@ -372,7 +496,7 @@ impl<'a> Path<'a> {
     /// will be tracked.
     /// The variable uses a float tensor initialized with ones.
     pub fn ones(&self, name: &str, dims: &[i64]) -> Tensor {
-        self.var(name, dims, Init::Const(1.))
+        self.f_ones(name, dims).unwrap()
     }
 
     /// Creates a new variable initialized randomly with normal distribution.
@@ -383,11 +507,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// standard normal distribution.
     pub fn randn_standard(&self, name: &str, dims: &[i64]) -> Tensor {
-        let init = Init::Randn {
-            mean: 0.,
-            stdev: 1.,
-        };
-        self.var(name, dims, init)
+        self.f_randn_standard(name, dims).unwrap()
     }
 
     /// Creates a new variable initialized randomly with normal distribution.
@@ -398,7 +518,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// normal distribution with the specified mean and standard deviation.
     pub fn randn(&self, name: &str, dims: &[i64], mean: f64, stdev: f64) -> Tensor {
-        self.var(name, dims, Init::Randn { mean, stdev })
+        self.f_randn(name, dims, mean, stdev).unwrap()
     }
 
     /// Creates a new variable initialized randomly with uniform distribution.
@@ -409,7 +529,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// uniform distribution between the specified bounds.
     pub fn uniform(&self, name: &str, dims: &[i64], lo: f64, up: f64) -> Tensor {
-        self.var(name, dims, Init::Uniform { lo, up })
+        self.f_uniform(name, dims, lo, up).unwrap()
     }
 
     /// Creates a new variable initialized randomly with kaiming uniform.
@@ -420,7 +540,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// uniform distribution which bounds follow Kaiming initialization.
     pub fn kaiming_uniform(&self, name: &str, dims: &[i64]) -> Tensor {
-        self.var(name, dims, Init::KaimingUniform)
+        self.f_kaiming_uniform(name, dims).unwrap()
     }
 
     /// Creates a new variable initialized by copying an existing tensor.
@@ -431,9 +551,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized by copying some
     /// given tensor.
     pub fn var_copy(&self, name: &str, t: &Tensor) -> Tensor {
-        let mut v = self.zeros(name, &t.size());
-        crate::no_grad(|| v.copy_(&t));
-        v
+        self.f_var_copy(name, t).unwrap()
     }
 
     /// Gets the tensor corresponding to a given name if present.

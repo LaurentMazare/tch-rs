@@ -3,7 +3,7 @@
 //! This library tries to stay as close as possible to the original
 //! Python and C++ implementations.
 mod init;
-pub use init::{init, Init};
+pub use init::{f_init, init, Init};
 
 mod var_store;
 pub use var_store::{Path, VarStore, Variables};
