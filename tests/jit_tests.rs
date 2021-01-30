@@ -121,3 +121,26 @@ fn jit5() {
     assert_eq!(v2, "ba");
     assert_eq!(v3, "fooba");
 }
+
+#[test]
+fn create_traced() {
+    let mut closure = |inputs: &[Tensor]| {
+        let v1 = inputs[0].shallow_clone();
+        let v2 = inputs[1].shallow_clone();
+        vec![v1 + v2]
+    };
+    let modl = tch::CModule::create_by_tracing(
+        "MyModule",
+        "MyFn",
+        &[Tensor::from(0.0), Tensor::from(1.0)],
+        &mut closure,
+    )
+    .unwrap();
+    let filename = std::env::temp_dir().join(format!("tch-modl-{}", std::process::id()));
+    modl.save(&filename).unwrap();
+    let modl = tch::CModule::load(&filename).unwrap();
+    let xs = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
+    let ys = Tensor::of_slice(&[41.0, 1335.0, 0.1415, 4.0, 5.0]);
+    let result = modl.method_ts("MyFn", &[xs, ys]).unwrap();
+    assert_eq!(Vec::<f64>::from(&result), [42.0, 1337.0, 3.1415, 8.0, 10.0])
+}

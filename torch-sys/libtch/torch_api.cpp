@@ -1,5 +1,7 @@
 #include<torch/csrc/autograd/engine.h>
 #include<torch/csrc/jit/runtime/graph_executor.h>
+#include <torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
+#include <torch/csrc/jit/passes/normalize_ops.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
@@ -906,6 +908,80 @@ int atm_get_profiling_mode() {
 void atm_set_profiling_mode(int b) {
   PROTECT(
     torch::jit::getProfilingMode() = (bool)b;
+  )
+}
+
+module atm_create_by_tracing(
+    char *modl_name,
+    char *fn_name,
+    tensor *inputs,
+    int ninputs,
+    int noutputs,
+    void (*f)(void*, tensor*, int, tensor*, int),
+    void *user_data) {
+  PROTECT(
+    torch::jit::script::Module modl(modl_name);
+    vector<torch::jit::IValue> input_vec;
+    for (int i = 0; i < ninputs; ++i) input_vec.push_back(torch::jit::IValue(*(inputs[i])));
+    auto outs = torch::jit::tracer::trace(
+      c10::Stack(input_vec),
+      [&f, ninputs, noutputs, user_data](c10::Stack input_stack) -> c10::Stack {
+        vector<tensor> inputs(ninputs, nullptr);
+        vector<tensor> outputs(noutputs, nullptr);
+        // TODO: release the memory for these.
+        for (int i = 0; i < ninputs; ++i) inputs[i] = new torch::Tensor(input_stack[i].toTensor());
+        f(user_data, inputs.data(), ninputs, outputs.data(), noutputs);
+        vector<torch::jit::IValue> output_vec;
+        for (int i = 0; i < noutputs; ++i) output_vec.push_back(torch::jit::IValue(*(outputs[i])));
+        return c10::Stack(output_vec);
+      },
+      [](const torch::autograd::Variable& var) { return "";},
+      true,
+      false,
+      &modl);
+     auto graph = outs.first->graph;
+     auto fn = modl._ivalue()->compilation_unit()->create_function(fn_name, graph);
+     modl.type()->addMethod(fn);
+     return new torch::jit::script::Module(modl);
+  )
+  return nullptr;
+}
+
+module atm_create_for_tracing(
+    char *modl_name,
+    tensor *inputs,
+    int ninputs) {
+  PROTECT(
+    torch::jit::script::Module modl(modl_name);
+    if (torch::jit::tracer::isTracing())
+      throw std::invalid_argument("cannot nest tracing calls");
+    auto state = std::make_shared<torch::jit::tracer::TracingState>();
+    torch::jit::tracer::setTracingState(state);
+    auto* _modl_value = state->graph->insertInput(0, "self")->setType(modl._ivalue()->type());
+    for (int i = 0; i < ninputs; ++i) {
+      auto value = state->graph->addInput();
+      value->setType(torch::jit::TensorType::get());
+      state->setValue(*inputs[i], value); 
+    }
+    return new torch::jit::script::Module(modl);
+  )
+  torch::jit::tracer::abandon();
+  return nullptr;
+}
+
+void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
+  PROTECT(
+    auto state = torch::jit::tracer::getTracingState();
+    if (state == nullptr)
+      throw std::invalid_argument("not in tracing mode");
+    for (int i = 0; i < noutputs; ++i) {
+      state->graph->registerOutput(state->getOutput(*outputs[i], i));
+    }
+    torch::jit::FixupTraceScopeBlocks(state->graph, m);
+    torch::jit::NormalizeOps(state->graph);
+    torch::jit::tracer::setTracingState(nullptr);
+    auto fn = m->_ivalue()->compilation_unit()->create_function(fn_name, state->graph);
+    m->type()->addMethod(fn);
   )
 }
 
