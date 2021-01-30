@@ -178,6 +178,10 @@ module atm_create_by_tracing(
   void (*f)(void*, tensor*, int, tensor*, int),
   void *user_data);
 
+// This function has to be followed by a call to atm_end_tracing.
+module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
+void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
+
 ivalue ati_none();
 ivalue ati_tensor(tensor);
 ivalue ati_int(int64_t);

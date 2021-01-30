@@ -257,6 +257,17 @@ extern "C" {
         ),
         user_data: *mut c_void,
     ) -> *mut CModule_;
+    pub fn atm_create_for_tracing(
+        modl_name: *const c_char,
+        inputs: *const *mut C_tensor,
+        ninputs: c_int,
+    ) -> *mut CModule_;
+    pub fn atm_end_tracing(
+        m: *mut CModule_,
+        fn_name: *const c_char,
+        outputs: *const *mut C_tensor,
+        noutputs: c_int,
+    );
 }
 
 extern "C" {

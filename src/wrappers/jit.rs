@@ -605,7 +605,8 @@ impl CModule {
 
     /// Create a new module by tracing the application of the specified function on
     /// the given inputs.
-    pub fn create_by_tracing<F>(
+    /// This secondary implementation uses tracer::trace()
+    pub fn _create_by_tracing<F>(
         modl_name: &str,
         fn_name: &str,
         inputs: &[Tensor],
@@ -629,6 +630,42 @@ impl CModule {
             noutputs,
             CModule::traced_fn::<F>,
             &mut closure as *mut _ as *mut c_void,
+        ));
+        Ok(CModule { c_module })
+    }
+
+    /// Create a new module by tracing the application of the specified function on
+    /// the given inputs.
+    pub fn create_by_tracing<F>(
+        modl_name: &str,
+        fn_name: &str,
+        inputs: &[Tensor],
+        closure: &mut F,
+    ) -> Result<CModule, TchError>
+    where
+        F: FnMut(&[Tensor]) -> Vec<Tensor>,
+    {
+        let modl_name = std::ffi::CString::new(modl_name)?;
+        let fn_name = std::ffi::CString::new(fn_name)?;
+        let c_inputs = inputs
+            .iter()
+            .map(|tensor| tensor.c_tensor)
+            .collect::<Vec<_>>();
+        let c_module = unsafe_torch_err!(atm_create_for_tracing(
+            modl_name.as_ptr(),
+            c_inputs.as_ptr(),
+            c_inputs.len() as c_int
+        ));
+        let outputs = closure(inputs);
+        let c_outputs = outputs
+            .iter()
+            .map(|tensor| tensor.c_tensor)
+            .collect::<Vec<_>>();
+        unsafe_torch_err!(atm_end_tracing(
+            c_module,
+            fn_name.as_ptr(),
+            c_outputs.as_ptr(),
+            c_outputs.len() as c_int,
         ));
         Ok(CModule { c_module })
     }

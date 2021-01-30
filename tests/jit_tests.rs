@@ -124,7 +124,7 @@ fn jit5() {
 
 #[test]
 fn create_traced() {
-    let closure = |inputs: Vec<Tensor>| {
+    let mut closure = |inputs: &[Tensor]| {
         let v1 = inputs[0].shallow_clone();
         let v2 = inputs[1].shallow_clone();
         vec![v1 + v2]
@@ -133,8 +133,7 @@ fn create_traced() {
         "MyModule",
         "MyFn",
         &[Tensor::from(0.0), Tensor::from(1.0)],
-        1,
-        &closure,
+        &mut closure,
     )
     .unwrap();
     let filename = std::env::temp_dir().join(format!("tch-modl-{}", std::process::id()));
