@@ -580,60 +580,6 @@ impl CModule {
         Ok(v)
     }
 
-    extern "C" fn traced_fn<F>(
-        user_data: *mut c_void,
-        inputs: *const *mut C_tensor,
-        ninputs: c_int,
-        outputs: *mut *mut C_tensor,
-        noutputs: c_int,
-    ) where
-        F: FnMut(Vec<Tensor>) -> Vec<Tensor>,
-    {
-        let inputs_vec = (0..ninputs as isize)
-            .map(|i| Tensor {
-                c_tensor: unsafe { *(inputs.offset(i)) },
-            })
-            .collect();
-        let user_data = unsafe { &mut *(user_data as *mut F) };
-        let outputs_vec = user_data(inputs_vec);
-        for idx in 0..noutputs as isize {
-            // TODO: remove this allocation if not necessary?
-            let c_tensor = unsafe_torch!(at_shallow_clone(outputs_vec[idx as usize].c_tensor));
-            unsafe { *outputs.offset(idx) = c_tensor }
-        }
-    }
-
-    /// Create a new module by tracing the application of the specified function on
-    /// the given inputs.
-    /// This secondary implementation uses tracer::trace()
-    pub fn _create_by_tracing<F>(
-        modl_name: &str,
-        fn_name: &str,
-        inputs: &[Tensor],
-        noutputs: i32,
-        mut closure: &F,
-    ) -> Result<CModule, TchError>
-    where
-        F: FnMut(Vec<Tensor>) -> Vec<Tensor>,
-    {
-        let modl_name = std::ffi::CString::new(modl_name)?;
-        let fn_name = std::ffi::CString::new(fn_name)?;
-        let inputs = inputs
-            .iter()
-            .map(|tensor| tensor.c_tensor)
-            .collect::<Vec<_>>();
-        let c_module = unsafe_torch_err!(atm_create_by_tracing(
-            modl_name.as_ptr(),
-            fn_name.as_ptr(),
-            inputs.as_ptr(),
-            inputs.len() as c_int,
-            noutputs,
-            CModule::traced_fn::<F>,
-            &mut closure as *mut _ as *mut c_void,
-        ));
-        Ok(CModule { c_module })
-    }
-
     /// Create a new module by tracing the application of the specified function on
     /// the given inputs.
     pub fn create_by_tracing<F>(
