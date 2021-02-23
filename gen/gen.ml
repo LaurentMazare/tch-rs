@@ -31,6 +31,7 @@ let excluded_functions =
     ; "_cummax_helper"
     ; "retain_grad"
     ; "_validate_sparse_coo_tensor_args"
+    ; "_backward"
     ]
 
 let no_tensor_options =
@@ -50,7 +51,7 @@ let prefixed_functions =
     (module String)
     [ "add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss" ]
 
-let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach" ]
+let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp" ]
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
 let yaml_error yaml ~msg = Printf.failwithf "%s, %s" msg (Yaml.to_string_exn yaml) ()
 
@@ -648,7 +649,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.7.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.8.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

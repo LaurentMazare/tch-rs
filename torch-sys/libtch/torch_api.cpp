@@ -141,7 +141,7 @@ int at_scalar_type(tensor t) {
 
 void at__amp_non_finite_check_and_unscale(tensor t, tensor found_inf, tensor inf_scale) {
   PROTECT(
-    at::_amp_non_finite_check_and_unscale_(*t, *found_inf, *inf_scale);
+    at::_amp_foreach_non_finite_check_and_unscale_(*t, *found_inf, *inf_scale);
   )
 }
 
@@ -486,7 +486,7 @@ void at_run_backward(tensor *tensors,
     for (int i = 0; i < ntensors; ++i)
       grads.push_back(torch::ones_like(*tensors[i]));
 
-    auto vl = torch::autograd::Engine::get_default_engine().execute(roots, grads, keep_graph, create_graph, inputs_);
+    auto vl = torch::autograd::Engine::get_default_engine().execute(roots, grads, keep_graph, create_graph, true, inputs_);
     for (int i = 0; i < ninputs; ++i) {
       outputs[i] = static_cast<tensor>(new torch::autograd::Variable(vl[i]));
     }
