@@ -90,6 +90,7 @@ void atg__gather_sparse_backward(tensor *, tensor self, int64_t dim, tensor inde
 void atg__grid_sampler_2d_cpu_fallback(tensor *, tensor input, tensor grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners);
 void atg__grid_sampler_2d_cpu_fallback_backward(tensor *, tensor grad_output, tensor input, tensor grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners);
 void atg__index_copy_(tensor *, tensor self, int64_t dim, tensor index, tensor source);
+void atg__index_put_impl_(tensor *, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate, int unsafe);
 void atg__indices(tensor *, tensor self);
 void atg__inverse_helper(tensor *, tensor self);
 void atg__linalg_inv_out_helper_(tensor *, tensor self, tensor infos_lu, tensor infos_getri);
@@ -770,6 +771,7 @@ void atg_im2col_backward(tensor *, tensor grad_output, int64_t *input_size_data,
 void atg_im2col_backward_out(tensor *, tensor grad_input, tensor grad_output, int64_t *input_size_data, int input_size_len, int64_t *kernel_size_data, int kernel_size_len, int64_t *dilation_data, int dilation_len, int64_t *padding_data, int padding_len, int64_t *stride_data, int stride_len);
 void atg_im2col_out(tensor *, tensor out, tensor self, int64_t *kernel_size_data, int kernel_size_len, int64_t *dilation_data, int dilation_len, int64_t *padding_data, int padding_len, int64_t *stride_data, int stride_len);
 void atg_imag(tensor *, tensor self);
+void atg_index(tensor *, tensor self, tensor *indices_data, int indices_len);
 void atg_index_add(tensor *, tensor self, int64_t dim, tensor index, tensor source);
 void atg_index_add_(tensor *, tensor self, int64_t dim, tensor index, tensor source);
 void atg_index_copy(tensor *, tensor self, int64_t dim, tensor index, tensor source);
@@ -778,6 +780,8 @@ void atg_index_fill(tensor *, tensor self, int64_t dim, tensor index, scalar val
 void atg_index_fill1(tensor *, tensor self, int64_t dim, tensor index, tensor value);
 void atg_index_fill_(tensor *, tensor self, int64_t dim, tensor index, scalar value);
 void atg_index_fill_1(tensor *, tensor self, int64_t dim, tensor index, tensor value);
+void atg_index_put(tensor *, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate);
+void atg_index_put_(tensor *, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate);
 void atg_index_select(tensor *, tensor self, int64_t dim, tensor index);
 void atg_index_select_backward(tensor *, tensor grad, int64_t *self_sizes_data, int self_sizes_len, int64_t dim, tensor index);
 void atg_index_select_out(tensor *, tensor out, tensor self, int64_t dim, tensor index);
@@ -1165,9 +1169,9 @@ void atg_polar_out(tensor *, tensor out, tensor abs, tensor angle);
 void atg_polygamma(tensor *, int64_t n, tensor self);
 void atg_polygamma_(tensor *, tensor self, int64_t n);
 void atg_polygamma_out(tensor *, tensor out, int64_t n, tensor self);
-void atg_pow(tensor *, tensor self, tensor exponent);
-void atg_pow1(tensor *, scalar self_scalar, tensor exponent);
-void atg_pow2(tensor *, tensor self, scalar exponent);
+void atg_pow(tensor *, tensor self, scalar exponent);
+void atg_pow1(tensor *, tensor self, tensor exponent);
+void atg_pow2(tensor *, scalar self_scalar, tensor exponent);
 void atg_pow_(tensor *, tensor self, scalar exponent);
 void atg_pow_1(tensor *, tensor self, tensor exponent);
 void atg_pow_out(tensor *, tensor out, tensor self, tensor exponent);

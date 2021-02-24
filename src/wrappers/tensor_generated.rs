@@ -818,6 +818,17 @@ impl Tensor {
         self.f_internal_index_copy_(dim, index, source).unwrap()
     }
 
+    pub fn internal_index_put_impl_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Tensor {
+        self.f_internal_index_put_impl_(indices, values, accumulate, unsafe_)
+            .unwrap()
+    }
+
     pub fn internal_indices(&self) -> Tensor {
         self.f_internal_indices().unwrap()
     }
@@ -5045,6 +5056,10 @@ impl Tensor {
         self.f_imag().unwrap()
     }
 
+    pub fn index<T: Borrow<Tensor>>(&self, indices: &[Option<T>]) -> Tensor {
+        self.f_index(indices).unwrap()
+    }
+
     pub fn index_add(&self, dim: i64, index: &Tensor, source: &Tensor) -> Tensor {
         self.f_index_add(dim, index, source).unwrap()
     }
@@ -5075,6 +5090,24 @@ impl Tensor {
 
     pub fn index_fill_1(&mut self, dim: i64, index: &Tensor, value: &Tensor) -> Tensor {
         self.f_index_fill_1(dim, index, value).unwrap()
+    }
+
+    pub fn index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_index_put(indices, values, accumulate).unwrap()
+    }
+
+    pub fn index_put_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_index_put_(indices, values, accumulate).unwrap()
     }
 
     pub fn index_select(&self, dim: i64, index: &Tensor) -> Tensor {
@@ -7733,16 +7766,16 @@ impl Tensor {
         self.f_polygamma_out(out, n).unwrap()
     }
 
-    pub fn pow(&self, exponent: &Tensor) -> Tensor {
+    pub fn pow<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
         self.f_pow(exponent).unwrap()
     }
 
-    pub fn pow1<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Tensor {
-        Tensor::f_pow1(self_scalar, exponent).unwrap()
+    pub fn pow1(&self, exponent: &Tensor) -> Tensor {
+        self.f_pow1(exponent).unwrap()
     }
 
-    pub fn pow2<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
-        self.f_pow2(exponent).unwrap()
+    pub fn pow2<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Tensor {
+        Tensor::f_pow2(self_scalar, exponent).unwrap()
     }
 
     pub fn pow_<S: Into<Scalar>>(&mut self, exponent: S) -> Tensor {
@@ -9453,7 +9486,7 @@ impl Tensor {
         self.f_to_dense_backward(grad).unwrap()
     }
 
-    pub fn to_mkldnn(&self, dtype: Kind) -> Tensor {
+    pub fn g_to_mkldnn(&self, dtype: Kind) -> Tensor {
         self.f_to_mkldnn(dtype).unwrap()
     }
 

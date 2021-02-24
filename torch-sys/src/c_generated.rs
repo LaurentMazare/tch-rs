@@ -505,6 +505,15 @@ extern "C" {
         index_: *mut C_tensor,
         source_: *mut C_tensor,
     );
+    pub fn atg__index_put_impl_(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+        unsafe_: c_int,
+    );
     pub fn atg__indices(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__inverse_helper(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__linalg_inv_out_helper_(
@@ -4039,6 +4048,12 @@ extern "C" {
         stride_len: c_int,
     );
     pub fn atg_imag(out__: *mut *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_index(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+    );
     pub fn atg_index_add(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -4094,6 +4109,22 @@ extern "C" {
         dim_: i64,
         index_: *mut C_tensor,
         value_: *mut C_tensor,
+    );
+    pub fn atg_index_put(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+    );
+    pub fn atg_index_put_(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
     );
     pub fn atg_index_select(
         out__: *mut *mut C_tensor,
@@ -6249,13 +6280,13 @@ extern "C" {
         n_: i64,
         self_: *mut C_tensor,
     );
-    pub fn atg_pow(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_tensor);
-    pub fn atg_pow1(
+    pub fn atg_pow(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_scalar);
+    pub fn atg_pow1(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_tensor);
+    pub fn atg_pow2(
         out__: *mut *mut C_tensor,
         self_scalar_: *mut C_scalar,
         exponent_: *mut C_tensor,
     );
-    pub fn atg_pow2(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_scalar);
     pub fn atg_pow_(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_scalar);
     pub fn atg_pow_1(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_tensor);
     pub fn atg_pow_out(

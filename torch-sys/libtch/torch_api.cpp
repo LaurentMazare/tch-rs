@@ -36,6 +36,14 @@ vector<torch::Tensor> of_carray_tensor(torch::Tensor **vs, int len) {
   return result;
 }
 
+c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs, int len) {
+  vector<c10::optional<torch::Tensor>> result;
+  for (int i = 0; i < len; ++i) {
+    result.push_back(vs[1] ? c10::optional<torch::Tensor>(*(vs[i])) : c10::nullopt);
+  }
+  return c10::List<c10::optional<torch::Tensor>>(result);
+}
+
 at::Device device_of_int(int d) {
     if (d < 0) return at::Device(at::kCPU);
     return at::Device(at::kCUDA, /*index=*/d);

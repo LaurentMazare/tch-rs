@@ -650,6 +650,13 @@ void atg__index_copy_(tensor *out__, tensor self, int64_t dim, tensor index, ten
   )
 }
 
+void atg__index_put_impl_(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate, int unsafe) {
+  PROTECT(
+    auto outputs__ = torch::_index_put_impl_(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate, (bool)unsafe);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg__indices(tensor *out__, tensor self) {
   PROTECT(
     auto outputs__ = self->_indices();
@@ -5516,6 +5523,13 @@ void atg_imag(tensor *out__, tensor self) {
   )
 }
 
+void atg_index(tensor *out__, tensor self, tensor *indices_data, int indices_len) {
+  PROTECT(
+    auto outputs__ = torch::index(*self, of_carray_tensor_opt(indices_data, indices_len));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_index_add(tensor *out__, tensor self, int64_t dim, tensor index, tensor source) {
   PROTECT(
     auto outputs__ = torch::index_add(*self, dim, *index, *source);
@@ -5568,6 +5582,20 @@ void atg_index_fill_(tensor *out__, tensor self, int64_t dim, tensor index, scal
 void atg_index_fill_1(tensor *out__, tensor self, int64_t dim, tensor index, tensor value) {
   PROTECT(
     auto outputs__ = self->index_fill_(dim, *index, *value);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_index_put(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::index_put(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_index_put_(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::index_put_(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -8345,23 +8373,23 @@ void atg_polygamma_out(tensor *out__, tensor out, int64_t n, tensor self) {
   )
 }
 
-void atg_pow(tensor *out__, tensor self, tensor exponent) {
+void atg_pow(tensor *out__, tensor self, scalar exponent) {
   PROTECT(
     auto outputs__ = torch::pow(*self, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_pow1(tensor *out__, scalar self_scalar, tensor exponent) {
+void atg_pow1(tensor *out__, tensor self, tensor exponent) {
+  PROTECT(
+    auto outputs__ = torch::pow(*self, *exponent);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_pow2(tensor *out__, scalar self_scalar, tensor exponent) {
   PROTECT(
     auto outputs__ = torch::pow(*self_scalar, *exponent);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_pow2(tensor *out__, tensor self, scalar exponent) {
-  PROTECT(
-    auto outputs__ = torch::pow(*self, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }

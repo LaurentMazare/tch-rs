@@ -89329,6 +89329,53 @@
   has_math_kernel: false
 - name: pow
   operator_name: pow
+  overload_name: Tensor_Scalar
+  manual_kernel_registration: false
+  category_override: ''
+  matches_jit_signature: true
+  schema_string: aten::pow.Tensor_Scalar(Tensor self, Scalar exponent) -> Tensor
+  arguments:
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  schema_order_cpp_signature: Tensor (const Tensor &, Scalar)
+  schema_order_arguments:
+  - annotation: null
+    dynamic_type: Tensor
+    is_nullable: false
+    name: self
+    type: const Tensor &
+  - annotation: null
+    dynamic_type: Scalar
+    is_nullable: false
+    name: exponent
+    type: Scalar
+  method_of:
+  - Type
+  - Tensor
+  - namespace
+  mode: native
+  python_module: ''
+  returns:
+  - dynamic_type: Tensor
+    name: result
+    type: Tensor
+  inplace: false
+  is_factory_method: false
+  abstract: true
+  device_guard: true
+  with_gil: false
+  deprecated: false
+  has_math_kernel: false
+- name: pow
+  operator_name: pow
   overload_name: Tensor_Tensor
   manual_kernel_registration: false
   category_override: ''
@@ -89533,53 +89580,6 @@
   - dynamic_type: Tensor
     name: out
     type: Tensor &
-  inplace: false
-  is_factory_method: false
-  abstract: true
-  device_guard: true
-  with_gil: false
-  deprecated: false
-  has_math_kernel: false
-- name: pow
-  operator_name: pow
-  overload_name: Tensor_Scalar
-  manual_kernel_registration: false
-  category_override: ''
-  matches_jit_signature: true
-  schema_string: aten::pow.Tensor_Scalar(Tensor self, Scalar exponent) -> Tensor
-  arguments:
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  schema_order_cpp_signature: Tensor (const Tensor &, Scalar)
-  schema_order_arguments:
-  - annotation: null
-    dynamic_type: Tensor
-    is_nullable: false
-    name: self
-    type: const Tensor &
-  - annotation: null
-    dynamic_type: Scalar
-    is_nullable: false
-    name: exponent
-    type: Scalar
-  method_of:
-  - Type
-  - Tensor
-  - namespace
-  mode: native
-  python_module: ''
-  returns:
-  - dynamic_type: Tensor
-    name: result
-    type: Tensor
   inplace: false
   is_factory_method: false
   abstract: true

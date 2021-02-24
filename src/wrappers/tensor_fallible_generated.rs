@@ -6,6 +6,15 @@ use torch_sys::c_generated::*;
 #[allow(clippy::all)]
 use torch_sys::*;
 
+fn ptr_list_opt<T: Borrow<Tensor>>(l: &[Option<T>]) -> Vec<*mut C_tensor> {
+    l.iter()
+        .map(|x| {
+            x.as_ref()
+                .map_or(std::ptr::null_mut(), |x| x.borrow().c_tensor)
+        })
+        .collect()
+}
+
 fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {
     l.iter().map(|x| x.borrow().c_tensor).collect()
 }
@@ -1654,6 +1663,28 @@ impl Tensor {
             dim,
             index.c_tensor,
             source.c_tensor
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
+    pub fn f_internal_index_put_impl_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__index_put_impl_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 },
+            if unsafe_ { 1 } else { 0 }
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -12382,6 +12413,19 @@ impl Tensor {
         })
     }
 
+    pub fn f_index<T: Borrow<Tensor>>(&self, indices: &[Option<T>]) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
     pub fn f_index_add(
         &self,
         dim: i64,
@@ -12528,6 +12572,46 @@ impl Tensor {
             dim,
             index.c_tensor,
             value.c_tensor
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
+    pub fn f_index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_put(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
+    pub fn f_index_put_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_put_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -19011,23 +19095,23 @@ impl Tensor {
         })
     }
 
-    pub fn f_pow(&self, exponent: &Tensor) -> Result<Tensor, TchError> {
+    pub fn f_pow<S: Into<Scalar>>(&self, exponent: S) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_pow(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            exponent.c_tensor
+            exponent.into().c_scalar
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
     }
 
-    pub fn f_pow1<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Result<Tensor, TchError> {
+    pub fn f_pow1(&self, exponent: &Tensor) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_pow1(
             c_tensors.as_mut_ptr(),
-            self_scalar.into().c_scalar,
+            self.c_tensor,
             exponent.c_tensor
         ));
         Ok(Tensor {
@@ -19035,12 +19119,12 @@ impl Tensor {
         })
     }
 
-    pub fn f_pow2<S: Into<Scalar>>(&self, exponent: S) -> Result<Tensor, TchError> {
+    pub fn f_pow2<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_pow2(
             c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            exponent.into().c_scalar
+            self_scalar.into().c_scalar,
+            exponent.c_tensor
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
