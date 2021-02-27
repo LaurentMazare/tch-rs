@@ -304,24 +304,33 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim]);
 
     // padding test
-    let padding_idx = if embedding_config.padding_idx < 0 {
-        input_dim + embedding_config.padding_idx
-    } else {
-        embedding_config.padding_idx
-    };
-    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let input = Tensor::of_slice(&vec![0, 1, 2]);
     let output = embeddings.forward(&input);
-    assert_eq!(output.size(), [1, output_dim]);
-    assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
+    assert_eq!(output.size(), [3, output_dim]);
+    for idx in 0..3 {
+        if embedding_config.padding_idx == idx {
+            assert_eq!(Vec::<f64>::from(output.get(idx)), vec![0f64; output_dim as usize])
+        } else {
+            assert_eq!(output.get(idx), embeddings.ws.get(idx));
+        }
+    }
 }
 
 #[test]
-fn embedding() {
+fn embedding_default() {
     embedding_test(Default::default());
+}
+
+#[test]
+fn embedding_neg_padding() {
     embedding_test(nn::EmbeddingConfig {
         padding_idx: -1,
         ..Default::default()
     });
+}
+
+#[test]
+fn embedding_zero_padding() {
     embedding_test(nn::EmbeddingConfig {
         padding_idx: 0,
         ..Default::default()
