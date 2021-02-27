@@ -39,7 +39,7 @@ vector<torch::Tensor> of_carray_tensor(torch::Tensor **vs, int len) {
 c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs, int len) {
   vector<c10::optional<torch::Tensor>> result;
   for (int i = 0; i < len; ++i) {
-    result.push_back(vs[1] ? c10::optional<torch::Tensor>(*(vs[i])) : c10::nullopt);
+    result.push_back(vs[i] != nullptr ? c10::optional<torch::Tensor>(*(vs[i])) : c10::nullopt);
   }
   return c10::List<c10::optional<torch::Tensor>>(result);
 }
