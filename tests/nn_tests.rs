@@ -309,7 +309,10 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     assert_eq!(output.size(), [3, output_dim]);
     for idx in 0..3 {
         if embedding_config.padding_idx == idx {
-            assert_eq!(Vec::<f64>::from(output.get(idx)), vec![0f64; output_dim as usize])
+            assert_eq!(
+                Vec::<f64>::from(output.get(idx)),
+                vec![0f64; output_dim as usize]
+            )
         } else {
             assert_eq!(output.get(idx), embeddings.ws.get(idx));
         }
