@@ -31,6 +31,7 @@ let excluded_functions =
     ; "_cummax_helper"
     ; "retain_grad"
     ; "_validate_sparse_coo_tensor_args"
+    ; "_backward"
     ]
 
 let no_tensor_options =
@@ -48,9 +49,9 @@ let no_tensor_options =
 let prefixed_functions =
   Set.of_list
     (module String)
-    [ "add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss" ]
+    [ "add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss"; "to_mkldnn" ]
 
-let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach" ]
+let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp" ]
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
 let yaml_error yaml ~msg = Printf.failwithf "%s, %s" msg (Yaml.to_string_exn yaml) ()
 
@@ -85,6 +86,7 @@ module Func = struct
     | Tensor
     | TensorOption (* Tensor.t option *)
     | IntList
+    | TensorOptList
     | TensorList
     | TensorOptions (* Tensor kind and device *)
     | Scalar
@@ -115,6 +117,7 @@ module Func = struct
       Some (if is_nullable then TensorOption else Tensor)
     | "tensoroptions" -> Some TensorOptions
     | "intarrayref" | "intlist" -> Some IntList
+    | "const c10::list<c10::optional<tensor>> &"  -> Some TensorOptList
     | "tensorlist" -> Some TensorList
     | "device" -> Some Device
     | "scalar" -> Some Scalar
@@ -126,6 +129,7 @@ module Func = struct
     List.map t.args ~f:(fun { arg_name; arg_type; _ } ->
         match arg_type with
         | IntList -> Printf.sprintf "int64_t *%s_data, int %s_len" arg_name arg_name
+        | TensorOptList
         | TensorList -> Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
         | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
         | String -> Printf.sprintf "char* %s_ptr, int %s_len" arg_name arg_name
@@ -142,7 +146,7 @@ module Func = struct
             | ScalarType -> "int"
             | Device -> "int"
             | Scalar -> "scalar"
-            | Int64Option | DoubleOption | String | IntList | TensorList | TensorOptions
+            | Int64Option | DoubleOption | String | IntList | TensorOptList | TensorList | TensorOptions
               -> assert false
           in
           Printf.sprintf "%s %s" simple_type_cstring arg_name)
@@ -157,6 +161,8 @@ module Func = struct
         | IntList ->
           Printf.sprintf "torch::IntArrayRef(%s_data, %s_len)" arg_name arg_name
         | String -> Printf.sprintf "std::string(%s_ptr, %s_len)" arg_name arg_name
+        | TensorOptList ->
+          Printf.sprintf "of_carray_tensor_opt(%s_data, %s_len)" arg_name arg_name
         | TensorList ->
           Printf.sprintf "of_carray_tensor(%s_data, %s_len)" arg_name arg_name
         | TensorOptions ->
@@ -218,6 +224,8 @@ module Func = struct
         | Device -> single_param "c_int"
         | String -> Printf.sprintf "%s_ptr: *const u8, %s_len: c_int" an an
         | IntList -> Printf.sprintf "%s_data: *const i64, %s_len: c_int" an an
+        | TensorOptList ->
+          Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
         | TensorList ->
           Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
         | Int64Option -> Printf.sprintf "%s_v: i64, %s_null: i8" an an
@@ -248,7 +256,7 @@ module Func = struct
     let needs_type_parameter =
       List.exists t.args ~f:(fun arg ->
           match arg.arg_type with
-          | TensorList | TensorOption -> true
+          | TensorOptList | TensorList | TensorOption -> true
           | _ -> false)
     in
     if needs_type_parameter && needs_scalar_parameter
@@ -279,6 +287,7 @@ module Func = struct
             | Tensor -> "&Tensor"
             | TensorOption -> "Option<T>"
             | IntList -> "&[i64]"
+            | TensorOptList -> "&[Option<T>]"
             | TensorList -> "&[T]"
             | String -> "&str"
             | TensorOptions -> "(Kind, Device)"
@@ -334,6 +343,7 @@ module Func = struct
           Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8" name name
         | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
+        | TensorOptList -> Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
         | TensorList -> Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
         | TensorOption ->
           Printf.sprintf "%s.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
@@ -378,7 +388,12 @@ let read_yaml filename =
             let return_type =
               Map.find_exn (extract_map returns) "dynamic_type" |> extract_string
             in
-            if String.( = ) return_type "TensorList" then Some `dynamic else None
+            if String.( = ) return_type "TensorList"
+               || String.( = )
+                    return_type
+                    "dynamic_type: const c10::List<c10::optional<Tensor>> &"
+            then Some `dynamic
+            else None
           | [] | _ :: _ :: _ -> None)
       in
       let kind =
@@ -497,6 +512,10 @@ let write_fallible_wrapper funcs filename =
       pm "use crate::{Device, Kind, Scalar, TchError, Tensor};";
       pm "use std::convert::Into;";
       pm "use std::borrow::Borrow;";
+      pm "";
+      pm "fn ptr_list_opt<T: Borrow<Tensor>>(l: &[Option<T>]) -> Vec<*mut C_tensor> {";
+      pm "    l.iter().map(|x| x.as_ref().map_or(std::ptr::null_mut(), |x| x.borrow().c_tensor)).collect()";
+      pm "}";
       pm "";
       pm "fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {";
       pm "    l.iter().map(|x| x.borrow().c_tensor).collect()";
@@ -648,7 +667,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.7.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.8.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

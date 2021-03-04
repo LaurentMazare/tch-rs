@@ -653,6 +653,10 @@ impl Tensor {
         let inner: Vec<Tensor> = v.iter().map(|v| Tensor::of_slice(v.as_ref())).collect();
         Tensor::stack(&inner, 0)
     }
+
+    pub fn to_mkldnn(&self) -> Tensor {
+        self.g_to_mkldnn(self.kind())
+    }
 }
 
 impl std::iter::Sum for Tensor {

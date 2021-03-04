@@ -132,7 +132,7 @@ fn tensor_index() {
     let rows_select = Tensor::of_slice(&[0i64, 1, 0]);
     let column_select = Tensor::of_slice(&[1i64, 2, 2]);
 
-    let selected = t.index(&[rows_select, column_select]);
+    let selected = t.index(&[Some(rows_select), Some(column_select)]);
     assert_eq!(selected.size(), &[3]);
     assert_eq!(Vec::<i64>::from(selected), &[1, 5, 2]);
 }
@@ -146,7 +146,7 @@ fn tensor_multi_index() {
     let select_final = Tensor::stack(&[select_1, select_2], 0);
     assert_eq!(select_final.size(), &[2, 3]);
 
-    let selected = t.index(&[select_final]); // index only rows
+    let selected = t.index(&[Some(select_final)]); // index only rows
     assert_eq!(selected.size(), &[2, 3, 3]);
     assert_eq!(
         Vec::<i64>::from(selected),
@@ -161,7 +161,7 @@ fn tensor_put() {
     let column_select = Tensor::of_slice(&[1i64, 2, 2]);
     let values = Tensor::of_slice(&[10i64, 12, 24]);
 
-    let updated = t.index_put(&[rows_select, column_select], &values, false);
+    let updated = t.index_put(&[Some(rows_select), Some(column_select)], &values, false);
     assert_eq!(Vec::<i64>::from(updated), &[0i64, 10, 24, 3, 4, 12]); // after flattening
 }
 

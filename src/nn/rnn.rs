@@ -119,6 +119,7 @@ pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNCon
             in_dim,
             2, /* 2 for LSTM see rnn.cpp in pytorch */
             hidden_dim,
+            0, /* disables projections */
             c.num_layers,
             c.batch_first,
             c.bidirectional,
@@ -225,6 +226,7 @@ pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConf
             in_dim,
             3, /* 3 for GRU see rnn.cpp in pytorch */
             hidden_dim,
+            0, /* disables projections */
             c.num_layers,
             c.batch_first,
             c.bidirectional,
