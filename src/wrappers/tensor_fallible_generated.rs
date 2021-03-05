@@ -396,6 +396,29 @@ impl Tensor {
         ))
     }
 
+    pub fn f_internal_amp_update_scale(
+        growth_tracker: &Tensor,
+        current_scale: &Tensor,
+        found_inf: &Tensor,
+        scale_growth_factor: f64,
+        scale_backoff_factor: f64,
+        growth_interval: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__amp_update_scale(
+            c_tensors.as_mut_ptr(),
+            growth_tracker.c_tensor,
+            current_scale.c_tensor,
+            found_inf.c_tensor,
+            scale_growth_factor,
+            scale_backoff_factor,
+            growth_interval
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
     pub fn f_internal_baddbmm_mkl_(
         &mut self,
         batch1: &Tensor,

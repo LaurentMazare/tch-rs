@@ -29,6 +29,7 @@ void atg__add_relu_out(tensor *, tensor out, tensor self, tensor other);
 void atg__addmv_impl_(tensor *, tensor self, tensor self2, tensor mat, tensor vec);
 void atg__aminmax(tensor *, tensor self);
 void atg__aminmax1(tensor *, tensor self, int64_t dim, int keepdim);
+void atg__amp_update_scale(tensor *, tensor growth_tracker, tensor current_scale, tensor found_inf, double scale_growth_factor, double scale_backoff_factor, int64_t growth_interval);
 void atg__baddbmm_mkl_(tensor *, tensor self, tensor batch1, tensor batch2);
 void atg__bmm(tensor *, tensor self, tensor mat2, int deterministic);
 void atg__bmm_out(tensor *, tensor out, tensor self, tensor mat2, int deterministic);
