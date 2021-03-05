@@ -122,6 +122,25 @@ impl Tensor {
         self.f_internal_aminmax1(dim, keepdim).unwrap()
     }
 
+    pub fn internal_amp_update_scale(
+        growth_tracker: &Tensor,
+        current_scale: &Tensor,
+        found_inf: &Tensor,
+        scale_growth_factor: f64,
+        scale_backoff_factor: f64,
+        growth_interval: i64,
+    ) -> Tensor {
+        Tensor::f_internal_amp_update_scale(
+            growth_tracker,
+            current_scale,
+            found_inf,
+            scale_growth_factor,
+            scale_backoff_factor,
+            growth_interval,
+        )
+        .unwrap()
+    }
+
     pub fn internal_baddbmm_mkl_(&mut self, batch1: &Tensor, batch2: &Tensor) -> Tensor {
         self.f_internal_baddbmm_mkl_(batch1, batch2).unwrap()
     }

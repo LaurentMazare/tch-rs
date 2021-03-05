@@ -205,6 +205,13 @@ void atg__aminmax1(tensor *out__, tensor self, int64_t dim, int keepdim) {
   )
 }
 
+void atg__amp_update_scale(tensor *out__, tensor growth_tracker, tensor current_scale, tensor found_inf, double scale_growth_factor, double scale_backoff_factor, int64_t growth_interval) {
+  PROTECT(
+    auto outputs__ = torch::_amp_update_scale(*growth_tracker, *current_scale, *found_inf, scale_growth_factor, scale_backoff_factor, growth_interval);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg__baddbmm_mkl_(tensor *out__, tensor self, tensor batch1, tensor batch2) {
   PROTECT(
     auto outputs__ = torch::_baddbmm_mkl_(*self, *batch1, *batch2);

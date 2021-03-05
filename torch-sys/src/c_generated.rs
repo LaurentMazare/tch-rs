@@ -63,6 +63,15 @@ extern "C" {
         dim_: i64,
         keepdim_: c_int,
     );
+    pub fn atg__amp_update_scale(
+        out__: *mut *mut C_tensor,
+        growth_tracker_: *mut C_tensor,
+        current_scale_: *mut C_tensor,
+        found_inf_: *mut C_tensor,
+        scale_growth_factor_: f64,
+        scale_backoff_factor_: f64,
+        growth_interval_: i64,
+    );
     pub fn atg__baddbmm_mkl_(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
