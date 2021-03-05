@@ -51,7 +51,7 @@ let prefixed_functions =
     (module String)
     [ "add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss"; "to_mkldnn" ]
 
-let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp" ]
+let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp_foreach" ]
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
 let yaml_error yaml ~msg = Printf.failwithf "%s, %s" msg (Yaml.to_string_exn yaml) ()
 
