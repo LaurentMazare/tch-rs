@@ -232,6 +232,8 @@ fn main() {
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
             println!("cargo:rustc-link-lib=torch_cuda");
+            println!("cargo:rustc-link-lib=torch_cuda_cu");
+            println!("cargo:rustc-link-lib=torch_cuda_cpp");
         }
         if use_hip {
             println!("cargo:rustc-link-lib=torch_hip");
