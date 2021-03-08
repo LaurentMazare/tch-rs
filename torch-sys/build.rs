@@ -216,6 +216,10 @@ fn main() {
         // https://github.com/rust-lang/cargo/blob/master/CHANGELOG.md
         let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
             || libtorch.join("lib").join("torch_cuda.dll").exists();
+        let use_cuda_cu = libtorch.join("lib").join("libtorch_cuda_cu.so").exists()
+            || libtorch.join("lib").join("torch_cuda_cu.dll").exists();
+        let use_cuda_cpp = libtorch.join("lib").join("libtorch_cuda_cpp.so").exists()
+            || libtorch.join("lib").join("torch_cuda_cpp.dll").exists();
         let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
             || libtorch.join("lib").join("torch_hip.dll").exists();
         println!(
@@ -232,7 +236,11 @@ fn main() {
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
             println!("cargo:rustc-link-lib=torch_cuda");
+        }
+        if use_cuda_cu {
             println!("cargo:rustc-link-lib=torch_cuda_cu");
+        }
+        if use_cuda_cpp {
             println!("cargo:rustc-link-lib=torch_cuda_cpp");
         }
         if use_hip {
