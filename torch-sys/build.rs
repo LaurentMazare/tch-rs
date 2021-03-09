@@ -12,7 +12,6 @@ use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use cmake::Config;
 use curl::easy::Easy;
 
 const TORCH_VERSION: &str = "1.8.0";
@@ -187,16 +186,6 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     };
 }
 
-fn cmake<P: AsRef<Path>>(libtorch: P) {
-    let dst = Config::new("libtch")
-        .define("CMAKE_PREFIX_PATH", libtorch.as_ref())
-        .build();
-
-    println!("cargo:rustc-link-search=native={}", dst.display());
-    println!("cargo:rustc-link-lib=static=tch");
-    println!("cargo:rustc-link-lib=stdc++");
-}
-
 fn main() {
     if !cfg!(feature = "doc-only") {
         let libtorch = prepare_libtorch_dir();
@@ -223,11 +212,7 @@ fn main() {
             libtorch.join("lib").display()
         );
 
-        if env_var_rerun("LIBTORCH_USE_CMAKE").is_ok() {
-            cmake(&libtorch)
-        } else {
-            make(&libtorch, use_cuda, use_hip)
-        }
+        make(&libtorch, use_cuda, use_hip);
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
