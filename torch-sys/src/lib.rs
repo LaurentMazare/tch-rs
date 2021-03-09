@@ -254,7 +254,3 @@ extern "C" {
         noutputs: c_int,
     );
 }
-
-extern "C" {
-    pub fn dummy_cuda_dependency();
-}
