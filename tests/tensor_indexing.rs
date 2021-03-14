@@ -104,6 +104,7 @@ fn new_index() {
     assert_eq!(Vec::<i64>::from(result), &[0, 1, 2, 3, 4, 5]);
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 fn complex_index() {
     let opt = (Kind::Float, Device::Cpu);
