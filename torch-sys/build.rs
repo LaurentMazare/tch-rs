@@ -20,7 +20,7 @@ fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
     let mut easy = Easy::new();
-    easy.url(&source_url)?;
+    easy.url(source_url)?;
     easy.write_function(move |data| Ok(writer.write(data).unwrap()))?;
     easy.perform()?;
     let response_code = easy.response_code()?;
@@ -78,7 +78,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 .trim_start_matches("cu")
                 .split('.')
                 .take(2)
-                .fold("cu".to_string(), |mut acc, curr| {
+                .fold("cu".to_owned(), |mut acc, curr| {
                     acc += curr;
                     acc
                 }),
@@ -88,7 +88,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 os_str
             ),
         },
-        Err(_) => "cpu".to_string(),
+        Err(_) => "cpu".to_owned(),
     };
 
     if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
@@ -151,7 +151,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     match os.as_str() {
         "linux" | "macos" => {
             let libtorch_cxx11_abi =
-                env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_string());
+                env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)

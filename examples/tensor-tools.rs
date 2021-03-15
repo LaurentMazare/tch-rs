@@ -3,9 +3,9 @@
 // - List the content of some npy/npz/ot file.
 //     tensor-tools ls a.npy b.npz c.ot
 //
-// - Convert npz/ot files.
+// - Convert a npz file to an ot file.
 //     tensor-tools cp src.npz dst.ot
-//   or
+//   Or the other way around.
 //     tensor-tools cp src.ot dst.npz
 
 extern crate tch;
