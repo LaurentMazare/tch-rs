@@ -164,6 +164,7 @@ extern "C" {
     pub fn at_resize_image(arg: *mut C_tensor, out_w: c_int, out_h: c_int) -> *mut C_tensor;
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[repr(C)]
 pub struct CIValue {
     _private: [u8; 0],
