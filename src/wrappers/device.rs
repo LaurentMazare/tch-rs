@@ -49,7 +49,7 @@ pub struct CudaStreamGuard {
 impl CudaStreamGuard {
     /// Activate a Cuda stream guard for the provided stream, this guard is
     /// active until the end of the scope or until another guard is initailized.
-    pub fn new(stream: CudaStream) -> Result<Self, TchError> {
+    pub fn new(stream: &CudaStream) -> Result<Self, TchError> {
         let c_cuda_stream_guard =
             unsafe_torch_err!(torch_sys::get_stream_guard(stream.c_cuda_stream));
 
