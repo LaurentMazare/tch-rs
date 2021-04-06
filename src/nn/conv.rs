@@ -4,6 +4,7 @@ use crate::Tensor;
 use std::borrow::Borrow;
 
 /// Generic convolution config.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy)]
 pub struct ConvConfigND<ND> {
     pub stride: ND,

@@ -2,6 +2,7 @@
 use crate::{Device, Kind, Tensor};
 
 /// Trait for Recurrent Neural Networks.
+#[allow(clippy::upper_case_acronyms)]
 pub trait RNN {
     type State;
 
@@ -30,6 +31,7 @@ pub trait RNN {
 }
 
 /// The state for a LSTM network, this contains two tensors.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct LSTMState(pub (Tensor, Tensor));
 
@@ -47,6 +49,7 @@ impl LSTMState {
 
 // The GRU and LSTM layers share the same config.
 /// Configuration for the GRU and LSTM layers.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy)]
 pub struct RNNConfig {
     pub has_biases: bool,
@@ -73,6 +76,7 @@ impl Default for RNNConfig {
 /// A Long Short-Term Memory (LSTM) layer.
 ///
 /// https://en.wikipedia.org/wiki/Long_short-term_memory
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct LSTM {
     flat_weights: Vec<Tensor>,
@@ -168,6 +172,7 @@ impl RNN for LSTM {
 }
 
 /// A GRU state, this contains a single tensor.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct GRUState(pub Tensor);
 
@@ -180,6 +185,7 @@ impl GRUState {
 /// A Gated Recurrent Unit (GRU) layer.
 ///
 /// https://en.wikipedia.org/wiki/Gated_recurrent_unit
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct GRU {
     flat_weights: Vec<Tensor>,

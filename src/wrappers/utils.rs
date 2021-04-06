@@ -81,6 +81,7 @@ pub fn set_num_threads(n_threads: i32) {
 }
 
 /// Quantization engines
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum QEngine {
     NoQEngine,

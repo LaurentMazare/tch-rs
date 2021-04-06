@@ -4,6 +4,7 @@ use crate::Tensor;
 use std::borrow::Borrow;
 
 /// A generic transposed convolution configuration.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy)]
 pub struct ConvTransposeConfigND<ND> {
     pub stride: ND,
@@ -35,6 +36,7 @@ impl Default for ConvTransposeConfig {
 }
 
 /// A generic transposed convolution layer.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct ConvTransposeND<ND> {
     pub ws: Tensor,

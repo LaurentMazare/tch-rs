@@ -3,6 +3,7 @@
 use half::f16;
 
 /// The different kind of elements that a Tensor can hold.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Kind {
     Uint8,

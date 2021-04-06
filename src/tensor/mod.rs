@@ -729,7 +729,7 @@ macro_rules! try_from_impl {
                 };
                 let tn = Self::f_of_slice(slice)?;
                 let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
-                Ok(tn.f_reshape(&shape)?)
+                tn.f_reshape(&shape)
             }
         }
 
