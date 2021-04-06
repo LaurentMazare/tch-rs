@@ -256,6 +256,20 @@ extern "C" {
     );
 }
 
+#[repr(C)]
+pub struct C_cuda_stream {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
+pub struct C_cuda_stream_guard {
+    _private: [u8; 0],
+}
+
 extern "C" {
     pub fn dummy_cuda_dependency();
+    pub fn get_stream_from_pool(high_priority: c_int, device: c_int) -> *mut C_cuda_stream;
+    pub fn delete_stream(stream: *mut C_cuda_stream);
+    pub fn get_stream_guard(stream: *mut C_cuda_stream) -> *mut C_cuda_stream_guard;
+    pub fn delete_stream_guard(stream: *mut C_cuda_stream_guard);
 }
