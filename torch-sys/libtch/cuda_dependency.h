@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #else
-typedef void *cuda_stream;
-typedef void *cuda_stream_guard;
+typedef void cuda_stream;
+typedef void cuda_stream_guard;
 #endif
 
 void dummy_cuda_dependency();

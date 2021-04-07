@@ -1,5 +1,5 @@
-typedef void *cuda_stream;
-typedef void *cuda_stream_guard;
+typedef void cuda_stream;
+typedef void cuda_stream_guard;
 
 #include "cuda_dependency.h"
 
