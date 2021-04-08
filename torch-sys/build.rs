@@ -56,7 +56,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
                     cfg_if::cfg_if! {
                         if #[cfg(any(windows))] {
                             use normpath::PathExt;
-                            //
+                            // Normalize the path to get rid of any relative paths, then use the Windows extended-length path to get around the 260 char path limit.
                             path = p.normalize_virtually()?.as_path().to_verbatim();
                         }
                     }
