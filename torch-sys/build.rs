@@ -6,13 +6,14 @@
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
+use curl::easy::Easy;
+use normpath::PathExt;
 use std::env;
 use std::fs;
 use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-
-use curl::easy::Easy;
+use verbatim::PathExt as VerbatimPathExt;
 
 const TORCH_VERSION: &str = "1.8.1";
 
@@ -52,10 +53,17 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p)?;
+                    let mut path = p.to_verbatim();
+                    cfg_if::cfg_if! {
+                        if #[cfg(any(windows))] {
+                            //
+                            path = p.normalize_virtually()?.as_path().to_verbatim();
+                        }
+                    }
+                    fs::create_dir_all(path)?;
                 }
             }
-            let mut outfile = fs::File::create(&outpath)?;
+            let mut outfile = fs::File::create(outpath.to_verbatim())?;
             io::copy(&mut file, &mut outfile)?;
         }
     }
