@@ -52,11 +52,13 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    let mut path = p.to_verbatim();
+                    #[allow(clippy::unused_mut)]
+                    let mut path: PathBuf = p.to_verbatim();
                     cfg_if::cfg_if! {
                         if #[cfg(any(windows))] {
                             use normpath::PathExt;
-                            // Normalize the path to get rid of any relative paths, then use the Windows extended-length path to get around the 260 char path limit.
+                            // Normalize the path to get rid of any relative paths,
+                            // then use the Windows extended-length path to get around the 260 char path limit.
                             path = p.normalize_virtually()?.as_path().to_verbatim();
                         }
                     }
