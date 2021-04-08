@@ -7,7 +7,6 @@
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
 use curl::easy::Easy;
-use normpath::PathExt;
 use std::env;
 use std::fs;
 use std::io;
@@ -56,6 +55,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
                     let mut path = p.to_verbatim();
                     cfg_if::cfg_if! {
                         if #[cfg(any(windows))] {
+                            use normpath::PathExt;
                             //
                             path = p.normalize_virtually()?.as_path().to_verbatim();
                         }
