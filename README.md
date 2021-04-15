@@ -17,9 +17,12 @@ The code generation part for the C api on top of libtorch comes from
 ## Getting Started
 
 This crate requires the C++ PyTorch library (libtorch) in version *v1.8.1* to be available on
-your system. You can either install it manually and let the build script know about
-it via the `LIBTORCH` environment variable. If not set, the build script will
-try downloading and extracting a pre-built binary version of libtorch.
+your system. You can either:
+
+- Install libtorch manually and let the build script know about it via the `LIBTORCH` environment variable.
+- When `LIBTORCH` is not set, the build script will download a pre-built binary version
+of libtorch. By default a CPU version is used. The `TORCH_CUDA_VERSION` environment variable
+can be set to `cu111` in order to get a pre-built binary using CUDA 11.1.
 
 ### Libtorch Manual Install
 
