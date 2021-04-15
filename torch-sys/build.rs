@@ -104,7 +104,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cpu" => "%2Bcpu",
                         "cu92" => "%2Bcu92",
                         "cu101" => "%2Bcu101",
-                        "cu110" => "%2Bcu110",
+                        "cu111" => "%2Bcu111",
                         _ => ""
                     }
                 ),
@@ -118,7 +118,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cpu" => "%2Bcpu",
                         "cu92" => "%2Bcu92",
                         "cu101" => "%2Bcu101",
-                        "cu110" => "%2Bcu110",
+                        "cu111" => "%2Bcu111",
                         _ => ""
                     }),
                 _ => panic!("Unsupported OS"),
