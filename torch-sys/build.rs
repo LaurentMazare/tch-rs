@@ -71,7 +71,9 @@ fn check_system_location() -> Option<PathBuf> {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
     match os.as_str() {
-        "linux" => Path::new("/usr/lib/libtorch.so").exists().then(|| PathBuf::from("/usr")),
+        "linux" => Path::new("/usr/lib/libtorch.so")
+            .exists()
+            .then(|| PathBuf::from("/usr")),
         _ => None,
     }
 }
