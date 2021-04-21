@@ -67,6 +67,17 @@ fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
     env::var(name)
 }
 
+fn check_system_location() -> Option<PathBuf> {
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+
+    match os.as_str() {
+        "linux" => Path::new("/usr/lib/libtorch.so")
+            .exists()
+            .then(|| PathBuf::from("/usr")),
+        _ => None,
+    }
+}
+
 fn prepare_libtorch_dir() -> PathBuf {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
@@ -93,6 +104,8 @@ fn prepare_libtorch_dir() -> PathBuf {
 
     if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
         PathBuf::from(libtorch)
+    } else if let Some(pathbuf) = check_system_location() {
+        pathbuf
     } else {
         let libtorch_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtorch");
         if !libtorch_dir.exists() {
