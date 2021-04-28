@@ -1,5 +1,3 @@
-#![feature(bool_to_option)]
-
 // The LIBTORCH environment variable can be used to specify the directory
 // where libtorch has been installed.
 // When not specified this script downloads the cpu version for libtorch
