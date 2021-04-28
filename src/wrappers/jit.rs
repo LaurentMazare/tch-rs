@@ -346,7 +346,7 @@ impl IValue {
             }
             8 => {
                 let len = unsafe_torch_err!(ati_length(c_ivalue));
-                let mut c_array = vec![0_i8; len as usize];
+                let mut c_array = vec![0_u8; len as usize];
                 unsafe_torch_err!(ati_to_bool_list(c_ivalue, c_array.as_mut_ptr(), len));
                 IValue::BoolList(c_array.iter().map(|&x| x != 0).collect())
             }
