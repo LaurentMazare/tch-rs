@@ -1,4 +1,6 @@
 //! Devices on which tensor computations are run.
+use crate::TchError;
+use torch_sys::{C_cuda_stream, C_cuda_stream_guard};
 
 /// A torch device.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -7,6 +9,64 @@ pub enum Device {
     Cpu,
     /// The main GPU device.
     Cuda(usize),
+}
+
+/// A CUDA stream object.
+pub struct CudaStream {
+    pub(super) c_cuda_stream: *mut C_cuda_stream,
+}
+
+impl CudaStream {
+    /// Get a Cuda stream object from the pool for a given device.
+    pub fn from_pool(high_priority: bool, device: Option<usize>) -> Result<Self, TchError> {
+        let high_priority = if high_priority { 1 } else { 0 };
+        let device = match device {
+            Some(d) => d as i32,
+            None => -1,
+        };
+        let c_cuda_stream =
+            unsafe_torch_err!(torch_sys::get_stream_from_pool(high_priority, device));
+
+        if c_cuda_stream.is_null() {
+            return Err(TchError::Torch("not available".to_string()));
+        }
+
+        Ok(Self { c_cuda_stream })
+    }
+}
+
+impl Drop for CudaStream {
+    fn drop(&mut self) {
+        unsafe_torch!(torch_sys::delete_stream(self.c_cuda_stream))
+    }
+}
+
+/// A CUDA stream guard object.
+pub struct CudaStreamGuard {
+    pub(super) c_cuda_stream_guard: *mut C_cuda_stream_guard,
+}
+
+impl CudaStreamGuard {
+    /// Activate a Cuda stream guard for the provided stream, this guard is
+    /// active until the end of the scope or until another guard is initailized.
+    pub fn new(stream: &CudaStream) -> Result<Self, TchError> {
+        let c_cuda_stream_guard =
+            unsafe_torch_err!(torch_sys::get_stream_guard(stream.c_cuda_stream));
+
+        if c_cuda_stream_guard.is_null() {
+            return Err(TchError::Torch("not available".to_string()));
+        }
+
+        Ok(Self {
+            c_cuda_stream_guard,
+        })
+    }
+}
+
+impl Drop for CudaStreamGuard {
+    fn drop(&mut self) {
+        unsafe_torch!(torch_sys::delete_stream_guard(self.c_cuda_stream_guard))
+    }
 }
 
 /// Cuda related helper functions.

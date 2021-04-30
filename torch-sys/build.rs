@@ -150,10 +150,13 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
     let cuda_dependency = if use_cuda || use_hip {
-        "libtch/dummy_cuda_dependency.cpp"
+        "libtch/cuda_dependency.cpp"
     } else {
         "libtch/fake_cuda_dependency.cpp"
     };
+    println!("cargo:rerun-if-changed=libtch/cuda_dependency.cpp");
+    println!("cargo:rerun-if-changed=libtch/cuda_dependency.h");
+    println!("cargo:rerun-if-changed=libtch/fake_cuda_dependency.cpp");
     println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
     println!("cargo:rerun-if-changed=libtch/torch_api.h");
     println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
