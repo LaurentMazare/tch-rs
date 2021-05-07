@@ -8,10 +8,6 @@ extern "C" {
 struct cublasContext;
 
 namespace at {
-    class Tensor;
-    namespace native {
-        class at::Tensor searchsorted_cuda(class at::Tensor const &,class at::Tensor const &,bool,bool);
-    }
     namespace cuda {
         cublasContext* getCurrentCUDABlasHandle();
         int warp_size();
