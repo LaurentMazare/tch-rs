@@ -5,9 +5,11 @@ extern "C" {
     void dummy_cuda_dependency();
 }
 
+struct cublasContext;
+
 namespace at {
     namespace cuda {
-        void *getCurrentCUDABlasHandle();
+        cublasContext* getCurrentCUDABlasHandle();
         int warp_size();
     }
 }
