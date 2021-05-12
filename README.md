@@ -96,8 +96,8 @@ Then on each step of the training loop:
 
 ```rust
 extern crate tch;
-use tch::nn;
-use tch::Tensor;
+use tch::nn::*;
+use tch::*;
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
     let x1 = p.zeros("x1", &[dim]);
@@ -108,12 +108,12 @@ fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
 fn gradient_descent() {
     let vs = nn::VarStore::new(Device::Cpu);
     let my_module = my_module(vs.root(), 7);
-    let opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
+    let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
         // Dummy mini-batches made of zeros.
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys).pow(2).sum();
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum(kind::Kind::Float);
         opt.backward_step(&loss);
     }
 }
