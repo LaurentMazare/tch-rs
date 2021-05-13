@@ -96,8 +96,8 @@ Then on each step of the training loop:
 
 ```rust
 extern crate tch;
-use tch::nn::*;
-use tch::*;
+use tch::nn::{Module, OptimizerConfig};
+use tch::{kind, nn, Device, Tensor};
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
     let x1 = p.zeros("x1", &[dim]);
