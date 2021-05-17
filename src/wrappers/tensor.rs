@@ -326,13 +326,15 @@ impl Tensor {
     /// which gradients are tracked.
     ///
     /// Gradients tracking can be turned on via `set_requires_grad`.
-    pub fn f_backward_with_grad(&self, grad: &Self) -> Result<(), TchError> {
-        unsafe_torch_err!(at_backward_with_grad(self.c_tensor, grad.c_tensor, 0, 0));
+    pub fn f_backward_with_grad(&self, grad: &Self, keep_graph: bool, create_graph: bool) -> Result<(), TchError> {
+        let keep_graph = if keep_graph { 1 } else { 0 };
+        let create_graph = if create_graph { 1 } else { 0 };
+        unsafe_torch_err!(at_backward_with_grad(self.c_tensor, grad.c_tensor, keep_graph, create_graph));
         Ok(())
     }
 
-    pub fn backward_with_grad(&self, grad: &Self) {
-        self.f_backward_with_grad(grad).unwrap()
+    pub fn backward_with_grad(&self, grad: &Self, keep_graph: bool, create_graph: bool) {
+        self.f_backward_with_grad(grad, keep_graph, create_graph).unwrap()
     }
 
     pub fn f_run_backward<T1, T2>(
