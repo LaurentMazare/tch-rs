@@ -322,6 +322,19 @@ impl Tensor {
         self.f_backward().unwrap()
     }
 
+    /// Runs the backward pass, populating the gradient tensors for tensors
+    /// which gradients are tracked.
+    ///
+    /// Gradients tracking can be turned on via `set_requires_grad`.
+    pub fn f_backward_with_grad(&self, grad: &Self) -> Result<(), TchError> {
+        unsafe_torch_err!(at_backward_with_grad(self.c_tensor, grad.c_tensor, 0, 0));
+        Ok(())
+    }
+
+    pub fn backward_with_grad(&self, grad: &Self) {
+        self.f_backward_with_grad(grad).unwrap()
+    }
+
     pub fn f_run_backward<T1, T2>(
         tensors: &[T1],
         inputs: &[T2],
