@@ -724,14 +724,15 @@ where
     }
 }
 
-impl<T, D> TryFrom<&ndarray::Array<T, D>> for Tensor
+impl<S, D> TryFrom<&ndarray::ArrayBase<S, D>> for Tensor
 where
-    T: crate::kind::Element,
+    S: ndarray::Data,
+    <S as ndarray::RawData>::Elem: crate::kind::Element,
     D: ndarray::Dimension,
 {
     type Error = TchError;
 
-    fn try_from(value: &ndarray::Array<T, D>) -> Result<Self, Self::Error> {
+    fn try_from(value: &ndarray::ArrayBase<S, D>) -> Result<Self, Self::Error> {
         // TODO: Replace this with `?` once `std::option::NoneError` has been stabilized.
         let slice = match value.as_slice() {
             None => return Err(TchError::Convert("cannot convert to slice".to_string())),
