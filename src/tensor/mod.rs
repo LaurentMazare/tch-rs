@@ -724,14 +724,14 @@ where
     }
 }
 
-impl<T, D> TryFrom<ndarray::Array<T, D>> for Tensor
+impl<T, D> TryFrom<&ndarray::Array<T, D>> for Tensor
 where
     T: crate::kind::Element,
     D: ndarray::Dimension,
 {
     type Error = TchError;
 
-    fn try_from(value: ndarray::Array<T, D>) -> Result<Self, Self::Error> {
+    fn try_from(value: &ndarray::Array<T, D>) -> Result<Self, Self::Error> {
         // TODO: Replace this with `?` once `std::option::NoneError` has been stabilized.
         let slice = match value.as_slice() {
             None => return Err(TchError::Convert("cannot convert to slice".to_string())),
@@ -743,6 +743,30 @@ where
     }
 }
 
+impl<T, D> TryFrom<ndarray::Array<T, D>> for Tensor
+where
+    T: crate::kind::Element,
+    D: ndarray::Dimension,
+{
+    type Error = TchError;
+
+    fn try_from(value: ndarray::Array<T, D>) -> Result<Self, Self::Error> {
+        Self::try_from(&value)
+    }
+}
+
+impl<T> TryFrom<&Vec<T>> for Tensor
+where
+    T: crate::kind::Element,
+{
+    type Error = TchError;
+
+    fn try_from(value: &Vec<T>) -> Result<Self, Self::Error> {
+        let tn = Self::f_of_slice(value.as_slice())?;
+        Ok(tn)
+    }
+}
+
 impl<T> TryFrom<Vec<T>> for Tensor
 where
     T: crate::kind::Element,
@@ -750,8 +774,7 @@ where
     type Error = TchError;
 
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        let tn = Self::f_of_slice(value.as_slice())?;
-        Ok(tn)
+        Self::try_from(&value)
     }
 }
 
