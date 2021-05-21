@@ -227,7 +227,7 @@ impl<'a> Path<'a> {
     }
 
     /// Gets a sub-path of the given path.
-    pub fn sub<T: std::string::ToString>(&'a self, s: T) -> Path<'a> {
+    pub fn sub<T: std::string::ToString>(&self, s: T) -> Path<'a> {
         let s = s.to_string();
         if s.chars().any(|x| x == SEP) {
             panic!("sub name cannot contain {} {}", SEP, s);
@@ -241,7 +241,7 @@ impl<'a> Path<'a> {
         }
     }
 
-    pub fn set_group(&'a self, group: usize) -> Path<'a> {
+    pub fn set_group(&self, group: usize) -> Path<'a> {
         Path {
             path: self.path.clone(),
             group,
@@ -644,7 +644,7 @@ impl<'a> Entry<'a> {
     }
 }
 
-impl<'a, T> Div<T> for &'a mut Path<'a>
+impl<'a, T> Div<T> for &mut Path<'a>
 where
     T: std::string::ToString,
 {
@@ -655,7 +655,7 @@ where
     }
 }
 
-impl<'a, T> Div<T> for &'a Path<'a>
+impl<'a, T> Div<T> for &Path<'a>
 where
     T: std::string::ToString,
 {
