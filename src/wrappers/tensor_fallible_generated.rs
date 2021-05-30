@@ -716,7 +716,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -756,7 +757,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -792,7 +794,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -963,9 +966,12 @@ impl Tensor {
             ptr_list(weight).as_ptr(),
             weight.len() as i32,
             weight_stride0,
-            weight_buf.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight_buf
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             hx.c_tensor,
-            cx.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            cx.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mode,
             hidden_size,
             proj_size,
@@ -976,7 +982,9 @@ impl Tensor {
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
             batch_sizes.len() as i32,
-            dropout_state.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            dropout_state
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
             Tensor {
@@ -1113,7 +1121,9 @@ impl Tensor {
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
             if sparse { 1 } else { 0 },
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if include_last_offset { 1 } else { 0 }
         ));
         Ok((
@@ -1158,7 +1168,9 @@ impl Tensor {
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
             if sparse { 1 } else { 0 },
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -1189,7 +1201,9 @@ impl Tensor {
             num_weights,
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -1215,7 +1229,9 @@ impl Tensor {
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
             if sparse { 1 } else { 0 },
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if include_last_offset { 1 } else { 0 }
         ));
         Ok((
@@ -1279,7 +1295,9 @@ impl Tensor {
             num_weights,
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -2050,7 +2068,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             stride.as_ptr(),
@@ -5139,10 +5158,17 @@ impl Tensor {
         unsafe_torch_err!(atg_batch_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if training { 1 } else { 0 },
             momentum,
             eps,
@@ -5169,7 +5195,9 @@ impl Tensor {
             self.c_tensor,
             mean.c_tensor,
             invstd.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mean_dy.c_tensor,
             mean_dy_xmu.c_tensor
         ));
@@ -5195,7 +5223,9 @@ impl Tensor {
             self.c_tensor,
             mean.c_tensor,
             invstd.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if input_g { 1 } else { 0 },
             if weight_g { 1 } else { 0 },
             if bias_g { 1 } else { 0 }
@@ -5228,8 +5258,11 @@ impl Tensor {
         unsafe_torch_err!(atg_batch_norm_elemt(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mean.c_tensor,
             invstd.c_tensor,
             eps
@@ -5253,8 +5286,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mean.c_tensor,
             invstd.c_tensor,
             eps
@@ -5280,8 +5316,12 @@ impl Tensor {
             self.c_tensor,
             mean.c_tensor,
             invstd.c_tensor,
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             momentum,
             eps,
             count
@@ -5312,8 +5352,12 @@ impl Tensor {
             self.c_tensor,
             mean.c_tensor,
             invstd.c_tensor,
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             momentum,
             eps,
             counts.c_tensor
@@ -5355,8 +5399,12 @@ impl Tensor {
         unsafe_torch_err!(atg_batch_norm_update_stats(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             momentum
         ));
         Ok((
@@ -5429,7 +5477,8 @@ impl Tensor {
             input1.c_tensor,
             input2.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -5447,7 +5496,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5468,7 +5519,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5491,7 +5544,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5512,7 +5567,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5532,8 +5589,12 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            pos_weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            pos_weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5555,8 +5616,12 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            pos_weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            pos_weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -5573,7 +5638,9 @@ impl Tensor {
         unsafe_torch_err!(atg_bincount(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             minlength
         ));
         Ok(Tensor {
@@ -6697,7 +6764,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6725,7 +6793,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6753,7 +6822,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6825,7 +6895,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6856,7 +6927,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6887,7 +6959,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6919,7 +6992,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -6952,7 +7026,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -7315,9 +7390,14 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if training { 1 } else { 0 },
             exponential_average_factor,
             epsilon
@@ -7355,10 +7435,18 @@ impl Tensor {
             self.c_tensor,
             grad_output.c_tensor,
             weight.c_tensor,
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            save_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            save_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            save_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            save_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             epsilon,
             reservespace.c_tensor
         ));
@@ -7421,7 +7509,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             stride.as_ptr(),
@@ -7589,7 +7678,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             output_padding.as_ptr(),
@@ -8126,8 +8216,12 @@ impl Tensor {
             self.c_tensor,
             n,
             dim,
-            prepend.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            append.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            prepend
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            append
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -8149,8 +8243,12 @@ impl Tensor {
             self.c_tensor,
             n,
             dim,
-            prepend.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            append.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            prepend
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            append
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -8735,7 +8833,9 @@ impl Tensor {
             if scale_grad_by_freq { 1 } else { 0 },
             mode,
             if sparse { 1 } else { 0 },
-            per_sample_weights.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            per_sample_weights
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if include_last_offset { 1 } else { 0 }
         ));
         Ok((
@@ -11592,8 +11692,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             num_groups,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps,
             if cudnn_enabled { 1 } else { 0 }
         ));
@@ -11687,8 +11790,10 @@ impl Tensor {
             hx.c_tensor,
             w_ih.c_tensor,
             w_hh.c_tensor,
-            b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            b_ih.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            b_hh.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -12756,10 +12861,17 @@ impl Tensor {
         unsafe_torch_err!(atg_instance_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if use_input_stats { 1 } else { 0 },
             momentum,
             eps,
@@ -12915,7 +13027,9 @@ impl Tensor {
             hop_length.is_none() as i8,
             win_length.unwrap_or(0i64),
             win_length.is_none() as i8,
-            window.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            window
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if center { 1 } else { 0 },
             if normalized { 1 } else { 0 },
             if onesided { 1 } else { 0 },
@@ -13189,8 +13303,11 @@ impl Tensor {
             self.c_tensor,
             normalized_shape.as_ptr(),
             normalized_shape.len() as i32,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps,
             if cudnn_enable { 1 } else { 0 }
         ));
@@ -14268,7 +14385,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -14992,8 +15110,10 @@ impl Tensor {
             hx.len() as i32,
             w_ih.c_tensor,
             w_hh.c_tensor,
-            b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            b_ih.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            b_hh.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
             Tensor {
@@ -16279,9 +16399,14 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if training { 1 } else { 0 },
             exponential_average_factor,
             epsilon
@@ -16315,10 +16440,18 @@ impl Tensor {
             self.c_tensor,
             grad_output.c_tensor,
             weight.c_tensor,
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            save_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            save_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            save_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            save_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             epsilon
         ));
         Ok((
@@ -16350,7 +16483,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             stride.as_ptr(),
@@ -16460,7 +16594,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             output_padding.as_ptr(),
@@ -16557,7 +16692,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             stride.as_ptr(),
@@ -16663,7 +16799,8 @@ impl Tensor {
             weight.len() as i32,
             weight_stride0,
             hx.c_tensor,
-            cx.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            cx.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mode,
             hidden_size,
             num_layers,
@@ -16673,7 +16810,9 @@ impl Tensor {
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
             batch_sizes.len() as i32,
-            dropout_state.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            dropout_state
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
             Tensor {
@@ -16721,7 +16860,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
             padding.len() as i32,
             stride.as_ptr(),
@@ -16812,7 +16952,8 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             weight.c_tensor,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -17258,7 +17399,9 @@ impl Tensor {
             target.c_tensor,
             p.into().c_scalar,
             margin.into().c_scalar,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -17285,7 +17428,9 @@ impl Tensor {
             target.c_tensor,
             p.into().c_scalar,
             margin.into().c_scalar,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int()
         ));
         Ok(Tensor {
@@ -17846,10 +17991,17 @@ impl Tensor {
         unsafe_torch_err!(atg_native_batch_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if training { 1 } else { 0 },
             momentum,
             eps
@@ -17887,10 +18039,17 @@ impl Tensor {
             save_mean.c_tensor,
             save_invstd.c_tensor,
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_mean.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            running_var.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_mean
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            running_var
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if training { 1 } else { 0 },
             momentum,
             eps
@@ -17922,8 +18081,11 @@ impl Tensor {
         unsafe_torch_err!(atg_native_group_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             n,
             c,
             hxw,
@@ -17956,8 +18118,11 @@ impl Tensor {
             self.c_tensor,
             normalized_shape.as_ptr(),
             normalized_shape.len() as i32,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps
         ));
         Ok((
@@ -18255,7 +18420,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index
         ));
@@ -18276,7 +18443,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index
         ));
@@ -18300,7 +18469,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index,
             total_weight.c_tensor
@@ -18327,7 +18498,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index,
             total_weight.c_tensor
@@ -18351,7 +18524,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index
         ));
@@ -18375,7 +18550,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index,
             total_weight.c_tensor
@@ -18402,7 +18579,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index,
             total_weight.c_tensor
@@ -18426,7 +18605,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             target.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             reduction.to_int(),
             ignore_index
         ));
@@ -19557,8 +19738,11 @@ impl Tensor {
         unsafe_torch_err!(atg_quantized_batch_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            weight.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            weight
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             mean.c_tensor,
             var.c_tensor,
             eps,
@@ -20839,8 +21023,10 @@ impl Tensor {
             hx.c_tensor,
             w_ih.c_tensor,
             w_hh.c_tensor,
-            b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            b_ih.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            b_hh.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -20932,8 +21118,10 @@ impl Tensor {
             hx.c_tensor,
             w_ih.c_tensor,
             w_hh.c_tensor,
-            b_ih.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            b_hh.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            b_ih.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            b_hh.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -21818,7 +22006,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21846,7 +22035,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21873,7 +22063,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21902,7 +22093,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21932,7 +22124,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21966,7 +22159,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -21998,7 +22192,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -22032,7 +22227,8 @@ impl Tensor {
             weight.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len() as i32,
-            bias.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
             stride.len() as i32,
             padding.as_ptr(),
@@ -22830,7 +23026,9 @@ impl Tensor {
             hop_length.is_none() as i8,
             win_length.unwrap_or(0i64),
             win_length.is_none() as i8,
-            window.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            window
+                .as_ref()
+                .map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if normalized { 1 } else { 0 },
             if onesided { 1 } else { 0 },
             if return_complex { 1 } else { 0 }

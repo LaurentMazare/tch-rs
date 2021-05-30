@@ -346,7 +346,7 @@ module Func = struct
         | TensorOptList -> Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
         | TensorList -> Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
         | TensorOption ->
-          Printf.sprintf "%s.map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
+          Printf.sprintf "%s.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
         | Int64 when String.( = ) name "reduction" -> "reduction.to_int()"
         | _ -> name)
     |> String.concat ~sep:",\n                "

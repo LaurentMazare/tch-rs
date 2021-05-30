@@ -478,4 +478,8 @@ fn nll_loss() {
     let target = Tensor::of_slice(&[1i64, 0, 4]);
     let output = input.nll_loss(&target);
     output.backward();
+
+    let weights = Tensor::of_slice(&[1f32, 2.0, 2.0, 1.0, 1.0]);
+    // This used to segfault, see https://github.com/LaurentMazare/tch-rs/issues/366
+    let _output = input.g_nll_loss(&target, Some(weights), tch::Reduction::Mean, -100);
 }
