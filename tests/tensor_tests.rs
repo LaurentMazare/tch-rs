@@ -471,3 +471,11 @@ fn quantized() {
     let t = t.dequantize();
     assert_eq!(Vec::<f32>::from(&t), [-1f32, 0., 1., 2., 24.5, 0.4]);
 }
+
+#[test]
+fn nll_loss() {
+    let input = Tensor::randn(&[3, 5], (tch::Kind::Float, Device::Cpu)).set_requires_grad(true);
+    let target = Tensor::of_slice(&[1i64, 0, 4]);
+    let output = input.nll_loss(&target);
+    output.backward();
+}
