@@ -219,21 +219,21 @@ fn into_ndarray_i64() {
 #[test]
 fn from_ndarray_f64() {
     let nd = ndarray::arr2(&[[1f64, 2.], [3., 4.]]);
-    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    let tensor = Tensor::try_from(&nd).unwrap();
     assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
 
 #[test]
 fn from_ndarray_i64() {
     let nd = ndarray::arr2(&[[1i64, 2], [3, 4]]);
-    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    let tensor = Tensor::try_from(&nd).unwrap();
     assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
 
 #[test]
 fn from_ndarray_bool() {
     let nd = ndarray::arr2(&[[true, false], [true, true]]);
-    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    let tensor = Tensor::try_from(&nd).unwrap();
     assert_eq!(Vec::<bool>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
 
