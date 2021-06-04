@@ -28,6 +28,18 @@ impl Cuda {
         unsafe_torch!(torch_sys::atc_cudnn_is_available()) != 0
     }
 
+    /// Returns true if cudnn is enabled by the user.
+    ///
+    /// This does not indicate whether cudnn is actually usable.
+    pub fn user_enabled_cudnn() -> bool {
+        unsafe_torch!(torch_sys::atc_user_enabled_cudnn()) != 0
+    }
+
+    /// Enable or disable cudnn.
+    pub fn set_user_enabled_cudnn(b: bool) {
+        unsafe_torch!(torch_sys::atc_set_user_enabled_cudnn(if b { 1 } else { 0 }))
+    }
+
     /// Sets cudnn benchmark mode.
     ///
     /// When set cudnn will try to optimize the generators durning
