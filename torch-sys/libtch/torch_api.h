@@ -143,6 +143,8 @@ void ats_free(scalar);
 int atc_cuda_device_count();
 int atc_cuda_is_available();
 int atc_cudnn_is_available();
+int atc_user_enabled_cudnn();
+void atc_set_user_enabled_cudnn(int b);
 void atc_set_benchmark_cudnn(int b);
 
 module atm_load(char *);

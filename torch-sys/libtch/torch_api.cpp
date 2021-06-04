@@ -794,6 +794,15 @@ int atc_cudnn_is_available() {
   return -1;
 }
 
+int atc_user_enabled_cudnn() {
+  PROTECT(return at::globalContext().userEnabledCuDNN();)
+  return -1;
+}
+
+void atc_set_user_enabled_cudnn(int b) {
+  at::globalContext().setUserEnabledCuDNN(b);
+}
+
 void atc_set_benchmark_cudnn(int b) {
   at::globalContext().setBenchmarkCuDNN(b);
 }
