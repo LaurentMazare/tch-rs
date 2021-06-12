@@ -97,11 +97,9 @@ where
     type Error = TchError;
 
     fn try_from(value: &ndarray::ArrayBase<T, D>) -> Result<Self, Self::Error> {
-        // TODO: Replace this with `?` once `std::option::NoneError` has been stabilized.
-        let slice = match value.as_slice() {
-            None => return Err(TchError::Convert("cannot convert to slice".to_string())),
-            Some(v) => v,
-        };
+        let slice = value
+            .as_slice()
+            .ok_or_else(|| TchError::Convert("cannot convert to slice".to_string()))?;
         let tn = Self::f_of_slice(slice)?;
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
         tn.f_reshape(&shape)
