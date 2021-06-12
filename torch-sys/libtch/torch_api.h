@@ -111,6 +111,11 @@ optimizer ato_adamw(double learning_rate,
                    double beta1,
                    double beta2,
                    double weight_decay);
+optimizer ato_lbfgs(double learning_rate,
+                    int max_iter,
+                    double tolerance_grad,
+                    double tolerance_change,
+                    int history_szie);
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,

@@ -24,6 +24,23 @@ impl COptimizer {
         Ok(COptimizer { c_optimizer })
     }
 
+    pub fn lbfgs(
+        lr: f64,
+        max_iter: i32,
+        tolerance_grad: f64,
+        tolerance_change: f64,
+        history_size: i32,
+    ) -> Result<COptimizer, TchError> {
+        let c_optimizer = unsafe_torch_err!(torch_sys::ato_lbfgs(
+            lr,
+            max_iter,
+            tolerance_grad,
+            tolerance_change,
+            history_size
+        ));
+        Ok(COptimizer { c_optimizer })
+    }
+
     // Maybe we should use the builder pattern to provide default values for these ?
     pub fn rms_prop(
         lr: f64,

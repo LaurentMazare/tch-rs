@@ -130,6 +130,57 @@ impl OptimizerConfig for AdamW {
     }
 }
 
+/// Parameters for the LBFGS optimizer.
+#[derive(Debug, Copy, Clone)]
+pub struct LBFGS {
+    pub lr: f64,
+    pub max_iter: i32,
+    pub tolerance_grad: f64,
+    pub tolerance_change: f64,
+    pub history_size: i32,
+}
+
+impl Default for LBFGS {
+    fn default() -> Self {
+        LBFGS {
+            lr: 1.0,
+            max_iter: 20,
+            tolerance_grad: 1e-7,
+            tolerance_change: 1e-9,
+            history_size: 100,
+        }
+    }
+}
+
+/// Creates the configuration for the LBFGS optimizer.
+pub fn lbfgs(
+    lr: f64,
+    max_iter: i32,
+    tolerance_grad: f64,
+    tolerance_change: f64,
+    history_size: i32,
+) -> LBFGS {
+    LBFGS {
+        lr,
+        max_iter,
+        tolerance_grad,
+        tolerance_change,
+        history_size,
+    }
+}
+
+impl OptimizerConfig for LBFGS {
+    fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
+        COptimizer::lbfgs(
+            lr,
+            self.max_iter,
+            self.tolerance_grad,
+            self.tolerance_change,
+            self.history_size,
+        )
+    }
+}
+
 /// Parameters for the RmsProp optimizer.
 #[derive(Debug, Copy, Clone)]
 pub struct RmsProp {

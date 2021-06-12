@@ -529,6 +529,23 @@ optimizer ato_adamw(double learning_rate,
   return nullptr;
 }
 
+optimizer ato_lbfgs(double learning_rate,
+                    int max_iter,
+                    double tolerance_grad,
+                    double tolerance_change,
+                    int history_size) {
+  PROTECT(
+    auto options =
+      torch::optim::LBFGSOptions(learning_rate)
+        .max_iter(max_iter)
+        .tolerance_grad(tolerance_grad)
+        .tolerance_change(tolerance_change)
+        .history_size(history_size);
+    return new torch::optim::LBFGS(vector<torch::Tensor>(), options);
+  )
+  return nullptr;
+}
+
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,

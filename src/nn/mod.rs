@@ -40,7 +40,7 @@ pub use sequential::*;
 
 mod optimizer;
 pub use optimizer::{
-    adam, adamw, rms_prop, sgd, Adam, AdamW, Optimizer, OptimizerConfig, RmsProp, Sgd,
+    adam, adamw, lbfgs, rms_prop, sgd, Adam, AdamW, Optimizer, OptimizerConfig, RmsProp, Sgd, LBFGS,
 };
 
 /// An identity layer. This just propagates its tensor input as output.
