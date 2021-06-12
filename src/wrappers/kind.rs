@@ -99,42 +99,52 @@ pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda(
 pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda(0));
 pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda(0));
 
-pub trait Element {
+pub trait Element: Clone {
     const KIND: Kind;
+    const ZERO: Self;
 }
 
 impl Element for u8 {
     const KIND: Kind = Kind::Uint8;
+    const ZERO: Self = 0;
 }
 
 impl Element for i8 {
     const KIND: Kind = Kind::Int8;
+    const ZERO: Self = 0;
 }
 
 impl Element for i16 {
     const KIND: Kind = Kind::Int16;
+    const ZERO: Self = 0;
 }
 
 impl Element for i32 {
     const KIND: Kind = Kind::Int;
+    const ZERO: Self = 0;
 }
 
 impl Element for i64 {
     const KIND: Kind = Kind::Int64;
+    const ZERO: Self = 0;
 }
 
 impl Element for f16 {
     const KIND: Kind = Kind::Half;
+    const ZERO: Self = half::f16::ZERO;
 }
 
 impl Element for f32 {
     const KIND: Kind = Kind::Float;
+    const ZERO: Self = 0.;
 }
 
 impl Element for f64 {
     const KIND: Kind = Kind::Double;
+    const ZERO: Self = 0.;
 }
 
 impl Element for bool {
     const KIND: Kind = Kind::Bool;
+    const ZERO: Self = false;
 }
