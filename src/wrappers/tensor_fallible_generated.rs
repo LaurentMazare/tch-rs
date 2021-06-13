@@ -1035,6 +1035,18 @@ impl Tensor {
         })
     }
 
+    pub fn f_internal_cufft_get_plan_cache_max_size(device_index: i64) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__cufft_get_plan_cache_max_size(device_index));
+        Ok(return_)
+    }
+
+    pub fn f_internal_cufft_get_plan_cache_size(device_index: i64) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__cufft_get_plan_cache_size(device_index));
+        Ok(return_)
+    }
+
     pub fn f_internal_cumprod(&self, dim: i64) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__cumprod(c_tensors.as_mut_ptr(), self.c_tensor, dim));
@@ -1077,12 +1089,30 @@ impl Tensor {
         })
     }
 
+    pub fn f_internal_debug_has_internal_overlap(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__debug_has_internal_overlap(self.c_tensor));
+        Ok(return_)
+    }
+
     pub fn f_internal_dim_arange(like: &Tensor, dim: i64) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__dim_arange(c_tensors.as_mut_ptr(), like.c_tensor, dim));
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_internal_dimi(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__dimi(self.c_tensor));
+        Ok(return_)
+    }
+
+    pub fn f_internal_dimv(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__dimv(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_internal_dirichlet_grad(
@@ -1691,6 +1721,17 @@ impl Tensor {
         ))
     }
 
+    pub fn f_internal_has_compatible_shallow_copy_type(
+        &self,
+        from: &Tensor,
+    ) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg__has_compatible_shallow_copy_type(self.c_tensor, from.c_tensor)
+        );
+        Ok(return_ != 0)
+    }
+
     pub fn f_internal_index_copy_(
         &mut self,
         dim: i64,
@@ -2056,6 +2097,12 @@ impl Tensor {
         ))
     }
 
+    pub fn f_internal_nnpack_available() -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__nnpack_available());
+        Ok(return_ != 0)
+    }
+
     pub fn f_internal_nnpack_spatial_convolution<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -2119,6 +2166,12 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_internal_nnz(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__nnz(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_internal_pack_padded_sequence(
@@ -3094,6 +3147,34 @@ impl Tensor {
         })
     }
 
+    pub fn f_internal_use_cudnn_ctc_loss(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: &[i64],
+        target_lengths: &[i64],
+        blank: i64,
+    ) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg__use_cudnn_ctc_loss(
+                log_probs.c_tensor,
+                targets.c_tensor,
+                input_lengths.as_ptr(),
+                input_lengths.len() as i32,
+                target_lengths.as_ptr(),
+                target_lengths.len() as i32,
+                blank
+            )
+        );
+        Ok(return_ != 0)
+    }
+
+    pub fn f_internal_use_cudnn_rnn_flatten_weight() -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__use_cudnn_rnn_flatten_weight());
+        Ok(return_ != 0)
+    }
+
     pub fn f_internal_values(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__values(c_tensors.as_mut_ptr(), self.c_tensor));
@@ -3112,6 +3193,12 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_internal_version(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__version(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_internal_weight_norm(v: &Tensor, g: &Tensor, dim: i64) -> Result<Tensor, TchError> {
@@ -4032,6 +4119,26 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_allclose(
+        &self,
+        other: &Tensor,
+        rtol: f64,
+        atol: f64,
+        equal_nan: bool,
+    ) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg_allclose(
+                self.c_tensor,
+                other.c_tensor,
+                rtol,
+                atol,
+                if equal_nan { 1 } else { 0 }
+            )
+        );
+        Ok(return_ != 0)
     }
 
     pub fn f_alpha_dropout(&self, p: f64, train: bool) -> Result<Tensor, TchError> {
@@ -6084,6 +6191,12 @@ impl Tensor {
         })
     }
 
+    pub fn f_can_cast(from: Kind, to: Kind) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_can_cast(from.c_int(), to.c_int()));
+        Ok(return_ != 0)
+    }
+
     pub fn f_cartesian_prod<T: Borrow<Tensor>>(tensors: &[T]) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cartesian_prod(
@@ -7833,6 +7946,12 @@ impl Tensor {
         ))
     }
 
+    pub fn f_cudnn_is_acceptable(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_cudnn_is_acceptable(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
     pub fn f_cummax(&self, dim: i64) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_cummax(c_tensors.as_mut_ptr(), self.c_tensor, dim));
@@ -8053,6 +8172,12 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_dense_dim(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_dense_dim(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_dequantize(&self) -> Result<Tensor, TchError> {
@@ -9069,6 +9194,12 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_equal(&self, other: &Tensor) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_equal(self.c_tensor, other.c_tensor));
+        Ok(return_ != 0)
     }
 
     pub fn f_erf(&self) -> Result<Tensor, TchError> {
@@ -12908,6 +13039,72 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_is_coalesced(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_coalesced(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_complex(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_complex(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_distributed(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_distributed(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_floating_point(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_floating_point(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_leaf(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_leaf(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_nonzero(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_nonzero(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_pinned(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_pinned(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_same_size(&self, other: &Tensor) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_same_size(self.c_tensor, other.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_set_to(&self, tensor: &Tensor) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_set_to(self.c_tensor, tensor.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_signed(&self) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_signed(self.c_tensor));
+        Ok(return_ != 0)
+    }
+
+    pub fn f_is_vulkan_available() -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_is_vulkan_available());
+        Ok(return_ != 0)
     }
 
     pub fn f_isclose(
@@ -19132,6 +19329,12 @@ impl Tensor {
         })
     }
 
+    pub fn f_output_nr(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_output_nr(self.c_tensor));
+        Ok(return_)
+    }
+
     pub fn f_pairwise_distance(
         x1: &Tensor,
         x2: &Tensor,
@@ -19506,6 +19709,12 @@ impl Tensor {
         })
     }
 
+    pub fn f_q_per_channel_axis(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_q_per_channel_axis(self.c_tensor));
+        Ok(return_)
+    }
+
     pub fn f_q_per_channel_scales(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_q_per_channel_scales(
@@ -19526,6 +19735,18 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_q_scale(&self) -> Result<f64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_q_scale(self.c_tensor));
+        Ok(return_)
+    }
+
+    pub fn f_q_zero_point(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_q_zero_point(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_qr(&self, some: bool) -> Result<(Tensor, Tensor), TchError> {
@@ -22680,6 +22901,12 @@ impl Tensor {
         Ok(Tensor {
             c_tensor: c_tensors[0],
         })
+    }
+
+    pub fn f_sparse_dim(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg_sparse_dim(self.c_tensor));
+        Ok(return_)
     }
 
     pub fn f_sparse_mask(&self, mask: &Tensor) -> Result<Tensor, TchError> {

@@ -32,6 +32,8 @@ let excluded_functions =
     ; "retain_grad"
     ; "_validate_sparse_coo_tensor_args"
     ; "_backward"
+    ; "size"
+    ; "stride"
     ]
 
 let no_tensor_options =
@@ -49,7 +51,17 @@ let no_tensor_options =
 let prefixed_functions =
   Set.of_list
     (module String)
-    [ "add"; "add_"; "div"; "div_"; "mul"; "mul_"; "sub"; "sub_"; "nll_loss"; "to_mkldnn" ]
+    [ "add"
+    ; "add_"
+    ; "div"
+    ; "div_"
+    ; "mul"
+    ; "mul_"
+    ; "sub"
+    ; "sub_"
+    ; "nll_loss"
+    ; "to_mkldnn"
+    ]
 
 let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp_foreach" ]
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
@@ -103,7 +115,7 @@ module Func = struct
   type t =
     { name : string
     ; args : arg list
-    ; returns : [ `fixed of int | `dynamic ]
+    ; returns : [ `fixed of int | `dynamic | `bool | `int64_t | `double ]
     ; (* number of tensors that are returned *)
       kind : [ `function_ | `method_ ]
     }
@@ -117,7 +129,7 @@ module Func = struct
       Some (if is_nullable then TensorOption else Tensor)
     | "tensoroptions" -> Some TensorOptions
     | "intarrayref" | "intlist" -> Some IntList
-    | "const c10::list<c10::optional<tensor>> &"  -> Some TensorOptList
+    | "const c10::list<c10::optional<tensor>> &" -> Some TensorOptList
     | "tensorlist" -> Some TensorList
     | "device" -> Some Device
     | "scalar" -> Some Scalar
@@ -129,8 +141,8 @@ module Func = struct
     List.map t.args ~f:(fun { arg_name; arg_type; _ } ->
         match arg_type with
         | IntList -> Printf.sprintf "int64_t *%s_data, int %s_len" arg_name arg_name
-        | TensorOptList
-        | TensorList -> Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
+        | TensorOptList | TensorList ->
+          Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
         | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
         | String -> Printf.sprintf "char* %s_ptr, int %s_len" arg_name arg_name
         | Int64Option -> Printf.sprintf "int64_t %s_v, uint8_t %s_null" arg_name arg_name
@@ -146,8 +158,13 @@ module Func = struct
             | ScalarType -> "int"
             | Device -> "int"
             | Scalar -> "scalar"
-            | Int64Option | DoubleOption | String | IntList | TensorOptList | TensorList | TensorOptions
-              -> assert false
+            | Int64Option
+            | DoubleOption
+            | String
+            | IntList
+            | TensorOptList
+            | TensorList
+            | TensorOptions -> assert false
           in
           Printf.sprintf "%s %s" simple_type_cstring arg_name)
     |> String.concat ~sep:", "
@@ -319,6 +336,9 @@ module Func = struct
         |> String.concat ~sep:", "
         |> Printf.sprintf "(%s)"
       | `dynamic -> "Vec<Tensor>"
+      | `bool -> "bool"
+      | `int64_t -> "i64"
+      | `double -> "f64"
     in
     if fallible
     then Printf.sprintf " -> Result<%s, TchError>" returns
@@ -343,10 +363,13 @@ module Func = struct
           Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8" name name
         | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
-        | TensorOptList -> Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
+        | TensorOptList ->
+          Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
         | TensorList -> Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
         | TensorOption ->
-          Printf.sprintf "%s.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)" name
+          Printf.sprintf
+            "%s.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)"
+            name
         | Int64 when String.( = ) name "reduction" -> "reduction.to_int()"
         | _ -> name)
     |> String.concat ~sep:",\n                "
@@ -388,12 +411,13 @@ let read_yaml filename =
             let return_type =
               Map.find_exn (extract_map returns) "dynamic_type" |> extract_string
             in
-            if String.( = ) return_type "TensorList"
-               || String.( = )
-                    return_type
-                    "dynamic_type: const c10::List<c10::optional<Tensor>> &"
-            then Some `dynamic
-            else None
+            (match return_type with
+            | "bool" -> Some `bool
+            | "int64_t" -> Some `int64_t
+            | "double" -> Some `double
+            | "TensorList" | "dynamic_type: const c10::List<c10::optional<Tensor>> &" ->
+              Some `dynamic
+            | _ -> None)
           | [] | _ :: _ :: _ -> None)
       in
       let kind =
@@ -500,7 +524,22 @@ let write_cpp funcs filename =
                 pc "  return nullptr;";
                 pc "}";
                 pc "";
-                ph "tensor *atg_%s(%s);" exported_name c_typed_args_list)))
+                ph "tensor *atg_%s(%s);" exported_name c_typed_args_list
+              | (`bool | `int64_t | `double) as returns ->
+                let c_type =
+                  match returns with
+                  | `bool -> "int"
+                  | `int64_t -> "int64_t"
+                  | `double -> "double"
+                in
+                pc "%s atg_%s(%s) {" c_type exported_name c_typed_args_list;
+                pc "  PROTECT(";
+                pc "    return %s;" (Func.c_call func);
+                pc "  )";
+                pc "  return 0;";
+                pc "}";
+                pc "";
+                ph "%s atg_%s(%s);" c_type exported_name c_typed_args_list)))
 
 let write_fallible_wrapper funcs filename =
   Out_channel.with_file filename ~f:(fun out_ml ->
@@ -514,7 +553,9 @@ let write_fallible_wrapper funcs filename =
       pm "use std::borrow::Borrow;";
       pm "";
       pm "fn ptr_list_opt<T: Borrow<Tensor>>(l: &[Option<T>]) -> Vec<*mut C_tensor> {";
-      pm "    l.iter().map(|x| x.as_ref().map_or(std::ptr::null_mut(), |x| x.borrow().c_tensor)).collect()";
+      pm
+        "    l.iter().map(|x| x.as_ref().map_or(std::ptr::null_mut(), |x| \
+         x.borrow().c_tensor)).collect()";
       pm "}";
       pm "";
       pm "fn ptr_list<T: Borrow<Tensor>>(l: &[T]) -> Vec<*mut C_tensor> {";
@@ -567,6 +608,20 @@ let write_fallible_wrapper funcs filename =
                 |> Printf.sprintf "(%s)"
             in
             pm "        Ok(%s)" returns;
+            pm "    }"
+          | (`bool | `int64_t | `double) as returns ->
+            let is_bool =
+              match returns with
+              | `bool -> true
+              | `int64_t | `double -> false
+            in
+            pm "        let return_;";
+            pm "        unsafe_torch_err!(";
+            pm "            return_ = atg_%s(" exported_name;
+            pm "                %s" (Func.rust_binding_args func ~self);
+            pm "            ));";
+            let return_ = if is_bool then "return_ != 0" else "return_" in
+            pm "        Ok(%s)" return_;
             pm "    }");
       pm "}")
 
@@ -622,7 +677,19 @@ let write_ffi funcs filename =
             pm
               "    pub fn atg_%s(%s) -> *mut *mut C_tensor;"
               exported_name
-              (Func.c_rust_args_list func));
+              (Func.c_rust_args_list func)
+          | (`bool | `int64_t | `double) as returns ->
+            let rust_type =
+              match returns with
+              | `bool -> "c_int"
+              | `int64_t -> "i64"
+              | `double -> "f64"
+            in
+            pm
+              "    pub fn atg_%s(%s) -> %s;"
+              exported_name
+              (Func.c_rust_args_list func)
+              rust_type);
       pm "}")
 
 let methods =
