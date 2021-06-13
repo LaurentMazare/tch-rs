@@ -483,3 +483,12 @@ fn nll_loss() {
     // This used to segfault, see https://github.com/LaurentMazare/tch-rs/issues/366
     let _output = input.g_nll_loss(&target, Some(weights), tch::Reduction::Mean, -100);
 }
+
+#[test]
+fn allclose() {
+    let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
+    let t = t.quantize_per_tensor(0.1, 10, tch::Kind::QUInt8);
+    let t = t.dequantize();
+    assert_eq!(t.allclose(&(&t + 0.1), 1e-5, 1e-8, false), false);
+    assert_eq!(t.allclose(&(&t + 1e-9), 1e-5, 1e-8, false), true);
+}
