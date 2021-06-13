@@ -368,3 +368,16 @@ fn linear() {
         ..Default::default()
     });
 }
+
+#[test]
+fn lbfgs_test() {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let my_module = my_module(vs.root(), 7);
+    let mut opt = nn::LBFGS::default().build(&vs, 1e-2).unwrap();
+    for _idx in 1..50 {
+        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let loss = (my_module.forward(&xs) - ys).pow(2).sum(Kind::Float);
+        opt.backward_step(&loss);
+    }
+}
