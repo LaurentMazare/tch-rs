@@ -1729,7 +1729,7 @@ impl Tensor {
         unsafe_torch_err!(
             return_ = atg__has_compatible_shallow_copy_type(self.c_tensor, from.c_tensor)
         );
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_internal_index_copy_(
@@ -2100,7 +2100,7 @@ impl Tensor {
     pub fn f_internal_nnpack_available() -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg__nnpack_available());
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_internal_nnpack_spatial_convolution<T: Borrow<Tensor>>(
@@ -3166,13 +3166,13 @@ impl Tensor {
                 blank
             )
         );
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_internal_use_cudnn_rnn_flatten_weight() -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg__use_cudnn_rnn_flatten_weight());
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_internal_values(&self) -> Result<Tensor, TchError> {
@@ -4138,7 +4138,7 @@ impl Tensor {
                 if equal_nan { 1 } else { 0 }
             )
         );
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_alpha_dropout(&self, p: f64, train: bool) -> Result<Tensor, TchError> {
@@ -6194,7 +6194,7 @@ impl Tensor {
     pub fn f_can_cast(from: Kind, to: Kind) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_can_cast(from.c_int(), to.c_int()));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_cartesian_prod<T: Borrow<Tensor>>(tensors: &[T]) -> Result<Tensor, TchError> {
@@ -7949,7 +7949,7 @@ impl Tensor {
     pub fn f_cudnn_is_acceptable(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_cudnn_is_acceptable(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_cummax(&self, dim: i64) -> Result<(Tensor, Tensor), TchError> {
@@ -9199,7 +9199,7 @@ impl Tensor {
     pub fn f_equal(&self, other: &Tensor) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_equal(self.c_tensor, other.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_erf(&self) -> Result<Tensor, TchError> {
@@ -13044,67 +13044,67 @@ impl Tensor {
     pub fn f_is_coalesced(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_coalesced(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_complex(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_complex(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_distributed(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_distributed(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_floating_point(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_floating_point(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_leaf(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_leaf(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_nonzero(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_nonzero(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_pinned(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_pinned(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_same_size(&self, other: &Tensor) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_same_size(self.c_tensor, other.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_set_to(&self, tensor: &Tensor) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_set_to(self.c_tensor, tensor.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_signed(&self) -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_signed(self.c_tensor));
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_is_vulkan_available() -> Result<bool, TchError> {
         let return_;
         unsafe_torch_err!(return_ = atg_is_vulkan_available());
-        Ok(if return_ != 0 { true } else { false })
+        Ok(return_ != 0)
     }
 
     pub fn f_isclose(

@@ -620,9 +620,7 @@ let write_fallible_wrapper funcs filename =
             pm "            return_ = atg_%s(" exported_name;
             pm "                %s" (Func.rust_binding_args func ~self);
             pm "            ));";
-            let return_ =
-              if is_bool then "if return_ != 0 { true } else { false }" else "return_"
-            in
+            let return_ = if is_bool then "return_ != 0" else "return_" in
             pm "        Ok(%s)" return_;
             pm "    }");
       pm "}")
