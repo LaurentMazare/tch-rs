@@ -34,6 +34,10 @@ let excluded_functions =
     ; "_backward"
     ; "size"
     ; "stride"
+    ; "_assert_async"
+    ; "gradient"
+    ; "linalg_vector_norm"
+    ; "linalg_vector_norm_out"
     ]
 
 let no_tensor_options =
@@ -125,15 +129,14 @@ module Func = struct
     | "bool" -> Some Bool
     | "int64_t" -> Some (if is_nullable then Int64Option else Int64)
     | "double" -> Some (if is_nullable then DoubleOption else Double)
-    | "booltensor" | "indextensor" | "tensor" ->
-      Some (if is_nullable then TensorOption else Tensor)
-    | "tensoroptions" -> Some TensorOptions
-    | "intarrayref" | "intlist" -> Some IntList
+    | "at::tensor" -> Some (if is_nullable then TensorOption else Tensor)
+    | "at::tensoroptions" -> Some TensorOptions
+    | "at::intarrayref" -> Some IntList
     | "const c10::list<c10::optional<tensor>> &" -> Some TensorOptList
-    | "tensorlist" -> Some TensorList
-    | "device" -> Some Device
-    | "scalar" -> Some Scalar
-    | "scalartype" -> Some ScalarType
+    | "at::tensorlist" -> Some TensorList
+    | "at::device" -> Some Device
+    | "const at::scalar &" | "at::scalar" -> Some Scalar
+    | "at::scalartype" -> Some ScalarType
     | "std::string" -> Some String
     | _ -> None
 
@@ -398,9 +401,7 @@ let read_yaml filename =
         let is_tensor returns =
           let returns = extract_map returns in
           let return_type = Map.find_exn returns "dynamic_type" |> extract_string in
-          String.( = ) return_type "Tensor"
-          || String.( = ) return_type "BoolTensor"
-          || String.( = ) return_type "IndexTensor"
+          String.( = ) return_type "at::Tensor"
         in
         let returns = Map.find_exn map "returns" |> extract_list in
         if List.for_all returns ~f:is_tensor
@@ -415,8 +416,8 @@ let read_yaml filename =
             | "bool" -> Some `bool
             | "int64_t" -> Some `int64_t
             | "double" -> Some `double
-            | "TensorList" | "dynamic_type: const c10::List<c10::optional<Tensor>> &" ->
-              Some `dynamic
+            | "at::TensorList" | "dynamic_type: const c10::List<c10::optional<Tensor>> &"
+              -> Some `dynamic
             | _ -> None)
           | [] | _ :: _ :: _ -> None)
       in
@@ -734,7 +735,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.8.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.9.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

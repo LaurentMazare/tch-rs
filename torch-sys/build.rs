@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use curl::easy::Easy;
 
-const TORCH_VERSION: &str = "1.8.1";
+const TORCH_VERSION: &str = "1.9.0";
 
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
     let f = fs::File::create(&target_file)?;
