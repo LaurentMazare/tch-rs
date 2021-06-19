@@ -58,7 +58,7 @@ impl Init {
     pub fn set(self, tensor: &mut Tensor) {
         match self {
             Init::Const(cst) => {
-                let _ = tensor.fill_scalar_(cst);
+                let _ = tensor.fill_(cst);
             }
             Init::Uniform { lo, up } => {
                 let _ = tensor.uniform_(lo, up);

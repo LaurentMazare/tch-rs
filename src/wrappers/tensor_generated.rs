@@ -5,84 +5,84 @@ use std::borrow::Borrow;
 use std::convert::Into;
 
 impl Tensor {
-    pub fn internal_and_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_and_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_and_(other).unwrap()
     }
 
-    pub fn internal_and_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_and_scalar_(other).unwrap()
+    pub fn internal_and_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_and_tensor_(other).unwrap()
     }
 
-    pub fn internal_iand_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_iand_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_iand_(other).unwrap()
     }
 
-    pub fn internal_iand_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_iand_scalar_(other).unwrap()
+    pub fn internal_iand_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_iand_tensor_(other).unwrap()
     }
 
-    pub fn internal_ilshift_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_ilshift_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_ilshift_(other).unwrap()
     }
 
-    pub fn internal_ilshift_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_ilshift_scalar_(other).unwrap()
+    pub fn internal_ilshift_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_ilshift_tensor_(other).unwrap()
     }
 
-    pub fn internal_ior_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_ior_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_ior_(other).unwrap()
     }
 
-    pub fn internal_ior_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_ior_scalar_(other).unwrap()
+    pub fn internal_ior_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_ior_tensor_(other).unwrap()
     }
 
-    pub fn internal_irshift_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_irshift_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_irshift_(other).unwrap()
     }
 
-    pub fn internal_irshift_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_irshift_scalar_(other).unwrap()
+    pub fn internal_irshift_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_irshift_tensor_(other).unwrap()
     }
 
-    pub fn internal_ixor_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_ixor_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_ixor_(other).unwrap()
     }
 
-    pub fn internal_ixor_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_ixor_scalar_(other).unwrap()
+    pub fn internal_ixor_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_ixor_tensor_(other).unwrap()
     }
 
-    pub fn internal_lshift_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_lshift_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_lshift_(other).unwrap()
     }
 
-    pub fn internal_lshift_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_lshift_scalar_(other).unwrap()
+    pub fn internal_lshift_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_lshift_tensor_(other).unwrap()
     }
 
-    pub fn internal_or_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_or_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_or_(other).unwrap()
     }
 
-    pub fn internal_or_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_or_scalar_(other).unwrap()
+    pub fn internal_or_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_or_tensor_(other).unwrap()
     }
 
-    pub fn internal_rshift_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_rshift_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_rshift_(other).unwrap()
     }
 
-    pub fn internal_rshift_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_rshift_scalar_(other).unwrap()
+    pub fn internal_rshift_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_rshift_tensor_(other).unwrap()
     }
 
-    pub fn internal_xor_(&mut self, other: &Tensor) -> Tensor {
+    pub fn internal_xor_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_internal_xor_(other).unwrap()
     }
 
-    pub fn internal_xor_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_internal_xor_scalar_(other).unwrap()
+    pub fn internal_xor_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_internal_xor_tensor_(other).unwrap()
     }
 
     pub fn internal_adaptive_avg_pool2d(&self, output_size: &[i64]) -> Tensor {
@@ -1196,19 +1196,13 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_sparse_csr_tensor_crow_col_value(
+    pub fn internal_sparse_csr_tensor(
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
     ) -> Tensor {
-        Tensor::f_internal_sparse_csr_tensor_crow_col_value(
-            crow_indices,
-            col_indices,
-            values,
-            options,
-        )
-        .unwrap()
+        Tensor::f_internal_sparse_csr_tensor(crow_indices, col_indices, values, options).unwrap()
     }
 
     pub fn internal_sparse_csr_tensor_crow_col_value_size(
@@ -1321,8 +1315,8 @@ impl Tensor {
         self.f_internal_symeig_helper(eigenvectors, upper).unwrap()
     }
 
-    pub fn internal_test_ambiguous_defaults_a(dummy: &Tensor, a: i64, b: i64) -> Tensor {
-        Tensor::f_internal_test_ambiguous_defaults_a(dummy, a, b).unwrap()
+    pub fn internal_test_ambiguous_defaults(dummy: &Tensor, a: i64, b: i64) -> Tensor {
+        Tensor::f_internal_test_ambiguous_defaults(dummy, a, b).unwrap()
     }
 
     pub fn internal_test_ambiguous_defaults_b(dummy: &Tensor, a: i64, b: &str) -> Tensor {
@@ -1520,12 +1514,12 @@ impl Tensor {
         self.f_adaptive_avg_pool3d(output_size).unwrap()
     }
 
-    pub fn adaptive_avg_pool3d_backward_out(
+    pub fn adaptive_avg_pool3d_backward(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
     ) -> Tensor {
-        self.f_adaptive_avg_pool3d_backward_out(grad_input, grad_output)
+        self.f_adaptive_avg_pool3d_backward(grad_input, grad_output)
             .unwrap()
     }
 
@@ -1546,13 +1540,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn adaptive_max_pool2d_backward_out(
+    pub fn adaptive_max_pool2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         indices: &Tensor,
     ) -> Tensor {
-        self.f_adaptive_max_pool2d_backward_out(grad_input, grad_output, indices)
+        self.f_adaptive_max_pool2d_backward_grad_input(grad_input, grad_output, indices)
             .unwrap()
     }
 
@@ -1575,13 +1569,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn adaptive_max_pool3d_backward_out(
+    pub fn adaptive_max_pool3d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         indices: &Tensor,
     ) -> Tensor {
-        self.f_adaptive_max_pool3d_backward_out(grad_input, grad_output, indices)
+        self.f_adaptive_max_pool3d_backward_grad_input(grad_input, grad_output, indices)
             .unwrap()
     }
 
@@ -2044,7 +2038,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn avg_pool2d_backward_out(
+    pub fn avg_pool2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -2055,7 +2049,7 @@ impl Tensor {
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
-        self.f_avg_pool2d_backward_out(
+        self.f_avg_pool2d_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -2132,7 +2126,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn avg_pool3d_backward_out(
+    pub fn avg_pool3d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -2143,7 +2137,7 @@ impl Tensor {
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
     ) -> Tensor {
-        self.f_avg_pool3d_backward_out(
+        self.f_avg_pool3d_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -2395,7 +2389,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn binary_cross_entropy_backward_out<T: Borrow<Tensor>>(
+    pub fn binary_cross_entropy_backward_grad_input<T: Borrow<Tensor>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -2403,8 +2397,14 @@ impl Tensor {
         weight: Option<T>,
         reduction: crate::Reduction,
     ) -> Tensor {
-        self.f_binary_cross_entropy_backward_out(grad_input, grad_output, target, weight, reduction)
-            .unwrap()
+        self.f_binary_cross_entropy_backward_grad_input(
+            grad_input,
+            grad_output,
+            target,
+            weight,
+            reduction,
+        )
+        .unwrap()
     }
 
     pub fn binary_cross_entropy_out<T: Borrow<Tensor>>(
@@ -2455,24 +2455,24 @@ impl Tensor {
         Tensor::f_binomial(count, prob).unwrap()
     }
 
-    pub fn bitwise_and(&self, other: &Tensor) -> Tensor {
+    pub fn bitwise_and<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_bitwise_and(other).unwrap()
     }
 
-    pub fn bitwise_and_(&mut self, other: &Tensor) -> Tensor {
+    pub fn bitwise_and_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_bitwise_and_(other).unwrap()
-    }
-
-    pub fn bitwise_and_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_bitwise_and_scalar(other).unwrap()
-    }
-
-    pub fn bitwise_and_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_bitwise_and_scalar_(other).unwrap()
     }
 
     pub fn bitwise_and_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_bitwise_and_scalar_out(out, other).unwrap()
+    }
+
+    pub fn bitwise_and_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_bitwise_and_tensor(other).unwrap()
+    }
+
+    pub fn bitwise_and_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_bitwise_and_tensor_(other).unwrap()
     }
 
     pub fn bitwise_and_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -2491,48 +2491,48 @@ impl Tensor {
         self.f_bitwise_not_out(out).unwrap()
     }
 
-    pub fn bitwise_or(&self, other: &Tensor) -> Tensor {
+    pub fn bitwise_or<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_bitwise_or(other).unwrap()
     }
 
-    pub fn bitwise_or_(&mut self, other: &Tensor) -> Tensor {
+    pub fn bitwise_or_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_bitwise_or_(other).unwrap()
-    }
-
-    pub fn bitwise_or_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_bitwise_or_scalar(other).unwrap()
-    }
-
-    pub fn bitwise_or_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_bitwise_or_scalar_(other).unwrap()
     }
 
     pub fn bitwise_or_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_bitwise_or_scalar_out(out, other).unwrap()
     }
 
+    pub fn bitwise_or_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_bitwise_or_tensor(other).unwrap()
+    }
+
+    pub fn bitwise_or_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_bitwise_or_tensor_(other).unwrap()
+    }
+
     pub fn bitwise_or_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
         self.f_bitwise_or_tensor_out(out, other).unwrap()
     }
 
-    pub fn bitwise_xor(&self, other: &Tensor) -> Tensor {
+    pub fn bitwise_xor<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_bitwise_xor(other).unwrap()
     }
 
-    pub fn bitwise_xor_(&mut self, other: &Tensor) -> Tensor {
+    pub fn bitwise_xor_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_bitwise_xor_(other).unwrap()
-    }
-
-    pub fn bitwise_xor_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_bitwise_xor_scalar(other).unwrap()
-    }
-
-    pub fn bitwise_xor_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_bitwise_xor_scalar_(other).unwrap()
     }
 
     pub fn bitwise_xor_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_bitwise_xor_scalar_out(out, other).unwrap()
+    }
+
+    pub fn bitwise_xor_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_bitwise_xor_tensor(other).unwrap()
+    }
+
+    pub fn bitwise_xor_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_bitwise_xor_tensor_(other).unwrap()
     }
 
     pub fn bitwise_xor_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -2575,17 +2575,6 @@ impl Tensor {
         self.f_bucketize(boundaries, out_int32, right).unwrap()
     }
 
-    pub fn bucketize_out(
-        &self,
-        out: &Tensor,
-        boundaries: &Tensor,
-        out_int32: bool,
-        right: bool,
-    ) -> Tensor {
-        self.f_bucketize_out(out, boundaries, out_int32, right)
-            .unwrap()
-    }
-
     pub fn bucketize_scalar<S: Into<Scalar>>(
         self_scalar: S,
         boundaries: &Tensor,
@@ -2593,6 +2582,17 @@ impl Tensor {
         right: bool,
     ) -> Tensor {
         Tensor::f_bucketize_scalar(self_scalar, boundaries, out_int32, right).unwrap()
+    }
+
+    pub fn bucketize_tensor_out(
+        &self,
+        out: &Tensor,
+        boundaries: &Tensor,
+        out_int32: bool,
+        right: bool,
+    ) -> Tensor {
+        self.f_bucketize_tensor_out(out, boundaries, out_int32, right)
+            .unwrap()
     }
 
     pub fn can_cast(from: Kind, to: Kind) -> bool {
@@ -2822,7 +2822,7 @@ impl Tensor {
         Tensor::f_col2im_backward(grad_output, kernel_size, dilation, padding, stride).unwrap()
     }
 
-    pub fn col2im_backward_out(
+    pub fn col2im_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         kernel_size: &[i64],
@@ -2830,7 +2830,7 @@ impl Tensor {
         padding: &[i64],
         stride: &[i64],
     ) -> Tensor {
-        Tensor::f_col2im_backward_out(
+        Tensor::f_col2im_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -2985,7 +2985,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn conv_depthwise3d_backward_out(
+    pub fn conv_depthwise3d_backward(
         &self,
         grad_input: &Tensor,
         grad_weight: &Tensor,
@@ -2997,7 +2997,7 @@ impl Tensor {
         padding: &[i64],
         dilation: &[i64],
     ) -> (Tensor, Tensor, Tensor) {
-        self.f_conv_depthwise3d_backward_out(
+        self.f_conv_depthwise3d_backward(
             grad_input,
             grad_weight,
             grad_bias,
@@ -3239,8 +3239,8 @@ impl Tensor {
     pub fn ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &Tensor,
-        target_lengths: &Tensor,
+        input_lengths: &[i64],
+        target_lengths: &[i64],
         blank: i64,
         reduction: crate::Reduction,
         zero_infinity: bool,
@@ -3257,16 +3257,16 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn ctc_loss_intlist(
+    pub fn ctc_loss_tensor(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: &Tensor,
+        target_lengths: &Tensor,
         blank: i64,
         reduction: crate::Reduction,
         zero_infinity: bool,
     ) -> Tensor {
-        Tensor::f_ctc_loss_intlist(
+        Tensor::f_ctc_loss_tensor(
             log_probs,
             targets,
             input_lengths,
@@ -3701,8 +3701,8 @@ impl Tensor {
         self.f_dense_dim().unwrap()
     }
 
-    pub fn dequantize_self(&self) -> Tensor {
-        self.f_dequantize_self().unwrap()
+    pub fn dequantize(&self) -> Tensor {
+        self.f_dequantize().unwrap()
     }
 
     pub fn dequantize_tensors<T: Borrow<Tensor>>(tensors: &[T]) -> Vec<Tensor> {
@@ -3892,12 +3892,12 @@ impl Tensor {
         self.f_dropout_(p, train).unwrap()
     }
 
-    pub fn dsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
-        self.f_dsplit_array(indices).unwrap()
+    pub fn dsplit(&self, sections: i64) -> Vec<Tensor> {
+        self.f_dsplit(sections).unwrap()
     }
 
-    pub fn dsplit_int(&self, sections: i64) -> Vec<Tensor> {
-        self.f_dsplit_int(sections).unwrap()
+    pub fn dsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
+        self.f_dsplit_array(indices).unwrap()
     }
 
     pub fn dstack<T: Borrow<Tensor>>(tensors: &[T]) -> Tensor {
@@ -3912,8 +3912,8 @@ impl Tensor {
         self.f_eig(eigenvectors).unwrap()
     }
 
-    pub fn eig_out(&self, e: &Tensor, v: &Tensor, eigenvectors: bool) -> (Tensor, Tensor) {
-        self.f_eig_out(e, v, eigenvectors).unwrap()
+    pub fn eig_e(&self, e: &Tensor, v: &Tensor, eigenvectors: bool) -> (Tensor, Tensor) {
+        self.f_eig_e(e, v, eigenvectors).unwrap()
     }
 
     pub fn einsum<T: Borrow<Tensor>>(equation: &str, tensors: &[T]) -> Tensor {
@@ -4087,24 +4087,24 @@ impl Tensor {
         Tensor::f_empty_strided(size, stride, options).unwrap()
     }
 
-    pub fn eq(&self, other: &Tensor) -> Tensor {
+    pub fn eq<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_eq(other).unwrap()
     }
 
-    pub fn eq_(&mut self, other: &Tensor) -> Tensor {
+    pub fn eq_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_eq_(other).unwrap()
-    }
-
-    pub fn eq_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_eq_scalar(other).unwrap()
-    }
-
-    pub fn eq_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_eq_scalar_(other).unwrap()
     }
 
     pub fn eq_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_eq_scalar_out(out, other).unwrap()
+    }
+
+    pub fn eq_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_eq_tensor(other).unwrap()
+    }
+
+    pub fn eq_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_eq_tensor_(other).unwrap()
     }
 
     pub fn eq_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -4531,7 +4531,7 @@ impl Tensor {
         self.f_fft_rfftn_out(out, s, dim, norm).unwrap()
     }
 
-    pub fn fill_(&mut self, value: &Tensor) -> Tensor {
+    pub fn fill_<S: Into<Scalar>>(&mut self, value: S) -> Tensor {
         self.f_fill_(value).unwrap()
     }
 
@@ -4539,8 +4539,8 @@ impl Tensor {
         self.f_fill_diagonal_(fill_value, wrap).unwrap()
     }
 
-    pub fn fill_scalar_<S: Into<Scalar>>(&mut self, value: S) -> Tensor {
-        self.f_fill_scalar_(value).unwrap()
+    pub fn fill_tensor_(&mut self, value: &Tensor) -> Tensor {
+        self.f_fill_tensor_(value).unwrap()
     }
 
     pub fn fix(&self) -> Tensor {
@@ -4575,16 +4575,16 @@ impl Tensor {
         self.f_flipud().unwrap()
     }
 
-    pub fn float_power_(&mut self, exponent: &Tensor) -> Tensor {
+    pub fn float_power(&self, exponent: &Tensor) -> Tensor {
+        self.f_float_power(exponent).unwrap()
+    }
+
+    pub fn float_power_<S: Into<Scalar>>(&mut self, exponent: S) -> Tensor {
         self.f_float_power_(exponent).unwrap()
     }
 
     pub fn float_power_scalar<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Tensor {
         Tensor::f_float_power_scalar(self_scalar, exponent).unwrap()
-    }
-
-    pub fn float_power_scalar_<S: Into<Scalar>>(&mut self, exponent: S) -> Tensor {
-        self.f_float_power_scalar_(exponent).unwrap()
     }
 
     pub fn float_power_scalar_out<S: Into<Scalar>>(
@@ -4593,6 +4593,10 @@ impl Tensor {
         exponent: &Tensor,
     ) -> Tensor {
         Tensor::f_float_power_scalar_out(out, self_scalar, exponent).unwrap()
+    }
+
+    pub fn float_power_tensor_(&mut self, exponent: &Tensor) -> Tensor {
+        self.f_float_power_tensor_(exponent).unwrap()
     }
 
     pub fn float_power_tensor_scalar<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
@@ -4605,10 +4609,6 @@ impl Tensor {
         exponent: S,
     ) -> Tensor {
         self.f_float_power_tensor_scalar_out(out, exponent).unwrap()
-    }
-
-    pub fn float_power_tensor_tensor(&self, exponent: &Tensor) -> Tensor {
-        self.f_float_power_tensor_tensor(exponent).unwrap()
     }
 
     pub fn float_power_tensor_tensor_out(&self, out: &Tensor, exponent: &Tensor) -> Tensor {
@@ -4663,24 +4663,24 @@ impl Tensor {
         self.f_fmin_out(out, other).unwrap()
     }
 
-    pub fn fmod(&self, other: &Tensor) -> Tensor {
+    pub fn fmod<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_fmod(other).unwrap()
     }
 
-    pub fn fmod_(&mut self, other: &Tensor) -> Tensor {
+    pub fn fmod_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_fmod_(other).unwrap()
-    }
-
-    pub fn fmod_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_fmod_scalar(other).unwrap()
-    }
-
-    pub fn fmod_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_fmod_scalar_(other).unwrap()
     }
 
     pub fn fmod_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_fmod_scalar_out(out, other).unwrap()
+    }
+
+    pub fn fmod_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_fmod_tensor(other).unwrap()
+    }
+
+    pub fn fmod_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_fmod_tensor_(other).unwrap()
     }
 
     pub fn fmod_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -4720,7 +4720,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn fractional_max_pool2d_backward_out(
+    pub fn fractional_max_pool2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -4728,7 +4728,7 @@ impl Tensor {
         output_size: &[i64],
         indices: &Tensor,
     ) -> Tensor {
-        self.f_fractional_max_pool2d_backward_out(
+        self.f_fractional_max_pool2d_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -4738,7 +4738,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn fractional_max_pool2d_out(
+    pub fn fractional_max_pool2d_output(
         &self,
         output: &Tensor,
         indices: &Tensor,
@@ -4746,8 +4746,14 @@ impl Tensor {
         output_size: &[i64],
         random_samples: &Tensor,
     ) -> (Tensor, Tensor) {
-        self.f_fractional_max_pool2d_out(output, indices, kernel_size, output_size, random_samples)
-            .unwrap()
+        self.f_fractional_max_pool2d_output(
+            output,
+            indices,
+            kernel_size,
+            output_size,
+            random_samples,
+        )
+        .unwrap()
     }
 
     pub fn fractional_max_pool3d(
@@ -4771,7 +4777,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn fractional_max_pool3d_backward_out(
+    pub fn fractional_max_pool3d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -4779,7 +4785,7 @@ impl Tensor {
         output_size: &[i64],
         indices: &Tensor,
     ) -> Tensor {
-        self.f_fractional_max_pool3d_backward_out(
+        self.f_fractional_max_pool3d_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -4789,7 +4795,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn fractional_max_pool3d_out(
+    pub fn fractional_max_pool3d_output(
         &self,
         output: &Tensor,
         indices: &Tensor,
@@ -4797,16 +4803,22 @@ impl Tensor {
         output_size: &[i64],
         random_samples: &Tensor,
     ) -> (Tensor, Tensor) {
-        self.f_fractional_max_pool3d_out(output, indices, kernel_size, output_size, random_samples)
-            .unwrap()
+        self.f_fractional_max_pool3d_output(
+            output,
+            indices,
+            kernel_size,
+            output_size,
+            random_samples,
+        )
+        .unwrap()
     }
 
     pub fn frexp(&self) -> (Tensor, Tensor) {
         self.f_frexp().unwrap()
     }
 
-    pub fn frexp_out(&self, mantissa: &Tensor, exponent: &Tensor) -> (Tensor, Tensor) {
-        self.f_frexp_out(mantissa, exponent).unwrap()
+    pub fn frexp_tensor_out(&self, mantissa: &Tensor, exponent: &Tensor) -> (Tensor, Tensor) {
+        self.f_frexp_tensor_out(mantissa, exponent).unwrap()
     }
 
     pub fn frobenius_norm(&self) -> Tensor {
@@ -4873,24 +4885,24 @@ impl Tensor {
         self.f_gcd_out(out, other).unwrap()
     }
 
-    pub fn ge(&self, other: &Tensor) -> Tensor {
+    pub fn ge<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_ge(other).unwrap()
     }
 
-    pub fn ge_(&mut self, other: &Tensor) -> Tensor {
+    pub fn ge_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_ge_(other).unwrap()
-    }
-
-    pub fn ge_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_ge_scalar(other).unwrap()
-    }
-
-    pub fn ge_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_ge_scalar_(other).unwrap()
     }
 
     pub fn ge_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_ge_scalar_out(out, other).unwrap()
+    }
+
+    pub fn ge_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_ge_tensor(other).unwrap()
+    }
+
+    pub fn ge_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_ge_tensor_(other).unwrap()
     }
 
     pub fn ge_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -4913,8 +4925,8 @@ impl Tensor {
         self.f_geqrf().unwrap()
     }
 
-    pub fn geqrf_out(&self, a: &Tensor, tau: &Tensor) -> (Tensor, Tensor) {
-        self.f_geqrf_out(a, tau).unwrap()
+    pub fn geqrf_a(&self, a: &Tensor, tau: &Tensor) -> (Tensor, Tensor) {
+        self.f_geqrf_a(a, tau).unwrap()
     }
 
     pub fn ger(&self, vec2: &Tensor) -> Tensor {
@@ -4933,8 +4945,13 @@ impl Tensor {
         self.f_glu_backward(grad_output, dim).unwrap()
     }
 
-    pub fn glu_backward_out(&self, grad_input: &Tensor, grad_output: &Tensor, dim: i64) -> Tensor {
-        self.f_glu_backward_out(grad_input, grad_output, dim)
+    pub fn glu_backward_grad_input(
+        &self,
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        dim: i64,
+    ) -> Tensor {
+        self.f_glu_backward_grad_input(grad_input, grad_output, dim)
             .unwrap()
     }
 
@@ -4946,48 +4963,48 @@ impl Tensor {
         self.f_grad().unwrap()
     }
 
-    pub fn greater(&self, other: &Tensor) -> Tensor {
+    pub fn greater<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_greater(other).unwrap()
     }
 
-    pub fn greater_(&mut self, other: &Tensor) -> Tensor {
+    pub fn greater_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_greater_(other).unwrap()
     }
 
-    pub fn greater_equal(&self, other: &Tensor) -> Tensor {
+    pub fn greater_equal<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_greater_equal(other).unwrap()
     }
 
-    pub fn greater_equal_(&mut self, other: &Tensor) -> Tensor {
+    pub fn greater_equal_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_greater_equal_(other).unwrap()
-    }
-
-    pub fn greater_equal_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_greater_equal_scalar(other).unwrap()
-    }
-
-    pub fn greater_equal_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_greater_equal_scalar_(other).unwrap()
     }
 
     pub fn greater_equal_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_greater_equal_scalar_out(out, other).unwrap()
     }
 
+    pub fn greater_equal_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_greater_equal_tensor(other).unwrap()
+    }
+
+    pub fn greater_equal_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_greater_equal_tensor_(other).unwrap()
+    }
+
     pub fn greater_equal_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
         self.f_greater_equal_tensor_out(out, other).unwrap()
     }
 
-    pub fn greater_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_greater_scalar(other).unwrap()
-    }
-
-    pub fn greater_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_greater_scalar_(other).unwrap()
-    }
-
     pub fn greater_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_greater_scalar_out(out, other).unwrap()
+    }
+
+    pub fn greater_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_greater_tensor(other).unwrap()
+    }
+
+    pub fn greater_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_greater_tensor_(other).unwrap()
     }
 
     pub fn greater_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -5075,6 +5092,30 @@ impl Tensor {
             .unwrap()
     }
 
+    pub fn gru<T: Borrow<Tensor>>(
+        &self,
+        hx: &Tensor,
+        params: &[T],
+        has_biases: bool,
+        num_layers: i64,
+        dropout: f64,
+        train: bool,
+        bidirectional: bool,
+        batch_first: bool,
+    ) -> (Tensor, Tensor) {
+        self.f_gru(
+            hx,
+            params,
+            has_biases,
+            num_layers,
+            dropout,
+            train,
+            bidirectional,
+            batch_first,
+        )
+        .unwrap()
+    }
+
     pub fn gru_cell<T: Borrow<Tensor>>(
         &self,
         hx: &Tensor,
@@ -5111,48 +5152,24 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn gru_input<T: Borrow<Tensor>>(
-        &self,
-        hx: &Tensor,
-        params: &[T],
-        has_biases: bool,
-        num_layers: i64,
-        dropout: f64,
-        train: bool,
-        bidirectional: bool,
-        batch_first: bool,
-    ) -> (Tensor, Tensor) {
-        self.f_gru_input(
-            hx,
-            params,
-            has_biases,
-            num_layers,
-            dropout,
-            train,
-            bidirectional,
-            batch_first,
-        )
-        .unwrap()
-    }
-
-    pub fn gt(&self, other: &Tensor) -> Tensor {
+    pub fn gt<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_gt(other).unwrap()
     }
 
-    pub fn gt_(&mut self, other: &Tensor) -> Tensor {
+    pub fn gt_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_gt_(other).unwrap()
-    }
-
-    pub fn gt_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_gt_scalar(other).unwrap()
-    }
-
-    pub fn gt_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_gt_scalar_(other).unwrap()
     }
 
     pub fn gt_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_gt_scalar_out(out, other).unwrap()
+    }
+
+    pub fn gt_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_gt_tensor(other).unwrap()
+    }
+
+    pub fn gt_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_gt_tensor_(other).unwrap()
     }
 
     pub fn gt_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -5261,14 +5278,14 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn hardtanh_backward_out<S: Into<Scalar>>(
+    pub fn hardtanh_backward_grad_input<S: Into<Scalar>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         min_val: S,
         max_val: S,
     ) -> Tensor {
-        self.f_hardtanh_backward_out(grad_input, grad_output, min_val, max_val)
+        self.f_hardtanh_backward_grad_input(grad_input, grad_output, min_val, max_val)
             .unwrap()
     }
 
@@ -5306,12 +5323,12 @@ impl Tensor {
         self.f_histc_out(out, bins).unwrap()
     }
 
-    pub fn hsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
-        self.f_hsplit_array(indices).unwrap()
+    pub fn hsplit(&self, sections: i64) -> Vec<Tensor> {
+        self.f_hsplit(sections).unwrap()
     }
 
-    pub fn hsplit_int(&self, sections: i64) -> Vec<Tensor> {
-        self.f_hsplit_int(sections).unwrap()
+    pub fn hsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
+        self.f_hsplit_array(indices).unwrap()
     }
 
     pub fn hspmm(mat1: &Tensor, mat2: &Tensor) -> Tensor {
@@ -5446,7 +5463,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn im2col_backward_out(
+    pub fn im2col_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         input_size: &[i64],
@@ -5455,7 +5472,7 @@ impl Tensor {
         padding: &[i64],
         stride: &[i64],
     ) -> Tensor {
-        Tensor::f_im2col_backward_out(
+        Tensor::f_im2col_backward_grad_input(
             grad_input,
             grad_output,
             input_size,
@@ -5523,22 +5540,12 @@ impl Tensor {
         self.f_index_copy_(dim, index, source).unwrap()
     }
 
-    pub fn index_fill_int_scalar<S: Into<Scalar>>(
-        &self,
-        dim: i64,
-        index: &Tensor,
-        value: S,
-    ) -> Tensor {
-        self.f_index_fill_int_scalar(dim, index, value).unwrap()
+    pub fn index_fill<S: Into<Scalar>>(&self, dim: i64, index: &Tensor, value: S) -> Tensor {
+        self.f_index_fill(dim, index, value).unwrap()
     }
 
-    pub fn index_fill_int_scalar_<S: Into<Scalar>>(
-        &mut self,
-        dim: i64,
-        index: &Tensor,
-        value: S,
-    ) -> Tensor {
-        self.f_index_fill_int_scalar_(dim, index, value).unwrap()
+    pub fn index_fill_<S: Into<Scalar>>(&mut self, dim: i64, index: &Tensor, value: S) -> Tensor {
+        self.f_index_fill_(dim, index, value).unwrap()
     }
 
     pub fn index_fill_int_tensor(&self, dim: i64, index: &Tensor, value: &Tensor) -> Tensor {
@@ -5791,7 +5798,7 @@ impl Tensor {
         self.f_kthvalue(k, dim, keepdim).unwrap()
     }
 
-    pub fn kthvalue_out(
+    pub fn kthvalue_values(
         &self,
         values: &Tensor,
         indices: &Tensor,
@@ -5799,7 +5806,7 @@ impl Tensor {
         dim: i64,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
-        self.f_kthvalue_out(values, indices, k, dim, keepdim)
+        self.f_kthvalue_values(values, indices, k, dim, keepdim)
             .unwrap()
     }
 
@@ -5817,14 +5824,14 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn l1_loss_backward_out(
+    pub fn l1_loss_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         target: &Tensor,
         reduction: crate::Reduction,
     ) -> Tensor {
-        self.f_l1_loss_backward_out(grad_input, grad_output, target, reduction)
+        self.f_l1_loss_backward_grad_input(grad_input, grad_output, target, reduction)
             .unwrap()
     }
 
@@ -5873,24 +5880,24 @@ impl Tensor {
         self.f_ldexp_out(out, other).unwrap()
     }
 
-    pub fn le(&self, other: &Tensor) -> Tensor {
+    pub fn le<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_le(other).unwrap()
     }
 
-    pub fn le_(&mut self, other: &Tensor) -> Tensor {
+    pub fn le_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_le_(other).unwrap()
-    }
-
-    pub fn le_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_le_scalar(other).unwrap()
-    }
-
-    pub fn le_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_le_scalar_(other).unwrap()
     }
 
     pub fn le_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_le_scalar_out(out, other).unwrap()
+    }
+
+    pub fn le_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_le_tensor(other).unwrap()
+    }
+
+    pub fn le_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_le_tensor_(other).unwrap()
     }
 
     pub fn le_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -5919,20 +5926,12 @@ impl Tensor {
         self.f_leaky_relu_out(out).unwrap()
     }
 
-    pub fn lerp(&self, end: &Tensor, weight: &Tensor) -> Tensor {
+    pub fn lerp<S: Into<Scalar>>(&self, end: &Tensor, weight: S) -> Tensor {
         self.f_lerp(end, weight).unwrap()
     }
 
-    pub fn lerp_(&mut self, end: &Tensor, weight: &Tensor) -> Tensor {
+    pub fn lerp_<S: Into<Scalar>>(&mut self, end: &Tensor, weight: S) -> Tensor {
         self.f_lerp_(end, weight).unwrap()
-    }
-
-    pub fn lerp_scalar<S: Into<Scalar>>(&self, end: &Tensor, weight: S) -> Tensor {
-        self.f_lerp_scalar(end, weight).unwrap()
-    }
-
-    pub fn lerp_scalar_<S: Into<Scalar>>(&mut self, end: &Tensor, weight: S) -> Tensor {
-        self.f_lerp_scalar_(end, weight).unwrap()
     }
 
     pub fn lerp_scalar_out<S: Into<Scalar>>(
@@ -5944,52 +5943,60 @@ impl Tensor {
         self.f_lerp_scalar_out(out, end, weight).unwrap()
     }
 
+    pub fn lerp_tensor(&self, end: &Tensor, weight: &Tensor) -> Tensor {
+        self.f_lerp_tensor(end, weight).unwrap()
+    }
+
+    pub fn lerp_tensor_(&mut self, end: &Tensor, weight: &Tensor) -> Tensor {
+        self.f_lerp_tensor_(end, weight).unwrap()
+    }
+
     pub fn lerp_tensor_out(&self, out: &Tensor, end: &Tensor, weight: &Tensor) -> Tensor {
         self.f_lerp_tensor_out(out, end, weight).unwrap()
     }
 
-    pub fn less(&self, other: &Tensor) -> Tensor {
+    pub fn less<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_less(other).unwrap()
     }
 
-    pub fn less_(&mut self, other: &Tensor) -> Tensor {
+    pub fn less_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_less_(other).unwrap()
     }
 
-    pub fn less_equal(&self, other: &Tensor) -> Tensor {
+    pub fn less_equal<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_less_equal(other).unwrap()
     }
 
-    pub fn less_equal_(&mut self, other: &Tensor) -> Tensor {
+    pub fn less_equal_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_less_equal_(other).unwrap()
-    }
-
-    pub fn less_equal_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_less_equal_scalar(other).unwrap()
-    }
-
-    pub fn less_equal_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_less_equal_scalar_(other).unwrap()
     }
 
     pub fn less_equal_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_less_equal_scalar_out(out, other).unwrap()
     }
 
+    pub fn less_equal_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_less_equal_tensor(other).unwrap()
+    }
+
+    pub fn less_equal_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_less_equal_tensor_(other).unwrap()
+    }
+
     pub fn less_equal_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
         self.f_less_equal_tensor_out(out, other).unwrap()
     }
 
-    pub fn less_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_less_scalar(other).unwrap()
-    }
-
-    pub fn less_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_less_scalar_(other).unwrap()
-    }
-
     pub fn less_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_less_scalar_out(out, other).unwrap()
+    }
+
+    pub fn less_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_less_tensor(other).unwrap()
+    }
+
+    pub fn less_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_less_tensor_(other).unwrap()
     }
 
     pub fn less_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -6016,14 +6023,13 @@ impl Tensor {
         self.f_linalg_cholesky_ex(check_errors).unwrap()
     }
 
-    pub fn linalg_cholesky_ex_out(
+    pub fn linalg_cholesky_ex_l(
         &self,
         l: &Tensor,
         info: &Tensor,
         check_errors: bool,
     ) -> (Tensor, Tensor) {
-        self.f_linalg_cholesky_ex_out(l, info, check_errors)
-            .unwrap()
+        self.f_linalg_cholesky_ex_l(l, info, check_errors).unwrap()
     }
 
     pub fn linalg_cholesky_out(&self, out: &Tensor) -> Tensor {
@@ -6066,13 +6072,13 @@ impl Tensor {
         self.f_linalg_eigh(uplo).unwrap()
     }
 
-    pub fn linalg_eigh_out(
+    pub fn linalg_eigh_eigvals(
         &self,
         eigvals: &Tensor,
         eigvecs: &Tensor,
         uplo: &str,
     ) -> (Tensor, Tensor) {
-        self.f_linalg_eigh_out(eigvals, eigvecs, uplo).unwrap()
+        self.f_linalg_eigh_eigvals(eigvals, eigvecs, uplo).unwrap()
     }
 
     pub fn linalg_eigvals(&self) -> Tensor {
@@ -6107,13 +6113,13 @@ impl Tensor {
         self.f_linalg_inv_ex(check_errors).unwrap()
     }
 
-    pub fn linalg_inv_ex_out(
+    pub fn linalg_inv_ex_inverse(
         &self,
         inverse: &Tensor,
         info: &Tensor,
         check_errors: bool,
     ) -> (Tensor, Tensor) {
-        self.f_linalg_inv_ex_out(inverse, info, check_errors)
+        self.f_linalg_inv_ex_inverse(inverse, info, check_errors)
             .unwrap()
     }
 
@@ -6328,14 +6334,14 @@ impl Tensor {
         self.f_linalg_svd(full_matrices).unwrap()
     }
 
-    pub fn linalg_svd_out(
+    pub fn linalg_svd_u(
         &self,
         u: &Tensor,
         s: &Tensor,
         vh: &Tensor,
         full_matrices: bool,
     ) -> (Tensor, Tensor, Tensor) {
-        self.f_linalg_svd_out(u, s, vh, full_matrices).unwrap()
+        self.f_linalg_svd_u(u, s, vh, full_matrices).unwrap()
     }
 
     pub fn linalg_svdvals(&self) -> Tensor {
@@ -6444,13 +6450,13 @@ impl Tensor {
         self.f_log_sigmoid_backward(grad_output, buffer).unwrap()
     }
 
-    pub fn log_sigmoid_backward_out(
+    pub fn log_sigmoid_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         buffer: &Tensor,
     ) -> Tensor {
-        self.f_log_sigmoid_backward_out(grad_input, grad_output, buffer)
+        self.f_log_sigmoid_backward_grad_input(grad_input, grad_output, buffer)
             .unwrap()
     }
 
@@ -6550,13 +6556,13 @@ impl Tensor {
         self.f_logit_backward(grad_output, eps).unwrap()
     }
 
-    pub fn logit_backward_out(
+    pub fn logit_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         eps: impl Into<Option<f64>>,
     ) -> Tensor {
-        self.f_logit_backward_out(grad_input, grad_output, eps)
+        self.f_logit_backward_grad_input(grad_input, grad_output, eps)
             .unwrap()
     }
 
@@ -6590,6 +6596,30 @@ impl Tensor {
 
     pub fn logsumexp_out(&self, out: &Tensor, dim: &[i64], keepdim: bool) -> Tensor {
         self.f_logsumexp_out(out, dim, keepdim).unwrap()
+    }
+
+    pub fn lstm<T: Borrow<Tensor>>(
+        &self,
+        hx: &[T],
+        params: &[T],
+        has_biases: bool,
+        num_layers: i64,
+        dropout: f64,
+        train: bool,
+        bidirectional: bool,
+        batch_first: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        self.f_lstm(
+            hx,
+            params,
+            has_biases,
+            num_layers,
+            dropout,
+            train,
+            bidirectional,
+            batch_first,
+        )
+        .unwrap()
     }
 
     pub fn lstm_cell<T: Borrow<Tensor>>(
@@ -6628,56 +6658,32 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn lstm_input<T: Borrow<Tensor>>(
-        &self,
-        hx: &[T],
-        params: &[T],
-        has_biases: bool,
-        num_layers: i64,
-        dropout: f64,
-        train: bool,
-        bidirectional: bool,
-        batch_first: bool,
-    ) -> (Tensor, Tensor, Tensor) {
-        self.f_lstm_input(
-            hx,
-            params,
-            has_biases,
-            num_layers,
-            dropout,
-            train,
-            bidirectional,
-            batch_first,
-        )
-        .unwrap()
-    }
-
     pub fn lstsq(&self, a: &Tensor) -> (Tensor, Tensor) {
         self.f_lstsq(a).unwrap()
     }
 
-    pub fn lstsq_out(&self, x: &Tensor, qr: &Tensor, a: &Tensor) -> (Tensor, Tensor) {
-        self.f_lstsq_out(x, qr, a).unwrap()
+    pub fn lstsq_x(&self, x: &Tensor, qr: &Tensor, a: &Tensor) -> (Tensor, Tensor) {
+        self.f_lstsq_x(x, qr, a).unwrap()
     }
 
-    pub fn lt(&self, other: &Tensor) -> Tensor {
+    pub fn lt<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_lt(other).unwrap()
     }
 
-    pub fn lt_(&mut self, other: &Tensor) -> Tensor {
+    pub fn lt_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_lt_(other).unwrap()
-    }
-
-    pub fn lt_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_lt_scalar(other).unwrap()
-    }
-
-    pub fn lt_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_lt_scalar_(other).unwrap()
     }
 
     pub fn lt_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_lt_scalar_out(out, other).unwrap()
+    }
+
+    pub fn lt_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_lt_tensor(other).unwrap()
+    }
+
+    pub fn lt_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_lt_tensor_(other).unwrap()
     }
 
     pub fn lt_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -6723,20 +6729,20 @@ impl Tensor {
         Tensor::f_margin_ranking_loss(input1, input2, target, margin, reduction).unwrap()
     }
 
-    pub fn masked_fill(&self, mask: &Tensor, value: &Tensor) -> Tensor {
+    pub fn masked_fill<S: Into<Scalar>>(&self, mask: &Tensor, value: S) -> Tensor {
         self.f_masked_fill(mask, value).unwrap()
     }
 
-    pub fn masked_fill_(&mut self, mask: &Tensor, value: &Tensor) -> Tensor {
+    pub fn masked_fill_<S: Into<Scalar>>(&mut self, mask: &Tensor, value: S) -> Tensor {
         self.f_masked_fill_(mask, value).unwrap()
     }
 
-    pub fn masked_fill_scalar<S: Into<Scalar>>(&self, mask: &Tensor, value: S) -> Tensor {
-        self.f_masked_fill_scalar(mask, value).unwrap()
+    pub fn masked_fill_tensor(&self, mask: &Tensor, value: &Tensor) -> Tensor {
+        self.f_masked_fill_tensor(mask, value).unwrap()
     }
 
-    pub fn masked_fill_scalar_<S: Into<Scalar>>(&mut self, mask: &Tensor, value: S) -> Tensor {
-        self.f_masked_fill_scalar_(mask, value).unwrap()
+    pub fn masked_fill_tensor_(&mut self, mask: &Tensor, value: &Tensor) -> Tensor {
+        self.f_masked_fill_tensor_(mask, value).unwrap()
     }
 
     pub fn masked_scatter(&self, mask: &Tensor, source: &Tensor) -> Tensor {
@@ -6887,7 +6893,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn max_pool2d_with_indices_backward_out(
+    pub fn max_pool2d_with_indices_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -6898,7 +6904,7 @@ impl Tensor {
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Tensor {
-        self.f_max_pool2d_with_indices_backward_out(
+        self.f_max_pool2d_with_indices_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -6979,7 +6985,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn max_pool3d_with_indices_backward_out(
+    pub fn max_pool3d_with_indices_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -6990,7 +6996,7 @@ impl Tensor {
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Tensor {
-        self.f_max_pool3d_with_indices_backward_out(
+        self.f_max_pool3d_with_indices_backward_grad_input(
             grad_input,
             grad_output,
             kernel_size,
@@ -7039,14 +7045,14 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn max_unpool2d_backward_out(
+    pub fn max_unpool2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         indices: &Tensor,
         output_size: &[i64],
     ) -> Tensor {
-        self.f_max_unpool2d_backward_out(grad_input, grad_output, indices, output_size)
+        self.f_max_unpool2d_backward_grad_input(grad_input, grad_output, indices, output_size)
             .unwrap()
     }
 
@@ -7077,7 +7083,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn max_unpool3d_backward_out(
+    pub fn max_unpool3d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -7086,7 +7092,7 @@ impl Tensor {
         stride: &[i64],
         padding: &[i64],
     ) -> Tensor {
-        self.f_max_unpool3d_backward_out(
+        self.f_max_unpool3d_backward_grad_input(
             grad_input,
             grad_output,
             indices,
@@ -7137,14 +7143,15 @@ impl Tensor {
         self.f_median_dim(dim, keepdim).unwrap()
     }
 
-    pub fn median_out(
+    pub fn median_dim_values(
         &self,
         values: &Tensor,
         indices: &Tensor,
         dim: i64,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
-        self.f_median_out(values, indices, dim, keepdim).unwrap()
+        self.f_median_dim_values(values, indices, dim, keepdim)
+            .unwrap()
     }
 
     pub fn meshgrid<T: Borrow<Tensor>>(tensors: &[T]) -> Vec<Tensor> {
@@ -7693,30 +7700,30 @@ impl Tensor {
         self.f_mode(dim, keepdim).unwrap()
     }
 
-    pub fn mode_out(
+    pub fn mode_values(
         &self,
         values: &Tensor,
         indices: &Tensor,
         dim: i64,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
-        self.f_mode_out(values, indices, dim, keepdim).unwrap()
+        self.f_mode_values(values, indices, dim, keepdim).unwrap()
+    }
+
+    pub fn moveaxis(&self, source: &[i64], destination: &[i64]) -> Tensor {
+        self.f_moveaxis(source, destination).unwrap()
     }
 
     pub fn moveaxis_int(&self, source: i64, destination: i64) -> Tensor {
         self.f_moveaxis_int(source, destination).unwrap()
     }
 
-    pub fn moveaxis_intlist(&self, source: &[i64], destination: &[i64]) -> Tensor {
-        self.f_moveaxis_intlist(source, destination).unwrap()
+    pub fn movedim(&self, source: &[i64], destination: &[i64]) -> Tensor {
+        self.f_movedim(source, destination).unwrap()
     }
 
     pub fn movedim_int(&self, source: i64, destination: i64) -> Tensor {
         self.f_movedim_int(source, destination).unwrap()
-    }
-
-    pub fn movedim_intlist(&self, source: &[i64], destination: &[i64]) -> Tensor {
-        self.f_movedim_intlist(source, destination).unwrap()
     }
 
     pub fn mse_loss(&self, target: &Tensor, reduction: crate::Reduction) -> Tensor {
@@ -7733,14 +7740,14 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn mse_loss_backward_out(
+    pub fn mse_loss_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         target: &Tensor,
         reduction: crate::Reduction,
     ) -> Tensor {
-        self.f_mse_loss_backward_out(grad_input, grad_output, target, reduction)
+        self.f_mse_loss_backward_grad_input(grad_input, grad_output, target, reduction)
             .unwrap()
     }
 
@@ -7794,7 +7801,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn multi_margin_loss_backward_out<T: Borrow<Tensor>, S: Into<Scalar>>(
+    pub fn multi_margin_loss_backward_grad_input<T: Borrow<Tensor>, S: Into<Scalar>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -7804,7 +7811,7 @@ impl Tensor {
         weight: Option<T>,
         reduction: crate::Reduction,
     ) -> Tensor {
-        self.f_multi_margin_loss_backward_out(
+        self.f_multi_margin_loss_backward_grad_input(
             grad_input,
             grad_output,
             target,
@@ -7831,7 +7838,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn multilabel_margin_loss_backward_out(
+    pub fn multilabel_margin_loss_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -7839,7 +7846,7 @@ impl Tensor {
         reduction: crate::Reduction,
         is_target: &Tensor,
     ) -> Tensor {
-        self.f_multilabel_margin_loss_backward_out(
+        self.f_multilabel_margin_loss_backward_grad_input(
             grad_input,
             grad_output,
             target,
@@ -7940,14 +7947,15 @@ impl Tensor {
         self.f_nanmedian_dim(dim, keepdim).unwrap()
     }
 
-    pub fn nanmedian_out(
+    pub fn nanmedian_dim_values(
         &self,
         values: &Tensor,
         indices: &Tensor,
         dim: i64,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
-        self.f_nanmedian_out(values, indices, dim, keepdim).unwrap()
+        self.f_nanmedian_dim_values(values, indices, dim, keepdim)
+            .unwrap()
     }
 
     pub fn nanquantile(&self, q: &Tensor, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
@@ -8032,8 +8040,14 @@ impl Tensor {
         self.f_nansum_dim_intlist(dim, keepdim, dtype).unwrap()
     }
 
-    pub fn nansum_out(&self, out: &Tensor, dim: &[i64], keepdim: bool, dtype: Kind) -> Tensor {
-        self.f_nansum_out(out, dim, keepdim, dtype).unwrap()
+    pub fn nansum_intlist_out(
+        &self,
+        out: &Tensor,
+        dim: &[i64],
+        keepdim: bool,
+        dtype: Kind,
+    ) -> Tensor {
+        self.f_nansum_intlist_out(out, dim, keepdim, dtype).unwrap()
     }
 
     pub fn narrow(&self, dim: i64, start: i64, length: i64) -> Tensor {
@@ -8142,24 +8156,24 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn ne(&self, other: &Tensor) -> Tensor {
+    pub fn ne<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_ne(other).unwrap()
     }
 
-    pub fn ne_(&mut self, other: &Tensor) -> Tensor {
+    pub fn ne_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_ne_(other).unwrap()
-    }
-
-    pub fn ne_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_ne_scalar(other).unwrap()
-    }
-
-    pub fn ne_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_ne_scalar_(other).unwrap()
     }
 
     pub fn ne_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_ne_scalar_out(out, other).unwrap()
+    }
+
+    pub fn ne_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_ne_tensor(other).unwrap()
+    }
+
+    pub fn ne_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_ne_tensor_(other).unwrap()
     }
 
     pub fn ne_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -8270,7 +8284,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn nll_loss2d_backward_out<T: Borrow<Tensor>>(
+    pub fn nll_loss2d_backward_grad_input<T: Borrow<Tensor>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -8280,7 +8294,7 @@ impl Tensor {
         ignore_index: i64,
         total_weight: &Tensor,
     ) -> Tensor {
-        self.f_nll_loss2d_backward_out(
+        self.f_nll_loss2d_backward_grad_input(
             grad_input,
             grad_output,
             target,
@@ -8324,7 +8338,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn nll_loss_backward_out<T: Borrow<Tensor>>(
+    pub fn nll_loss_backward_grad_input<T: Borrow<Tensor>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -8334,7 +8348,7 @@ impl Tensor {
         ignore_index: i64,
         total_weight: &Tensor,
     ) -> Tensor {
-        self.f_nll_loss_backward_out(
+        self.f_nll_loss_backward_grad_input(
             grad_input,
             grad_output,
             target,
@@ -8381,6 +8395,10 @@ impl Tensor {
         self.f_nonzero_out(out).unwrap()
     }
 
+    pub fn norm(&self) -> Tensor {
+        self.f_norm().unwrap()
+    }
+
     pub fn norm_dtype_out<S: Into<Scalar>>(
         &self,
         out: &Tensor,
@@ -8406,10 +8424,6 @@ impl Tensor {
         self.f_norm_out(out, p, dim, keepdim).unwrap()
     }
 
-    pub fn norm_scalar(&self) -> Tensor {
-        self.f_norm_scalar().unwrap()
-    }
-
     pub fn norm_scalaropt_dim<S: Into<Scalar>>(&self, p: S, dim: &[i64], keepdim: bool) -> Tensor {
         self.f_norm_scalaropt_dim(p, dim, keepdim).unwrap()
     }
@@ -8429,6 +8443,10 @@ impl Tensor {
         self.f_norm_scalaropt_dtype(p, dtype).unwrap()
     }
 
+    pub fn normal(out: &Tensor, mean: &Tensor, std: f64) -> Tensor {
+        Tensor::f_normal(out, mean, std).unwrap()
+    }
+
     pub fn normal_(&mut self, mean: f64, std: f64) -> Tensor {
         self.f_normal_(mean, std).unwrap()
     }
@@ -8441,32 +8459,28 @@ impl Tensor {
         Tensor::f_normal_float_tensor_out(out, mean, std).unwrap()
     }
 
-    pub fn normal_tensor_float_out(out: &Tensor, mean: &Tensor, std: f64) -> Tensor {
-        Tensor::f_normal_tensor_float_out(out, mean, std).unwrap()
-    }
-
     pub fn normal_tensor_tensor_out(out: &Tensor, mean: &Tensor, std: &Tensor) -> Tensor {
         Tensor::f_normal_tensor_tensor_out(out, mean, std).unwrap()
     }
 
-    pub fn not_equal(&self, other: &Tensor) -> Tensor {
+    pub fn not_equal<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_not_equal(other).unwrap()
     }
 
-    pub fn not_equal_(&mut self, other: &Tensor) -> Tensor {
+    pub fn not_equal_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_not_equal_(other).unwrap()
-    }
-
-    pub fn not_equal_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_not_equal_scalar(other).unwrap()
-    }
-
-    pub fn not_equal_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_not_equal_scalar_(other).unwrap()
     }
 
     pub fn not_equal_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_not_equal_scalar_out(out, other).unwrap()
+    }
+
+    pub fn not_equal_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_not_equal_tensor(other).unwrap()
+    }
+
+    pub fn not_equal_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_not_equal_tensor_(other).unwrap()
     }
 
     pub fn not_equal_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -8621,16 +8635,16 @@ impl Tensor {
         self.f_positive().unwrap()
     }
 
-    pub fn pow_(&mut self, exponent: &Tensor) -> Tensor {
+    pub fn pow(&self, exponent: &Tensor) -> Tensor {
+        self.f_pow(exponent).unwrap()
+    }
+
+    pub fn pow_<S: Into<Scalar>>(&mut self, exponent: S) -> Tensor {
         self.f_pow_(exponent).unwrap()
     }
 
     pub fn pow_scalar<S: Into<Scalar>>(self_scalar: S, exponent: &Tensor) -> Tensor {
         Tensor::f_pow_scalar(self_scalar, exponent).unwrap()
-    }
-
-    pub fn pow_scalar_<S: Into<Scalar>>(&mut self, exponent: S) -> Tensor {
-        self.f_pow_scalar_(exponent).unwrap()
     }
 
     pub fn pow_scalar_out<S: Into<Scalar>>(
@@ -8641,16 +8655,16 @@ impl Tensor {
         Tensor::f_pow_scalar_out(out, self_scalar, exponent).unwrap()
     }
 
+    pub fn pow_tensor_(&mut self, exponent: &Tensor) -> Tensor {
+        self.f_pow_tensor_(exponent).unwrap()
+    }
+
     pub fn pow_tensor_scalar<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
         self.f_pow_tensor_scalar(exponent).unwrap()
     }
 
     pub fn pow_tensor_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, exponent: S) -> Tensor {
         self.f_pow_tensor_scalar_out(out, exponent).unwrap()
-    }
-
-    pub fn pow_tensor_tensor(&self, exponent: &Tensor) -> Tensor {
-        self.f_pow_tensor_tensor(exponent).unwrap()
     }
 
     pub fn pow_tensor_tensor_out(&self, out: &Tensor, exponent: &Tensor) -> Tensor {
@@ -8673,8 +8687,8 @@ impl Tensor {
         self.f_prod_dim_int(dim, keepdim, dtype).unwrap()
     }
 
-    pub fn prod_out(&self, out: &Tensor, dim: i64, keepdim: bool, dtype: Kind) -> Tensor {
-        self.f_prod_out(out, dim, keepdim, dtype).unwrap()
+    pub fn prod_int_out(&self, out: &Tensor, dim: i64, keepdim: bool, dtype: Kind) -> Tensor {
+        self.f_prod_int_out(out, dim, keepdim, dtype).unwrap()
     }
 
     pub fn put(&self, index: &Tensor, source: &Tensor, accumulate: bool) -> Tensor {
@@ -8709,8 +8723,8 @@ impl Tensor {
         self.f_qr(some).unwrap()
     }
 
-    pub fn qr_out(&self, q: &Tensor, r: &Tensor, some: bool) -> (Tensor, Tensor) {
-        self.f_qr_out(q, r, some).unwrap()
+    pub fn qr_q(&self, q: &Tensor, r: &Tensor, some: bool) -> (Tensor, Tensor) {
+        self.f_qr_q(q, r, some).unwrap()
     }
 
     pub fn quantile(&self, q: &Tensor, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
@@ -9114,13 +9128,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn reflection_pad1d_backward_out(
+    pub fn reflection_pad1d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         padding: &[i64],
     ) -> Tensor {
-        self.f_reflection_pad1d_backward_out(grad_input, grad_output, padding)
+        self.f_reflection_pad1d_backward_grad_input(grad_input, grad_output, padding)
             .unwrap()
     }
 
@@ -9137,13 +9151,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn reflection_pad2d_backward_out(
+    pub fn reflection_pad2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         padding: &[i64],
     ) -> Tensor {
-        self.f_reflection_pad2d_backward_out(grad_input, grad_output, padding)
+        self.f_reflection_pad2d_backward_grad_input(grad_input, grad_output, padding)
             .unwrap()
     }
 
@@ -9167,24 +9181,24 @@ impl Tensor {
         self.f_relu_().unwrap()
     }
 
-    pub fn remainder(&self, other: &Tensor) -> Tensor {
+    pub fn remainder<S: Into<Scalar>>(&self, other: S) -> Tensor {
         self.f_remainder(other).unwrap()
     }
 
-    pub fn remainder_(&mut self, other: &Tensor) -> Tensor {
+    pub fn remainder_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
         self.f_remainder_(other).unwrap()
-    }
-
-    pub fn remainder_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_remainder_scalar(other).unwrap()
-    }
-
-    pub fn remainder_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
-        self.f_remainder_scalar_(other).unwrap()
     }
 
     pub fn remainder_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
         self.f_remainder_scalar_out(out, other).unwrap()
+    }
+
+    pub fn remainder_tensor(&self, other: &Tensor) -> Tensor {
+        self.f_remainder_tensor(other).unwrap()
+    }
+
+    pub fn remainder_tensor_(&mut self, other: &Tensor) -> Tensor {
+        self.f_remainder_tensor_(other).unwrap()
     }
 
     pub fn remainder_tensor_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
@@ -9232,13 +9246,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn replication_pad1d_backward_out(
+    pub fn replication_pad1d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         padding: &[i64],
     ) -> Tensor {
-        self.f_replication_pad1d_backward_out(grad_input, grad_output, padding)
+        self.f_replication_pad1d_backward_grad_input(grad_input, grad_output, padding)
             .unwrap()
     }
 
@@ -9255,13 +9269,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn replication_pad2d_backward_out(
+    pub fn replication_pad2d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         padding: &[i64],
     ) -> Tensor {
-        self.f_replication_pad2d_backward_out(grad_input, grad_output, padding)
+        self.f_replication_pad2d_backward_grad_input(grad_input, grad_output, padding)
             .unwrap()
     }
 
@@ -9278,13 +9292,13 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn replication_pad3d_backward_out(
+    pub fn replication_pad3d_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         padding: &[i64],
     ) -> Tensor {
-        self.f_replication_pad3d_backward_out(grad_input, grad_output, padding)
+        self.f_replication_pad3d_backward_grad_input(grad_input, grad_output, padding)
             .unwrap()
     }
 
@@ -9314,6 +9328,30 @@ impl Tensor {
 
     pub fn resize_as_sparse_(&mut self, the_template: &Tensor) -> Tensor {
         self.f_resize_as_sparse_(the_template).unwrap()
+    }
+
+    pub fn rnn_relu<T: Borrow<Tensor>>(
+        &self,
+        hx: &Tensor,
+        params: &[T],
+        has_biases: bool,
+        num_layers: i64,
+        dropout: f64,
+        train: bool,
+        bidirectional: bool,
+        batch_first: bool,
+    ) -> (Tensor, Tensor) {
+        self.f_rnn_relu(
+            hx,
+            params,
+            has_biases,
+            num_layers,
+            dropout,
+            train,
+            bidirectional,
+            batch_first,
+        )
+        .unwrap()
     }
 
     pub fn rnn_relu_cell<T: Borrow<Tensor>>(
@@ -9352,7 +9390,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn rnn_relu_input<T: Borrow<Tensor>>(
+    pub fn rnn_tanh<T: Borrow<Tensor>>(
         &self,
         hx: &Tensor,
         params: &[T],
@@ -9363,7 +9401,7 @@ impl Tensor {
         bidirectional: bool,
         batch_first: bool,
     ) -> (Tensor, Tensor) {
-        self.f_rnn_relu_input(
+        self.f_rnn_tanh(
             hx,
             params,
             has_biases,
@@ -9408,30 +9446,6 @@ impl Tensor {
             dropout,
             train,
             bidirectional,
-        )
-        .unwrap()
-    }
-
-    pub fn rnn_tanh_input<T: Borrow<Tensor>>(
-        &self,
-        hx: &Tensor,
-        params: &[T],
-        has_biases: bool,
-        num_layers: i64,
-        dropout: f64,
-        train: bool,
-        bidirectional: bool,
-        batch_first: bool,
-    ) -> (Tensor, Tensor) {
-        self.f_rnn_tanh_input(
-            hx,
-            params,
-            has_biases,
-            num_layers,
-            dropout,
-            train,
-            bidirectional,
-            batch_first,
         )
         .unwrap()
     }
@@ -9521,6 +9535,14 @@ impl Tensor {
         Tensor::f_scalar_tensor(s, options).unwrap()
     }
 
+    pub fn scatter(&self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
+        self.f_scatter(dim, index, src).unwrap()
+    }
+
+    pub fn scatter_(&mut self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
+        self.f_scatter_(dim, index, src).unwrap()
+    }
+
     pub fn scatter_add(&self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
         self.f_scatter_add(dim, index, src).unwrap()
     }
@@ -9537,14 +9559,6 @@ impl Tensor {
         reduce: &str,
     ) -> Tensor {
         self.f_scatter_reduce_(dim, index, src, reduce).unwrap()
-    }
-
-    pub fn scatter_src(&self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
-        self.f_scatter_src(dim, index, src).unwrap()
-    }
-
-    pub fn scatter_src_(&mut self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
-        self.f_scatter_src_(dim, index, src).unwrap()
     }
 
     pub fn scatter_value<S: Into<Scalar>>(&self, dim: i64, index: &Tensor, value: S) -> Tensor {
@@ -9576,17 +9590,6 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn searchsorted_out(
-        &self,
-        out: &Tensor,
-        sorted_sequence: &Tensor,
-        out_int32: bool,
-        right: bool,
-    ) -> Tensor {
-        self.f_searchsorted_out(out, sorted_sequence, out_int32, right)
-            .unwrap()
-    }
-
     pub fn searchsorted_scalar<S: Into<Scalar>>(
         sorted_sequence: &Tensor,
         self_scalar: S,
@@ -9594,6 +9597,17 @@ impl Tensor {
         right: bool,
     ) -> Tensor {
         Tensor::f_searchsorted_scalar(sorted_sequence, self_scalar, out_int32, right).unwrap()
+    }
+
+    pub fn searchsorted_tensor_out(
+        &self,
+        out: &Tensor,
+        sorted_sequence: &Tensor,
+        out_int32: bool,
+        right: bool,
+    ) -> Tensor {
+        self.f_searchsorted_tensor_out(out, sorted_sequence, out_int32, right)
+            .unwrap()
     }
 
     pub fn segment_reduce<T: Borrow<Tensor>, S: Into<Scalar>>(
@@ -9669,12 +9683,12 @@ impl Tensor {
         Tensor::f_sigmoid_backward(grad_output, output).unwrap()
     }
 
-    pub fn sigmoid_backward_out(
+    pub fn sigmoid_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output: &Tensor,
     ) -> Tensor {
-        Tensor::f_sigmoid_backward_out(grad_input, grad_output, output).unwrap()
+        Tensor::f_sigmoid_backward_grad_input(grad_input, grad_output, output).unwrap()
     }
 
     pub fn sigmoid_out(&self, out: &Tensor) -> Tensor {
@@ -9945,7 +9959,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn smooth_l1_loss_backward_out(
+    pub fn smooth_l1_loss_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -9953,7 +9967,7 @@ impl Tensor {
         reduction: crate::Reduction,
         beta: f64,
     ) -> Tensor {
-        self.f_smooth_l1_loss_backward_out(grad_input, grad_output, target, reduction, beta)
+        self.f_smooth_l1_loss_backward_grad_input(grad_input, grad_output, target, reduction, beta)
             .unwrap()
     }
 
@@ -9982,14 +9996,14 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn soft_margin_loss_backward_out(
+    pub fn soft_margin_loss_backward_grad_input(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         target: &Tensor,
         reduction: crate::Reduction,
     ) -> Tensor {
-        self.f_soft_margin_loss_backward_out(grad_input, grad_output, target, reduction)
+        self.f_soft_margin_loss_backward_grad_input(grad_input, grad_output, target, reduction)
             .unwrap()
     }
 
@@ -10021,7 +10035,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn softplus_backward_out<S: Into<Scalar>>(
+    pub fn softplus_backward_grad_input<S: Into<Scalar>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
@@ -10029,7 +10043,7 @@ impl Tensor {
         threshold: S,
         output: &Tensor,
     ) -> Tensor {
-        self.f_softplus_backward_out(grad_input, grad_output, beta, threshold, output)
+        self.f_softplus_backward_grad_input(grad_input, grad_output, beta, threshold, output)
             .unwrap()
     }
 
@@ -10045,13 +10059,13 @@ impl Tensor {
         self.f_softshrink_backward(grad_output, lambd).unwrap()
     }
 
-    pub fn softshrink_backward_out<S: Into<Scalar>>(
+    pub fn softshrink_backward_grad_input<S: Into<Scalar>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         lambd: S,
     ) -> Tensor {
-        self.f_softshrink_backward_out(grad_input, grad_output, lambd)
+        self.f_softshrink_backward_grad_input(grad_input, grad_output, lambd)
             .unwrap()
     }
 
@@ -10063,8 +10077,8 @@ impl Tensor {
         self.f_solve(a).unwrap()
     }
 
-    pub fn solve_out(&self, solution: &Tensor, lu: &Tensor, a: &Tensor) -> (Tensor, Tensor) {
-        self.f_solve_out(solution, lu, a).unwrap()
+    pub fn solve_solution(&self, solution: &Tensor, lu: &Tensor, a: &Tensor) -> (Tensor, Tensor) {
+        self.f_solve_solution(solution, lu, a).unwrap()
     }
 
     pub fn sort(&self, dim: i64, descending: bool) -> (Tensor, Tensor) {
@@ -10098,6 +10112,10 @@ impl Tensor {
             .unwrap()
     }
 
+    pub fn sparse_coo_tensor(size: &[i64], options: (Kind, Device)) -> Tensor {
+        Tensor::f_sparse_coo_tensor(size, options).unwrap()
+    }
+
     pub fn sparse_coo_tensor_indices(
         indices: &Tensor,
         values: &Tensor,
@@ -10113,10 +10131,6 @@ impl Tensor {
         options: (Kind, Device),
     ) -> Tensor {
         Tensor::f_sparse_coo_tensor_indices_size(indices, values, size, options).unwrap()
-    }
-
-    pub fn sparse_coo_tensor_size(size: &[i64], options: (Kind, Device)) -> Tensor {
-        Tensor::f_sparse_coo_tensor_size(size, options).unwrap()
     }
 
     pub fn sparse_dim(&self) -> i64 {
@@ -10437,8 +10451,8 @@ impl Tensor {
         self.f_sum_dim_intlist(dim, keepdim, dtype).unwrap()
     }
 
-    pub fn sum_out(&self, out: &Tensor, dim: &[i64], keepdim: bool, dtype: Kind) -> Tensor {
-        self.f_sum_out(out, dim, keepdim, dtype).unwrap()
+    pub fn sum_intlist_out(&self, out: &Tensor, dim: &[i64], keepdim: bool, dtype: Kind) -> Tensor {
+        self.f_sum_intlist_out(out, dim, keepdim, dtype).unwrap()
     }
 
     pub fn sum_to_size(&self, size: &[i64]) -> Tensor {
@@ -10449,7 +10463,7 @@ impl Tensor {
         self.f_svd(some, compute_uv).unwrap()
     }
 
-    pub fn svd_out(
+    pub fn svd_u(
         &self,
         u: &Tensor,
         s: &Tensor,
@@ -10457,7 +10471,7 @@ impl Tensor {
         some: bool,
         compute_uv: bool,
     ) -> (Tensor, Tensor, Tensor) {
-        self.f_svd_out(u, s, v, some, compute_uv).unwrap()
+        self.f_svd_u(u, s, v, some, compute_uv).unwrap()
     }
 
     pub fn swapaxes(&self, axis0: i64, axis1: i64) -> Tensor {
@@ -10480,14 +10494,14 @@ impl Tensor {
         self.f_symeig(eigenvectors, upper).unwrap()
     }
 
-    pub fn symeig_out(
+    pub fn symeig_e(
         &self,
         e: &Tensor,
         v: &Tensor,
         eigenvectors: bool,
         upper: bool,
     ) -> (Tensor, Tensor) {
-        self.f_symeig_out(e, v, eigenvectors, upper).unwrap()
+        self.f_symeig_e(e, v, eigenvectors, upper).unwrap()
     }
 
     pub fn tr(&self) -> Tensor {
@@ -10543,20 +10557,24 @@ impl Tensor {
         Tensor::f_tanh_backward(grad_output, output).unwrap()
     }
 
-    pub fn tanh_backward_out(grad_input: &Tensor, grad_output: &Tensor, output: &Tensor) -> Tensor {
-        Tensor::f_tanh_backward_out(grad_input, grad_output, output).unwrap()
+    pub fn tanh_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output: &Tensor,
+    ) -> Tensor {
+        Tensor::f_tanh_backward_grad_input(grad_input, grad_output, output).unwrap()
     }
 
     pub fn tanh_out(&self, out: &Tensor) -> Tensor {
         self.f_tanh_out(out).unwrap()
     }
 
-    pub fn tensor_split_indices(&self, indices: &[i64], dim: i64) -> Vec<Tensor> {
-        self.f_tensor_split_indices(indices, dim).unwrap()
+    pub fn tensor_split(&self, sections: i64, dim: i64) -> Vec<Tensor> {
+        self.f_tensor_split(sections, dim).unwrap()
     }
 
-    pub fn tensor_split_sections(&self, sections: i64, dim: i64) -> Vec<Tensor> {
-        self.f_tensor_split_sections(sections, dim).unwrap()
+    pub fn tensor_split_indices(&self, indices: &[i64], dim: i64) -> Vec<Tensor> {
+        self.f_tensor_split_indices(indices, dim).unwrap()
     }
 
     pub fn tensor_split_tensor_indices_or_sections(
@@ -10599,13 +10617,13 @@ impl Tensor {
         self.f_threshold_backward(grad_output, threshold).unwrap()
     }
 
-    pub fn threshold_backward_out<S: Into<Scalar>>(
+    pub fn threshold_backward_grad_input<S: Into<Scalar>>(
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         threshold: S,
     ) -> Tensor {
-        self.f_threshold_backward_out(grad_input, grad_output, threshold)
+        self.f_threshold_backward_grad_input(grad_input, grad_output, threshold)
             .unwrap()
     }
 
@@ -10677,7 +10695,7 @@ impl Tensor {
         self.f_topk(k, dim, largest, sorted).unwrap()
     }
 
-    pub fn topk_out(
+    pub fn topk_values(
         &self,
         values: &Tensor,
         indices: &Tensor,
@@ -10686,7 +10704,7 @@ impl Tensor {
         largest: bool,
         sorted: bool,
     ) -> (Tensor, Tensor) {
-        self.f_topk_out(values, indices, k, dim, largest, sorted)
+        self.f_topk_values(values, indices, k, dim, largest, sorted)
             .unwrap()
     }
 
@@ -10710,12 +10728,12 @@ impl Tensor {
         self.f_transpose_(dim0, dim1).unwrap()
     }
 
-    pub fn trapz_dx(y: &Tensor, dx: f64, dim: i64) -> Tensor {
-        Tensor::f_trapz_dx(y, dx, dim).unwrap()
+    pub fn trapz(y: &Tensor, x: &Tensor, dim: i64) -> Tensor {
+        Tensor::f_trapz(y, x, dim).unwrap()
     }
 
-    pub fn trapz_x(y: &Tensor, x: &Tensor, dim: i64) -> Tensor {
-        Tensor::f_trapz_x(y, x, dim).unwrap()
+    pub fn trapz_dx(y: &Tensor, dx: f64, dim: i64) -> Tensor {
+        Tensor::f_trapz_dx(y, dx, dim).unwrap()
     }
 
     pub fn triangular_solve(
@@ -10729,7 +10747,7 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn triangular_solve_out(
+    pub fn triangular_solve_x(
         &self,
         x: &Tensor,
         m: &Tensor,
@@ -10738,7 +10756,7 @@ impl Tensor {
         transpose: bool,
         unitriangular: bool,
     ) -> (Tensor, Tensor) {
-        self.f_triangular_solve_out(x, m, a, upper, transpose, unitriangular)
+        self.f_triangular_solve_x(x, m, a, upper, transpose, unitriangular)
             .unwrap()
     }
 
@@ -10935,7 +10953,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_bicubic2d_backward_out(
+    pub fn upsample_bicubic2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -10944,7 +10962,7 @@ impl Tensor {
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_bicubic2d_backward_out(
+        Tensor::f_upsample_bicubic2d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -10998,7 +11016,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_bilinear2d_backward_out(
+    pub fn upsample_bilinear2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -11007,7 +11025,7 @@ impl Tensor {
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_bilinear2d_backward_out(
+        Tensor::f_upsample_bilinear2d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11058,7 +11076,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_linear1d_backward_out(
+    pub fn upsample_linear1d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -11066,7 +11084,7 @@ impl Tensor {
         align_corners: bool,
         scales: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_linear1d_backward_out(
+        Tensor::f_upsample_linear1d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11105,14 +11123,14 @@ impl Tensor {
         Tensor::f_upsample_nearest1d_backward(grad_output, output_size, input_size, scales).unwrap()
     }
 
-    pub fn upsample_nearest1d_backward_out(
+    pub fn upsample_nearest1d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
         input_size: &[i64],
         scales: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_nearest1d_backward_out(
+        Tensor::f_upsample_nearest1d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11159,7 +11177,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_nearest2d_backward_out(
+    pub fn upsample_nearest2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -11167,7 +11185,7 @@ impl Tensor {
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_nearest2d_backward_out(
+        Tensor::f_upsample_nearest2d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11219,7 +11237,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_nearest3d_backward_out(
+    pub fn upsample_nearest3d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -11228,7 +11246,7 @@ impl Tensor {
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_nearest3d_backward_out(
+        Tensor::f_upsample_nearest3d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11285,7 +11303,7 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn upsample_trilinear3d_backward_out(
+    pub fn upsample_trilinear3d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
         output_size: &[i64],
@@ -11295,7 +11313,7 @@ impl Tensor {
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
-        Tensor::f_upsample_trilinear3d_backward_out(
+        Tensor::f_upsample_trilinear3d_backward_grad_input(
             grad_input,
             grad_output,
             output_size,
@@ -11424,12 +11442,12 @@ impl Tensor {
         self.f_view_dtype(dtype).unwrap()
     }
 
-    pub fn vsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
-        self.f_vsplit_array(indices).unwrap()
+    pub fn vsplit(&self, sections: i64) -> Vec<Tensor> {
+        self.f_vsplit(sections).unwrap()
     }
 
-    pub fn vsplit_int(&self, sections: i64) -> Vec<Tensor> {
-        self.f_vsplit_int(sections).unwrap()
+    pub fn vsplit_array(&self, indices: &[i64]) -> Vec<Tensor> {
+        self.f_vsplit_array(indices).unwrap()
     }
 
     pub fn vstack<T: Borrow<Tensor>>(tensors: &[T]) -> Tensor {

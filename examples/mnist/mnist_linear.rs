@@ -29,7 +29,7 @@ pub fn run() -> Result<()> {
         let test_logits = m.test_images.mm(&ws) + &bs;
         let test_accuracy = test_logits
             .argmax(Some(-1), false)
-            .eq(&m.test_labels)
+            .eq_tensor(&m.test_labels)
             .to_kind(Kind::Float)
             .mean(Kind::Float)
             .double_value(&[]);

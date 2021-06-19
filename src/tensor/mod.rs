@@ -207,7 +207,7 @@ impl Tensor {
     /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.argmax(-1, false)
-            .eq(&targets)
+            .eq_tensor(&targets)
             .to_kind(Kind::Float)
             .mean(Kind::Float)
     }

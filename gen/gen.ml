@@ -731,7 +731,7 @@ let run
   printf "Generating code for %d functions.\n%!" (List.length funcs);
   (* Generate some unique names for overloaded functions. *)
   let funcs =
-    List.map funcs ~f:(fun func -> String.lowercase func.name, func)
+    List.map funcs ~f:(fun func -> String.lowercase func.operator_name, func)
     |> Map.of_alist_multi (module String)
     |> Map.to_alist
     |> List.concat_map ~f:(fun (name, funcs) ->
@@ -743,18 +743,20 @@ let run
                List.exists funcs ~f:(fun (func : Func.t) ->
                    String.is_empty func.overload_name)
              in
-             List.map funcs ~f:(fun (func : Func.t) ->
-                 let operator_name = String.lowercase func.operator_name in
-                 let overload_name = String.lowercase func.overload_name in
-                 let name =
-                   if String.is_empty overload_name
-                      || (String.( = ) overload_name "tensor" && not has_empty_overload)
-                   then operator_name
-                   else if String.is_suffix operator_name ~suffix:"_"
-                   then operator_name ^ overload_name ^ "_"
-                   else operator_name ^ "_" ^ overload_name
-                 in
-                 name, func))
+             List.sort funcs ~compare:(fun (f1 : Func.t) (f2 : Func.t) ->
+                 Int.compare (List.length f1.args) (List.length f2.args))
+             |> List.mapi ~f:(fun index (func : Func.t) ->
+                    let operator_name = String.lowercase func.operator_name in
+                    let overload_name = String.lowercase func.overload_name in
+                    let name =
+                      if String.is_empty overload_name
+                         || (index = 0 && not has_empty_overload)
+                      then operator_name
+                      else if String.is_suffix operator_name ~suffix:"_"
+                      then operator_name ^ overload_name ^ "_"
+                      else operator_name ^ "_" ^ overload_name
+                    in
+                    name, func))
     |> Map.of_alist_exn (module String)
   in
   write_cpp funcs cpp_filename;

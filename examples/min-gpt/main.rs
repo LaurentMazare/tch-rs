@@ -81,8 +81,8 @@ fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
         let q = xs.apply(&query).view(sizes).transpose(1, 2);
         let v = xs.apply(&value).view(sizes).transpose(1, 2);
         let att = q.matmul(&k.transpose(-2, -1)) * (1.0 / f64::sqrt(sizes[3] as f64));
-        let att = att.masked_fill_scalar(
-            &mask.i((.., .., ..sz_t, ..sz_t)).eq_scalar(0.),
+        let att = att.masked_fill(
+            &mask.i((.., .., ..sz_t, ..sz_t)).eq(0.),
             std::f64::NEG_INFINITY,
         );
         let att = att.softmax(-1, Kind::Float).dropout(cfg.attn_pdrop, train);
@@ -225,7 +225,7 @@ pub fn main() -> Result<()> {
                 }
                 let _filled = input
                     .i((0, BLOCK_SIZE - 1 - idx))
-                    .fill_scalar_(data.char_to_label(c)? as i64);
+                    .fill_(data.char_to_label(c)? as i64);
             }
             println!("Sample: {}", sample(&data, &gpt, input));
         }

@@ -150,7 +150,7 @@ fn fallible() {
     // error.
     let xs = Tensor::of_slice(&[0, 1, 2, 3]);
     let ys = Tensor::of_slice(&[0, 1, 2, 3, 4]);
-    assert!(xs.f_eq(&ys).is_err())
+    assert!(xs.f_eq_tensor(&ys).is_err())
 }
 
 #[test]
@@ -337,7 +337,7 @@ fn test_device() {
 fn where_() {
     let t1 = Tensor::of_slice(&[3, 1, 4, 1, 5, 9]);
     let t2 = Tensor::of_slice(&[2, 7, 1, 8, 2, 8]);
-    let t = t1.where_self(&t1.lt_scalar(4), &t2);
+    let t = t1.where_self(&t1.lt(4), &t2);
     assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
 }
 
@@ -468,7 +468,7 @@ fn nested_tensor() {
 fn quantized() {
     let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
     let t = t.quantize_per_tensor(0.1, 10, tch::Kind::QUInt8);
-    let t = t.dequantize_self();
+    let t = t.dequantize();
     assert_eq!(Vec::<f32>::from(&t), [-1f32, 0., 1., 2., 24.5, 0.4]);
 }
 
@@ -488,7 +488,7 @@ fn nll_loss() {
 fn allclose() {
     let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
     let t = t.quantize_per_tensor(0.1, 10, tch::Kind::QUInt8);
-    let t = t.dequantize_self();
+    let t = t.dequantize();
     assert_eq!(t.allclose(&(&t + 0.1), 1e-5, 1e-8, false), false);
     assert_eq!(t.allclose(&(&t + 1e-9), 1e-5, 1e-8, false), true);
 }
