@@ -118,6 +118,8 @@ module Func = struct
 
   type t =
     { name : string
+    ; operator_name : string
+    ; overload_name : string
     ; args : arg list
     ; returns : [ `fixed of int | `dynamic | `bool | `int64_t | `double ]
     ; (* number of tensors that are returned *)
@@ -132,7 +134,7 @@ module Func = struct
     | "at::tensor" -> Some (if is_nullable then TensorOption else Tensor)
     | "at::tensoroptions" -> Some TensorOptions
     | "at::intarrayref" -> Some IntList
-    | "const c10::list<c10::optional<tensor>> &" -> Some TensorOptList
+    | "const c10::list<c10::optional<at::tensor>> &" -> Some TensorOptList
     | "at::tensorlist" -> Some TensorList
     | "at::device" -> Some Device
     | "const at::scalar &" | "at::scalar" -> Some Scalar
@@ -218,7 +220,12 @@ module Func = struct
   let replace_map =
     Map.of_alist_exn
       (module String)
-      [ "t", "tr"; "where", "where_"; "view", "view_"; "unsafe", "unsafe_" ]
+      [ "t", "tr"
+      ; "where", "where_"
+      ; "view", "view_"
+      ; "unsafe", "unsafe_"
+      ; "to_device", "to_device_"
+      ]
 
   let rust_name name =
     let name =
@@ -392,6 +399,8 @@ let read_yaml filename =
   List.filter_map funcs ~f:(fun yaml ->
       let map = extract_map yaml in
       let name = Map.find_exn map "name" |> extract_string in
+      let operator_name = Map.find_exn map "operator_name" |> extract_string in
+      let overload_name = Map.find_exn map "overload_name" |> extract_string in
       let deprecated = Map.find_exn map "deprecated" |> extract_bool in
       let method_of =
         Map.find_exn map "method_of" |> extract_list |> List.map ~f:extract_string
@@ -470,7 +479,7 @@ let read_yaml filename =
                          then None
                          else raise Not_a_simple_arg)
                  in
-                 Some { Func.name; args; returns; kind }
+                 Some { Func.name; operator_name; overload_name; args; returns; kind }
                with
                | Not_a_simple_arg -> None)
       else None)
@@ -694,7 +703,15 @@ let write_ffi funcs filename =
       pm "}")
 
 let methods =
-  let c name args = { Func.name; args; returns = `fixed 1; kind = `method_ } in
+  let c name args =
+    { Func.name
+    ; operator_name = name
+    ; overload_name = ""
+    ; args
+    ; returns = `fixed 1
+    ; kind = `method_
+    }
+  in
   let ca arg_name arg_type = { Func.arg_name; arg_type; default_value = None } in
   [ c "grad" [ ca "self" Tensor ]
   ; c "set_requires_grad" [ ca "self" Tensor; ca "r" Bool ]
@@ -722,10 +739,22 @@ let run
            | [] -> assert false
            | [ func ] -> [ name, func ]
            | funcs ->
-             List.sort funcs ~compare:(fun (f1 : Func.t) (f2 : Func.t) ->
-                 Int.compare (List.length f1.args) (List.length f2.args))
-             |> List.mapi ~f:(fun i func ->
-                    (if i = 0 then name else Printf.sprintf "%s%d" name i), func))
+             let has_empty_overload =
+               List.exists funcs ~f:(fun (func : Func.t) ->
+                   String.is_empty func.overload_name)
+             in
+             List.map funcs ~f:(fun (func : Func.t) ->
+                 let operator_name = String.lowercase func.operator_name in
+                 let overload_name = String.lowercase func.overload_name in
+                 let name =
+                   if String.is_empty overload_name
+                      || (String.( = ) overload_name "tensor" && not has_empty_overload)
+                   then operator_name
+                   else if String.is_suffix operator_name ~suffix:"_"
+                   then operator_name ^ overload_name ^ "_"
+                   else operator_name ^ "_" ^ overload_name
+                 in
+                 name, func))
     |> Map.of_alist_exn (module String)
   in
   write_cpp funcs cpp_filename;

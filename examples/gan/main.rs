@@ -51,7 +51,7 @@ fn generator(p: nn::Path) -> impl nn::ModuleT {
 }
 
 fn leaky_relu(xs: &Tensor) -> Tensor {
-    xs.max1(&(xs * 0.2))
+    xs.maximum(&(xs * 0.2))
 }
 
 fn discriminator(p: nn::Path) -> impl nn::ModuleT {
@@ -87,7 +87,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
             2,
         ))
     }
-    Ok(Tensor::cat(&ys, 3).squeeze1(0))
+    Ok(Tensor::cat(&ys, 3).squeeze_dim(0))
 }
 
 pub fn main() -> Result<()> {

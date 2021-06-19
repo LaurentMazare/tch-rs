@@ -157,7 +157,7 @@ impl RNN for LSTM {
     fn seq_init(&self, input: &Tensor, in_state: &LSTMState) -> (Tensor, LSTMState) {
         let LSTMState((h, c)) = in_state;
         let flat_weights = self.flat_weights.iter().collect::<Vec<_>>();
-        let (output, h, c) = input.lstm(
+        let (output, h, c) = input.lstm_input(
             &[h, c],
             &flat_weights,
             self.config.has_biases,
@@ -264,7 +264,7 @@ impl RNN for GRU {
 
     fn seq_init(&self, input: &Tensor, in_state: &GRUState) -> (Tensor, GRUState) {
         let GRUState(h) = in_state;
-        let (output, h) = input.gru(
+        let (output, h) = input.gru_input(
             h,
             &self.flat_weights,
             self.config.has_biases,

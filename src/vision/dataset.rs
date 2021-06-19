@@ -80,7 +80,7 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
         let start_w = rand::thread_rng().gen_range(0..size[3] - sz + 1);
         let _output = output
             .i((bindex, .., start_h..start_h + sz, start_w..start_w + sz))
-            .fill_(0.0);
+            .fill_scalar_(0.0);
     }
     output
 }

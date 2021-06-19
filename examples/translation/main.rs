@@ -44,7 +44,7 @@ impl Encoder {
     fn forward(&self, xs: &Tensor, state: &GRUState) -> (Tensor, GRUState) {
         let xs = self.embedding.forward(&xs).view([1, -1]);
         let state = self.gru.step(&xs, &state);
-        (state.value().squeeze1(1), state)
+        (state.value().squeeze_dim(1), state)
     }
 }
 
@@ -83,7 +83,7 @@ impl Decoder {
             .forward(&xs)
             .dropout(0.1, is_training)
             .view([1, -1]);
-        let attn_weights = Tensor::cat(&[&xs, &state.value().squeeze1(1)], 1)
+        let attn_weights = Tensor::cat(&[&xs, &state.value().squeeze_dim(1)], 1)
             .apply(&self.attn)
             .unsqueeze(0);
         let (sz1, sz2, sz3) = enc_outputs.size3().unwrap();
@@ -94,7 +94,7 @@ impl Decoder {
             let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
             Tensor::cat(&[enc_outputs, &zeros], 1)
         };
-        let attn_applied = attn_weights.bmm(&enc_outputs).squeeze1(1);
+        let attn_applied = attn_weights.bmm(&enc_outputs).squeeze_dim(1);
         let xs = Tensor::cat(&[&xs, &attn_applied], 1)
             .apply(&self.attn_combine)
             .relu();
@@ -103,7 +103,7 @@ impl Decoder {
             self.linear
                 .forward(&state.value())
                 .log_softmax(-1, Kind::Float)
-                .squeeze1(1),
+                .squeeze_dim(1),
             state,
         )
     }

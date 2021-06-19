@@ -147,7 +147,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
             None => xs,
         };
         if leaky {
-            xs.max1(&(&xs * 0.1))
+            xs.maximum(&(&xs * 0.1))
         } else {
             xs
         }

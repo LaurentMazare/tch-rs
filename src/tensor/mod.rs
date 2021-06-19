@@ -207,7 +207,7 @@ impl Tensor {
     /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.argmax(-1, false)
-            .eq1(&targets)
+            .eq(&targets)
             .to_kind(Kind::Float)
             .mean(Kind::Float)
     }
@@ -275,7 +275,7 @@ impl Tensor {
             &[self.size(), vec![labels]].concat(),
             crate::wrappers::kind::FLOAT_CPU,
         )
-        .scatter_1(-1, &self.unsqueeze(-1).to_kind(Kind::Int64), 1.0)
+        .scatter_value_(-1, &self.unsqueeze(-1).to_kind(Kind::Int64), 1.0)
     }
 
     /// Copies a tensor to a newly allocated tensor using the same shape and device.

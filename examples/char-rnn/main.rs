@@ -25,11 +25,11 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     let mut result = String::new();
     for _index in 0..SAMPLING_LEN {
         let input = Tensor::zeros(&[1, labels], (Kind::Float, device));
-        let _ = input.narrow(1, last_label, 1).fill_(1.0);
+        let _ = input.narrow(1, last_label, 1).fill_scalar_(1.0);
         state = lstm.step(&input, &state);
         let sampled_y = linear
             .forward(&state.h())
-            .squeeze1(0)
+            .squeeze_dim(0)
             .softmax(-1, Kind::Float)
             .multinomial(1, false);
         last_label = i64::from(sampled_y);
