@@ -12,7 +12,7 @@ fn neg(t: Tensor) -> Tensor {
 }
 
 fn inv(t: Tensor) -> Tensor {
-    t.pow_tensor_scalar(-1)
+    t.pow(-1)
 }
 
 macro_rules! impl_op {

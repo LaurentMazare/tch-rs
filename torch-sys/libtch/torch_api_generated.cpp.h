@@ -9144,7 +9144,7 @@ void atg_positive(tensor *out__, tensor self) {
   )
 }
 
-void atg_pow(tensor *out__, tensor self, tensor exponent) {
+void atg_pow(tensor *out__, tensor self, scalar exponent) {
   PROTECT(
     auto outputs__ = torch::pow(*self, *exponent);
     out__[0] = new torch::Tensor(outputs__);
@@ -9179,16 +9179,16 @@ void atg_pow_tensor_(tensor *out__, tensor self, tensor exponent) {
   )
 }
 
-void atg_pow_tensor_scalar(tensor *out__, tensor self, scalar exponent) {
+void atg_pow_tensor_scalar_out(tensor *out__, tensor out, tensor self, scalar exponent) {
   PROTECT(
-    auto outputs__ = torch::pow(*self, *exponent);
+    auto outputs__ = torch::pow_out(*out, *self, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
 
-void atg_pow_tensor_scalar_out(tensor *out__, tensor out, tensor self, scalar exponent) {
+void atg_pow_tensor_tensor(tensor *out__, tensor self, tensor exponent) {
   PROTECT(
-    auto outputs__ = torch::pow_out(*out, *self, *exponent);
+    auto outputs__ = torch::pow(*self, *exponent);
     out__[0] = new torch::Tensor(outputs__);
   )
 }

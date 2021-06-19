@@ -57,7 +57,7 @@ fn loss(recon_x: &Tensor, x: &Tensor, mu: &Tensor, logvar: &Tensor) -> Tensor {
     //     Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     // https://arxiv.org/abs/1312.6114
     // 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    let kld = -0.5 * (1i64 + logvar - mu.pow_tensor_scalar(2) - logvar.exp()).sum(Kind::Float);
+    let kld = -0.5 * (1i64 + logvar - mu.pow(2) - logvar.exp()).sum(Kind::Float);
     bce + kld
 }
 

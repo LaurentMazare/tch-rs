@@ -744,7 +744,9 @@ let run
                    String.is_empty func.overload_name)
              in
              List.sort funcs ~compare:(fun (f1 : Func.t) (f2 : Func.t) ->
-                 Int.compare (List.length f1.args) (List.length f2.args))
+                 match Int.compare (String.length f1.name) (String.length f2.name) with
+                 | 0 -> Int.compare (List.length f1.args) (List.length f2.args)
+                 | cmp -> cmp)
              |> List.mapi ~f:(fun index (func : Func.t) ->
                     let operator_name = String.lowercase func.operator_name in
                     let overload_name = String.lowercase func.overload_name in

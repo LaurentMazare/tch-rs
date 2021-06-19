@@ -21125,12 +21125,12 @@ impl Tensor {
         })
     }
 
-    pub fn f_pow(&self, exponent: &Tensor) -> Result<Tensor, TchError> {
+    pub fn f_pow<S: Into<Scalar>>(&self, exponent: S) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_pow(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            exponent.c_tensor
+            exponent.into().c_scalar
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],
@@ -21193,18 +21193,6 @@ impl Tensor {
         })
     }
 
-    pub fn f_pow_tensor_scalar<S: Into<Scalar>>(&self, exponent: S) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_pow_tensor_scalar(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            exponent.into().c_scalar
-        ));
-        Ok(Tensor {
-            c_tensor: c_tensors[0],
-        })
-    }
-
     pub fn f_pow_tensor_scalar_out<S: Into<Scalar>>(
         &self,
         out: &Tensor,
@@ -21216,6 +21204,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             exponent.into().c_scalar
+        ));
+        Ok(Tensor {
+            c_tensor: c_tensors[0],
+        })
+    }
+
+    pub fn f_pow_tensor_tensor(&self, exponent: &Tensor) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_pow_tensor_tensor(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            exponent.c_tensor
         ));
         Ok(Tensor {
             c_tensor: c_tensors[0],

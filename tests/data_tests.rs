@@ -54,7 +54,7 @@ fn text() {
         let second_column = xs.i((.., 1..=1));
         let err = i64::from(
             (first_column_plus_one - second_column)
-                .pow_tensor_scalar(2)
+                .pow(2)
                 .sum(tch::Kind::Float),
         );
         assert_eq!(err, 0)

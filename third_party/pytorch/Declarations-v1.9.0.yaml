@@ -93960,7 +93960,7 @@
   has_math_kernel: false
 - name: pow
   operator_name: pow
-  overload_name: Tensor_Scalar
+  overload_name: ''
   manual_kernel_registration: false
   category_override: ''
   schema_string: aten::pow.Tensor_Scalar(Tensor self, Scalar exponent) -> Tensor

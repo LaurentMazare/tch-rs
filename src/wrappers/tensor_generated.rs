@@ -8635,7 +8635,7 @@ impl Tensor {
         self.f_positive().unwrap()
     }
 
-    pub fn pow(&self, exponent: &Tensor) -> Tensor {
+    pub fn pow<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
         self.f_pow(exponent).unwrap()
     }
 
@@ -8659,12 +8659,12 @@ impl Tensor {
         self.f_pow_tensor_(exponent).unwrap()
     }
 
-    pub fn pow_tensor_scalar<S: Into<Scalar>>(&self, exponent: S) -> Tensor {
-        self.f_pow_tensor_scalar(exponent).unwrap()
-    }
-
     pub fn pow_tensor_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, exponent: S) -> Tensor {
         self.f_pow_tensor_scalar_out(out, exponent).unwrap()
+    }
+
+    pub fn pow_tensor_tensor(&self, exponent: &Tensor) -> Tensor {
+        self.f_pow_tensor_tensor(exponent).unwrap()
     }
 
     pub fn pow_tensor_tensor_out(&self, out: &Tensor, exponent: &Tensor) -> Tensor {

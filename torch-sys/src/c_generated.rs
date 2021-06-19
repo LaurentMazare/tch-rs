@@ -6978,7 +6978,7 @@ extern "C" {
         self_: *mut C_tensor,
     );
     pub fn atg_positive(out__: *mut *mut C_tensor, self_: *mut C_tensor);
-    pub fn atg_pow(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_tensor);
+    pub fn atg_pow(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_scalar);
     pub fn atg_pow_(out__: *mut *mut C_tensor, self_: *mut C_tensor, exponent_: *mut C_scalar);
     pub fn atg_pow_scalar(
         out__: *mut *mut C_tensor,
@@ -6996,16 +6996,16 @@ extern "C" {
         self_: *mut C_tensor,
         exponent_: *mut C_tensor,
     );
-    pub fn atg_pow_tensor_scalar(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        exponent_: *mut C_scalar,
-    );
     pub fn atg_pow_tensor_scalar_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
         self_: *mut C_tensor,
         exponent_: *mut C_scalar,
+    );
+    pub fn atg_pow_tensor_tensor(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        exponent_: *mut C_tensor,
     );
     pub fn atg_pow_tensor_tensor_out(
         out__: *mut *mut C_tensor,
