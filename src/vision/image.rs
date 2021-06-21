@@ -30,7 +30,7 @@ pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
 pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     let t = t.to_kind(crate::Kind::Uint8);
     match t.size().as_slice() {
-        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze1(0)).to_device(Device::Cpu), path),
+        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze_dim(0)).to_device(Device::Cpu), path),
         [_, _, _] => save_hwc(&chw_to_hwc(&t).to_device(Device::Cpu), path),
         sz => Err(TchError::FileFormat(format!(
             "unexpected size for image tensor {:?}",

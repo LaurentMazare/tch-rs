@@ -150,7 +150,7 @@ fn fallible() {
     // error.
     let xs = Tensor::of_slice(&[0, 1, 2, 3]);
     let ys = Tensor::of_slice(&[0, 1, 2, 3, 4]);
-    assert!(xs.f_eq1(&ys).is_err())
+    assert!(xs.f_eq_tensor(&ys).is_err())
 }
 
 #[test]
@@ -337,7 +337,7 @@ fn test_device() {
 fn where_() {
     let t1 = Tensor::of_slice(&[3, 1, 4, 1, 5, 9]);
     let t2 = Tensor::of_slice(&[2, 7, 1, 8, 2, 8]);
-    let t = t1.where1(&t1.lt(4), &t2);
+    let t = t1.where_self(&t1.lt(4), &t2);
     assert_eq!(Vec::<i64>::from(&t), [3, 1, 1, 1, 2, 8]);
 }
 

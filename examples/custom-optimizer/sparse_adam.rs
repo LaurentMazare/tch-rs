@@ -94,7 +94,7 @@ impl SparseAdam {
             if grad.is_sparse() || self.force_sparse {
                 // convert matrix to sparse matrix if necessary
                 if !grad.is_sparse() {
-                    grad = grad.to_sparse1(1);
+                    grad = grad.to_sparse_sparse_dim(1);
                 }
 
                 // deduplicate coordinates in the sparse matrix

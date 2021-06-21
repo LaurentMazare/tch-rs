@@ -73,7 +73,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
             2,
         ))
     }
-    Ok(Tensor::cat(&ys, 3).squeeze1(0))
+    Ok(Tensor::cat(&ys, 3).squeeze_dim(0))
 }
 
 pub fn main() -> Result<()> {

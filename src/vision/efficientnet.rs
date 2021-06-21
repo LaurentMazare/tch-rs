@@ -260,8 +260,8 @@ fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
             .apply_t(&bn1, train)
             .swish()
             .adaptive_avg_pool2d(&[1, 1])
-            .squeeze1(-1)
-            .squeeze1(-1)
+            .squeeze_dim(-1)
+            .squeeze_dim(-1)
             .apply_t(&classifier, train)
     })
 }

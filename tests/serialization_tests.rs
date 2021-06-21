@@ -39,8 +39,9 @@ fn save_and_load_npz() {
 #[test]
 fn save_and_load_npz_half() {
     let filename = std::env::temp_dir().join(format!("tch4-{}.npz", std::process::id()));
-    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to2(Kind::Half, true, false);
-    let e = Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to2(Kind::Half, true, false);
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to_dtype(Kind::Half, true, false);
+    let e =
+        Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to_dtype(Kind::Half, true, false);
     Tensor::write_npz(&[(&"pi", &pi), (&"e", &e)], &filename).unwrap();
     let named_tensors = Tensor::read_npz(&filename).unwrap();
     assert_eq!(named_tensors.len(), 2);
@@ -52,8 +53,9 @@ fn save_and_load_npz_half() {
 #[test]
 fn save_and_load_npz_byte() {
     let filename = std::env::temp_dir().join(format!("tch5-{}.npz", std::process::id()));
-    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to2(Kind::Int8, true, false);
-    let e = Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to2(Kind::Int8, true, false);
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to_dtype(Kind::Int8, true, false);
+    let e =
+        Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to_dtype(Kind::Int8, true, false);
     Tensor::write_npz(&[(&"pi", &pi), (&"e", &e)], &filename).unwrap();
     let named_tensors = Tensor::read_npz(&filename).unwrap();
     assert_eq!(named_tensors.len(), 2);

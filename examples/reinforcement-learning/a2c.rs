@@ -94,7 +94,7 @@ pub fn train() -> cpython::PyResult<()> {
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1, Float);
-            let actions = probs.multinomial(1, true).squeeze1(-1);
+            let actions = probs.multinomial(1, true).squeeze_dim(-1);
             let step = env.step(Vec::<i64>::from(&actions))?;
 
             sum_rewards += &step.reward;
@@ -105,7 +105,7 @@ pub fn train() -> cpython::PyResult<()> {
             sum_rewards *= &masks;
             let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
-            s_values.get(s).copy_(&critic.squeeze1(-1));
+            s_values.get(s).copy_(&critic.squeeze_dim(-1));
             s_states.get(s + 1).copy_(&obs);
             s_rewards.get(s).copy_(&step.reward);
             s_masks.get(s).copy_(&masks);
@@ -132,9 +132,11 @@ pub fn train() -> cpython::PyResult<()> {
         let probs = actor.softmax(-1, Float);
         let action_log_probs = {
             let index = s_actions.unsqueeze(-1).to_device(device);
-            log_probs.gather(2, &index, false).squeeze1(-1)
+            log_probs.gather(2, &index, false).squeeze_dim(-1)
         };
-        let dist_entropy = (-log_probs * probs).sum1(&[-1], false, Float).mean(Float);
+        let dist_entropy = (-log_probs * probs)
+            .sum_dim_intlist(&[-1], false, Float)
+            .mean(Float);
         let advantages = s_returns.narrow(0, 0, NSTEPS).to_device(device) - critic;
         let value_loss = (&advantages * &advantages).mean(Float);
         let action_loss = (-advantages.detach() * action_log_probs).mean(Float);
@@ -175,7 +177,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
     for _index in 0..5000 {
         let (_critic, actor) = tch::no_grad(|| model(&obs));
         let probs = actor.softmax(-1, Float);
-        let actions = probs.multinomial(1, true).squeeze1(-1);
+        let actions = probs.multinomial(1, true).squeeze_dim(-1);
         let step = env.step(Vec::<i64>::from(&actions))?;
 
         let masks = Tensor::from(1f32) - step.is_done;

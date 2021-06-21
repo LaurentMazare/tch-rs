@@ -216,7 +216,7 @@ impl<T> Optimizer<T> {
             let clip_coef = max / (total_norm + 1e-6);
             if clip_coef < 1.0 {
                 for var in v.trainable_variables.iter() {
-                    let _t = var.tensor.grad().g_mul_1(clip_coef);
+                    let _t = var.tensor.grad().g_mul_scalar_(clip_coef);
                 }
             }
         })

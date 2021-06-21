@@ -58,7 +58,7 @@ where
     type Output = Tensor;
 
     fn add(self, rhs: S) -> Self::Output {
-        self.g_add1(rhs)
+        self.g_add_scalar(rhs)
     }
 }
 
@@ -80,7 +80,7 @@ where
     type Output = Tensor;
 
     fn sub(self, rhs: S) -> Self::Output {
-        self.g_sub1(rhs)
+        self.g_sub_scalar(rhs)
     }
 }
 
@@ -102,7 +102,7 @@ where
     type Output = Tensor;
 
     fn mul(self, rhs: S) -> Self::Output {
-        self.g_mul1(rhs)
+        self.g_mul_scalar(rhs)
     }
 }
 
@@ -124,7 +124,7 @@ where
     type Output = Tensor;
 
     fn div(self, rhs: S) -> Self::Output {
-        self.g_div1(rhs)
+        self.g_div_scalar(rhs)
     }
 }
 
@@ -253,24 +253,24 @@ macro_rules! impl_op_assign_basic {
 }
 
 impl_op!(Add, add, g_add);
-impl_op_basic!(Add, add, g_add1, id);
+impl_op_basic!(Add, add, g_add_scalar, id);
 impl_op_assign!(AddAssign, add_assign, g_add_);
-impl_op_assign_basic!(AddAssign, add_assign, g_add_1);
+impl_op_assign_basic!(AddAssign, add_assign, g_add_scalar_);
 
 impl_op!(Mul, mul, g_mul);
-impl_op_basic!(Mul, mul, g_mul1, id);
+impl_op_basic!(Mul, mul, g_mul_scalar, id);
 impl_op_assign!(MulAssign, mul_assign, g_mul_);
-impl_op_assign_basic!(MulAssign, mul_assign, g_mul_1);
+impl_op_assign_basic!(MulAssign, mul_assign, g_mul_scalar_);
 
 impl_op!(Div, div, g_div);
-impl_op_basic!(Div, div, g_div1, inv);
+impl_op_basic!(Div, div, g_div_scalar, inv);
 impl_op_assign!(DivAssign, div_assign, g_div_);
-impl_op_assign_basic!(DivAssign, div_assign, g_div_1);
+impl_op_assign_basic!(DivAssign, div_assign, g_div_scalar_);
 
 impl_op!(Sub, sub, g_sub);
-impl_op_basic!(Sub, sub, g_sub1, neg);
+impl_op_basic!(Sub, sub, g_sub_scalar, neg);
 impl_op_assign!(SubAssign, sub_assign, g_sub_);
-impl_op_assign_basic!(SubAssign, sub_assign, g_sub_1);
+impl_op_assign_basic!(SubAssign, sub_assign, g_sub_scalar_);
 
 impl Neg for Tensor {
     type Output = Tensor;
@@ -293,7 +293,7 @@ impl PartialEq for Tensor {
         if self.size() != other.size() {
             return false;
         }
-        match self.f_eq1(&other) {
+        match self.f_eq_tensor(&other) {
             Err(_) => false,
             Ok(v) => match v.f_all() {
                 Err(_) => false,
