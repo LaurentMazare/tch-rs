@@ -304,13 +304,19 @@ module Func = struct
           | TensorOptList | TensorList | TensorOption -> true
           | _ -> false)
     in
-    if needs_type_parameter && needs_scalar_parameter
-    then "<T: Borrow<Tensor>, S: Into<Scalar>>"
-    else if needs_type_parameter
-    then "<T: Borrow<Tensor>>"
-    else if needs_scalar_parameter
-    then "<S: Into<Scalar>>"
-    else ""
+    let needs_lifetime_parameter =
+      List.exists t.args ~f:(fun arg ->
+          match arg.arg_type with
+          | IntListOption -> true
+          | _ -> false)
+    in
+    let type_parameter = if needs_type_parameter then [ "T: Borrow<Tensor>" ] else [] in
+    let scalar_parameter = if needs_scalar_parameter then [ "S: Into<Scalar>" ] else [] in
+    let lifetime_parameter = if needs_lifetime_parameter then [ "'a" ] else [] in
+    let parameters = lifetime_parameter @ type_parameter @ scalar_parameter in
+    match parameters with
+    | [] -> ""
+    | p -> "<" ^ String.concat p ~sep:", " ^ ">"
 
   let rust_args_list t =
     match List.partition_tf t.args ~f:self_tensor with
@@ -332,7 +338,7 @@ module Func = struct
             | Tensor -> "&Tensor"
             | TensorOption -> "Option<T>"
             | IntList -> "&[i64]"
-            | IntListOption -> "Option<&[i64]>"
+            | IntListOption -> "impl Into<Option<&'a [i64]>>"
             | DoubleList -> "&[f64]"
             | TensorOptList -> "&[Option<T>]"
             | TensorList -> "&[T]"
@@ -609,7 +615,7 @@ let write_fallible_wrapper funcs filename =
           pm "    )%s {" (Func.rust_return_type func ~fallible:true);
           List.iter func.args ~f:(fun arg ->
               match arg.arg_type with
-              | DoubleOption | Int64Option ->
+              | DoubleOption | Int64Option | IntListOption ->
                 pm "        let %s = %s.into();" arg.arg_name arg.arg_name
               | _ -> ());
           match func.returns with
