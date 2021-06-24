@@ -102,6 +102,8 @@ module Func = struct
     | Tensor
     | TensorOption (* Tensor.t option *)
     | IntList
+    | IntListOption
+    | DoubleList
     | TensorOptList
     | TensorList
     | TensorOptions (* Tensor kind and device *)
@@ -133,7 +135,8 @@ module Func = struct
     | "double" -> Some (if is_nullable then DoubleOption else Double)
     | "at::tensor" -> Some (if is_nullable then TensorOption else Tensor)
     | "at::tensoroptions" -> Some TensorOptions
-    | "at::intarrayref" -> Some IntList
+    | "at::intarrayref" -> Some (if is_nullable then IntListOption else IntList)
+    | "at::arrayref<double>" -> Some DoubleList
     | "const c10::list<c10::optional<at::tensor>> &" -> Some TensorOptList
     | "at::tensorlist" -> Some TensorList
     | "at::device" -> Some Device
@@ -145,7 +148,9 @@ module Func = struct
   let c_typed_args_list t =
     List.map t.args ~f:(fun { arg_name; arg_type; _ } ->
         match arg_type with
-        | IntList -> Printf.sprintf "int64_t *%s_data, int %s_len" arg_name arg_name
+        | IntList | IntListOption ->
+          Printf.sprintf "int64_t *%s_data, int %s_len" arg_name arg_name
+        | DoubleList -> Printf.sprintf "double *%s_data, int %s_len" arg_name arg_name
         | TensorOptList | TensorList ->
           Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
         | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
@@ -167,6 +172,8 @@ module Func = struct
             | DoubleOption
             | String
             | IntList
+            | IntListOption
+            | DoubleList
             | TensorOptList
             | TensorList
             | TensorOptions -> assert false
@@ -182,6 +189,15 @@ module Func = struct
         | Bool -> "(bool)" ^ arg_name
         | IntList ->
           Printf.sprintf "torch::IntArrayRef(%s_data, %s_len)" arg_name arg_name
+        | IntListOption ->
+          Printf.sprintf
+            "%s_data == nullptr ? c10::nullopt : \
+             c10::optional<torch::IntArrayRef>(torch::IntArrayRef(%s_data, %s_len))"
+            arg_name
+            arg_name
+            arg_name
+        | DoubleList ->
+          Printf.sprintf "at::ArrayRef<double>(%s_data, %s_len)" arg_name arg_name
         | String -> Printf.sprintf "std::string(%s_ptr, %s_len)" arg_name arg_name
         | TensorOptList ->
           Printf.sprintf "of_carray_tensor_opt(%s_data, %s_len)" arg_name arg_name
@@ -250,7 +266,9 @@ module Func = struct
         | ScalarType -> single_param "c_int"
         | Device -> single_param "c_int"
         | String -> Printf.sprintf "%s_ptr: *const u8, %s_len: c_int" an an
-        | IntList -> Printf.sprintf "%s_data: *const i64, %s_len: c_int" an an
+        | IntList | IntListOption ->
+          Printf.sprintf "%s_data: *const i64, %s_len: c_int" an an
+        | DoubleList -> Printf.sprintf "%s_data: *const f64, %s_len: c_int" an an
         | TensorOptList ->
           Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
         | TensorList ->
@@ -314,6 +332,8 @@ module Func = struct
             | Tensor -> "&Tensor"
             | TensorOption -> "Option<T>"
             | IntList -> "&[i64]"
+            | IntListOption -> "Option<&[i64]>"
+            | DoubleList -> "&[f64]"
             | TensorOptList -> "&[Option<T>]"
             | TensorList -> "&[T]"
             | String -> "&str"
@@ -373,6 +393,13 @@ module Func = struct
           Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8" name name
         | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
+        | IntListOption ->
+          Printf.sprintf
+            "%s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()), \
+             %s.as_ref().map_or(-1, |t| t.len() as i32)"
+            name
+            name
+        | DoubleList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
         | TensorOptList ->
           Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
         | TensorList -> Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name

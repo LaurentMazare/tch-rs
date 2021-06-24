@@ -1323,11 +1323,18 @@ impl Tensor {
         Tensor::f_internal_test_ambiguous_defaults_b(dummy, a, b).unwrap()
     }
 
-    pub fn internal_test_optional_filled_intlist(values: &Tensor, addends: &[i64]) -> Tensor {
+    pub fn internal_test_optional_filled_intlist(
+        values: &Tensor,
+        addends: Option<&[i64]>,
+    ) -> Tensor {
         Tensor::f_internal_test_optional_filled_intlist(values, addends).unwrap()
     }
 
-    pub fn internal_test_optional_intlist(values: &Tensor, addends: &[i64]) -> Tensor {
+    pub fn internal_test_optional_floatlist(values: &Tensor, addends: &[f64]) -> Tensor {
+        Tensor::f_internal_test_optional_floatlist(values, addends).unwrap()
+    }
+
+    pub fn internal_test_optional_intlist(values: &Tensor, addends: Option<&[i64]>) -> Tensor {
         Tensor::f_internal_test_optional_intlist(values, addends).unwrap()
     }
 
@@ -4363,11 +4370,11 @@ impl Tensor {
         self.f_fft_fft(n, dim, norm).unwrap()
     }
 
-    pub fn fft_fft2(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_fft2(&self, s: Option<&[i64]>, dim: &[i64], norm: &str) -> Tensor {
         self.f_fft_fft2(s, dim, norm).unwrap()
     }
 
-    pub fn fft_fft2_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_fft2_out(&self, out: &Tensor, s: Option<&[i64]>, dim: &[i64], norm: &str) -> Tensor {
         self.f_fft_fft2_out(out, s, dim, norm).unwrap()
     }
 
@@ -4389,15 +4396,21 @@ impl Tensor {
         Tensor::f_fft_fftfreq_out(out, n, d).unwrap()
     }
 
-    pub fn fft_fftn(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_fftn(&self, s: Option<&[i64]>, dim: Option<&[i64]>, norm: &str) -> Tensor {
         self.f_fft_fftn(s, dim, norm).unwrap()
     }
 
-    pub fn fft_fftn_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_fftn_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: Option<&[i64]>,
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_fftn_out(out, s, dim, norm).unwrap()
     }
 
-    pub fn fft_fftshift(&self, dim: &[i64]) -> Tensor {
+    pub fn fft_fftshift(&self, dim: Option<&[i64]>) -> Tensor {
         self.f_fft_fftshift(dim).unwrap()
     }
 
@@ -4419,11 +4432,17 @@ impl Tensor {
         self.f_fft_ifft(n, dim, norm).unwrap()
     }
 
-    pub fn fft_ifft2(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_ifft2(&self, s: Option<&[i64]>, dim: &[i64], norm: &str) -> Tensor {
         self.f_fft_ifft2(s, dim, norm).unwrap()
     }
 
-    pub fn fft_ifft2_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_ifft2_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_ifft2_out(out, s, dim, norm).unwrap()
     }
 
@@ -4437,15 +4456,21 @@ impl Tensor {
         self.f_fft_ifft_out(out, n, dim, norm).unwrap()
     }
 
-    pub fn fft_ifftn(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_ifftn(&self, s: Option<&[i64]>, dim: Option<&[i64]>, norm: &str) -> Tensor {
         self.f_fft_ifftn(s, dim, norm).unwrap()
     }
 
-    pub fn fft_ifftn_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_ifftn_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: Option<&[i64]>,
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_ifftn_out(out, s, dim, norm).unwrap()
     }
 
-    pub fn fft_ifftshift(&self, dim: &[i64]) -> Tensor {
+    pub fn fft_ifftshift(&self, dim: Option<&[i64]>) -> Tensor {
         self.f_fft_ifftshift(dim).unwrap()
     }
 
@@ -4467,11 +4492,17 @@ impl Tensor {
         self.f_fft_irfft(n, dim, norm).unwrap()
     }
 
-    pub fn fft_irfft2(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_irfft2(&self, s: Option<&[i64]>, dim: &[i64], norm: &str) -> Tensor {
         self.f_fft_irfft2(s, dim, norm).unwrap()
     }
 
-    pub fn fft_irfft2_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_irfft2_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_irfft2_out(out, s, dim, norm).unwrap()
     }
 
@@ -4485,11 +4516,17 @@ impl Tensor {
         self.f_fft_irfft_out(out, n, dim, norm).unwrap()
     }
 
-    pub fn fft_irfftn(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_irfftn(&self, s: Option<&[i64]>, dim: Option<&[i64]>, norm: &str) -> Tensor {
         self.f_fft_irfftn(s, dim, norm).unwrap()
     }
 
-    pub fn fft_irfftn_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_irfftn_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: Option<&[i64]>,
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_irfftn_out(out, s, dim, norm).unwrap()
     }
 
@@ -4497,11 +4534,17 @@ impl Tensor {
         self.f_fft_rfft(n, dim, norm).unwrap()
     }
 
-    pub fn fft_rfft2(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_rfft2(&self, s: Option<&[i64]>, dim: &[i64], norm: &str) -> Tensor {
         self.f_fft_rfft2(s, dim, norm).unwrap()
     }
 
-    pub fn fft_rfft2_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_rfft2_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_rfft2_out(out, s, dim, norm).unwrap()
     }
 
@@ -4523,11 +4566,17 @@ impl Tensor {
         Tensor::f_fft_rfftfreq_out(out, n, d).unwrap()
     }
 
-    pub fn fft_rfftn(&self, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_rfftn(&self, s: Option<&[i64]>, dim: Option<&[i64]>, norm: &str) -> Tensor {
         self.f_fft_rfftn(s, dim, norm).unwrap()
     }
 
-    pub fn fft_rfftn_out(&self, out: &Tensor, s: &[i64], dim: &[i64], norm: &str) -> Tensor {
+    pub fn fft_rfftn_out(
+        &self,
+        out: &Tensor,
+        s: Option<&[i64]>,
+        dim: Option<&[i64]>,
+        norm: &str,
+    ) -> Tensor {
         self.f_fft_rfftn_out(out, s, dim, norm).unwrap()
     }
 
@@ -6242,7 +6291,7 @@ impl Tensor {
     pub fn linalg_norm<S: Into<Scalar>>(
         &self,
         ord: S,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         keepdim: bool,
         dtype: Kind,
     ) -> Tensor {
@@ -6252,7 +6301,7 @@ impl Tensor {
     pub fn linalg_norm_ord_str(
         &self,
         ord: &str,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         keepdim: bool,
         dtype: Kind,
     ) -> Tensor {
@@ -6264,7 +6313,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         ord: &str,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         keepdim: bool,
         dtype: Kind,
     ) -> Tensor {
@@ -6276,7 +6325,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         ord: S,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         keepdim: bool,
         dtype: Kind,
     ) -> Tensor {
@@ -6360,11 +6409,16 @@ impl Tensor {
         self.f_linalg_tensorinv_out(out, ind).unwrap()
     }
 
-    pub fn linalg_tensorsolve(&self, other: &Tensor, dims: &[i64]) -> Tensor {
+    pub fn linalg_tensorsolve(&self, other: &Tensor, dims: Option<&[i64]>) -> Tensor {
         self.f_linalg_tensorsolve(other, dims).unwrap()
     }
 
-    pub fn linalg_tensorsolve_out(&self, out: &Tensor, other: &Tensor, dims: &[i64]) -> Tensor {
+    pub fn linalg_tensorsolve_out(
+        &self,
+        out: &Tensor,
+        other: &Tensor,
+        dims: Option<&[i64]>,
+    ) -> Tensor {
         self.f_linalg_tensorsolve_out(out, other, dims).unwrap()
     }
 
@@ -10337,7 +10391,7 @@ impl Tensor {
 
     pub fn std_correction(
         &self,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Tensor {
@@ -10347,7 +10401,7 @@ impl Tensor {
     pub fn std_correction_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Tensor {
@@ -10365,7 +10419,7 @@ impl Tensor {
 
     pub fn std_mean_correction(
         &self,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
@@ -10974,6 +11028,23 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_bicubic2d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_bicubic2d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_bicubic2d_out(
         &self,
         out: &Tensor,
@@ -10983,6 +11054,16 @@ impl Tensor {
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bicubic2d_out(out, output_size, align_corners, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn upsample_bicubic2d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_bicubic2d_vec(output_size, align_corners, scale_factors)
             .unwrap()
     }
 
@@ -11037,6 +11118,23 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_bilinear2d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_bilinear2d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_bilinear2d_out(
         &self,
         out: &Tensor,
@@ -11046,6 +11144,16 @@ impl Tensor {
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_bilinear2d_out(out, output_size, align_corners, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn upsample_bilinear2d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_bilinear2d_vec(output_size, align_corners, scale_factors)
             .unwrap()
     }
 
@@ -11095,6 +11203,23 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_linear1d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_linear1d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_linear1d_out(
         &self,
         out: &Tensor,
@@ -11103,6 +11228,16 @@ impl Tensor {
         scales: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_linear1d_out(out, output_size, align_corners, scales)
+            .unwrap()
+    }
+
+    pub fn upsample_linear1d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_linear1d_vec(output_size, align_corners, scale_factors)
             .unwrap()
     }
 
@@ -11140,6 +11275,21 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_nearest1d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_nearest1d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_nearest1d_out(
         &self,
         out: &Tensor,
@@ -11147,6 +11297,15 @@ impl Tensor {
         scales: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest1d_out(out, output_size, scales)
+            .unwrap()
+    }
+
+    pub fn upsample_nearest1d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_nearest1d_vec(output_size, scale_factors)
             .unwrap()
     }
 
@@ -11196,6 +11355,21 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_nearest2d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_nearest2d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_nearest2d_out(
         &self,
         out: &Tensor,
@@ -11204,6 +11378,15 @@ impl Tensor {
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest2d_out(out, output_size, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn upsample_nearest2d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_nearest2d_vec(output_size, scale_factors)
             .unwrap()
     }
 
@@ -11258,6 +11441,21 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_nearest3d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_nearest3d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_nearest3d_out(
         &self,
         out: &Tensor,
@@ -11267,6 +11465,15 @@ impl Tensor {
         scales_w: impl Into<Option<f64>>,
     ) -> Tensor {
         self.f_upsample_nearest3d_out(out, output_size, scales_d, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn upsample_nearest3d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_nearest3d_vec(output_size, scale_factors)
             .unwrap()
     }
 
@@ -11326,6 +11533,23 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn upsample_trilinear3d_backward_vec(
+        grad_output: &Tensor,
+        output_size: Option<&[i64]>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_upsample_trilinear3d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
     pub fn upsample_trilinear3d_out(
         &self,
         out: &Tensor,
@@ -11344,6 +11568,16 @@ impl Tensor {
             scales_w,
         )
         .unwrap()
+    }
+
+    pub fn upsample_trilinear3d_vec(
+        &self,
+        output_size: Option<&[i64]>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_upsample_trilinear3d_vec(output_size, align_corners, scale_factors)
+            .unwrap()
     }
 
     pub fn value_selecting_reduction_backward(
@@ -11370,7 +11604,7 @@ impl Tensor {
 
     pub fn var_correction(
         &self,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Tensor {
@@ -11380,7 +11614,7 @@ impl Tensor {
     pub fn var_correction_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Tensor {
@@ -11398,7 +11632,7 @@ impl Tensor {
 
     pub fn var_mean_correction(
         &self,
-        dim: &[i64],
+        dim: Option<&[i64]>,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> (Tensor, Tensor) {
