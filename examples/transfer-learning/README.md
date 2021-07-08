@@ -53,7 +53,7 @@ println!("{:?}", dataset);
 
 The `println!` macro prints the dimensions of the tensors that have
 been created. For training the tensor has shape `211x3x224x224`, this
-corresponds to 211 images of height and width both 211 with 3 channels
+corresponds to 211 images of height and width both 224 with 3 channels
 (PyTorch uses the NCHW ordering for image data). The testing image
 tensor has dimensions `127` so there are 127 images with the
 same size as used in training.
