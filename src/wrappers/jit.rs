@@ -677,6 +677,34 @@ impl TrainableCModule {
     pub fn set_eval(&mut self) {
         self.inner.set_eval()
     }
+
+    /// Performs the forward pass for a model on some specified tensor inputs.
+    pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
+        self.inner.forward_ts(ts)
+    }
+
+    /// Performs the forward pass for a model on some specified ivalue inputs.
+    pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Result<IValue, TchError> {
+        self.inner.forward_is(ts)
+    }
+
+    /// Runs a specified entry point for a model on some given tensor inputs.
+    pub fn method_ts<T: Borrow<Tensor>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<Tensor, TchError> {
+        self.inner.method_ts(method_name, ts)
+    }
+
+    /// Runs a specified entry point for a model on some given ivalue inputs.
+    pub fn method_is<T: Borrow<IValue>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
+        self.inner.method_is(method_name, ts)
+    }
 }
 
 pub fn f_get_profiling_mode() -> Result<bool, TchError> {
