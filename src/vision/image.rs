@@ -1,5 +1,5 @@
 //! Utility functions to manipulate images.
-use crate::wrappers::image::{load_hwc, resize_hwc, save_hwc};
+use crate::wrappers::image::{load_hwc, load_hwc_from_mem, resize_hwc, save_hwc};
 use crate::{Device, TchError, Tensor};
 use std::io;
 use std::path::Path;
@@ -17,6 +17,14 @@ fn chw_to_hwc(tensor: &Tensor) -> Tensor {
 /// On success returns a tensor of shape [channel, height, width].
 pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     let tensor = load_hwc(path)?;
+    Ok(hwc_to_chw(&tensor))
+}
+
+/// Loads an image from memory.
+///
+/// On success returns a tensor of shape [channel, height, width].
+pub fn load_from_memory(img_data: &[u8]) -> Result<Tensor, TchError> {
+    let tensor = load_hwc_from_mem(img_data)?;
     Ok(hwc_to_chw(&tensor))
 }
 
@@ -98,6 +106,16 @@ pub fn load_and_resize<T: AsRef<Path>>(
     out_h: i64,
 ) -> Result<Tensor, TchError> {
     let tensor = load_hwc(path)?;
+    resize_preserve_aspect_ratio_hwc(&tensor, out_w, out_h)
+}
+
+/// Loads and resize an image from memory, preserve the aspect ratio by taking a center crop.
+pub fn load_and_resize_from_memory(
+    img_data: &[u8],
+    out_w: i64,
+    out_h: i64,
+) -> Result<Tensor, TchError> {
+    let tensor = load_hwc_from_mem(img_data)?;
     resize_preserve_aspect_ratio_hwc(&tensor, out_w, out_h)
 }
 

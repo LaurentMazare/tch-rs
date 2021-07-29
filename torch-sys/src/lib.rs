@@ -1,4 +1,4 @@
-use libc::{c_char, c_int, c_void, size_t};
+use libc::{c_char, c_uchar, c_int, c_void, size_t};
 
 #[repr(C)]
 pub struct C_scalar {
@@ -163,6 +163,7 @@ extern "C" {
 extern "C" {
     pub fn at_save_image(arg: *mut C_tensor, filename: *const c_char) -> c_int;
     pub fn at_load_image(filename: *const c_char) -> *mut C_tensor;
+    pub fn at_load_image_from_memory(img_data: *const c_uchar, img_data_len: size_t) -> *mut C_tensor;
     pub fn at_resize_image(arg: *mut C_tensor, out_w: c_int, out_h: c_int) -> *mut C_tensor;
 }
 

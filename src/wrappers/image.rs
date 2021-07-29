@@ -11,6 +11,12 @@ pub fn load_hwc<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     Ok(Tensor { c_tensor })
 }
 
+/// On success returns a tensor of shape [width, height, channels].
+pub fn load_hwc_from_mem(data: &[u8]) -> Result<Tensor, TchError> {
+    let c_tensor = unsafe_torch_err!(torch_sys::at_load_image_from_memory(data.as_ptr(), data.len()));
+    Ok(Tensor { c_tensor })
+}
+
 /// Expects a tensor of shape [width, height, channels].
 pub fn save_hwc<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     let path = path_to_cstring(path)?;
