@@ -444,7 +444,7 @@ impl<'a> Path<'a> {
     /// given tensor.
     pub fn f_var_copy(&self, name: &str, t: &Tensor) -> Result<Tensor, TchError> {
         let mut v = self.f_zeros(name, &t.size())?;
-        crate::no_grad(|| v.f_copy_(&t))?;
+        crate::no_grad(|| v.f_copy_(t))?;
         Ok(v)
     }
 
@@ -570,7 +570,7 @@ impl<'a> Path<'a> {
         Entry {
             name,
             variables,
-            path: &self,
+            path: self,
         }
     }
 }
@@ -591,7 +591,7 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_var_copy(self, tensor: &Tensor) -> Tensor {
         let mut v = self.or_zeros(&tensor.size());
-        crate::no_grad(|| v.copy_(&tensor));
+        crate::no_grad(|| v.copy_(tensor));
         v
     }
 

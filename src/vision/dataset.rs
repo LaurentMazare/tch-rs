@@ -74,7 +74,7 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
         panic!("unexpected shape for tensor {:?} {}", t, sz)
     }
     let mut output = t.zeros_like();
-    output.copy_(&t);
+    output.copy_(t);
     for bindex in 0..size[0] {
         let start_h = rand::thread_rng().gen_range(0..size[2] - sz + 1);
         let start_w = rand::thread_rng().gen_range(0..size[3] - sz + 1);

@@ -152,7 +152,7 @@ pub fn conv3d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvCon
 impl super::module::Module for Conv1D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv1d(
-            &xs,
+            xs,
             &self.ws,
             self.bs.as_ref(),
             &self.config.stride,
@@ -166,7 +166,7 @@ impl super::module::Module for Conv1D {
 impl super::module::Module for Conv2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv2d(
-            &xs,
+            xs,
             &self.ws,
             self.bs.as_ref(),
             &self.config.stride,
@@ -180,7 +180,7 @@ impl super::module::Module for Conv2D {
 impl super::module::Module for Conv3D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv3d(
-            &xs,
+            xs,
             &self.ws,
             self.bs.as_ref(),
             &self.config.stride,

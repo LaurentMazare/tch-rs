@@ -200,14 +200,14 @@ impl Tensor {
 impl Tensor {
     /// Computes the cross-entropy loss based on some logits and targets.
     pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.log_softmax(-1, Kind::Float).nll_loss(&targets)
+        self.log_softmax(-1, Kind::Float).nll_loss(targets)
     }
 
     /// Returns the average accuracy for some given logits assuming that
     /// targets represent ground-truth.
     pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
         self.argmax(-1, false)
-            .eq_tensor(&targets)
+            .eq_tensor(targets)
             .to_kind(Kind::Float)
             .mean(Kind::Float)
     }
@@ -281,7 +281,7 @@ impl Tensor {
     /// Copies a tensor to a newly allocated tensor using the same shape and device.
     pub fn copy(&self) -> Tensor {
         let mut result = self.zeros_like();
-        result.copy_(&self);
+        result.copy_(self);
         result
     }
 

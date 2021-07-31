@@ -63,7 +63,7 @@ pub fn resize_preserve_aspect_ratio_hwc(
     let tensor_size = t.size();
     let (w, h) = (tensor_size[0], tensor_size[1]);
     if w * out_h == h * out_w {
-        Ok(hwc_to_chw(&resize_hwc(&t, out_w, out_h)?))
+        Ok(hwc_to_chw(&resize_hwc(t, out_w, out_h)?))
     } else {
         let (resize_w, resize_h) = {
             let ratio_w = out_w as f64 / w as f64;
@@ -73,7 +73,7 @@ pub fn resize_preserve_aspect_ratio_hwc(
         };
         let resize_w = i64::max(resize_w, out_w);
         let resize_h = i64::max(resize_h, out_h);
-        let t = hwc_to_chw(&resize_hwc(&t, resize_w, resize_h)?);
+        let t = hwc_to_chw(&resize_hwc(t, resize_w, resize_h)?);
         let t = if resize_w == out_w {
             t
         } else {
@@ -141,7 +141,7 @@ fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Result<(), TchE
 /// Loads all the images in a director.
 pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
     let mut files: Vec<std::fs::DirEntry> = vec![];
-    visit_dirs(&path.as_ref(), &mut files)?;
+    visit_dirs(path.as_ref(), &mut files)?;
     if files.is_empty() {
         return Err(TchError::Io(io::Error::new(
             io::ErrorKind::NotFound,

@@ -750,7 +750,7 @@ pub fn no_grad_guard() -> NoGradGuard {
 
 impl std::convert::AsRef<Tensor> for Tensor {
     fn as_ref(&self) -> &Self {
-        &self
+        self
     }
 }
 

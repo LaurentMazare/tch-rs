@@ -293,7 +293,7 @@ impl PartialEq for Tensor {
         if self.size() != other.size() {
             return false;
         }
-        match self.f_eq_tensor(&other) {
+        match self.f_eq_tensor(other) {
             Err(_) => false,
             Ok(v) => match v.f_all() {
                 Err(_) => false,
