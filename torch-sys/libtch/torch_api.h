@@ -71,6 +71,7 @@ char *at_to_string(tensor, int line_size);
 void at_save(tensor, char *filename);
 tensor at_load(char *filename);
 tensor at_load_image(char *filename);
+tensor at_load_image_from_memory(unsigned char *img_data, size_t img_size);
 int at_save_image(tensor, char *filename);
 tensor at_resize_image(tensor, int w, int h);
 

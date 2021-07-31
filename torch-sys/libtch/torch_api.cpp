@@ -377,6 +377,22 @@ tensor at_load_image(char *filename) {
   return nullptr;
 }
 
+tensor at_load_image_from_memory(unsigned char *img_data, size_t img_size) {
+  PROTECT(
+    int w = -1;
+    int h = -1;
+    int c = -1;
+    void *data = stbi_load_from_memory(img_data, img_size, &w, &h, &c, 3);
+    if (data == nullptr)
+      throw std::invalid_argument(stbi_failure_reason());
+    torch::Tensor tensor = torch::zeros({ h, w, 3 }, at::ScalarType::Byte);
+    memcpy(tensor.data_ptr(), data, h * w * 3);
+    free(data);
+    return new torch::Tensor(tensor);
+  )
+  return nullptr;
+}
+
 bool ends_with(const char *str, const char *suffix) {
   int suffix_len = strlen(suffix);
   int str_len = strlen(str);

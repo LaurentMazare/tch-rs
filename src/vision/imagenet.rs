@@ -40,16 +40,39 @@ pub fn load_image<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     normalize(&super::image::load(path)?)
 }
 
+/// Loads an image from memory and applies the ImageNet normalization.
+pub fn load_image_from_memory(img_data: &[u8]) -> Result<Tensor, TchError> {
+    normalize(&super::image::load_from_memory(img_data)?)
+}
+
 /// Loads an image from a file and resize it to 224x224.
 /// This applies the ImageNet normalization.
 pub fn load_image_and_resize224<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     normalize(&super::image::load_and_resize(path, 224, 224)?)
 }
 
+/// Loads an image from memory and resize it to 224x224.
+/// This applies the ImageNet normalization.
+pub fn load_image_and_resize224_from_memory(img_data: &[u8]) -> Result<Tensor, TchError> {
+    normalize(&super::image::load_and_resize_from_memory(
+        img_data, 224, 224,
+    )?)
+}
+
 /// Loads an image from a file and resize it to the specified width and height.
 /// This applies the ImageNet normalization.
 pub fn load_image_and_resize<T: AsRef<Path>>(path: T, w: i64, h: i64) -> Result<Tensor, TchError> {
     normalize(&super::image::load_and_resize(path, w, h)?)
+}
+
+/// Loads an image from memory and resize it to the specified width and height.
+/// This applies the ImageNet normalization.
+pub fn load_image_and_resize_from_memory(
+    img_data: &[u8],
+    w: i64,
+    h: i64,
+) -> Result<Tensor, TchError> {
+    normalize(&super::image::load_and_resize_from_memory(img_data, w, h)?)
 }
 
 fn has_image_suffix<T: AsRef<Path>>(path: T) -> bool {
