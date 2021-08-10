@@ -145,6 +145,17 @@ fn bn_test() {
 }
 
 #[test]
+fn gn_test() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let batch_size = 10;
+    let channels = 12;
+    let gn = nn::group_norm1d(vs.root(), 4, channels, Default::default());
+    let x = Tensor::randn(&[batch_size, channels], opts);
+    let _y = x.apply_t(&gn, true);
+}
+
+#[test]
 fn layer_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
