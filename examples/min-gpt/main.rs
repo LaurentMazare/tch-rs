@@ -4,7 +4,6 @@
    This is mostly a rust port of https://github.com/karpathy/minGPT
 */
 
-extern crate tch;
 use anyhow::{bail, Result};
 use tch::data::TextData;
 use tch::nn::{ModuleT, OptimizerConfig};

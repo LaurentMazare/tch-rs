@@ -2,9 +2,8 @@
 // exported using the Python JIT API.
 // See https://pytorch.org/tutorials/advanced/cpp_export.html and
 // https://pytorch.org/docs/stable/quantization.html for more details.
-use std::time::SystemTime;
-extern crate tch;
 use anyhow::{bail, Result};
+use std::time::SystemTime;
 use tch::vision::imagenet;
 
 const NRUNS: i32 = 10;

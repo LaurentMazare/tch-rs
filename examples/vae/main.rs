@@ -10,7 +10,6 @@
      t10k-labels-idx1-ubyte.gz
 */
 
-extern crate tch;
 use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Kind, Reduction, Tensor};
 

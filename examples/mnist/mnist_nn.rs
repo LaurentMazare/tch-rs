@@ -1,6 +1,5 @@
 // This should rearch 97% accuracy.
 
-extern crate tch;
 use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Device};
 

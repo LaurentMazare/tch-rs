@@ -1,6 +1,5 @@
 // The pre-trained weights can be downloaded here:
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/yolo-v3.ot
-extern crate tch;
 
 mod coco_classes;
 mod darknet;

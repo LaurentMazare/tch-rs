@@ -1,10 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
 
-extern crate libc;
-extern crate thiserror;
-extern crate zip;
-
 pub mod data;
 
 mod error;

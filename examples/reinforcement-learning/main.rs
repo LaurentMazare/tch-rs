@@ -1,6 +1,3 @@
-extern crate cpython;
-extern crate tch;
-
 mod a2c;
 mod ddpg;
 mod gym_env;

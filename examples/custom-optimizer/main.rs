@@ -1,7 +1,5 @@
 // This should rearch 97% accuracy.
 
-extern crate tch;
-
 mod sparse_adam;
 
 use anyhow::Result;

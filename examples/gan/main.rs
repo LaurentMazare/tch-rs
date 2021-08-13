@@ -3,7 +3,6 @@
 //
 // TODO: override the initializations if this does not converge well.
 use anyhow::{bail, Result};
-extern crate tch;
 use tch::{kind, nn, nn::OptimizerConfig, Device, Kind, Tensor};
 
 const IMG_SIZE: i64 = 64;

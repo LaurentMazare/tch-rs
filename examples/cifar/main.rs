@@ -6,7 +6,6 @@
    The resnet model reaches 95.4% accuracy.
 */
 
-extern crate tch;
 use anyhow::Result;
 use tch::nn::{FuncT, ModuleT, OptimizerConfig, SequentialT};
 use tch::{nn, Device};

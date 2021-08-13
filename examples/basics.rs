@@ -1,5 +1,3 @@
-extern crate tch;
-
 use tch::{kind, Tensor};
 
 fn grad_example() {

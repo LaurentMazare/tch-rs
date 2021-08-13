@@ -7,7 +7,6 @@
      t10k-labels-idx1-ubyte.gz
 */
 
-extern crate tch;
 use anyhow::Result;
 
 mod mnist_conv;

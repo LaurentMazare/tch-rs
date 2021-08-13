@@ -4,7 +4,6 @@
    It has been heavily inspired by https://github.com/karpathy/char-rnn
 */
 
-extern crate tch;
 use anyhow::Result;
 use tch::data::TextData;
 use tch::nn::{Linear, Module, OptimizerConfig, LSTM, RNN};

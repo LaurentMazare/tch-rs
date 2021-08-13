@@ -1,7 +1,6 @@
 // This example illustrates how to use a PyTorch model trained and exported using the
 // Python JIT API.
 // See https://pytorch.org/tutorials/advanced/cpp_export.html for more details.
-extern crate tch;
 use anyhow::{bail, Result};
 use tch::vision::imagenet;
 

@@ -2,7 +2,6 @@
 //   https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 // The pre-trained weights for the VGG16 model can be downloaded from:
 //   https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
-extern crate tch;
 use anyhow::{bail, Result};
 use tch::vision::{imagenet, vgg};
 use tch::{nn, nn::OptimizerConfig, Device, Tensor};
