@@ -9,14 +9,15 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::io::Write;
 use std::path::{Path, PathBuf};
-
-use curl::easy::Easy;
 
 const TORCH_VERSION: &str = "1.9.0";
 
+#[cfg(feature = "curl")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
+    use curl::easy::Easy;
+    use std::io::Write;
+
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
     let mut easy = Easy::new();
@@ -33,6 +34,11 @@ fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<
             source_url
         ))
     }
+}
+
+#[cfg(not(feature = "curl"))]
+fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
+    anyhow::bail!("cannot use download without the curl feature")
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {

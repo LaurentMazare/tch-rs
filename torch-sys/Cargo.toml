@@ -18,10 +18,11 @@ libc = "0.2.0"
 [build-dependencies]
 anyhow = "1.0"
 cc = "1.0"
-curl = "0.4.9"
+curl = { version = "0.4.9", optional = true }
 zip = "0.5"
 
 [features]
+download-libtorch = ["curl"]
 doc-only = []
 
 [package.metadata.docs.rs]
