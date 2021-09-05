@@ -1,13 +1,16 @@
 //! Implement conversion traits for tensors
 use super::Tensor;
-use crate::{kind::Element, TchError};
+use crate::{kind::Element, Device, TchError};
 use half::f16;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 impl<T: Element> From<&Tensor> for Vec<T> {
     fn from(tensor: &Tensor) -> Vec<T> {
         let numel = tensor.numel();
-        let mut vec = vec![T::ZERO; numel as usize];
+        let mut vec = Vec::with_capacity(numel);
+        unsafe {
+            vec.set_len(numel);
+        }
         tensor.to_kind(T::KIND).copy_data(&mut vec, numel);
         vec
     }
@@ -78,13 +81,52 @@ from_tensor!(i8);
 from_tensor!(u8);
 from_tensor!(bool);
 
-impl<T: Element> TryInto<ndarray::ArrayD<T>> for &Tensor {
+impl<T: Element, D: ndarray::Dimension> TryFrom<&Tensor> for ndarray::Array<T, D> {
     type Error = ndarray::ShapeError;
 
-    fn try_into(self) -> Result<ndarray::ArrayD<T>, Self::Error> {
-        let v: Vec<T> = self.into();
-        let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
-        ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
+    fn try_from(value: &Tensor) -> Result<Self, Self::Error> {
+        let shape: Vec<usize> = value.size().iter().map(|s| *s as usize).collect();
+        let v: Vec<T> = value.into();
+        let array = ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)?;
+        array.into_dimensionality::<D>()
+    }
+}
+
+impl<'a, T: Element, D: ndarray::Dimension> TryFrom<&'a Tensor> for ndarray::ArrayView<'a, T, D> {
+    type Error = ndarray::ShapeError;
+
+    fn try_from(value: &Tensor) -> Result<Self, Self::Error> {
+        let shape: Vec<usize> = value.size().iter().map(|s| *s as usize).collect();
+        assert_eq!(value.kind(), T::KIND);
+        assert_eq!(value.device(), Device::Cpu);
+        let array;
+        unsafe {
+            array = ndarray::ArrayViewD::from_shape_ptr(
+                ndarray::IxDyn(&shape),
+                value.data_ptr() as *const T,
+            );
+        }
+        array.into_dimensionality::<D>()
+    }
+}
+
+impl<'a, T: Element, D: ndarray::Dimension> TryFrom<&'a Tensor>
+    for ndarray::ArrayViewMut<'a, T, D>
+{
+    type Error = ndarray::ShapeError;
+
+    fn try_from(value: &Tensor) -> Result<Self, Self::Error> {
+        let shape: Vec<usize> = value.size().iter().map(|s| *s as usize).collect();
+        assert_eq!(value.kind(), T::KIND);
+        assert_eq!(value.device(), Device::Cpu);
+        let array;
+        unsafe {
+            array = ndarray::ArrayViewMutD::from_shape_ptr(
+                ndarray::IxDyn(&shape),
+                value.data_ptr() as *mut T,
+            );
+        }
+        array.into_dimensionality::<D>()
     }
 }
 

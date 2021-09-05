@@ -2,7 +2,7 @@ use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
-use tch::{Device, Tensor};
+use tch::{kind, Device, Tensor};
 
 #[test]
 #[cfg(feature = "cuda-tests")]
@@ -203,17 +203,40 @@ fn values_at_index() {
 }
 
 #[test]
-fn into_ndarray_f64() {
+fn into_ndarrayd_f64() {
     let tensor = Tensor::of_slice(&[1., 2., 3., 4.]).reshape(&[2, 2]);
     let nd: ndarray::ArrayD<f64> = (&tensor).try_into().unwrap();
     assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
 
 #[test]
-fn into_ndarray_i64() {
+fn into_ndarrayd_i64() {
     let tensor = Tensor::of_slice(&[1, 2, 3, 4]).reshape(&[2, 2]);
     let nd: ndarray::ArrayD<i64> = (&tensor).try_into().unwrap();
     assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn into_ndarray2_i32() {
+    let tensor = Tensor::of_slice(&[1, 2, 3, 4]).reshape(&[2, 2]);
+    let nd: ndarray::Array2<i32> = (&tensor).try_into().unwrap();
+    assert_eq!(Vec::<i32>::from(tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[test]
+fn into_ndarrayview4_f32() {
+    let tensor = Tensor::rand(&[2, 3, 4, 5], kind::FLOAT_CPU);
+    let view: ndarray::ArrayView4<f32> = (&tensor).try_into().unwrap();
+    let copy = Vec::<f32>::from(&tensor);
+    assert_eq!(view.as_slice().unwrap(), copy.as_slice());
+}
+
+#[test]
+fn into_ndarrayviewmut4_f32() {
+    let tensor = Tensor::rand(&[2, 3, 4, 5], kind::FLOAT_CPU);
+    let view: ndarray::ArrayViewMut4<f32> = (&tensor).try_into().unwrap();
+    let copy = Vec::<f32>::from(&tensor);
+    assert_eq!(view.as_slice().unwrap(), copy.as_slice());
 }
 
 #[test]
