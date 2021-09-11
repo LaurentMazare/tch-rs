@@ -319,12 +319,12 @@ fn param_group_weight_decay() {
 }
 
 #[test]
-fn half_precision_conversion() {
+fn half_precision_conversion_entire_varstore() {
     let mut vs = VarStore::new(Device::Cpu);
 
-    let _ = vs.root().var("zeros", &[3], Init::Const(0.));
-    let _ = vs.root().var("ones", &[3], Init::Const(1.));
-    let _ = vs.root().var("forty_two", &[2], Init::Const(42.));
+    let _ = vs.root().var("zeros", &[1], Init::Const(0.));
+    let _ = vs.root().var("ones", &[1], Init::Const(1.));
+    let _ = vs.root().var("forty_two", &[1], Init::Const(42.));
 
     assert_eq!(vs.root().get("zeros").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("ones").unwrap().kind(), Kind::Float);
@@ -353,6 +353,110 @@ fn half_precision_conversion() {
     assert_eq!(vs.root().get("zeros").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("forty_two").unwrap().kind(), Kind::Float);
+    assert_eq!(
+        format!("{:.2}", f64::from(vs.root().get("zeros").unwrap())),
+        "0.00"
+    );
+    assert_eq!(
+        format!("{:.2}", f64::from(vs.root().get("ones").unwrap())),
+        "1.00"
+    );
+    assert_eq!(
+        format!("{:.2}", f64::from(vs.root().get("forty_two").unwrap())),
+        "42.00"
+    );
+}
+
+#[test]
+fn path_half_precision_conversion() {
+    let vs = VarStore::new(Device::Cpu);
+
+    // Define a VarStore with 3 variables. 2 of them are in a sub-path named "convert" and
+    // will be cast to half-precision. The other variables in the VarStore will be unaffected
+    let _ = vs.root().sub("ignore").var("zeros", &[1], Init::Const(0.));
+    let _ = vs
+        .root()
+        .sub("convert")
+        .sub("group_1")
+        .var("ones", &[1], Init::Const(1.));
+    let _ = vs
+        .root()
+        .sub("convert")
+        .sub("group_2")
+        .var("forty_two", &[1], Init::Const(42.));
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("forty_two")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+
+    vs.root().sub("convert").half();
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Half
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("forty_two")
+            .unwrap()
+            .kind(),
+        Kind::Half
+    );
+
+    vs.root().sub("convert").float();
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("forty_two")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
 }
 
 #[test]
@@ -369,11 +473,13 @@ fn device_migration() {
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("five").unwrap().device(), Device::Cuda(0));
+        assert_eq!(vs.device(), Device::Cuda(0));
 
         vs.to_device(Device::Cpu);
 
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cpu);
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cpu);
         assert_eq!(vs.root().get("five").unwrap().device(), Device::Cpu);
+        assert_eq!(vs.device(), Device::Cpu);
     }
 }
