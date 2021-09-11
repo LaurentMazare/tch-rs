@@ -196,6 +196,54 @@ impl VarStore {
         }
     }
 
+    /// Casts all float-like variable of a var store to half-precision (Half kind).
+    pub fn half(&mut self) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            if variable.is_floating_point() {
+                *variable = variable.to_kind(Kind::Half);
+            }
+        }
+    }
+
+    /// Casts all float-like variable of a var store to bfloat16-precision (BFloat16 kind).
+    pub fn bfloat16(&mut self) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            if variable.is_floating_point() {
+                *variable = variable.to_kind(Kind::BFloat16);
+            }
+        }
+    }
+
+    /// Casts all float-like variable of a var store to single-precision (Float kind).
+    pub fn float(&mut self) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            if variable.is_floating_point() {
+                *variable = variable.to_kind(Kind::Float);
+            }
+        }
+    }
+
+    /// Casts all float-like variable of a var store to single-precision (Double kind).
+    pub fn double(&mut self) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            if variable.is_floating_point() {
+                *variable = variable.to_kind(Kind::Double);
+            }
+        }
+    }
+
+    /// Migrates a VarStore and all its tensor to a target device.
+    pub fn to_device(&mut self, device: Device) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            *variable = variable.to_device(device);
+        }
+    }
+
     /// Copies variable values from a source var store to this var store.
     ///
     /// All the variables in this var store have to exist with the same
