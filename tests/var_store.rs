@@ -460,6 +460,126 @@ fn path_half_precision_conversion() {
 }
 
 #[test]
+fn path_free_type_conversion() {
+    let vs = VarStore::new(Device::Cpu);
+
+    // Define a VarStore with 3 variables. 2 of them are in a sub-path named "convert" and
+    // will be cast to half-precision. The other variables in the VarStore will be unaffected
+    let _ = vs.root().sub("ignore").var("zeros", &[1], Init::Const(0.));
+    let _ = vs
+        .root()
+        .sub("convert")
+        .sub("group_1")
+        .var("ones", &[1], Init::Const(1.));
+    let _ = vs
+        .root()
+        .sub("convert")
+        .sub("group_2")
+        .var("zeros", &[1], Init::Const(0.));
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("zeros")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+
+    vs.root().sub("convert").to_kind(Kind::Bool);
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Bool
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("zeros")
+            .unwrap()
+            .kind(),
+        Kind::Bool
+    );
+
+    vs.root().sub("convert").to_kind(Kind::Float);
+
+    assert_eq!(
+        vs.root().sub("ignore").get("zeros").unwrap().kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_1")
+            .get("ones")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+    assert_eq!(
+        vs.root()
+            .sub("convert")
+            .sub("group_2")
+            .get("zeros")
+            .unwrap()
+            .kind(),
+        Kind::Float
+    );
+
+    assert_eq!(
+        format!(
+            "{:.2}",
+            f64::from(vs.root().sub("ignore").get("zeros").unwrap())
+        ),
+        "0.00"
+    );
+    assert_eq!(
+        format!(
+            "{:.2}",
+            f64::from(vs.root().sub("convert").sub("group_1").get("ones").unwrap())
+        ),
+        "1.00"
+    );
+    assert_eq!(
+        format!(
+            "{:.2}",
+            f64::from(
+                vs.root()
+                    .sub("convert")
+                    .sub("group_2")
+                    .get("zeros")
+                    .unwrap()
+            )
+        ),
+        "0.00"
+    );
+}
+
+#[test]
 fn device_migration() {
     if tch::Cuda::is_available() {
         let mut vs = VarStore::new(Device::Cpu);
