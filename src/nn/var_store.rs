@@ -196,6 +196,44 @@ impl VarStore {
         }
     }
 
+    /// Casts all variables in a var store to the target kind .
+    ///
+    /// For floating-point conversion, methods `half`, `bfloat16`, `float` and `double`
+    /// should be preferred as they ensure only float-like variables will be converted
+    /// to the target type.
+    pub fn set_kind(&mut self, kind: Kind) {
+        self.root().set_kind(kind);
+    }
+
+    /// Casts all float-like variable of a var store to half-precision (Half kind).
+    pub fn half(&mut self) {
+        self.root().half();
+    }
+
+    /// Casts all float-like variable of a var store to bfloat16-precision (BFloat16 kind).
+    pub fn bfloat16(&mut self) {
+        self.root().bfloat16();
+    }
+
+    /// Casts all float-like variable of a var store to single-precision (Float kind).
+    pub fn float(&mut self) {
+        self.root().float();
+    }
+
+    /// Casts all float-like variable of a var store to single-precision (Double kind).
+    pub fn double(&mut self) {
+        self.root().double();
+    }
+
+    /// Migrates a var store and all its tensor to a target device.
+    pub fn set_device(&mut self, device: Device) {
+        let mut variables = self.variables_.lock().unwrap();
+        for (_, variable) in variables.named_variables.iter_mut() {
+            *variable = variable.to_device(device);
+        }
+        self.device = device
+    }
+
     /// Copies variable values from a source var store to this var store.
     ///
     /// All the variables in this var store have to exist with the same
@@ -263,6 +301,68 @@ impl<'a> Path<'a> {
         } else {
             format!("{}{}{}", self.path.join(&SEP.to_string()), SEP, name)
         }
+    }
+
+    /// Casts all variables in a var store sub-path to the target kind .
+    ///
+    /// Only the variable in the path sub-tree are cast to the target kind:
+    /// other var store variables are unaffected. For floating-point conversion, methods
+    /// `half`, `bfloat16`, `float` and `double` should be preferred as they ensure only
+    /// float-like variables will be converted to the target type.
+    pub fn set_kind(&mut self, kind: Kind) {
+        let path_root = self.path.join(SEP.to_string().as_str());
+        let mut variables = self.var_store.variables_.lock().unwrap();
+        for (variable_name, variable) in variables.named_variables.iter_mut() {
+            if variable_name.starts_with(&path_root) {
+                *variable = variable.to_kind(kind);
+            }
+        }
+    }
+
+    /// Casts all float-like variables in a var store sub-path to the target kind .
+    ///
+    /// Only the float-like variable in the path sub-tree are cast to the target kind:
+    /// other var store variables are unaffected
+    fn set_float_kind(&mut self, kind: Kind) {
+        let path_root = self.path.join(SEP.to_string().as_str());
+        let mut variables = self.var_store.variables_.lock().unwrap();
+        for (variable_name, variable) in variables.named_variables.iter_mut() {
+            if variable_name.starts_with(&path_root) & variable.is_floating_point() {
+                *variable = variable.to_kind(kind);
+            }
+        }
+    }
+
+    /// Casts all float-like variables in a var store sub-path to half-precision (Half kind).
+    ///
+    /// Only the variable in the path sub-tree are cast to half-precision:
+    /// other var store variables are unaffected
+    pub fn half(&mut self) {
+        self.set_float_kind(Kind::Half);
+    }
+
+    /// Casts all float-like variables in a var store sub-path to bfloat16-precision (BFloat16 kind).
+    ///
+    /// Only the variable in the path sub-tree are cast to bfloat16-precision:
+    /// other var store variables are unaffected
+    pub fn bfloat16(&mut self) {
+        self.set_float_kind(Kind::BFloat16);
+    }
+
+    /// Casts all float-like variables in a var store sub-path to single-precision (Float kind).
+    ///
+    /// Only the variable in the path sub-tree are cast to single-precision:
+    /// other var store variables are unaffected
+    pub fn float(&mut self) {
+        self.set_float_kind(Kind::Float);
+    }
+
+    /// Casts all float-like variables in a var store sub-path to double-precision (Double kind).
+    ///
+    /// Only the variable in the path sub-tree are cast to double-precision:
+    /// other var store variables are unaffected
+    pub fn double(&mut self) {
+        self.set_float_kind(Kind::Double);
     }
 
     pub(crate) fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
