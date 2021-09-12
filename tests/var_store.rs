@@ -500,7 +500,7 @@ fn path_free_type_conversion() {
         Kind::Float
     );
 
-    vs.root().sub("convert").to_kind(Kind::Bool);
+    vs.root().sub("convert").set_kind(Kind::Bool);
 
     assert_eq!(
         vs.root().sub("ignore").get("zeros").unwrap().kind(),
@@ -525,7 +525,7 @@ fn path_free_type_conversion() {
         Kind::Bool
     );
 
-    vs.root().sub("convert").to_kind(Kind::Float);
+    vs.root().sub("convert").set_kind(Kind::Float);
 
     assert_eq!(
         vs.root().sub("ignore").get("zeros").unwrap().kind(),
@@ -588,14 +588,14 @@ fn device_migration() {
         let _ = vs.root().var("ones", &[3], Init::Const(1.));
         let _ = vs.root().var("five", &[2], Init::Const(5.));
 
-        vs.to_device(Device::Cuda(0));
+        vs.set_device(Device::Cuda(0));
 
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("five").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.device(), Device::Cuda(0));
 
-        vs.to_device(Device::Cpu);
+        vs.set_device(Device::Cpu);
 
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cpu);
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cpu);
