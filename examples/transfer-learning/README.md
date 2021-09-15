@@ -11,7 +11,7 @@ network on it would be very difficult.
 
 Instead the original tutorial proposes two alternatives to train the classifier.
 
-- *Finetuning the pretrained model.* We start from a ResNet-18 model pretrained on imagenet
+- *Finetuning the pretrained model.* We start from a ResNet-18 model pretrained on ImageNet
 1000 categories, replace the last layer by a binary classifier and train the resulting model
 as usual.
 - *Using a pretrained model as feature extractor.* The pretrained model weights are frozen and
@@ -24,7 +24,7 @@ weights.
 
 ## Installation Instructions
 Run the following commands to download the latest tch-rs version
-and run the tests, this installs the cpu version of libtorch if necessary.
+and run the tests, this installs the CPU version of libtorch if necessary.
 
 ```bash
 git clone https://github.com/LaurentMazare/tch-rs.git
@@ -33,7 +33,7 @@ cargo test
 ```
 
 The ants and bees dataset can be downloaded [here](https://download.pytorch.org/tutorial/hymenoptera_data.zip).
-You can download the weights for a ResNet-18 network pretrained on imagenet,
+You can download the weights for a ResNet-18 network pretrained on ImageNet,
 [resnet18.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).
 
 Once this is done and the dataset has been extracted we can build and run the code with:

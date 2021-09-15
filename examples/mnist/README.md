@@ -77,7 +77,7 @@ creating the network.
     let opt = nn::Optimizer::adam(&vs, 1e-4, Default::default());
 ```
 
-Note that this will automatically run on a gpu when available.
+Note that this will automatically run on a GPU when available.
 For a convolutional model we cannot run on all the training images in
 a single step as this would requires lots of memory. Instead we
 run on mini-batches. An iterator makes it easy to loop over all

@@ -68,7 +68,7 @@ fn style_loss(m1: &Tensor, m2: &Tensor) -> Tensor {
 
 ### Loading the Model and Images
 
-We start by creating a *device* which can be either a cpu or a gpu depending on
+We start by creating a *device* which can be either a CPU or a GPU depending on
 what is available.
 
 ```rust

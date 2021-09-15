@@ -1,4 +1,4 @@
-# Loading and Running a Quantized Pytorch Model in Rust
+# Loading and Running a Quantized PyTorch Model in Rust
 
 This builds upon the [main JIT tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/jit/README.md) 
 to load and run quantized PyTorch models.
@@ -9,7 +9,7 @@ phones). A common technique used to speed up inference on devices lacking a GPU
 is to quantize the model's weight matrices and perform some or all of its operations
 using INT8 tensors (rather than FP32).
 
-## Quantizing a Python Pytorch Model
+## Quantizing a Python PyTorch Model
 The details of quantizing a PyTorch model are described in the PyTorch [documentation](https://pytorch.org/docs/stable/quantization.html). In this example we simply export a model available within torchvision.
 ```python
 import torch
