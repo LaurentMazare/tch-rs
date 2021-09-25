@@ -365,20 +365,24 @@ module Func = struct
   let rust_return_type t ~fallible =
     let returns =
       match t.returns with
-      | `nothing -> "()"
-      | `fixed 1 -> "Tensor"
+      | `nothing -> None
+      | `fixed 1 -> Some "Tensor"
       | `fixed v ->
         List.init v ~f:(fun _ -> "Tensor")
         |> String.concat ~sep:", "
         |> Printf.sprintf "(%s)"
-      | `dynamic -> "Vec<Tensor>"
-      | `bool -> "bool"
-      | `int64_t -> "i64"
-      | `double -> "f64"
+        |> Option.some
+      | `dynamic -> Some "Vec<Tensor>"
+      | `bool -> Some "bool"
+      | `int64_t -> Some "i64"
+      | `double -> Some "f64"
     in
-    if fallible
-    then Printf.sprintf " -> Result<%s, TchError>" returns
-    else Printf.sprintf " -> %s" returns
+    match returns with
+    | None -> if fallible then Printf.sprintf " -> Result<(), TchError>" else ""
+    | Some returns ->
+      if fallible
+      then Printf.sprintf " -> Result<%s, TchError>" returns
+      else Printf.sprintf " -> %s" returns
 
   let rust_binding_args t ~self =
     List.map t.args ~f:(fun arg ->
