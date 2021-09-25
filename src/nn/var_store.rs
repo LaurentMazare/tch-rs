@@ -229,7 +229,7 @@ impl VarStore {
     pub fn set_device(&mut self, device: Device) {
         let mut variables = self.variables_.lock().unwrap();
         for (_, variable) in variables.named_variables.iter_mut() {
-            *variable = variable.to_device(device);
+            variable.set_data(&variable.to_device(device));
         }
         self.device = device
     }
@@ -314,7 +314,7 @@ impl<'a> Path<'a> {
         let mut variables = self.var_store.variables_.lock().unwrap();
         for (variable_name, variable) in variables.named_variables.iter_mut() {
             if variable_name.starts_with(&path_root) {
-                *variable = variable.to_kind(kind);
+                variable.set_data(&variable.to_kind(kind));
             }
         }
     }
@@ -328,7 +328,7 @@ impl<'a> Path<'a> {
         let mut variables = self.var_store.variables_.lock().unwrap();
         for (variable_name, variable) in variables.named_variables.iter_mut() {
             if variable_name.starts_with(&path_root) & variable.is_floating_point() {
-                *variable = variable.to_kind(kind);
+                variable.set_data(&variable.to_kind(kind));
             }
         }
     }

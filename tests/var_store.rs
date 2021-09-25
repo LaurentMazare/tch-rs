@@ -1,6 +1,6 @@
 use std::fs;
 use tch::nn::OptimizerConfig;
-use tch::{nn::Init, nn::VarStore, Device, Kind, Tensor};
+use tch::{nn::linear, nn::Init, nn::VarStore, Device, Kind, Tensor};
 
 #[test]
 fn path_components() {
@@ -379,11 +379,12 @@ fn path_half_precision_conversion() {
         .sub("convert")
         .sub("group_1")
         .var("ones", &[1], Init::Const(1.));
-    let _ = vs
-        .root()
-        .sub("convert")
-        .sub("group_2")
-        .var("forty_two", &[1], Init::Const(42.));
+    let linear_layer = linear(
+        vs.root().sub("convert").sub("group_2").sub("linear"),
+        10,
+        42,
+        Default::default(),
+    );
 
     assert_eq!(
         vs.root().sub("ignore").get("zeros").unwrap().kind(),
@@ -398,15 +399,8 @@ fn path_half_precision_conversion() {
             .kind(),
         Kind::Float
     );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("forty_two")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(linear_layer.ws.kind(), Kind::Float);
+    assert_eq!(linear_layer.bs.kind(), Kind::Float);
 
     vs.root().sub("convert").half();
 
@@ -423,15 +417,8 @@ fn path_half_precision_conversion() {
             .kind(),
         Kind::Half
     );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("forty_two")
-            .unwrap()
-            .kind(),
-        Kind::Half
-    );
+    assert_eq!(linear_layer.ws.kind(), Kind::Half);
+    assert_eq!(linear_layer.bs.kind(), Kind::Half);
 
     vs.root().sub("convert").float();
 
@@ -448,15 +435,8 @@ fn path_half_precision_conversion() {
             .kind(),
         Kind::Float
     );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("forty_two")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(linear_layer.ws.kind(), Kind::Float);
+    assert_eq!(linear_layer.bs.kind(), Kind::Float);
 }
 
 #[test]
@@ -586,20 +566,22 @@ fn device_migration() {
 
         let _ = vs.root().var("zeros", &[3], Init::Const(0.));
         let _ = vs.root().var("ones", &[3], Init::Const(1.));
-        let _ = vs.root().var("five", &[2], Init::Const(5.));
+        let linear_layer = linear(vs.root().sub("linear"), 10, 42, Default::default());
 
         vs.set_device(Device::Cuda(0));
 
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cuda(0));
-        assert_eq!(vs.root().get("five").unwrap().device(), Device::Cuda(0));
+        assert_eq!(linear_layer.ws.device(), Device::Cuda(0));
+        assert_eq!(linear_layer.bs.device(), Device::Cuda(0));
         assert_eq!(vs.device(), Device::Cuda(0));
 
         vs.set_device(Device::Cpu);
 
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cpu);
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cpu);
-        assert_eq!(vs.root().get("five").unwrap().device(), Device::Cpu);
+        assert_eq!(linear_layer.ws.device(), Device::Cpu);
+        assert_eq!(linear_layer.bs.device(), Device::Cpu);
         assert_eq!(vs.device(), Device::Cpu);
     }
 }
