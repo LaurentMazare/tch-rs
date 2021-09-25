@@ -495,7 +495,7 @@ fn allclose() {
 
 #[test]
 fn set_data() {
-    let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
+    let mut t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
     t.set_data(&t.to_kind(tch::Kind::BFloat16));
     assert_eq!(t.kind(), tch::Kind::BFloat16);
 }

@@ -352,7 +352,11 @@ module Func = struct
           Printf.sprintf "%s: %s" (rust_name arg.arg_name) rust_arg_type)
       |> String.concat ~sep:", "
     in
-    let self_arg = if String.is_suffix t.name ~suffix:"_" then "&mut self" else "&self" in
+    let self_arg =
+      if String.is_suffix t.name ~suffix:"_" || String.( = ) t.name "set_data"
+      then "&mut self"
+      else "&self"
+    in
     match List.partition_tf t.args ~f:self_tensor with
     | [ self ], args_list ->
       Some self.arg_name, Printf.sprintf "%s, %s" self_arg (to_string args_list)

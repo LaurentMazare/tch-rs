@@ -9753,7 +9753,7 @@ impl Tensor {
         self.f_set_().unwrap()
     }
 
-    pub fn set_data(&self, new_data: &Tensor) {
+    pub fn set_data(&mut self, new_data: &Tensor) {
         self.f_set_data(new_data).unwrap()
     }
 

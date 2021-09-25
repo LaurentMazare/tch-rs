@@ -23796,7 +23796,7 @@ impl Tensor {
         })
     }
 
-    pub fn f_set_data(&self, new_data: &Tensor) -> Result<(), TchError> {
+    pub fn f_set_data(&mut self, new_data: &Tensor) -> Result<(), TchError> {
         unsafe_torch_err!(atg_set_data(self.c_tensor, new_data.c_tensor));
         Ok(())
     }
