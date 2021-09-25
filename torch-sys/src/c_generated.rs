@@ -7876,6 +7876,7 @@ extern "C" {
     pub fn atg_selu(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_selu_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_set_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_set_data(self_: *mut C_tensor, new_data_: *mut C_tensor);
     pub fn atg_set_requires_grad(out__: *mut *mut C_tensor, self_: *mut C_tensor, r_: c_int);
     pub fn atg_set_source_tensor_(
         out__: *mut *mut C_tensor,

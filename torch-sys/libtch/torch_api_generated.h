@@ -1428,6 +1428,7 @@ void atg_select_backward(tensor *, tensor grad, int64_t *input_sizes_data, int i
 void atg_selu(tensor *, tensor self);
 void atg_selu_(tensor *, tensor self);
 void atg_set_(tensor *, tensor self);
+void atg_set_data(tensor self, tensor new_data);
 void atg_set_requires_grad(tensor *, tensor self, int r);
 void atg_set_source_tensor_(tensor *, tensor self, tensor source);
 void atg_sgn(tensor *, tensor self);

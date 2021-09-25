@@ -492,3 +492,10 @@ fn allclose() {
     assert_eq!(t.allclose(&(&t + 0.1), 1e-5, 1e-8, false), false);
     assert_eq!(t.allclose(&(&t + 1e-9), 1e-5, 1e-8, false), true);
 }
+
+#[test]
+fn set_data() {
+    let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
+    t.set_data(&t.to_kind(tch::Kind::BFloat16));
+    assert_eq!(t.kind(), tch::Kind::BFloat16);
+}

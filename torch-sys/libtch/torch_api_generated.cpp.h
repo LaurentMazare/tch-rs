@@ -10243,6 +10243,12 @@ void atg_set_(tensor *out__, tensor self) {
   )
 }
 
+void atg_set_data(tensor self, tensor new_data) {
+  PROTECT(
+    self->set_data(*new_data);
+  )
+}
+
 void atg_set_requires_grad(tensor *out__, tensor self, int r) {
   PROTECT(
     auto outputs__ = self->set_requires_grad((bool)r);

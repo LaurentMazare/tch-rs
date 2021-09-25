@@ -25,7 +25,6 @@ let excluded_functions =
     ; "_cufft_set_plan_cache_max_size"
     ; "_cufft_clear_plan_cache"
     ; "backward"
-    ; "set_data"
     ; "_amp_non_finite_check_and_unscale_"
     ; "_cummin_helper"
     ; "_cummax_helper"
@@ -123,7 +122,7 @@ module Func = struct
     ; operator_name : string
     ; overload_name : string
     ; args : arg list
-    ; returns : [ `fixed of int | `dynamic | `bool | `int64_t | `double ]
+    ; returns : [ `fixed of int | `dynamic | `bool | `int64_t | `double | `nothing ]
     ; (* number of tensors that are returned *)
       kind : [ `function_ | `method_ ]
     }
@@ -366,6 +365,7 @@ module Func = struct
   let rust_return_type t ~fallible =
     let returns =
       match t.returns with
+      | `nothing -> "()"
       | `fixed 1 -> "Tensor"
       | `fixed v ->
         List.init v ~f:(fun _ -> "Tensor")
@@ -446,7 +446,9 @@ let read_yaml filename =
           String.( = ) return_type "at::Tensor"
         in
         let returns = Map.find_exn map "returns" |> extract_list in
-        if List.for_all returns ~f:is_tensor
+        if List.is_empty returns
+        then Some `nothing
+        else if List.for_all returns ~f:is_tensor
         then Some (`fixed (List.length returns))
         else (
           match returns with
@@ -536,6 +538,14 @@ let write_cpp funcs filename =
           Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
               let c_typed_args_list = Func.c_typed_args_list func in
               match func.returns with
+              | `nothing ->
+                pc "void atg_%s(%s) {" exported_name c_typed_args_list;
+                pc "  PROTECT(";
+                pc "    %s;" (Func.c_call func);
+                pc "  )";
+                pc "}";
+                pc "";
+                ph "void atg_%s(%s);" exported_name c_typed_args_list
               | `fixed ntensors ->
                 pc "void atg_%s(tensor *out__, %s) {" exported_name c_typed_args_list;
                 pc "  PROTECT(";
@@ -634,6 +644,13 @@ let write_fallible_wrapper funcs filename =
             pm "        unsafe{libc::free(c_tensors as *mut libc::c_void)}";
             pm "        Ok(r__)";
             pm "    }"
+          | `nothing ->
+            pm "        unsafe_torch_err!(";
+            pm "            atg_%s(" exported_name;
+            pm "                %s" (Func.rust_binding_args func ~self);
+            pm "            ));";
+            pm "        Ok(())";
+            pm "    }"
           | `fixed ntensors ->
             pm "        let mut c_tensors = [std::ptr::null_mut(); %d];" ntensors;
             pm "        unsafe_torch_err!(";
@@ -711,6 +728,8 @@ let write_ffi funcs filename =
       pm "extern \"C\" {";
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
           match func.Func.returns with
+          | `nothing ->
+            pm "    pub fn atg_%s(%s);" exported_name (Func.c_rust_args_list func)
           | `fixed _ ->
             pm
               "    pub fn atg_%s(out__: *mut *mut C_tensor, %s);"

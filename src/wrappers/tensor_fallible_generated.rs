@@ -23796,6 +23796,11 @@ impl Tensor {
         })
     }
 
+    pub fn f_set_data(&self, new_data: &Tensor) -> Result<(), TchError> {
+        unsafe_torch_err!(atg_set_data(self.c_tensor, new_data.c_tensor));
+        Ok(())
+    }
+
     pub fn f_set_requires_grad(&self, r: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_set_requires_grad(

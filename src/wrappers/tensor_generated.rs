@@ -9753,6 +9753,10 @@ impl Tensor {
         self.f_set_().unwrap()
     }
 
+    pub fn set_data(&self, new_data: &Tensor) -> () {
+        self.f_set_data(new_data).unwrap()
+    }
+
     pub fn set_requires_grad(&self, r: bool) -> Tensor {
         self.f_set_requires_grad(r).unwrap()
     }
