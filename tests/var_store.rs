@@ -400,7 +400,7 @@ fn path_half_precision_conversion() {
         Kind::Float
     );
     assert_eq!(linear_layer.ws.kind(), Kind::Float);
-    assert_eq!(linear_layer.bs.kind(), Kind::Float);
+    assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Float);
 
     vs.root().sub("convert").half();
 
@@ -418,7 +418,7 @@ fn path_half_precision_conversion() {
         Kind::Half
     );
     assert_eq!(linear_layer.ws.kind(), Kind::Half);
-    assert_eq!(linear_layer.bs.kind(), Kind::Half);
+    assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Half);
 
     vs.root().sub("convert").float();
 
@@ -436,7 +436,7 @@ fn path_half_precision_conversion() {
         Kind::Float
     );
     assert_eq!(linear_layer.ws.kind(), Kind::Float);
-    assert_eq!(linear_layer.bs.kind(), Kind::Float);
+    assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Float);
 }
 
 #[test]
@@ -573,7 +573,7 @@ fn device_migration() {
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cuda(0));
         assert_eq!(linear_layer.ws.device(), Device::Cuda(0));
-        assert_eq!(linear_layer.bs.device(), Device::Cuda(0));
+        assert_eq!(linear_layer.bs.as_ref().unwrap().device(), Device::Cuda(0));
         assert_eq!(vs.device(), Device::Cuda(0));
 
         vs.set_device(Device::Cpu);
@@ -581,7 +581,7 @@ fn device_migration() {
         assert_eq!(vs.root().get("zeros").unwrap().device(), Device::Cpu);
         assert_eq!(vs.root().get("ones").unwrap().device(), Device::Cpu);
         assert_eq!(linear_layer.ws.device(), Device::Cpu);
-        assert_eq!(linear_layer.bs.device(), Device::Cpu);
+        assert_eq!(linear_layer.bs.as_ref().unwrap().device(), Device::Cpu);
         assert_eq!(vs.device(), Device::Cpu);
     }
 }

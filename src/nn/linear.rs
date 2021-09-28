@@ -1,5 +1,4 @@
 //! A linear fully-connected layer.
-use crate::wrappers::kind::Kind::Float;
 use crate::Tensor;
 use std::borrow::Borrow;
 
@@ -25,7 +24,7 @@ impl Default for LinearConfig {
 #[derive(Debug)]
 pub struct Linear {
     pub ws: Tensor,
-    pub bs: Tensor,
+    pub bs: Option<Tensor>,
 }
 
 /// Creates a new linear layer.
@@ -44,9 +43,9 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
                 up: bound,
             }
         });
-        vs.var("bias", &[out_dim], bs_init)
+        Some(vs.var("bias", &[out_dim], bs_init))
     } else {
-        Tensor::zeros(&[out_dim], (Float, vs.device()))
+        None
     };
 
     Linear {
@@ -57,6 +56,10 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
 
 impl super::module::Module for Linear {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.matmul(&self.ws.tr()) + &self.bs
+        if let Some(bias) = &self.bs {
+            xs.matmul(&self.ws.tr()) + bias
+        } else {
+            xs.matmul(&self.ws.tr())
+        }
     }
 }
