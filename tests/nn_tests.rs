@@ -38,7 +38,7 @@ fn optimizer_test() {
     // Reset the weights to their initial values.
     tch::no_grad(|| {
         linear.ws.init(nn::Init::Const(0.));
-        linear.bs.init(nn::Init::Const(0.));
+        linear.bs.as_mut().unwrap().init(nn::Init::Const(0.));
     });
     let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2);
