@@ -331,7 +331,7 @@ impl Agent {
 }
 
 pub fn run() -> cpython::PyResult<()> {
-    let env = GymEnv::new("Pendulum-v0")?;
+    let env = GymEnv::new("Pendulum-v1")?;
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
