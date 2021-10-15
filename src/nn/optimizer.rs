@@ -6,11 +6,10 @@ use std::sync::{Arc, Mutex};
 
 /// An optimizer to run gradient descent.
 #[derive(Debug)]
-pub struct Optimizer<T> {
+pub struct Optimizer {
     opt: COptimizer,
     variables: Arc<Mutex<Variables>>,
     variables_in_optimizer: usize,
-    config: T,
 }
 
 /// Optimizer configurations. These configs can be used to build optimizer.
@@ -21,7 +20,7 @@ where
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError>;
 
     /// Builds an optimizer with the specified learning rate handling variables stored in `vs`.
-    fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer<Self>, TchError> {
+    fn build(self, vs: &VarStore, lr: f64) -> Result<Optimizer, TchError> {
         let mut opt = self.build_copt(lr)?;
         let v = vs.variables_.lock().unwrap();
         for var in &v.trainable_variables {
@@ -31,7 +30,6 @@ where
             opt,
             variables: vs.variables_.clone(),
             variables_in_optimizer: v.trainable_variables.len(),
-            config: self,
         })
     }
 }
@@ -176,7 +174,7 @@ impl OptimizerConfig for RmsProp {
     }
 }
 
-impl<T> Optimizer<T> {
+impl Optimizer {
     fn add_missing_variables(&mut self) {
         let v = self.variables.lock().unwrap();
         if v.trainable_variables.len() > self.variables_in_optimizer {

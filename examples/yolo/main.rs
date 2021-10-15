@@ -19,8 +19,6 @@ struct Bbox {
     xmax: f64,
     ymax: f64,
     confidence: f64,
-    class_index: usize,
-    class_confidence: f64,
 }
 
 // Intersection over union of two bounding boxes.
@@ -66,8 +64,6 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
                     xmax: pred[0] + pred[2] / 2.,
                     ymax: pred[1] + pred[3] / 2.,
                     confidence,
-                    class_index,
-                    class_confidence: pred[5 + class_index],
                 };
                 bboxes[class_index].push(bbox)
             }

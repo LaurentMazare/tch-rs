@@ -45,8 +45,6 @@ fn block_args() -> Vec<BlockArgs> {
 struct Params {
     width: f64,
     depth: f64,
-    res: i64,
-    dropout: f64,
 }
 
 impl Params {
@@ -90,37 +88,32 @@ fn conv2d(vs: nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl Module {
 }
 
 impl Params {
-    fn of_tuple(width: f64, depth: f64, res: i64, dropout: f64) -> Params {
-        Params {
-            width,
-            depth,
-            res,
-            dropout,
-        }
+    fn of_tuple(width: f64, depth: f64) -> Params {
+        Params { width, depth }
     }
     fn b0() -> Params {
-        Params::of_tuple(1.0, 1.0, 224, 0.2)
+        Params::of_tuple(1.0, 1.0)
     }
     fn b1() -> Params {
-        Params::of_tuple(1.0, 1.1, 240, 0.2)
+        Params::of_tuple(1.0, 1.1)
     }
     fn b2() -> Params {
-        Params::of_tuple(1.1, 1.2, 260, 0.3)
+        Params::of_tuple(1.1, 1.2)
     }
     fn b3() -> Params {
-        Params::of_tuple(1.2, 1.4, 300, 0.3)
+        Params::of_tuple(1.2, 1.4)
     }
     fn b4() -> Params {
-        Params::of_tuple(1.4, 1.8, 380, 0.4)
+        Params::of_tuple(1.4, 1.8)
     }
     fn b5() -> Params {
-        Params::of_tuple(1.6, 2.2, 456, 0.4)
+        Params::of_tuple(1.6, 2.2)
     }
     fn b6() -> Params {
-        Params::of_tuple(1.8, 2.6, 528, 0.5)
+        Params::of_tuple(1.8, 2.6)
     }
     fn b7() -> Params {
-        Params::of_tuple(2.0, 3.1, 600, 0.5)
+        Params::of_tuple(2.0, 3.1)
     }
 }
 
