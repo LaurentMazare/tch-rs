@@ -21,7 +21,8 @@
 use anyhow::{bail, Result};
 use tch::nn::ModuleT;
 use tch::vision::{
-    alexnet, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet, vgg,
+    alexnet, convmixer, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet,
+    vgg,
 };
 
 pub fn main() -> Result<()> {
@@ -56,6 +57,8 @@ pub fn main() -> Result<()> {
         "efficientnet-b5.ot" => Box::new(efficientnet::b5(&vs.root(), imagenet::CLASS_COUNT)),
         "efficientnet-b6.ot" => Box::new(efficientnet::b6(&vs.root(), imagenet::CLASS_COUNT)),
         "efficientnet-b7.ot" => Box::new(efficientnet::b7(&vs.root(), imagenet::CLASS_COUNT)),
+        "convmixer1536_20.ot" => Box::new(convmixer::c1536_20(&vs.root(), imagenet::CLASS_COUNT)),
+        "convmixer1024_20.ot" => Box::new(convmixer::c1024_20(&vs.root(), imagenet::CLASS_COUNT)),
         _ => bail!("unknown model, use a weight file named e.g. resnet18.ot"),
     };
     vs.load(weights)?;
