@@ -25,3 +25,5 @@ pub mod mobilenet;
 pub mod imagenet;
 
 pub mod efficientnet;
+
+pub mod convmixer;
