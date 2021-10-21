@@ -111,7 +111,7 @@ fn gradient_descent() {
         // Dummy mini-batches made of zeros.
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys).pow(2).sum(kind::Kind::Float);
+        let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(kind::Kind::Float);
         opt.backward_step(&loss);
     }
 }
