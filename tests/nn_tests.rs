@@ -73,7 +73,9 @@ fn gradient_descent_test() {
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys).pow(2).sum(Kind::Float);
+        let loss = (my_module.forward(&xs) - ys)
+            .pow_tensor_scalar(2)
+            .sum(Kind::Float);
         opt.backward_step(&loss);
     }
 }
@@ -86,7 +88,9 @@ fn gradient_descent_test_clip_norm() {
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::ones(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys).pow(2).sum(Kind::Float);
+        let loss = (my_module.forward(&xs) - ys)
+            .pow_tensor_scalar(2)
+            .sum(Kind::Float);
         opt.backward_step_clip_norm(&loss, 0.1);
     }
 }
@@ -108,7 +112,7 @@ fn gradient_clip_test() {
         var3 *= -1;
     });
     let all = Tensor::cat(&[&var1, &(2 * &var2), &(2 * &var3)], 0);
-    let loss = all.pow(2).sum(Kind::Float);
+    let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
     loss.backward();
     let g1 = var1.grad();
@@ -118,7 +122,7 @@ fn gradient_clip_test() {
     assert_eq!(Vec::<f64>::from(&g2), [8.0]);
     assert_eq!(Vec::<f64>::from(&g3), [-8.0, -8.0]);
     // Test clipping the gradient by value.
-    let loss = all.pow(2).sum(Kind::Float);
+    let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_value(4.0);
@@ -126,7 +130,7 @@ fn gradient_clip_test() {
     assert_eq!(Vec::<f64>::from(&g2), [4.0]);
     assert_eq!(Vec::<f64>::from(&g3), [-4.0, -4.0]);
     // Test clipping the gradient norm.
-    let loss = all.pow(2).sum(Kind::Float);
+    let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_norm(1.0);

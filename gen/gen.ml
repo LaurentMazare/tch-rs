@@ -37,6 +37,8 @@ let excluded_functions =
     ; "gradient"
     ; "linalg_vector_norm"
     ; "linalg_vector_norm_out"
+    ; "linalg_matrix_norm"
+    ; "linalg_matrix_norm_out"
     ]
 
 let no_tensor_options =
@@ -141,7 +143,7 @@ module Func = struct
     | "at::device" -> Some Device
     | "const at::scalar &" | "at::scalar" -> Some Scalar
     | "at::scalartype" -> Some ScalarType
-    | "std::string" -> Some String
+    | "c10::string_view" -> Some String
     | _ -> None
 
   let c_typed_args_list t =
@@ -828,7 +830,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.9.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.10.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"
