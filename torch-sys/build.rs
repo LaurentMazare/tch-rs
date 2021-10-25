@@ -250,8 +250,8 @@ fn main() {
         if use_hip {
             println!("cargo:rustc-link-lib=torch_hip");
         }
-        println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=torch_cpu");
+        println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=c10");
         if use_hip {
             println!("cargo:rustc-link-lib=c10_hip");
