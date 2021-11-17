@@ -40,6 +40,7 @@ anyhow = "1"
 [workspace]
 members = [
   "torch-sys",
+  "torch-build",
   "pyo3-tch",
   "examples/python-extension",
 ]
