@@ -99,6 +99,10 @@ pub const FLOAT_CUDA: (Kind, crate::Device) = (Kind::Float, crate::Device::Cuda(
 pub const DOUBLE_CUDA: (Kind, crate::Device) = (Kind::Double, crate::Device::Cuda(0));
 pub const INT64_CUDA: (Kind, crate::Device) = (Kind::Int64, crate::Device::Cuda(0));
 
+/// Kinds for tensor elements
+///
+/// # Safety
+/// The specified Kind must be for a type that has the same length as Self.
 pub unsafe trait Element: Clone {
     const KIND: Kind;
     const ZERO: Self;
