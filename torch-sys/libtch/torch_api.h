@@ -69,13 +69,16 @@ void at_copy_(tensor dst, tensor src);
 void at_print(tensor);
 char *at_to_string(tensor, int line_size);
 void at_save(tensor, char *filename);
+void at_save_to_stream(tensor t, void *stream_ptr);
 tensor at_load(char *filename);
+tensor at_load_from_stream(void *stream_ptr);
 tensor at_load_image(char *filename);
 tensor at_load_image_from_memory(unsigned char *img_data, size_t img_size);
 int at_save_image(tensor, char *filename);
 tensor at_resize_image(tensor, int w, int h);
 
 void at_save_multi(tensor *tensors, char **tensor_names, int ntensors, char *filename);
+void at_save_multi_to_stream(tensor *tensors, char **tensor_names, int ntensors, void *stream_ptr);
 /* [at_load_multi] takes as input an array of nullptr for [tensors]. */
 void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *filename);
 /* [at_load_multi_] takes as input an array of allocation [tensors]. */
@@ -83,6 +86,8 @@ void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *fi
 
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
 void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
+void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor));
+void at_load_from_stream_callback_with_device(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), int device_id);
 
 int at_get_num_interop_threads();
 

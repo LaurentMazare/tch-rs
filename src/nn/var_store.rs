@@ -1,6 +1,6 @@
 //! Variable stores.
 use super::Init;
-use crate::tensor::Tensor;
+use crate::tensor::{Tensor, ReadStream};
 use crate::{Device, Kind, TchError};
 use std::collections::HashMap;
 use std::ops::Div;
@@ -109,6 +109,16 @@ impl VarStore {
         Tensor::save_multi(named_tensors.as_slice(), path)
     }
 
+    /// Saves the var-store variable values to a stream.
+    ///
+    /// Weight values for all the tensors currently stored in the
+    /// var-store gets saved in the given stream.
+    pub fn save_to_stream<W: std::io::Write>(&self, stream: W) -> Result<(), TchError> {
+        let variables = self.variables_.lock().unwrap();
+        let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
+        Tensor::save_multi_to_stream(named_tensors.as_slice(), stream)
+    }
+
     /// Loads the var-store variable values from a file.
     ///
     /// Weight values for all the tensors currently stored in the
@@ -126,6 +136,30 @@ impl VarStore {
                     return Err(TchError::TensorNameNotFound(
                         name.to_string(),
                         path.as_ref().to_string_lossy().into_owned(),
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Loads the var-store variable values from a stream.
+    ///
+    /// Weight values for all the tensors currently stored in the
+    /// var-store gets loaded from the given stream. Note that the set of
+    /// variables stored in the var-store is not changed, only the values
+    /// for these tensors are modified.
+    pub fn load_from_stream<S: ReadStream>(&mut self, stream: S) -> Result<(), TchError> {
+        let named_tensors = Tensor::load_multi_from_stream_with_device(stream, self.device)?;
+        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        let mut variables = self.variables_.lock().unwrap();
+        for (name, var) in variables.named_variables.iter_mut() {
+            match named_tensors.get(name) {
+                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
+                None => {
+                    return Err(TchError::TensorNameNotFound(
+                        name.to_string(),
+                        "source stream".to_string(),
                     ));
                 }
             }

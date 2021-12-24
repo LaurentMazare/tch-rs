@@ -9,7 +9,7 @@ mod npy;
 mod ops;
 
 pub use super::wrappers::tensor::{
-    autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
+    autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor, ReadStream
 };
 pub use index::{IndexOp, NewAxis, TensorIndexer};
 

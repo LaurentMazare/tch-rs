@@ -88,12 +88,20 @@ extern "C" {
     ) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;
     pub fn at_save(arg: *mut C_tensor, filename: *const c_char);
+    pub fn at_save_to_stream(arg: *mut C_tensor, stream_ptr: *mut c_void);
     pub fn at_load(filename: *const c_char) -> *mut C_tensor;
+    pub fn at_load_from_stream(stream_ptr: *mut c_void) -> *mut C_tensor;
     pub fn at_save_multi(
         args: *const *mut C_tensor,
         names: *const *const c_char,
         n: c_int,
         filename: *const c_char,
+    );
+    pub fn at_save_multi_to_stream(
+        args: *const *mut C_tensor,
+        names: *const *const c_char,
+        n: c_int,
+        stream_ptr: *mut c_void,
     );
     pub fn at_load_callback(
         filename: *const c_char,
@@ -102,6 +110,17 @@ extern "C" {
     );
     pub fn at_load_callback_with_device(
         filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+        device_id: c_int,
+    );
+    pub fn at_load_from_stream_callback(
+        stream_ptr: *mut c_void,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+    );
+    pub fn at_load_from_stream_callback_with_device(
+        stream_ptr: *mut c_void,
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
         device_id: c_int,
