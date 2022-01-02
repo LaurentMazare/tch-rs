@@ -33,9 +33,7 @@ pub fn main() -> Result<()> {
 
     let mut net_vs = tch::nn::VarStore::new(device);
     let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
-    net_vs
-        .load(&weights)
-        .expect(&format!("Could not load weights file {}", &weights));
+    net_vs.load(&weights).expect(&format!("Could not load weights file {}", &weights));
     net_vs.freeze();
 
     let style_img = imagenet::load_image(&style_img)
@@ -56,10 +54,8 @@ pub fn main() -> Result<()> {
 
     for step_idx in 1..(1 + TOTAL_STEPS) {
         let input_layers = net.forward_all_t(&input_var, false, Some(max_layer));
-        let style_loss: Tensor = STYLE_INDEXES
-            .iter()
-            .map(|&i| style_loss(&input_layers[i], &style_layers[i]))
-            .sum();
+        let style_loss: Tensor =
+            STYLE_INDEXES.iter().map(|&i| style_loss(&input_layers[i], &style_layers[i])).sum();
         let content_loss: Tensor = CONTENT_INDEXES
             .iter()
             .map(|&i| input_layers[i].mse_loss(&content_layers[i], tch::Reduction::Mean))

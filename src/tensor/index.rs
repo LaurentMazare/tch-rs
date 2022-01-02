@@ -262,10 +262,7 @@ impl Tensor {
         use TensorIndexer::*;
 
         // Make sure n. non-newaxis does not exceed n. of dimensions
-        let n_newaxis = index_spec
-            .iter()
-            .filter(|spec| *spec == &InsertNewAxis)
-            .count();
+        let n_newaxis = index_spec.iter().filter(|spec| *spec == &InsertNewAxis).count();
 
         if index_spec.len() > self.size().len() + n_newaxis {
             return Err(TchError::Shape(format!(
@@ -309,17 +306,11 @@ impl Tensor {
                 Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
                 Narrow(Included(start), Unbounded) => {
                     let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
-                    (
-                        curr_tensor.narrow(curr_idx, *start, dim_len - *start),
-                        curr_idx + 1,
-                    )
+                    (curr_tensor.narrow(curr_idx, *start, dim_len - *start), curr_idx + 1)
                 }
                 Narrow(Excluded(start), Unbounded) => {
                     let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
-                    (
-                        curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1),
-                        curr_idx + 1,
-                    )
+                    (curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1), curr_idx + 1)
                 }
                 Narrow(Unbounded, Included(end)) => {
                     (curr_tensor.narrow(curr_idx, 0, *end + 1), curr_idx + 1)
@@ -327,28 +318,21 @@ impl Tensor {
                 Narrow(Unbounded, Excluded(end)) => {
                     (curr_tensor.narrow(curr_idx, 0, *end), curr_idx + 1)
                 }
-                Narrow(Included(start), Included(end)) => (
-                    curr_tensor.narrow(curr_idx, *start, *end - *start + 1),
-                    curr_idx + 1,
-                ),
-                Narrow(Included(start), Excluded(end)) => (
-                    curr_tensor.narrow(curr_idx, *start, *end - *start),
-                    curr_idx + 1,
-                ),
-                Narrow(Excluded(start), Included(end)) => (
-                    curr_tensor.narrow(curr_idx, *start + 1, *end - *start),
-                    curr_idx + 1,
-                ),
-                Narrow(Excluded(start), Excluded(end)) => (
-                    curr_tensor.narrow(curr_idx, *start + 1, *end - *start - 1),
-                    curr_idx + 1,
-                ),
+                Narrow(Included(start), Included(end)) => {
+                    (curr_tensor.narrow(curr_idx, *start, *end - *start + 1), curr_idx + 1)
+                }
+                Narrow(Included(start), Excluded(end)) => {
+                    (curr_tensor.narrow(curr_idx, *start, *end - *start), curr_idx + 1)
+                }
+                Narrow(Excluded(start), Included(end)) => {
+                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start), curr_idx + 1)
+                }
+                Narrow(Excluded(start), Excluded(end)) => {
+                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start - 1), curr_idx + 1)
+                }
                 IndexSelect(index_tensor) => {
                     let index_tensor = index_tensor.to_device(curr_tensor.device());
-                    (
-                        curr_tensor.index_select(curr_idx, &index_tensor),
-                        curr_idx + 1,
-                    )
+                    (curr_tensor.index_select(curr_idx, &index_tensor), curr_idx + 1)
                 }
             };
 

@@ -96,10 +96,7 @@ impl Tensor {
     pub fn size2(&self) -> Result<(i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => Err(TchError::Shape(format!(
-                "expected two dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected two dims, got {:?}", size))),
         }
     }
 
@@ -107,10 +104,7 @@ impl Tensor {
     pub fn size3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => Err(TchError::Shape(format!(
-                "expected three dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected three dims, got {:?}", size))),
         }
     }
 
@@ -118,10 +112,7 @@ impl Tensor {
     pub fn size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => Err(TchError::Shape(format!(
-                "expected four dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected four dims, got {:?}", size))),
         }
     }
 
@@ -129,10 +120,7 @@ impl Tensor {
     pub fn size5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
-            size => Err(TchError::Shape(format!(
-                "expected five dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected five dims, got {:?}", size))),
         }
     }
 
@@ -140,10 +128,7 @@ impl Tensor {
     pub fn size6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
-            size => Err(TchError::Shape(format!(
-                "expected six dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected six dims, got {:?}", size))),
         }
     }
 
@@ -167,10 +152,7 @@ impl Tensor {
     pub fn stride2(&self) -> Result<(i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => Err(TchError::Shape(format!(
-                "expected two dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected two dims, got {:?}", size))),
         }
     }
 
@@ -178,10 +160,7 @@ impl Tensor {
     pub fn stride3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => Err(TchError::Shape(format!(
-                "expected three dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected three dims, got {:?}", size))),
         }
     }
 
@@ -189,10 +168,7 @@ impl Tensor {
     pub fn stride4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => Err(TchError::Shape(format!(
-                "expected four dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected four dims, got {:?}", size))),
         }
     }
 
@@ -200,10 +176,7 @@ impl Tensor {
     pub fn stride5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
-            size => Err(TchError::Shape(format!(
-                "expected five dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected five dims, got {:?}", size))),
         }
     }
 
@@ -211,10 +184,7 @@ impl Tensor {
     pub fn stride6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
-            size => Err(TchError::Shape(format!(
-                "expected six dims, got {:?}",
-                size
-            ))),
+            size => Err(TchError::Shape(format!("expected six dims, got {:?}", size))),
         }
     }
 
@@ -344,10 +314,7 @@ impl Tensor {
             keep_graph as c_int,
             create_graph as c_int,
         ));
-        Ok(outputs
-            .into_iter()
-            .map(|c_tensor| Tensor { c_tensor })
-            .collect())
+        Ok(outputs.into_iter().map(|c_tensor| Tensor { c_tensor }).collect())
     }
 
     pub fn run_backward<T1, T2>(
@@ -409,8 +376,7 @@ impl Tensor {
         found_inf: &mut Tensor,
         inv_scale: &Tensor,
     ) {
-        self.f_internal_amp_non_finite_check_and_unscale(found_inf, inv_scale)
-            .unwrap()
+        self.f_internal_amp_non_finite_check_and_unscale(found_inf, inv_scale).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
@@ -585,10 +551,7 @@ impl Tensor {
         path: P,
     ) -> Result<(), TchError> {
         let path = path_to_cstring(path)?;
-        let c_tensors = named_tensors
-            .iter()
-            .map(|nt| nt.1.as_ref().c_tensor)
-            .collect::<Vec<_>>();
+        let c_tensors = named_tensors.iter().map(|nt| nt.1.as_ref().c_tensor).collect::<Vec<_>>();
         let names = named_tensors
             .iter()
             .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
@@ -641,10 +604,8 @@ impl Tensor {
     /// The representation will contain all the tensor element hence may be huge for
     /// large tensors.
     pub fn to_string(&self, lw: i64) -> Result<String, TchError> {
-        let s = unsafe_torch_err!(ptr_to_string(torch_sys::at_to_string(
-            self.c_tensor,
-            lw as c_int
-        )));
+        let s =
+            unsafe_torch_err!(ptr_to_string(torch_sys::at_to_string(self.c_tensor, lw as c_int)));
         match s {
             None => Err(TchError::Kind("nullptr representation".to_string())),
             Some(s) => Ok(s),
@@ -743,9 +704,7 @@ pub struct NoGradGuard {
 /// Disables gradient tracking, this will be enabled back when the
 /// returned value gets deallocated.
 pub fn no_grad_guard() -> NoGradGuard {
-    NoGradGuard {
-        enabled: grad_set_enabled(false),
-    }
+    NoGradGuard { enabled: grad_set_enabled(false) }
 }
 
 impl std::convert::AsRef<Tensor> for Tensor {

@@ -37,16 +37,10 @@ pub fn main() -> Result<()> {
     for _ in 1..NRUNS {
         let _output = image.unsqueeze(0).apply(&model);
     }
-    println!(
-        "Mean Inference Time: {} ms",
-        now.elapsed().unwrap().as_millis() / NRUNS as u128
-    );
+    println!("Mean Inference Time: {} ms", now.elapsed().unwrap().as_millis() / NRUNS as u128);
 
     // Apply the forward pass of the model to get the logits.
-    let output = image
-        .unsqueeze(0)
-        .apply(&model)
-        .softmax(-1, tch::Kind::Float);
+    let output = image.unsqueeze(0).apply(&model).softmax(-1, tch::Kind::Float);
 
     // Print the top 5 categories for this image.
     println!("Top 5 Predictions:");

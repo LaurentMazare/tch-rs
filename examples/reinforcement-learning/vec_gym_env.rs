@@ -30,11 +30,7 @@ impl VecGymEnv {
         let observation_space: Vec<i64> = observation_space.getattr(py, "shape")?.extract(py)?;
         let observation_space =
             [vec![nprocesses].as_slice(), observation_space.as_slice()].concat();
-        Ok(VecGymEnv {
-            env,
-            action_space,
-            observation_space,
-        })
+        Ok(VecGymEnv { env, action_space, observation_space })
     }
 
     pub fn reset(&self) -> PyResult<Tensor> {
@@ -50,21 +46,14 @@ impl VecGymEnv {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let step = self.env.call_method(py, "step", (action,), None)?;
-        let obs = step
-            .get_item(py, 0)?
-            .call_method(py, "flatten", NoArgs, None)?;
+        let obs = step.get_item(py, 0)?.call_method(py, "flatten", NoArgs, None)?;
         let obs_buffer = PyBuffer::get(py, &obs)?;
         let obs_vec: Vec<u8> = obs_buffer.to_vec(py)?;
-        let obs = Tensor::of_slice(&obs_vec)
-            .view_(&self.observation_space)
-            .to_kind(tch::Kind::Float);
+        let obs =
+            Tensor::of_slice(&obs_vec).view_(&self.observation_space).to_kind(tch::Kind::Float);
         let reward = Tensor::of_slice(&step.get_item(py, 1)?.extract::<Vec<f32>>(py)?);
         let is_done = Tensor::of_slice(&step.get_item(py, 2)?.extract::<Vec<f32>>(py)?);
-        Ok(Step {
-            obs,
-            reward,
-            is_done,
-        })
+        Ok(Step { obs, reward, is_done })
     }
 
     pub fn action_space(&self) -> i64 {

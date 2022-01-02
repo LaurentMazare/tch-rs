@@ -49,12 +49,7 @@ struct OuNoise {
 impl OuNoise {
     fn new(mu: f64, theta: f64, sigma: f64, num_actions: usize) -> Self {
         let state = Tensor::ones(&[num_actions as _], FLOAT_CPU);
-        Self {
-            mu,
-            theta,
-            sigma,
-            state,
-        }
+        Self { mu, theta, sigma, state }
     }
 
     fn sample(&mut self) -> &Tensor {
@@ -138,9 +133,7 @@ impl Clone for Actor {
 impl Actor {
     fn new(num_obs: usize, num_actions: usize, learning_rate: f64) -> Self {
         let var_store = nn::VarStore::new(tch::Device::Cpu);
-        let opt = nn::Adam::default()
-            .build(&var_store, learning_rate)
-            .unwrap();
+        let opt = nn::Adam::default().build(&var_store, learning_rate).unwrap();
         let p = &var_store.root();
         Self {
             network: nn::seq()
@@ -148,12 +141,7 @@ impl Actor {
                 .add_fn(|xs| xs.relu())
                 .add(nn::linear(p / "al2", 400, 300, Default::default()))
                 .add_fn(|xs| xs.relu())
-                .add(nn::linear(
-                    p / "al3",
-                    300,
-                    num_actions as _,
-                    Default::default(),
-                ))
+                .add(nn::linear(p / "al3", 300, num_actions as _, Default::default()))
                 .add_fn(|xs| xs.tanh()),
             device: p.device(),
             num_obs,
@@ -194,12 +182,7 @@ impl Critic {
         let p = &var_store.root();
         Self {
             network: nn::seq()
-                .add(nn::linear(
-                    p / "cl1",
-                    (num_obs + num_actions) as _,
-                    400,
-                    Default::default(),
-                ))
+                .add(nn::linear(p / "cl1", (num_obs + num_actions) as _, 400, Default::default()))
                 .add_fn(|xs| xs.relu())
                 .add(nn::linear(p / "cl2", 400, 300, Default::default()))
                 .add_fn(|xs| xs.relu())
@@ -221,10 +204,8 @@ impl Critic {
 
 fn track(dest: &mut nn::VarStore, src: &nn::VarStore, tau: f64) {
     tch::no_grad(|| {
-        for (dest, src) in dest
-            .trainable_variables()
-            .iter_mut()
-            .zip(src.trainable_variables().iter())
+        for (dest, src) in
+            dest.trainable_variables().iter_mut().zip(src.trainable_variables().iter())
         {
             dest.copy_(&(tau * src + (1.0 - tau) * &*dest));
         }
@@ -294,9 +275,8 @@ impl Agent {
                 _ => return, // We don't have enough samples for training yet.
             };
 
-        let mut q_target = self
-            .critic_target
-            .forward(&next_states, &self.actor_target.forward(&next_states));
+        let mut q_target =
+            self.critic_target.forward(&next_states, &self.actor_target.forward(&next_states));
         q_target = rewards + (self.gamma * q_target).detach();
 
         let q = self.critic.forward(&states, &actions);
@@ -308,25 +288,14 @@ impl Agent {
         critic_loss.backward();
         self.critic.opt.step();
 
-        let actor_loss = -self
-            .critic
-            .forward(&states, &self.actor.forward(&states))
-            .mean(Float);
+        let actor_loss = -self.critic.forward(&states, &self.actor.forward(&states)).mean(Float);
 
         self.actor.opt.zero_grad();
         actor_loss.backward();
         self.actor.opt.step();
 
-        track(
-            &mut self.critic_target.var_store,
-            &self.critic.var_store,
-            self.tau,
-        );
-        track(
-            &mut self.actor_target.var_store,
-            &self.actor.var_store,
-            self.tau,
-        );
+        track(&mut self.critic_target.var_store, &self.critic.var_store, self.tau);
+        track(&mut self.actor_target.var_store, &self.actor.var_store, self.tau);
     }
 }
 
@@ -341,15 +310,7 @@ pub fn run() -> cpython::PyResult<()> {
     let actor = Actor::new(num_obs, num_actions, ACTOR_LEARNING_RATE);
     let critic = Critic::new(num_obs, num_actions, CRITIC_LEARNING_RATE);
     let ou_noise = OuNoise::new(MU, THETA, SIGMA, num_actions);
-    let mut agent = Agent::new(
-        actor,
-        critic,
-        ou_noise,
-        REPLAY_BUFFER_CAPACITY,
-        true,
-        GAMMA,
-        TAU,
-    );
+    let mut agent = Agent::new(actor, critic, ou_noise, REPLAY_BUFFER_CAPACITY, true, GAMMA, TAU);
 
     for episode in 0..MAX_EPISODES {
         let mut obs = env.reset()?;

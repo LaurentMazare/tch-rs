@@ -56,10 +56,8 @@ fn save_and_load_var_store() {
 
 #[test]
 fn save_and_load_partial_var_store() {
-    let filename = std::env::temp_dir().join(format!(
-        "tch-vs-partial-load-complete-{}",
-        std::process::id()
-    ));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-partial-load-complete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let v = vs.sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
@@ -124,10 +122,8 @@ fn save_and_load_var_store_incomplete_file() {
 
 #[test]
 fn save_and_load_partial_var_store_incomplete_file() {
-    let filename = std::env::temp_dir().join(format!(
-        "tch-vs-partial-load-incomplete-{}",
-        std::process::id()
-    ));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-partial-load-incomplete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let u = vs.zeros("t1", &[4]);
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
@@ -171,27 +167,14 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [0.5, 0.5, 0.5]);
     let forty_two = vs.root().var("t4", &[2], Init::Const(42.));
     assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
-    let uniform = vs
-        .root()
-        .var("t5", &[100], Init::Uniform { lo: 1.0, up: 2.0 });
+    let uniform = vs.root().var("t5", &[100], Init::Uniform { lo: 1.0, up: 2.0 });
     let uniform_min = f64::from(&uniform.min());
     let uniform_max = f64::from(&uniform.max());
     assert!(uniform_min >= 1., "min {}", uniform_min);
     assert!(uniform_max <= 2., "max {}", uniform_max);
     let uniform_std = f64::from(&uniform.std(true));
-    assert!(
-        uniform_std > 0.15 && uniform_std < 0.35,
-        "std {}",
-        uniform_std
-    );
-    let normal = vs.root().var(
-        "normal",
-        &[100],
-        Init::Randn {
-            mean: 0.,
-            stdev: 0.02,
-        },
-    );
+    assert!(uniform_std > 0.15 && uniform_std < 0.35, "std {}", uniform_std);
+    let normal = vs.root().var("normal", &[100], Init::Randn { mean: 0., stdev: 0.02 });
     let normal_std = f64::from(&normal.std(true));
     assert!(normal_std <= 0.03, "std {}", normal_std);
     let mut vs2 = VarStore::new(Device::Cpu);
@@ -259,12 +242,7 @@ fn save_and_load_with_group() {
         let v = vs.set_group(1).sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
-        let _w = vs
-            .sub("a")
-            .set_group(4)
-            .sub("b")
-            .sub("ccc")
-            .ones("t123", &[3]);
+        let _w = vs.sub("a").set_group(4).sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
     let vs1 = VarStore::new(Device::Cpu);
@@ -353,18 +331,9 @@ fn half_precision_conversion_entire_varstore() {
     assert_eq!(vs.root().get("zeros").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("forty_two").unwrap().kind(), Kind::Float);
-    assert_eq!(
-        format!("{:.2}", f64::from(vs.root().get("zeros").unwrap())),
-        "0.00"
-    );
-    assert_eq!(
-        format!("{:.2}", f64::from(vs.root().get("ones").unwrap())),
-        "1.00"
-    );
-    assert_eq!(
-        format!("{:.2}", f64::from(vs.root().get("forty_two").unwrap())),
-        "42.00"
-    );
+    assert_eq!(format!("{:.2}", f64::from(vs.root().get("zeros").unwrap())), "0.00");
+    assert_eq!(format!("{:.2}", f64::from(vs.root().get("ones").unwrap())), "1.00");
+    assert_eq!(format!("{:.2}", f64::from(vs.root().get("forty_two").unwrap())), "42.00");
 }
 
 #[test]
@@ -374,67 +343,26 @@ fn path_half_precision_conversion() {
     // Define a VarStore with 3 variables. 2 of them are in a sub-path named "convert" and
     // will be cast to half-precision. The other variables in the VarStore will be unaffected
     let _ = vs.root().sub("ignore").var("zeros", &[1], Init::Const(0.));
-    let _ = vs
-        .root()
-        .sub("convert")
-        .sub("group_1")
-        .var("ones", &[1], Init::Const(1.));
-    let linear_layer = linear(
-        vs.root().sub("convert").sub("group_2").sub("linear"),
-        10,
-        42,
-        Default::default(),
-    );
+    let _ = vs.root().sub("convert").sub("group_1").var("ones", &[1], Init::Const(1.));
+    let linear_layer =
+        linear(vs.root().sub("convert").sub("group_2").sub("linear"), 10, 42, Default::default());
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(linear_layer.ws.kind(), Kind::Float);
     assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Float);
 
     vs.root().sub("convert").half();
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Half
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Half);
     assert_eq!(linear_layer.ws.kind(), Kind::Half);
     assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Half);
 
     vs.root().sub("convert").float();
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(linear_layer.ws.kind(), Kind::Float);
     assert_eq!(linear_layer.bs.as_ref().unwrap().kind(), Kind::Float);
 }
@@ -446,115 +374,32 @@ fn path_free_type_conversion() {
     // Define a VarStore with 3 variables. 2 of them are in a sub-path named "convert" and
     // will be cast to half-precision. The other variables in the VarStore will be unaffected
     let _ = vs.root().sub("ignore").var("zeros", &[1], Init::Const(0.));
-    let _ = vs
-        .root()
-        .sub("convert")
-        .sub("group_1")
-        .var("ones", &[1], Init::Const(1.));
-    let _ = vs
-        .root()
-        .sub("convert")
-        .sub("group_2")
-        .var("zeros", &[1], Init::Const(0.));
+    let _ = vs.root().sub("convert").sub("group_1").var("ones", &[1], Init::Const(1.));
+    let _ = vs.root().sub("convert").sub("group_2").var("zeros", &[1], Init::Const(0.));
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("zeros")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_2").get("zeros").unwrap().kind(), Kind::Float);
 
     vs.root().sub("convert").set_kind(Kind::Bool);
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Bool
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("zeros")
-            .unwrap()
-            .kind(),
-        Kind::Bool
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Bool);
+    assert_eq!(vs.root().sub("convert").sub("group_2").get("zeros").unwrap().kind(), Kind::Bool);
 
     vs.root().sub("convert").set_kind(Kind::Float);
 
-    assert_eq!(
-        vs.root().sub("ignore").get("zeros").unwrap().kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_1")
-            .get("ones")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
-    assert_eq!(
-        vs.root()
-            .sub("convert")
-            .sub("group_2")
-            .get("zeros")
-            .unwrap()
-            .kind(),
-        Kind::Float
-    );
+    assert_eq!(vs.root().sub("ignore").get("zeros").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Float);
+    assert_eq!(vs.root().sub("convert").sub("group_2").get("zeros").unwrap().kind(), Kind::Float);
 
+    assert_eq!(format!("{:.2}", f64::from(vs.root().sub("ignore").get("zeros").unwrap())), "0.00");
     assert_eq!(
-        format!(
-            "{:.2}",
-            f64::from(vs.root().sub("ignore").get("zeros").unwrap())
-        ),
-        "0.00"
-    );
-    assert_eq!(
-        format!(
-            "{:.2}",
-            f64::from(vs.root().sub("convert").sub("group_1").get("ones").unwrap())
-        ),
+        format!("{:.2}", f64::from(vs.root().sub("convert").sub("group_1").get("ones").unwrap())),
         "1.00"
     );
     assert_eq!(
-        format!(
-            "{:.2}",
-            f64::from(
-                vs.root()
-                    .sub("convert")
-                    .sub("group_2")
-                    .get("zeros")
-                    .unwrap()
-            )
-        ),
+        format!("{:.2}", f64::from(vs.root().sub("convert").sub("group_2").get("zeros").unwrap())),
         "0.00"
     );
 }

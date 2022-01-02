@@ -16,10 +16,7 @@ const NSTACK: i64 = 4;
 const UPDATES: i64 = 1000000;
 
 fn model(p: &nn::Path, nact: i64) -> Box<dyn Fn(&Tensor) -> (Tensor, Tensor)> {
-    let stride = |s| nn::ConvConfig {
-        stride: s,
-        ..Default::default()
-    };
+    let stride = |s| nn::ConvConfig { stride: s, ..Default::default() };
     let seq = nn::seq()
         .add(nn::conv2d(p / "c1", NSTACK, 32, 8, stride(4)))
         .add_fn(|xs| xs.relu())
@@ -47,11 +44,7 @@ struct FrameStack {
 
 impl FrameStack {
     fn new(nprocs: i64, nstack: i64) -> FrameStack {
-        FrameStack {
-            data: Tensor::zeros(&[nprocs, nstack, 84, 84], FLOAT_CPU),
-            nprocs,
-            nstack,
-        }
+        FrameStack { data: Tensor::zeros(&[nprocs, nstack, 84, 84], FLOAT_CPU), nprocs, nstack }
     }
 
     fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
@@ -121,11 +114,7 @@ pub fn train() -> cpython::PyResult<()> {
             r
         };
         let (critic, actor) =
-            model(
-                &s_states
-                    .narrow(0, 0, NSTEPS)
-                    .view([NSTEPS * NPROCS, NSTACK, 84, 84]),
-            );
+            model(&s_states.narrow(0, 0, NSTEPS).view([NSTEPS * NPROCS, NSTACK, 84, 84]));
         let critic = critic.view([NSTEPS, NPROCS]);
         let actor = actor.view([NSTEPS, NPROCS, -1]);
         let log_probs = actor.log_softmax(-1, Float);
@@ -134,21 +123,14 @@ pub fn train() -> cpython::PyResult<()> {
             let index = s_actions.unsqueeze(-1).to_device(device);
             log_probs.gather(2, &index, false).squeeze_dim(-1)
         };
-        let dist_entropy = (-log_probs * probs)
-            .sum_dim_intlist(&[-1], false, Float)
-            .mean(Float);
+        let dist_entropy = (-log_probs * probs).sum_dim_intlist(&[-1], false, Float).mean(Float);
         let advantages = s_returns.narrow(0, 0, NSTEPS).to_device(device) - critic;
         let value_loss = (&advantages * &advantages).mean(Float);
         let action_loss = (-advantages.detach() * action_log_probs).mean(Float);
         let loss = value_loss * 0.5 + action_loss - dist_entropy * 0.01;
         opt.backward_step_clip(&loss, 0.5);
         if update_index > 0 && update_index % 500 == 0 {
-            println!(
-                "{} {:.0} {}",
-                update_index,
-                total_episodes,
-                total_rewards / total_episodes
-            );
+            println!("{} {:.0} {}", update_index, total_episodes, total_rewards / total_episodes);
             total_rewards = 0.;
             total_episodes = 0.;
         }
