@@ -120,11 +120,7 @@ extern "C" {
         stream_ptr: *mut c_void,
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
-    );
-    pub fn at_load_from_stream_callback_with_device(
-        stream_ptr: *mut c_void,
-        data: *mut c_void,
-        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+        enable_device_id: bool,
         device_id: c_int,
     );
 

@@ -86,8 +86,7 @@ void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *fi
 
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
 void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
-void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor));
-void at_load_from_stream_callback_with_device(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), int device_id);
+void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), bool enable_device_id, int device_id);
 
 int at_get_num_interop_threads();
 

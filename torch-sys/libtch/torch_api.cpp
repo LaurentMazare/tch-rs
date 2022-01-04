@@ -422,21 +422,10 @@ void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, 
   )
 }
 
-void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor)) {
+void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), bool enable_device_id, int device_id) {
   PROTECT(
     auto adapter = std::shared_ptr<caffe2::serialize::ReadAdapterInterface>(new ReadStreamAdapter(stream_ptr));
-    auto module = torch::jit::load(adapter);
-    for (const auto &p : module.named_parameters()) {
-      auto v = p.value;
-      f(data, (char*)p.name.c_str(), new torch::Tensor(v));
-    }
-  )
-}
-
-void at_load_from_stream_callback_with_device(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), int device_id) {
-  PROTECT(
-    auto adapter = std::shared_ptr<caffe2::serialize::ReadAdapterInterface>(new ReadStreamAdapter(stream_ptr));
-    auto module = torch::jit::load(adapter, device_of_int(device_id));
+    auto module = enable_device_id ? torch::jit::load(adapter, device_of_int(device_id)) : torch::jit::load(adapter);
     for (const auto &p : module.named_parameters()) {
       auto v = p.value;
       f(data, (char*)p.name.c_str(), new torch::Tensor(v));

@@ -660,7 +660,9 @@ impl Tensor {
         unsafe_torch_err!(at_load_from_stream_callback(
             Box::into_raw(boxed_stream) as *mut c_void,
             &mut v as *mut _ as *mut c_void,
-            add_callback
+            add_callback,
+            false,
+            0,
         ));
         Ok(v)
     }
@@ -674,10 +676,11 @@ impl Tensor {
     ) -> Result<Vec<(String, Tensor)>, TchError> {
         let boxed_stream : Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
         let mut v: Vec<(String, Tensor)> = vec![];
-        unsafe_torch_err!(at_load_from_stream_callback_with_device(
+        unsafe_torch_err!(at_load_from_stream_callback(
             Box::into_raw(boxed_stream) as *mut c_void,
             &mut v as *mut _ as *mut c_void,
             add_callback,
+            true,
             device.c_int(),
         ));
         Ok(v)
