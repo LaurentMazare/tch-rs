@@ -216,6 +216,15 @@ int ati_tag(ivalue);
 
 void ati_free(ivalue);
 
+// for internal use
+bool tch_write_stream_destructor(void *stream_ptr);
+bool tch_write_stream_write(void *stream_ptr, const uint8_t *buf, size_t size, size_t *out_size);
+bool tch_read_stream_destructor(void *stream_ptr);
+bool tch_read_stream_stream_position(void *stream_ptr, uint64_t *pos);
+bool tch_read_stream_seek_start(void *stream_ptr, uint64_t pos, uint64_t *new_pos);
+bool tch_read_stream_seek_end(void *stream_ptr, int64_t pos, uint64_t *new_pos);
+bool tch_read_stream_read(void *stream_ptr, uint8_t *buf, size_t size, size_t *new_pos);
+
 #include "torch_api_generated.h"
 
 #ifdef __cplusplus
