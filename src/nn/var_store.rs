@@ -115,7 +115,7 @@ impl VarStore {
     /// Saves the var-store variable values to a file.
     ///
     /// Weight values for all the tensors currently stored in the
-    /// var-store gets saved in the given file.
+    /// var-store are saved in the given file.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<(), TchError> {
         let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
@@ -125,7 +125,7 @@ impl VarStore {
     /// Loads the var-store variable values from a file.
     ///
     /// Weight values for all the tensors currently stored in the
-    /// var-store gets loaded from the given file. Note that the set of
+    /// var-store are loaded from the given file. Note that the set of
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
