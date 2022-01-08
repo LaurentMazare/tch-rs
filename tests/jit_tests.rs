@@ -26,13 +26,9 @@ fn jit_data() {
 #[test]
 fn jit1() {
     let foo = tch::CModule::load("tests/foo1.pt").unwrap();
-    let result = foo
-        .forward_ts(&[Tensor::from(42), Tensor::from(1337)])
-        .unwrap();
+    let result = foo.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
     assert_eq!(i64::from(&result), 1421);
-    let result = foo
-        .method_ts("forward", &[Tensor::from(42), Tensor::from(1337)])
-        .unwrap();
+    let result = foo.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
     assert_eq!(i64::from(&result), 1421);
 }
 
@@ -40,10 +36,7 @@ fn jit1() {
 fn jit2() {
     let foo = tch::CModule::load("tests/foo2.pt").unwrap();
     let result = foo
-        .forward_is(&[
-            IValue::from(Tensor::from(42)),
-            IValue::from(Tensor::from(1337)),
-        ])
+        .forward_is(&[IValue::from(Tensor::from(42)), IValue::from(Tensor::from(1337))])
         .unwrap();
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);
@@ -53,13 +46,7 @@ fn jit2() {
     assert_eq!(i64::from(v1), 1421);
     assert_eq!(i64::from(v2.unwrap()), -1295);
     let result = foo
-        .method_is(
-            "forward",
-            &[
-                IValue::from(Tensor::from(42)),
-                IValue::from(Tensor::from(1337)),
-            ],
-        )
+        .method_is("forward", &[IValue::from(Tensor::from(42)), IValue::from(Tensor::from(1337))])
         .unwrap();
     let expected1 = Tensor::from(1421);
     let expected2 = Tensor::from(-1295);
@@ -109,11 +96,7 @@ fn jit5() {
         .unwrap();
     assert_eq!(
         result,
-        IValue::from(vec![
-            IValue::from("fo"),
-            IValue::from("ba"),
-            IValue::from("fooba")
-        ])
+        IValue::from(vec![IValue::from("fo"), IValue::from("ba"), IValue::from("fooba")])
     );
     // Destructuring of ivalue.
     let (v1, v2, v3) = <(String, String, String)>::try_from(result).unwrap();

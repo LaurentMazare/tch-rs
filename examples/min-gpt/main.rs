@@ -80,16 +80,9 @@ fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
         let q = xs.apply(&query).view(sizes).transpose(1, 2);
         let v = xs.apply(&value).view(sizes).transpose(1, 2);
         let att = q.matmul(&k.transpose(-2, -1)) * (1.0 / f64::sqrt(sizes[3] as f64));
-        let att = att.masked_fill(
-            &mask.i((.., .., ..sz_t, ..sz_t)).eq(0.),
-            std::f64::NEG_INFINITY,
-        );
+        let att = att.masked_fill(&mask.i((.., .., ..sz_t, ..sz_t)).eq(0.), std::f64::NEG_INFINITY);
         let att = att.softmax(-1, Kind::Float).dropout(cfg.attn_pdrop, train);
-        let ys = att
-            .matmul(&v)
-            .transpose(1, 2)
-            .contiguous()
-            .view([sz_b, sz_t, sz_c]);
+        let ys = att.matmul(&v).transpose(1, 2).contiguous().view([sz_b, sz_t, sz_c]);
         ys.apply(&proj).dropout(cfg.resid_pdrop, train)
     })
 }
@@ -102,24 +95,14 @@ fn block(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let lin2 = linear(p / "lin2", 4 * cfg.n_embd, cfg.n_embd);
     nn::func_t(move |xs, train| {
         let xs = xs + xs.apply(&ln1).apply_t(&attn, train);
-        let ys = xs
-            .apply(&ln2)
-            .apply(&lin1)
-            .gelu()
-            .apply(&lin2)
-            .dropout(cfg.resid_pdrop, train);
+        let ys = xs.apply(&ln2).apply(&lin1).gelu().apply(&lin2).dropout(cfg.resid_pdrop, train);
         xs + ys
     })
 }
 
 fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let p = &p.set_group(NO_WEIGHT_DECAY_GROUP);
-    let tok_emb = nn::embedding(
-        p / "tok_emb",
-        cfg.vocab_size,
-        cfg.n_embd,
-        Default::default(),
-    );
+    let tok_emb = nn::embedding(p / "tok_emb", cfg.vocab_size, cfg.n_embd, Default::default());
     let pos_emb = p.zeros("pos_emb", &[1, cfg.block_size, cfg.n_embd]);
     let ln_f = nn::layer_norm(p / "ln_f", vec![cfg.n_embd], Default::default());
     let head = linear_no_bias(p / "head", cfg.n_embd, cfg.vocab_size);
@@ -184,14 +167,8 @@ pub fn main() -> Result<()> {
                 let mut sum_loss = 0.;
                 let mut cnt_loss = 0.;
                 for batch in data.iter_shuffle(BLOCK_SIZE + 1, BATCH_SIZE) {
-                    let xs = batch
-                        .narrow(1, 0, BLOCK_SIZE)
-                        .to_kind(Kind::Int64)
-                        .to_device(device);
-                    let ys = batch
-                        .narrow(1, 1, BLOCK_SIZE)
-                        .to_kind(Kind::Int64)
-                        .to_device(device);
+                    let xs = batch.narrow(1, 0, BLOCK_SIZE).to_kind(Kind::Int64).to_device(device);
+                    let ys = batch.narrow(1, 1, BLOCK_SIZE).to_kind(Kind::Int64).to_device(device);
                     let logits = xs.apply_t(&gpt, true);
                     let loss = logits
                         .view([BATCH_SIZE * BLOCK_SIZE, labels])
@@ -222,9 +199,8 @@ pub fn main() -> Result<()> {
                 if idx >= BLOCK_SIZE {
                     break;
                 }
-                let _filled = input
-                    .i((0, BLOCK_SIZE - 1 - idx))
-                    .fill_(data.char_to_label(c)? as i64);
+                let _filled =
+                    input.i((0, BLOCK_SIZE - 1 - idx)).fill_(data.char_to_label(c)? as i64);
             }
             println!("Sample: {}", sample(&data, &gpt, input));
         }

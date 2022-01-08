@@ -12,11 +12,7 @@ pub struct LinearConfig {
 
 impl Default for LinearConfig {
     fn default() -> Self {
-        LinearConfig {
-            ws_init: super::Init::KaimingUniform,
-            bs_init: None,
-            bias: true,
-        }
+        LinearConfig { ws_init: super::Init::KaimingUniform, bs_init: None, bias: true }
     }
 }
 
@@ -38,20 +34,14 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     let bs = if c.bias {
         let bs_init = c.bs_init.unwrap_or_else(|| {
             let bound = 1.0 / (in_dim as f64).sqrt();
-            super::Init::Uniform {
-                lo: -bound,
-                up: bound,
-            }
+            super::Init::Uniform { lo: -bound, up: bound }
         });
         Some(vs.var("bias", &[out_dim], bs_init))
     } else {
         None
     };
 
-    Linear {
-        ws: vs.var("weight", &[out_dim, in_dim], c.ws_init),
-        bs,
-    }
+    Linear { ws: vs.var("weight", &[out_dim, in_dim], c.ws_init), bs }
 }
 
 impl super::module::Module for Linear {

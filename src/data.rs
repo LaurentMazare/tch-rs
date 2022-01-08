@@ -148,11 +148,7 @@ impl TextData {
             })
         }
 
-        Ok(TextData {
-            data: Tensor::of_slice(&buffer),
-            char_for_label,
-            label_for_char,
-        })
+        Ok(TextData { data: Tensor::of_slice(&buffer), char_for_label, label_for_char })
     }
 
     /// Returns the number of different characters/labels used by the dataset.
@@ -202,10 +198,7 @@ impl Iterator for TextDataIter {
         } else {
             self.batch_index += 1;
             let indexes = Vec::<i64>::from(&self.indexes.i(start..start + size));
-            let batch: Vec<_> = indexes
-                .iter()
-                .map(|&i| self.data.i(i..i + self.seq_len))
-                .collect();
+            let batch: Vec<_> = indexes.iter().map(|&i| self.data.i(i..i + self.seq_len)).collect();
             let batch: Vec<_> = batch.iter().collect();
             Some(Tensor::stack(&batch, 0))
         }

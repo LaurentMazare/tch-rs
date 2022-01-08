@@ -50,10 +50,7 @@ impl Accumulator {
         Accumulator {
             block_type: None,
             parameters: BTreeMap::new(),
-            net: Darknet {
-                blocks: vec![],
-                parameters: BTreeMap::new(),
-            },
+            net: Darknet { blocks: vec![], parameters: BTreeMap::new() },
         }
     }
 
@@ -94,10 +91,9 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> Result<Darknet> {
         } else {
             let key_value: Vec<&str> = line.splitn(2, "=").collect();
             ensure!(key_value.len() == 2, "missing equal {}", line);
-            let prev = acc.parameters.insert(
-                key_value[0].trim().to_owned(),
-                key_value[1].trim().to_owned(),
-            );
+            let prev = acc
+                .parameters
+                .insert(key_value[0].trim().to_owned(), key_value[1].trim().to_owned());
             ensure!(prev == None, "multiple value for key {}", line);
         }
     }
@@ -127,12 +123,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
         }
         Some(_) | None => (None, true),
     };
-    let conv_cfg = nn::ConvConfig {
-        stride,
-        padding: pad,
-        bias,
-        ..Default::default()
-    };
+    let conv_cfg = nn::ConvConfig { stride, padding: pad, bias, ..Default::default() };
     let vs = &vs / format!("conv_{}", index);
     let conv = nn::conv2d(vs, p, filters, size, conv_cfg);
     let leaky = match activation {
@@ -178,10 +169,7 @@ fn usize_of_index(index: usize, i: i64) -> usize {
 
 fn route(index: usize, p: &Vec<(i64, Bl)>, block: &Block) -> Result<(i64, Bl)> {
     let layers = int_list_of_string(block.get("layers")?)?;
-    let layers: Vec<usize> = layers
-        .into_iter()
-        .map(|l| usize_of_index(index, l))
-        .collect();
+    let layers: Vec<usize> = layers.into_iter().map(|l| usize_of_index(index, l)).collect();
     let channels = layers.iter().map(|&l| p[l].0).sum();
     Ok((channels, Bl::Route(layers)))
 }
@@ -195,9 +183,7 @@ fn yolo(p: i64, block: &Block) -> Result<(i64, Bl)> {
     let classes = block.get("classes")?.parse::<i64>()?;
     let flat = int_list_of_string(block.get("anchors")?)?;
     ensure!(flat.len() % 2 == 0, "even number of anchors");
-    let anchors: Vec<_> = (0..(flat.len() / 2))
-        .map(|i| (flat[2 * i], flat[2 * i + 1]))
-        .collect();
+    let anchors: Vec<_> = (0..(flat.len() / 2)).map(|i| (flat[2 * i], flat[2 * i + 1])).collect();
     let mask = int_list_of_string(block.get("mask")?)?;
     let anchors = mask.into_iter().map(|i| anchors[i as usize]).collect();
     Ok((p, Bl::Yolo(classes, anchors)))
@@ -229,18 +215,14 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
     let b = a.tr().contiguous();
     let x_offset = a.view((-1, 1));
     let y_offset = b.view((-1, 1));
-    let xy_offset = Tensor::cat(&[x_offset, y_offset], 1)
-        .repeat(&[1, nanchors])
-        .view((-1, 2))
-        .unsqueeze(0);
+    let xy_offset =
+        Tensor::cat(&[x_offset, y_offset], 1).repeat(&[1, nanchors]).view((-1, 2)).unsqueeze(0);
     let anchors: Vec<f32> = anchors
         .iter()
         .flat_map(|&(x, y)| vec![x as f32 / stride as f32, y as f32 / stride as f32].into_iter())
         .collect();
-    let anchors = Tensor::of_slice(&anchors)
-        .view((-1, 2))
-        .repeat(&[grid_size * grid_size, 1])
-        .unsqueeze(0);
+    let anchors =
+        Tensor::of_slice(&anchors).view((-1, 2)).repeat(&[grid_size * grid_size, 1]).unsqueeze(0);
     slice_apply_and_set(&mut xs, 0, 2, |xs| xs.sigmoid() + xy_offset);
     slice_apply_and_set(&mut xs, 4, 1 + classes, Tensor::sigmoid);
     slice_apply_and_set(&mut xs, 2, 2, |xs| xs.exp() * anchors);

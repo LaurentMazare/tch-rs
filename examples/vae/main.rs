@@ -65,12 +65,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
     let imgs = (imgs * 256.).clamp(0., 255.).to_kind(Kind::Uint8);
     let mut ys: Vec<Tensor> = vec![];
     for i in 0..sz {
-        ys.push(Tensor::cat(
-            &(0..sz)
-                .map(|j| imgs.narrow(0, 4 * i + j, 1))
-                .collect::<Vec<_>>(),
-            2,
-        ))
+        ys.push(Tensor::cat(&(0..sz).map(|j| imgs.narrow(0, 4 * i + j, 1)).collect::<Vec<_>>(), 2))
     }
     Ok(Tensor::cat(&ys, 3).squeeze_dim(0))
 }

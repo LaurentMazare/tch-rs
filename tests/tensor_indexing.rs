@@ -149,10 +149,8 @@ fn tensor_multi_index() {
 
     let selected = t.index(&[Some(select_final)]); // index only rows
     assert_eq!(selected.size(), &[2, 3, 3]);
-    assert_eq!(
-        Vec::<i64>::from(selected),
-        &[0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 0, 1, 2]
-    ); // after flattening
+    assert_eq!(Vec::<i64>::from(selected), &[0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 0, 1, 2]);
+    // after flattening
 }
 
 #[test]

@@ -1,1 +1,2 @@
-format_code_in_doc_comments = true
+use_small_heuristics = "Max"
+edition = "2018"

@@ -46,10 +46,7 @@ pub fn run() -> cpython::PyResult<()> {
         // Perform some rollouts with the current model.
         loop {
             let action = tch::no_grad(|| {
-                obs.unsqueeze(0)
-                    .apply(&model)
-                    .softmax(1, Float)
-                    .multinomial(1, true)
+                obs.unsqueeze(0).apply(&model).softmax(1, Float).multinomial(1, true)
             });
             let action = i64::from(action);
             let step = env.step(action)?;

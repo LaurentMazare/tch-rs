@@ -45,23 +45,13 @@ pub struct Sgd {
 
 impl Default for Sgd {
     fn default() -> Self {
-        Sgd {
-            momentum: 0.,
-            dampening: 0.,
-            wd: 0.,
-            nesterov: false,
-        }
+        Sgd { momentum: 0., dampening: 0., wd: 0., nesterov: false }
     }
 }
 
 /// Creates the configuration for a Stochastic Gradient Descent (SGD) optimizer.
 pub fn sgd(momentum: f64, dampening: f64, wd: f64, nesterov: bool) -> Sgd {
-    Sgd {
-        momentum,
-        dampening,
-        wd,
-        nesterov,
-    }
+    Sgd { momentum, dampening, wd, nesterov }
 }
 
 impl OptimizerConfig for Sgd {
@@ -80,11 +70,7 @@ pub struct Adam {
 
 impl Default for Adam {
     fn default() -> Self {
-        Adam {
-            beta1: 0.9,
-            beta2: 0.999,
-            wd: 0.,
-        }
+        Adam { beta1: 0.9, beta2: 0.999, wd: 0. }
     }
 }
 
@@ -109,11 +95,7 @@ pub struct AdamW {
 
 impl Default for AdamW {
     fn default() -> Self {
-        AdamW {
-            beta1: 0.9,
-            beta2: 0.999,
-            wd: 0.01,
-        }
+        AdamW { beta1: 0.9, beta2: 0.999, wd: 0.01 }
     }
 }
 
@@ -140,37 +122,18 @@ pub struct RmsProp {
 
 impl Default for RmsProp {
     fn default() -> Self {
-        RmsProp {
-            alpha: 0.99,
-            eps: 1e-8,
-            wd: 0.,
-            momentum: 0.,
-            centered: false,
-        }
+        RmsProp { alpha: 0.99, eps: 1e-8, wd: 0., momentum: 0., centered: false }
     }
 }
 
 /// Creates the configuration for the RmsProp optimizer.
 pub fn rms_prop(alpha: f64, eps: f64, wd: f64, momentum: f64, centered: bool) -> RmsProp {
-    RmsProp {
-        alpha,
-        eps,
-        wd,
-        momentum,
-        centered,
-    }
+    RmsProp { alpha, eps, wd, momentum, centered }
 }
 
 impl OptimizerConfig for RmsProp {
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
-        COptimizer::rms_prop(
-            lr,
-            self.alpha,
-            self.eps,
-            self.wd,
-            self.momentum,
-            self.centered,
-        )
+        COptimizer::rms_prop(lr, self.alpha, self.eps, self.wd, self.momentum, self.centered)
     }
 }
 
@@ -279,11 +242,7 @@ impl Optimizer {
     /// Returns all the trainable variables for this optimizer.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables.lock().unwrap();
-        variables
-            .trainable_variables
-            .iter()
-            .map(|v| v.tensor.shallow_clone())
-            .collect()
+        variables.trainable_variables.iter().map(|v| v.tensor.shallow_clone()).collect()
     }
 
     /// Sets the optimizer weight decay.
@@ -293,8 +252,6 @@ impl Optimizer {
 
     /// Sets the optimizer weight decay.
     pub fn set_weight_decay_group(&mut self, group: usize, weight_decay: f64) {
-        self.opt
-            .set_weight_decay_group(group, weight_decay)
-            .unwrap()
+        self.opt.set_weight_decay_group(group, weight_decay).unwrap()
     }
 }

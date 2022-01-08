@@ -31,10 +31,7 @@ impl Module for Sequential {
             xs.shallow_clone()
         } else {
             let xs = self.layers[0].forward(xs);
-            self.layers
-                .iter()
-                .skip(1)
-                .fold(xs, |xs, layer| layer.forward(&xs))
+            self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward(&xs))
         }
     }
 }
@@ -103,10 +100,7 @@ impl ModuleT for SequentialT {
             xs.shallow_clone()
         } else {
             let xs = self.layers[0].forward_t(xs, train);
-            self.layers
-                .iter()
-                .skip(1)
-                .fold(xs, |xs, layer| layer.forward_t(&xs, train))
+            self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward_t(&xs, train))
         }
     }
 }

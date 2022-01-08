@@ -16,8 +16,7 @@ impl Lang {
             match self.word_to_index_and_count.get_mut(word) {
                 None => {
                     let length = self.word_to_index_and_count.len();
-                    self.word_to_index_and_count
-                        .insert(word.to_string(), (length, 1));
+                    self.word_to_index_and_count.insert(word.to_string(), (length, 1));
                     self.index_to_word.insert(length, word.to_owned());
                 }
                 Some((_, cnt)) => {

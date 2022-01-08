@@ -44,10 +44,7 @@ fn normalize(s: &str) -> String {
 }
 
 fn to_indexes(s: &str, lang: &lang::Lang) -> Vec<usize> {
-    let mut res = s
-        .split_whitespace()
-        .filter_map(|x| lang.get_index(x))
-        .collect::<Vec<_>>();
+    let mut res = s.split_whitespace().filter_map(|x| lang.get_index(x)).collect::<Vec<_>>();
     res.push(lang.eos_token());
     res
 }
@@ -87,11 +84,7 @@ impl Dataset {
             input_lang.add_sentence(&lhs);
             output_lang.add_sentence(&rhs);
         }
-        let dataset = Dataset {
-            input_lang,
-            output_lang,
-            pairs,
-        };
+        let dataset = Dataset { input_lang, output_lang, pairs };
         Ok(dataset)
     }
 
@@ -115,10 +108,7 @@ impl Dataset {
         self.pairs
             .iter()
             .map(|(lhs, rhs)| {
-                (
-                    to_indexes(&lhs, &self.input_lang),
-                    to_indexes(&rhs, &self.output_lang),
-                )
+                (to_indexes(&lhs, &self.input_lang), to_indexes(&rhs, &self.output_lang))
             })
             .collect::<Vec<_>>()
     }

@@ -16,18 +16,14 @@ impl<T: Element> From<&Tensor> for Vec<T> {
 impl<T: Element> From<&Tensor> for Vec<Vec<T>> {
     fn from(tensor: &Tensor) -> Vec<Vec<T>> {
         let first_dim = tensor.size()[0];
-        (0..first_dim)
-            .map(|i| Vec::<T>::from(tensor.get(i)))
-            .collect()
+        (0..first_dim).map(|i| Vec::<T>::from(tensor.get(i))).collect()
     }
 }
 
 impl<T: Element> From<&Tensor> for Vec<Vec<Vec<T>>> {
     fn from(tensor: &Tensor) -> Vec<Vec<Vec<T>>> {
         let first_dim = tensor.size()[0];
-        (0..first_dim)
-            .map(|i| Vec::<Vec<T>>::from(tensor.get(i)))
-            .collect()
+        (0..first_dim).map(|i| Vec::<Vec<T>>::from(tensor.get(i))).collect()
     }
 }
 

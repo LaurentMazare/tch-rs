@@ -18,15 +18,8 @@ fn train_and_save_model(dataset: &Dataset, device: Device) -> Result<()> {
 
     let mut opt = Adam::default().build(&vs, 1e-4)?;
     for epoch in 1..20 {
-        for (images, labels) in dataset
-            .train_iter(128)
-            .shuffle()
-            .to_device(vs.device())
-            .take(50)
-        {
-            let loss = trainable
-                .forward_t(&images, true)
-                .cross_entropy_for_logits(&labels);
+        for (images, labels) in dataset.train_iter(128).shuffle().to_device(vs.device()).take(50) {
+            let loss = trainable.forward_t(&images, true).cross_entropy_for_logits(&labels);
             opt.backward_step(&loss);
         }
         let test_accuracy = trainable.batch_accuracy_for_logits(

@@ -12,22 +12,12 @@ const LEARNING_RATE: f64 = 1e-4;
 const BATCHES: i64 = 100000000;
 
 fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::ConvTranspose2D {
-    let cfg = nn::ConvTransposeConfig {
-        stride,
-        padding,
-        bias: false,
-        ..Default::default()
-    };
+    let cfg = nn::ConvTransposeConfig { stride, padding, bias: false, ..Default::default() };
     nn::conv_transpose2d(&p, c_in, c_out, 4, cfg)
 }
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Conv2D {
-    let cfg = nn::ConvConfig {
-        stride,
-        padding,
-        bias: false,
-        ..Default::default()
-    };
+    let cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
     nn::conv2d(&p, c_in, c_out, 4, cfg)
 }
 
@@ -79,12 +69,7 @@ fn image_matrix(imgs: &Tensor, sz: i64) -> Result<Tensor> {
     let imgs = ((imgs + 1.) * 127.5).clamp(0., 255.).to_kind(Kind::Uint8);
     let mut ys: Vec<Tensor> = vec![];
     for i in 0..sz {
-        ys.push(Tensor::cat(
-            &(0..sz)
-                .map(|j| imgs.narrow(0, 4 * i + j, 1))
-                .collect::<Vec<_>>(),
-            2,
-        ))
+        ys.push(Tensor::cat(&(0..sz).map(|j| imgs.narrow(0, 4 * i + j, 1)).collect::<Vec<_>>(), 2))
     }
     Ok(Tensor::cat(&ys, 3).squeeze_dim(0))
 }
@@ -102,12 +87,7 @@ pub fn main() -> Result<()> {
 
     let random_batch_images = || {
         let index = Tensor::randint(train_size, &[BATCH_SIZE], kind::INT64_CPU);
-        images
-            .index_select(0, &index)
-            .to_device(device)
-            .to_kind(Kind::Float)
-            / 127.5
-            - 1.
+        images.index_select(0, &index).to_device(device).to_kind(Kind::Float) / 127.5 - 1.
     };
     let rand_latent = || {
         (Tensor::rand(&[BATCH_SIZE, LATENT_DIM, 1, 1], kind::FLOAT_CPU) * 2.0 - 1.0)
@@ -146,9 +126,7 @@ pub fn main() -> Result<()> {
         let generator_loss = {
             let batch_images = random_batch_images();
             let y_pred = batch_images.apply_t(&discriminator, true);
-            let y_pred_fake = rand_latent()
-                .apply_t(&generator, true)
-                .apply_t(&discriminator, true);
+            let y_pred_fake = rand_latent().apply_t(&generator, true).apply_t(&discriminator, true);
             mse_loss(&y_pred, &(y_pred_fake.mean(Kind::Float) - 1))
                 + mse_loss(&y_pred_fake, &(y_pred.mean(Kind::Float) + 1))
         };

@@ -6,9 +6,7 @@ use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 fn optimizer_test() {
     tch::manual_seed(42);
     // Create some linear data.
-    let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>())
-        .to_kind(Kind::Float)
-        .view([-1, 1]);
+    let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>()).to_kind(Kind::Float).view([-1, 1]);
     let ys = &xs * 0.42 + 1.337;
 
     // Fit a linear model (with deterministic initialization) on the data.
@@ -52,11 +50,7 @@ fn optimizer_test() {
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!(
-        (final_loss - initial_loss) < 1e-5,
-        "final loss {}",
-        final_loss
-    )
+    assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
@@ -73,9 +67,7 @@ fn gradient_descent_test() {
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys)
-            .pow_tensor_scalar(2)
-            .sum(Kind::Float);
+        let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step(&loss);
     }
 }
@@ -88,9 +80,7 @@ fn gradient_descent_test_clip_norm() {
     for _idx in 1..50 {
         let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
         let ys = Tensor::ones(&[7], kind::FLOAT_CPU);
-        let loss = (my_module.forward(&xs) - ys)
-            .pow_tensor_scalar(2)
-            .sum(Kind::Float);
+        let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step_clip_norm(&loss, 0.1);
     }
 }
@@ -161,9 +151,7 @@ fn layer_norm_test() {
 fn layer_norm_parameters_test() {
     tch::manual_seed(42);
     // Create some linear data.
-    let xs = Tensor::of_slice(&[42.0, 42.0, 42.0, 24.0])
-        .to_kind(Kind::Float)
-        .view([-1, 2]);
+    let xs = Tensor::of_slice(&[42.0, 42.0, 42.0, 24.0]).to_kind(Kind::Float).view([-1, 2]);
     let ys = &xs * 0.42 + 1.337;
 
     // Fit a layer normalization layer (with deterministic initialization) on the data.
@@ -217,32 +205,16 @@ fn gru_test(rnn_config: nn::RNNConfig) {
     // seq test
     let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = gru.seq(&input);
-    assert_eq!(
-        output.size(),
-        [batch_dim, seq_len, output_dim * num_directions]
-    );
+    assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
 
 #[test]
 fn gru() {
     gru_test(Default::default());
-    gru_test(nn::RNNConfig {
-        has_biases: false,
-        ..Default::default()
-    });
-    gru_test(nn::RNNConfig {
-        bidirectional: true,
-        ..Default::default()
-    });
-    gru_test(nn::RNNConfig {
-        num_layers: 2,
-        ..Default::default()
-    });
-    gru_test(nn::RNNConfig {
-        num_layers: 2,
-        bidirectional: true,
-        ..Default::default()
-    });
+    gru_test(nn::RNNConfig { has_biases: false, ..Default::default() });
+    gru_test(nn::RNNConfig { bidirectional: true, ..Default::default() });
+    gru_test(nn::RNNConfig { num_layers: 2, ..Default::default() });
+    gru_test(nn::RNNConfig { num_layers: 2, bidirectional: true, ..Default::default() });
 }
 
 fn lstm_test(rnn_config: nn::RNNConfig) {
@@ -266,32 +238,16 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
     // seq test
     let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = lstm.seq(&input);
-    assert_eq!(
-        output.size(),
-        [batch_dim, seq_len, output_dim * num_directions]
-    );
+    assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
 
 #[test]
 fn lstm() {
     lstm_test(Default::default());
-    lstm_test(nn::RNNConfig {
-        has_biases: false,
-        ..Default::default()
-    });
-    lstm_test(nn::RNNConfig {
-        bidirectional: true,
-        ..Default::default()
-    });
-    lstm_test(nn::RNNConfig {
-        num_layers: 2,
-        ..Default::default()
-    });
-    lstm_test(nn::RNNConfig {
-        num_layers: 2,
-        bidirectional: true,
-        ..Default::default()
-    });
+    lstm_test(nn::RNNConfig { has_biases: false, ..Default::default() });
+    lstm_test(nn::RNNConfig { bidirectional: true, ..Default::default() });
+    lstm_test(nn::RNNConfig { num_layers: 2, ..Default::default() });
+    lstm_test(nn::RNNConfig { num_layers: 2, bidirectional: true, ..Default::default() });
 }
 
 fn embedding_test(embedding_config: nn::EmbeddingConfig) {
@@ -326,18 +282,12 @@ fn embedding_default() {
 
 #[test]
 fn embedding_neg_padding() {
-    embedding_test(nn::EmbeddingConfig {
-        padding_idx: -1,
-        ..Default::default()
-    });
+    embedding_test(nn::EmbeddingConfig { padding_idx: -1, ..Default::default() });
 }
 
 #[test]
 fn embedding_zero_padding() {
-    embedding_test(nn::EmbeddingConfig {
-        padding_idx: 0,
-        ..Default::default()
-    });
+    embedding_test(nn::EmbeddingConfig { padding_idx: 0, ..Default::default() });
 }
 
 fn linear_test(linear_config: nn::LinearConfig) {
@@ -363,12 +313,6 @@ fn linear_test(linear_config: nn::LinearConfig) {
 #[test]
 fn linear() {
     linear_test(Default::default());
-    linear_test(nn::LinearConfig {
-        bias: true,
-        ..Default::default()
-    });
-    linear_test(nn::LinearConfig {
-        bias: false,
-        ..Default::default()
-    });
+    linear_test(nn::LinearConfig { bias: true, ..Default::default() });
+    linear_test(nn::LinearConfig { bias: false, ..Default::default() });
 }

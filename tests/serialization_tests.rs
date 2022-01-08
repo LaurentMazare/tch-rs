@@ -75,8 +75,5 @@ fn save_and_load_npy() {
     pi.write_npy(&filename).unwrap();
     let pi = Tensor::read_npy(&filename).unwrap();
     assert_eq!(pi.size(), [3, 1, 2]);
-    assert_eq!(
-        Vec::<f64>::from(pi.flatten(0, -1)),
-        [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]
-    );
+    assert_eq!(Vec::<f64>::from(pi.flatten(0, -1)), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
 }

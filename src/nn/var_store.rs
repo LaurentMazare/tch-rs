@@ -52,14 +52,9 @@ pub struct Entry<'a> {
 impl VarStore {
     /// Creates a new var-store located on the specified device.
     pub fn new(device: Device) -> VarStore {
-        let variables = Variables {
-            named_variables: HashMap::new(),
-            trainable_variables: Vec::new(),
-        };
-        VarStore {
-            variables_: Arc::new(Mutex::new(variables)),
-            device,
-        }
+        let variables =
+            Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
+        VarStore { variables_: Arc::new(Mutex::new(variables)), device }
     }
 
     /// Gets the device for this var-store.
@@ -82,11 +77,7 @@ impl VarStore {
     /// Returns all the trainable variables for this var-store.
     pub fn trainable_variables(&self) -> Vec<Tensor> {
         let variables = self.variables_.lock().unwrap();
-        variables
-            .trainable_variables
-            .iter()
-            .map(|v| v.tensor.shallow_clone())
-            .collect()
+        variables.trainable_variables.iter().map(|v| v.tensor.shallow_clone()).collect()
     }
 
     /// Returns all variables along with their names.
@@ -105,11 +96,7 @@ impl VarStore {
     /// the top level path for the var store and can be combined with '/'
     /// to create sub-paths.
     pub fn root(&self) -> Path {
-        Path {
-            path: vec![],
-            group: 0,
-            var_store: self,
-        }
+        Path { path: vec![], group: 0, var_store: self }
     }
 
     /// Saves the var-store variable values to a file.
@@ -272,19 +259,11 @@ impl<'a> Path<'a> {
         }
         let mut path = self.path.clone();
         path.push(s);
-        Path {
-            path,
-            group: self.group,
-            var_store: self.var_store,
-        }
+        Path { path, group: self.group, var_store: self.var_store }
     }
 
     pub fn set_group(&self, group: usize) -> Path<'a> {
-        Path {
-            path: self.path.clone(),
-            group,
-            var_store: self.var_store,
-        }
+        Path { path: self.path.clone(), group, var_store: self.var_store }
     }
 
     /// Gets the device where the var-store variables are stored.
@@ -373,21 +352,12 @@ impl<'a> Path<'a> {
         } else {
             path
         };
-        let tensor = if trainable {
-            tensor.set_requires_grad(true)
-        } else {
-            tensor
-        };
+        let tensor = if trainable { tensor.set_requires_grad(true) } else { tensor };
         if trainable {
-            let var = Var {
-                tensor: tensor.shallow_clone(),
-                group: self.group,
-            };
+            let var = Var { tensor: tensor.shallow_clone(), group: self.group };
             variables.trainable_variables.push(var);
         };
-        variables
-            .named_variables
-            .insert(path, tensor.shallow_clone());
+        variables.named_variables.insert(path, tensor.shallow_clone());
         tensor
     }
 
@@ -403,21 +373,12 @@ impl<'a> Path<'a> {
             return var.shallow_clone();
         }
 
-        let tensor = if trainable {
-            tensor.set_requires_grad(true)
-        } else {
-            tensor
-        };
+        let tensor = if trainable { tensor.set_requires_grad(true) } else { tensor };
         if trainable {
-            let var = Var {
-                tensor: tensor.shallow_clone(),
-                group: self.group,
-            };
+            let var = Var { tensor: tensor.shallow_clone(), group: self.group };
             variables.trainable_variables.push(var);
         }
-        variables
-            .named_variables
-            .insert(path, tensor.shallow_clone());
+        variables.named_variables.insert(path, tensor.shallow_clone());
         tensor
     }
 
@@ -483,10 +444,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// standard normal distribution.
     pub fn f_randn_standard(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
-        let init = Init::Randn {
-            mean: 0.,
-            stdev: 1.,
-        };
+        let init = Init::Randn { mean: 0., stdev: 1. };
         self.f_var(name, dims, init)
     }
 
@@ -658,20 +616,13 @@ impl<'a> Path<'a> {
     pub fn get(&self, name: &str) -> Option<Tensor> {
         let path = self.path(name);
         let variables = self.var_store.variables_.lock().unwrap();
-        variables
-            .named_variables
-            .get(&path)
-            .map(|v| v.shallow_clone())
+        variables.named_variables.get(&path).map(|v| v.shallow_clone())
     }
 
     /// Gets the entry corresponding to a given name for in-place manipulation.
     pub fn entry<'b>(&'b self, name: &'b str) -> Entry<'b> {
         let variables = self.var_store.variables_.lock().unwrap();
-        Entry {
-            name,
-            variables,
-            path: self,
-        }
+        Entry { name, variables, path: self }
     }
 }
 
@@ -684,8 +635,7 @@ impl<'a> Entry<'a> {
     /// initialized according to the init parameter.
     pub fn or_var(self, dims: &[i64], init: Init) -> Tensor {
         let v = super::init(init, dims, self.path.device());
-        self.path
-            .get_or_add_with_lock(self.name, v, true, self.variables)
+        self.path.get_or_add_with_lock(self.name, v, true, self.variables)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -708,8 +658,7 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_ones_no_train(self, dims: &[i64]) -> Tensor {
         let o = Tensor::ones(dims, (Kind::Float, self.path.device()));
-        self.path
-            .get_or_add_with_lock(self.name, o, true, self.variables)
+        self.path.get_or_add_with_lock(self.name, o, true, self.variables)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -719,10 +668,7 @@ impl<'a> Entry<'a> {
 
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_randn_standard(self, dims: &[i64]) -> Tensor {
-        let init = Init::Randn {
-            mean: 0.,
-            stdev: 1.,
-        };
+        let init = Init::Randn { mean: 0., stdev: 1. };
         self.or_var(dims, init)
     }
 
@@ -739,8 +685,7 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_zeros_no_train(self, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.path.device()));
-        self.path
-            .get_or_add_with_lock(self.name, z, true, self.variables)
+        self.path.get_or_add_with_lock(self.name, z, true, self.variables)
     }
 }
 
