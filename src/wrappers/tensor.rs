@@ -6,11 +6,11 @@ use super::{
 };
 use crate::TchError;
 use libc::{c_char, c_int, c_void};
-use std::io::Write;
 use std::borrow::Borrow;
+use std::io::Write;
 use std::path::Path;
-use torch_sys::*;
 pub use torch_sys::io::ReadStream;
+use torch_sys::*;
 
 /// A tensor object.
 #[must_use]
@@ -540,7 +540,7 @@ impl Tensor {
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn load_from_stream<T: ReadStream>(stream: T) -> Result<Tensor, TchError> {
-        let boxed_stream : Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
         let c_tensor = unsafe_torch_err!(at_load_from_stream(
             Box::into_raw(boxed_stream) as *mut c_void,
         ));
@@ -560,7 +560,7 @@ impl Tensor {
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save_to_stream<W: Write>(&self, stream: W) -> Result<(), TchError> {
-        let boxed_stream : Box<Box<dyn Write>> = Box::new(Box::new(stream));
+        let boxed_stream: Box<Box<dyn Write>> = Box::new(Box::new(stream));
         unsafe_torch_err!(at_save_to_stream(
             self.c_tensor,
             Box::into_raw(boxed_stream) as *mut c_void,
@@ -599,7 +599,7 @@ impl Tensor {
         named_tensors: &[(S, T)],
         stream: W,
     ) -> Result<(), TchError> {
-        let boxed_stream : Box<Box<dyn Write>> = Box::new(Box::new(stream));
+        let boxed_stream: Box<Box<dyn Write>> = Box::new(Box::new(stream));
         let c_tensors = named_tensors
             .iter()
             .map(|nt| nt.1.as_ref().c_tensor)
@@ -654,8 +654,10 @@ impl Tensor {
     /// Loads some named tensors from a stream
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
-    pub fn load_multi_from_stream<T: ReadStream>(stream: T) -> Result<Vec<(String, Tensor)>, TchError> {
-        let boxed_stream : Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
+    pub fn load_multi_from_stream<T: ReadStream>(
+        stream: T,
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!(at_load_from_stream_callback(
             Box::into_raw(boxed_stream) as *mut c_void,
@@ -674,7 +676,7 @@ impl Tensor {
         stream: T,
         device: Device,
     ) -> Result<Vec<(String, Tensor)>, TchError> {
-        let boxed_stream : Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(stream));
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!(at_load_from_stream_callback(
             Box::into_raw(boxed_stream) as *mut c_void,

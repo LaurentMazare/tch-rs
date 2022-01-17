@@ -1,6 +1,6 @@
 //! Variable stores.
 use super::Init;
-use crate::tensor::{Tensor, ReadStream};
+use crate::tensor::{ReadStream, Tensor};
 use crate::{Device, Kind, TchError};
 use std::collections::HashMap;
 use std::ops::Div;

@@ -15,7 +15,8 @@ fn save_to_stream_and_load() {
     let filename = std::env::temp_dir().join(format!("tch-write-stream-{}", std::process::id()));
     let vec = [3.0, 1.0, 4.0, 1.0, 5.0].to_vec();
     let t1 = Tensor::of_slice(&vec);
-    t1.save_to_stream(std::fs::File::create(&filename).unwrap()).unwrap();
+    t1.save_to_stream(std::fs::File::create(&filename).unwrap())
+        .unwrap();
     let t2 = Tensor::load(&filename).unwrap();
     assert_eq!(Vec::<f64>::from(&t2), vec)
 }
@@ -49,7 +50,11 @@ fn save_to_stream_and_load_multi() {
     let filename = std::env::temp_dir().join(format!("tch2-write-stream-{}", std::process::id()));
     let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]);
     let e = Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]);
-    Tensor::save_multi_to_stream(&[(&"pi", &pi), (&"e", &e)], std::fs::File::create(&filename).unwrap()).unwrap();
+    Tensor::save_multi_to_stream(
+        &[(&"pi", &pi), (&"e", &e)],
+        std::fs::File::create(&filename).unwrap(),
+    )
+    .unwrap();
     let named_tensors = Tensor::load_multi(&filename).unwrap();
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
