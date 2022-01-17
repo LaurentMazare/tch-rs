@@ -6,7 +6,8 @@ pub trait ReadStream: Read + Seek {}
 #[no_mangle]
 extern "C" fn tch_write_stream_destructor(stream_ptr: *mut c_void) {
     unsafe {
-        let _: Box<Box<dyn Write>> = Box::from_raw(stream_ptr as *mut Box<dyn Write>);
+        let boxed_stream: Box<Box<dyn Write>> = Box::from_raw(stream_ptr as *mut Box<dyn Write>);
+        drop(boxed_stream)
     }
 }
 
@@ -33,7 +34,9 @@ extern "C" fn tch_write_stream_write(
 #[no_mangle]
 extern "C" fn tch_read_stream_destructor(stream_ptr: *mut c_void) {
     unsafe {
-        let _: Box<Box<dyn ReadStream>> = Box::from_raw(stream_ptr as *mut Box<dyn ReadStream>);
+        let boxed_stream: Box<Box<dyn ReadStream>> =
+            Box::from_raw(stream_ptr as *mut Box<dyn ReadStream>);
+        drop(boxed_stream)
     }
 }
 
