@@ -3,11 +3,6 @@ use std::io::{Read, Seek, SeekFrom, Write};
 
 pub trait ReadStream: Read + Seek {}
 
-impl ReadStream for std::fs::File {}
-impl ReadStream for std::io::Cursor<Vec<u8>> {}
-impl ReadStream for std::io::Cursor<&[u8]> {}
-impl<T: Read + Seek> ReadStream for std::io::BufReader<T> {}
-
 #[no_mangle]
 extern "C" fn tch_write_stream_destructor(stream_ptr: *mut c_void) {
     unsafe {

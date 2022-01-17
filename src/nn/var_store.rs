@@ -1,8 +1,10 @@
 //! Variable stores.
 use super::Init;
-use crate::tensor::{ReadStream, Tensor};
+use crate::tensor::Tensor;
+use crate::wrappers::stream::ReadSeekAdapter;
 use crate::{Device, Kind, TchError};
 use std::collections::HashMap;
+use std::io::{Read, Seek};
 use std::ops::Div;
 use std::sync::{Arc, Mutex, MutexGuard};
 
@@ -149,8 +151,9 @@ impl VarStore {
     /// var-store gets loaded from the given stream. Note that the set of
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
-    pub fn load_from_stream<S: ReadStream>(&mut self, stream: S) -> Result<(), TchError> {
-        let named_tensors = Tensor::load_multi_from_stream_with_device(stream, self.device)?;
+    pub fn load_from_stream<S: Read + Seek>(&mut self, stream: S) -> Result<(), TchError> {
+        let adapter = ReadSeekAdapter::new(stream);
+        let named_tensors = Tensor::load_multi_from_stream_with_device(adapter, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
