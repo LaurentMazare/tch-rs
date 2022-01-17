@@ -1,5 +1,6 @@
 //! Recurrent Neural Networks
 use crate::{Device, Kind, Tensor};
+use std::borrow::Borrow;
 
 /// Trait for Recurrent Neural Networks.
 #[allow(clippy::upper_case_acronyms)]
@@ -86,7 +87,13 @@ pub struct LSTM {
 }
 
 /// Creates a LSTM layer.
-pub fn lstm(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> LSTM {
+pub fn lstm<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    hidden_dim: i64,
+    c: RNNConfig,
+) -> LSTM {
+    let vs = vs.borrow();
     let num_directions = if c.bidirectional { 2 } else { 1 };
     let gate_dim = 4 * hidden_dim;
     let mut flat_weights = vec![];
@@ -186,7 +193,13 @@ pub struct GRU {
 }
 
 /// Creates a new GRU layer.
-pub fn gru(vs: &super::var_store::Path, in_dim: i64, hidden_dim: i64, c: RNNConfig) -> GRU {
+pub fn gru<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    hidden_dim: i64,
+    c: RNNConfig,
+) -> GRU {
+    let vs = vs.borrow();
     let num_directions = if c.bidirectional { 2 } else { 1 };
     let gate_dim = 3 * hidden_dim;
     let mut flat_weights = vec![];
