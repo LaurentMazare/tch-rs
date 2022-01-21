@@ -31,7 +31,7 @@ impl nn::ModuleT for Net {
             .view([-1, 1024])
             .apply(&self.fc1)
             .relu()
-            .dropout_(0.5, train)
+            .dropout(0.5, train)
             .apply(&self.fc2)
     }
 }
