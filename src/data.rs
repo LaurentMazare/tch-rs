@@ -1,5 +1,5 @@
 //! Dataset iterators.
-use crate::{kind, Device, IndexOp, TchError, Tensor};
+use crate::{kind, kind::Kind, Device, IndexOp, TchError, Tensor};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -74,7 +74,7 @@ impl Iter2 {
     /// The iterator would still run over the whole dataset but the order in
     /// which elements are grouped in mini-batches is randomized.
     pub fn shuffle(&mut self) -> &mut Iter2 {
-        let index = Tensor::randperm(self.total_size, kind::INT64_CPU);
+        let index = Tensor::randperm(self.total_size, (Kind::Int64, self.device));
         self.xs = self.xs.index_select(0, &index);
         self.ys = self.ys.index_select(0, &index);
         self
