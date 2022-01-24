@@ -1,8 +1,6 @@
 //! Dataset iterators.
 use crate::{kind, kind::Kind, Device, IndexOp, TchError, Tensor};
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufReader, Read};
 
 /// An iterator over a pair of tensors which have the same first dimension
 /// size.
@@ -134,9 +132,7 @@ pub struct TextDataIter {
 impl TextData {
     /// Creates a text dataset from a file.
     pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData, TchError> {
-        let mut buf_reader = BufReader::new(File::open(filename)?);
-        let mut buffer = Vec::new();
-        buf_reader.read_to_end(&mut buffer)?;
+        let mut buffer = std::fs::read(filename)?;
 
         let mut label_for_char = HashMap::<u8, u8>::new();
         let mut char_for_label = Vec::<char>::new();
