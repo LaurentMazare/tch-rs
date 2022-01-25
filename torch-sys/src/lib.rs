@@ -219,6 +219,13 @@ extern "C" {
 
     pub fn ati_free(arg: *mut CIValue);
 
+    pub fn ati_object_method_(
+        arg: *mut CIValue,
+        method_name: *const c_char,
+        args: *const *mut CIValue,
+        n: c_int,
+    ) -> *mut CIValue;
+
     pub fn atm_load(filename: *const c_char) -> *mut CModule_;
     pub fn atm_load_on_device(filename: *const c_char, device: c_int) -> *mut CModule_;
     pub fn atm_load_str(data: *const c_char, sz: size_t) -> *mut CModule_;

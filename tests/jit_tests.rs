@@ -106,6 +106,23 @@ fn jit5() {
 }
 
 #[test]
+fn jit6() {
+    let foo = tch::CModule::load("tests/foo6.pt").unwrap();
+    let xs = Tensor::of_slice(&[3.0, 4.0, 5.0]);
+    let result = foo.forward_is(&[IValue::Tensor(xs)]).unwrap();
+
+    if let IValue::Object(obj) = result {
+        let result = obj.method_is::<IValue>("y", &[]).unwrap();
+        assert_eq!(
+            result,
+            IValue::Tensor(Tensor::of_slice(&[6.0, 8.0, 10.0]))
+        );
+    } else {
+        panic!("expected output to be an object");
+    }
+}
+
+#[test]
 fn create_traced() {
     let mut closure = |inputs: &[Tensor]| {
         let v1 = inputs[0].shallow_clone();
