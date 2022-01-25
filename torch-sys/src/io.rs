@@ -21,7 +21,7 @@ extern "C" fn tch_write_stream_write(
     unsafe {
         let boxed_stream = stream_ptr as *mut Box<dyn Write>;
         let buffer = std::slice::from_raw_parts(buf, size);
-        match (*boxed_stream).write(&buffer) {
+        match (*boxed_stream).write(buffer) {
             Ok(x) => {
                 *out_size = x;
                 true
