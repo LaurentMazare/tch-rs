@@ -15,8 +15,7 @@ fn save_to_stream_and_load() {
     let filename = std::env::temp_dir().join(format!("tch-write-stream-{}", std::process::id()));
     let vec = [3.0, 1.0, 4.0, 1.0, 5.0].to_vec();
     let t1 = Tensor::of_slice(&vec);
-    t1.save_to_stream(std::fs::File::create(&filename).unwrap())
-        .unwrap();
+    t1.save_to_stream(std::fs::File::create(&filename).unwrap()).unwrap();
     let t2 = Tensor::load(&filename).unwrap();
     assert_eq!(Vec::<f64>::from(&t2), vec)
 }

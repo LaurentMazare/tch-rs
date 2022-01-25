@@ -56,10 +56,8 @@ fn save_and_load_var_store() {
 
 #[test]
 fn save_to_stream_and_load_var_store() {
-    let filename = std::env::temp_dir().join(format!(
-        "tch-vs-load-stream-complete-{}",
-        std::process::id()
-    ));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-load-stream-complete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let v = vs.sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
@@ -79,8 +77,7 @@ fn save_to_stream_and_load_var_store() {
     assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
-    vs1.save_to_stream(std::fs::File::create(&filename).unwrap())
-        .unwrap();
+    vs1.save_to_stream(std::fs::File::create(&filename).unwrap()).unwrap();
     vs2.load(&filename).unwrap();
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
@@ -90,10 +87,8 @@ fn save_to_stream_and_load_var_store() {
 
 #[test]
 fn save_and_load_from_stream_var_store() {
-    let filename = std::env::temp_dir().join(format!(
-        "tch-vs-load-stream-complete-{}",
-        std::process::id()
-    ));
+    let filename =
+        std::env::temp_dir().join(format!("tch-vs-load-stream-complete-{}", std::process::id()));
     let add = |vs: &tch::nn::Path| {
         let v = vs.sub("a").sub("b").ones("t2", &[3]);
         let u = vs.zeros("t1", &[4]);
@@ -114,8 +109,7 @@ fn save_and_load_from_stream_var_store() {
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
-    vs2.load_from_stream(std::fs::File::open(&filename).unwrap())
-        .unwrap();
+    vs2.load_from_stream(std::fs::File::open(&filename).unwrap()).unwrap();
     assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);

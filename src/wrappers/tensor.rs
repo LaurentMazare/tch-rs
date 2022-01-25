@@ -543,9 +543,8 @@ impl Tensor {
     pub fn load_from_stream<T: Read + Seek>(stream: T) -> Result<Tensor, TchError> {
         let adapter = ReadSeekAdapter::new(stream);
         let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(adapter));
-        let c_tensor = unsafe_torch_err!(at_load_from_stream(
-            Box::into_raw(boxed_stream) as *mut c_void,
-        ));
+        let c_tensor =
+            unsafe_torch_err!(at_load_from_stream(Box::into_raw(boxed_stream) as *mut c_void,));
         Ok(Tensor { c_tensor })
     }
 
@@ -602,10 +601,7 @@ impl Tensor {
         stream: W,
     ) -> Result<(), TchError> {
         let boxed_stream: Box<Box<dyn Write>> = Box::new(Box::new(stream));
-        let c_tensors = named_tensors
-            .iter()
-            .map(|nt| nt.1.as_ref().c_tensor)
-            .collect::<Vec<_>>();
+        let c_tensors = named_tensors.iter().map(|nt| nt.1.as_ref().c_tensor).collect::<Vec<_>>();
         let names = named_tensors
             .iter()
             .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
