@@ -1,3 +1,4 @@
+use super::stream::ReadSeekAdapter;
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{
     device::{Cuda, Device},
@@ -7,7 +8,9 @@ use super::{
 use crate::TchError;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
+use std::io::{Read, Seek, Write};
 use std::path::Path;
+use torch_sys::io::ReadStream;
 use torch_sys::*;
 
 /// A tensor object.
@@ -534,12 +537,35 @@ impl Tensor {
         Ok(Tensor { c_tensor })
     }
 
+    /// Loads a tensor from a stream.
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn load_from_stream<T: Read + Seek>(stream: T) -> Result<Tensor, TchError> {
+        let adapter = ReadSeekAdapter::new(stream);
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(adapter));
+        let c_tensor =
+            unsafe_torch_err!(at_load_from_stream(Box::into_raw(boxed_stream) as *mut c_void,));
+        Ok(Tensor { c_tensor })
+    }
+
     /// Saves a tensor to a file.
     ///
     /// The file format is the same as the one used by the PyTorch C++ API.
     pub fn save<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
         let path = path_to_cstring(path)?;
         unsafe_torch_err!(at_save(self.c_tensor, path.as_ptr()));
+        Ok(())
+    }
+
+    /// Saves a tensor to a stream.
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn save_to_stream<W: Write>(&self, stream: W) -> Result<(), TchError> {
+        let boxed_stream: Box<Box<dyn Write>> = Box::new(Box::new(stream));
+        unsafe_torch_err!(at_save_to_stream(
+            self.c_tensor,
+            Box::into_raw(boxed_stream) as *mut c_void,
+        ));
         Ok(())
     }
 
@@ -563,6 +589,30 @@ impl Tensor {
             name_ptrs.as_ptr(),
             names.len() as i32,
             path.as_ptr(),
+        ));
+        Ok(())
+    }
+
+    /// Saves some named tensors to a stream
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn save_multi_to_stream<S: AsRef<str>, T: AsRef<Tensor>, W: Write>(
+        named_tensors: &[(S, T)],
+        stream: W,
+    ) -> Result<(), TchError> {
+        let boxed_stream: Box<Box<dyn Write>> = Box::new(Box::new(stream));
+        let c_tensors = named_tensors.iter().map(|nt| nt.1.as_ref().c_tensor).collect::<Vec<_>>();
+        let names = named_tensors
+            .iter()
+            .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
+            .map(std::ffi::CString::new)
+            .collect::<Result<Vec<_>, _>>()?;
+        let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
+        unsafe_torch_err!(at_save_multi_to_stream(
+            c_tensors.as_ptr(),
+            name_ptrs.as_ptr(),
+            names.len() as i32,
+            Box::into_raw(boxed_stream) as *mut c_void,
         ));
         Ok(())
     }
@@ -594,6 +644,45 @@ impl Tensor {
             path.as_ptr(),
             &mut v as *mut _ as *mut c_void,
             add_callback,
+            device.c_int(),
+        ));
+        Ok(v)
+    }
+
+    /// Loads some named tensors from a stream
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn load_multi_from_stream<T: Read + Seek>(
+        stream: T,
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
+        let adapter = ReadSeekAdapter::new(stream);
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(adapter));
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!(at_load_from_stream_callback(
+            Box::into_raw(boxed_stream) as *mut c_void,
+            &mut v as *mut _ as *mut c_void,
+            add_callback,
+            false,
+            0,
+        ));
+        Ok(v)
+    }
+
+    /// Loads some named tensors from a stream to a given device
+    ///
+    /// The file format is the same as the one used by the PyTorch C++ API.
+    pub fn load_multi_from_stream_with_device<T: Read + Seek>(
+        stream: T,
+        device: Device,
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
+        let adapter = ReadSeekAdapter::new(stream);
+        let boxed_stream: Box<Box<dyn ReadStream>> = Box::new(Box::new(adapter));
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!(at_load_from_stream_callback(
+            Box::into_raw(boxed_stream) as *mut c_void,
+            &mut v as *mut _ as *mut c_void,
+            add_callback,
+            true,
             device.c_int(),
         ));
         Ok(v)
