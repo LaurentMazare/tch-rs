@@ -113,10 +113,7 @@ fn jit6() {
 
     if let IValue::Object(obj) = result {
         let result = obj.method_is::<IValue>("y", &[]).unwrap();
-        assert_eq!(
-            result,
-            IValue::Tensor(Tensor::of_slice(&[6.0, 8.0, 10.0]))
-        );
+        assert_eq!(result, IValue::Tensor(Tensor::of_slice(&[6.0, 8.0, 10.0])));
     } else {
         panic!("expected output to be an object");
     }

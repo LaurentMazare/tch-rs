@@ -707,7 +707,11 @@ pub struct Object {
 }
 
 impl Object {
-    pub fn method_is<T: Borrow<IValue>>(&self, method_name: &str, ts: &[T]) -> Result<IValue, TchError> {
+    pub fn method_is<T: Borrow<IValue>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
         let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
         let method_name = std::ffi::CString::new(method_name)?;
         let c_ivalue = unsafe_torch_err!(ati_object_method_(
