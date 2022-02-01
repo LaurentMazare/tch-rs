@@ -1285,8 +1285,8 @@ ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int niva
   PROTECT(
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(*i); // self parameter
-    for (int i = 0; i < nivalues; ++i)
-      inputs.push_back(*(ivalues[i]));
+    for (int j = 0; j < nivalues; ++j)
+      inputs.push_back(*(ivalues[j]));
     torch::jit::IValue output = i->toObjectRef().type()->getMethod(method_name)(std::move(inputs));
     return new torch::jit::IValue(output);
   )
