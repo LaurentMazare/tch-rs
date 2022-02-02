@@ -1071,7 +1071,7 @@ module atm_create_for_tracing(
     for (int i = 0; i < ninputs; ++i) {
       auto value = state->graph->addInput();
       value->setType(torch::jit::TensorType::get());
-      state->setValue(*inputs[i], value); 
+      state->setValue(*inputs[i], value);
     }
     return new torch::jit::script::Module(modl);
   )
@@ -1234,7 +1234,8 @@ int ati_tag(ivalue i) {
     else if (i->isTensorList()) return 10;
     else if (i->isList()) return 12;
     else if (i->isGenericDict()) return 13;
-    throw std::invalid_argument(("unsupported tag" + i->tagKind()).c_str());
+    else if (i->isObject()) return 14;
+    throw std::invalid_argument(("unsupported tag " + i->tagKind()).c_str());
     return -1;
   )
   return -1;
@@ -1393,6 +1394,17 @@ void ati_to_tensor_list(ivalue i,
   )
 }
 
+ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(*i); // self parameter
+    for (int j = 0; j < nivalues; ++j)
+      inputs.push_back(*(ivalues[j]));
+    torch::jit::IValue output = i->toObjectRef().type()->getMethod(method_name)(std::move(inputs));
+    return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
 
 void ati_free(ivalue i) {
   delete(i);

@@ -9,6 +9,7 @@ use torch_sys::*;
 
 /// Argument and output values for JIT models.
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum IValue {
     None,
     Tensor(crate::Tensor),
@@ -26,6 +27,7 @@ pub enum IValue {
     // We use a vec to represent dictionaries as f64 does not implement
     // Eq or Hash out of the box in rust. TODO: improve this?
     GenericDict(Vec<(IValue, IValue)>),
+    Object(Object),
 }
 
 impl IValue {
@@ -45,6 +47,7 @@ impl IValue {
             IValue::TensorList(_) => "TensorList",
             IValue::GenericList(_) => "GenericList",
             IValue::GenericDict(_) => "GenericDict",
+            IValue::Object(_) => "Object",
         }
     }
 }
@@ -293,12 +296,14 @@ impl IValue {
                 }
                 dict
             }
+            IValue::Object(Object { c_ivalue }) => *c_ivalue,
         });
         Ok(c)
     }
 
-    // This consumes the pointer and frees the associated memory.
+    // This consumes the pointer and frees the associated memory (unless it is an Object).
     pub(super) fn of_c(c_ivalue: *mut CIValue) -> Result<Self, TchError> {
+        let mut free = true;
         let tag = unsafe_torch_err!(ati_tag(c_ivalue));
         let v = match tag {
             0 => IValue::None,
@@ -381,9 +386,15 @@ impl IValue {
                 }
                 IValue::GenericDict(res)
             }
+            14 => {
+                free = false;
+                IValue::Object(Object { c_ivalue })
+            }
             _ => return Err(TchError::Kind(format!("unhandled tag {}", tag))),
         };
-        unsafe_torch_err!(ati_free(c_ivalue));
+        if free {
+            unsafe_torch_err!(ati_free(c_ivalue));
+        }
         Ok(v)
     }
 }
@@ -688,6 +699,38 @@ pub fn f_set_profiling_mode(b: bool) -> Result<(), TchError> {
 
 pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Object {
+    c_ivalue: *mut CIValue,
+}
+
+impl Object {
+    pub fn method_is<T: Borrow<IValue>>(
+        &self,
+        method_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
+        let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
+        let method_name = std::ffi::CString::new(method_name)?;
+        let c_ivalue = unsafe_torch_err!(ati_object_method_(
+            self.c_ivalue,
+            method_name.as_ptr(),
+            ts.as_ptr(),
+            ts.len() as c_int
+        ));
+        for x in ts {
+            unsafe { ati_free(x) }
+        }
+        IValue::of_c(c_ivalue)
+    }
+}
+
+impl Drop for Object {
+    fn drop(&mut self) {
+        unsafe_torch!(ati_free(self.c_ivalue))
+    }
 }
 
 #[cfg(test)]

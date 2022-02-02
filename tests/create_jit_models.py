@@ -71,3 +71,18 @@ class Foo5(torch.jit.ScriptModule):
 
 foo = Foo5()
 foo.save('foo5.pt')
+
+@torch.jit.script
+class TorchScriptClass:
+    def __init__(self, x: torch.Tensor):
+        self.x = x
+
+    def y(self) -> torch.Tensor:
+        return self.x * 2
+
+@torch.jit.script
+def foo_6(x: torch.Tensor):
+    return TorchScriptClass(x)
+
+
+foo_6.save("foo6.pt")

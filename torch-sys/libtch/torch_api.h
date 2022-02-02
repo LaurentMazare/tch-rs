@@ -213,6 +213,8 @@ void ati_to_tensor_list(ivalue, tensor *, int);
 
 int ati_tag(ivalue);
 
+ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
+
 void ati_free(ivalue);
 
 // for internal use
