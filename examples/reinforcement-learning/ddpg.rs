@@ -118,7 +118,7 @@ struct Actor {
     device: Device,
     num_obs: usize,
     num_actions: usize,
-    opt: nn::Optimizer<nn::Adam>,
+    opt: nn::Optimizer,
     learning_rate: f64,
 }
 
@@ -163,7 +163,7 @@ struct Critic {
     device: Device,
     num_obs: usize,
     num_actions: usize,
-    opt: nn::Optimizer<nn::Adam>,
+    opt: nn::Optimizer,
     learning_rate: f64,
 }
 
