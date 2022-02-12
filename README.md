@@ -16,7 +16,7 @@ The code generation part for the C api on top of libtorch comes from
 
 ## Getting Started
 
-This crate requires the C++ PyTorch library (libtorch) in version *v1.10.0* to be available on
+This crate requires the C++ PyTorch library (libtorch) in version *v1.11.0* to be available on
 your system. You can either:
 
 - Use the system-wide libtorch installation (default).
