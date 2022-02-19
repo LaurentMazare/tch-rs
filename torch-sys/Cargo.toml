@@ -23,6 +23,7 @@ zip = "0.5"
 
 [features]
 download-libtorch = ["curl"]
+python = []
 doc-only = []
 
 [package.metadata.docs.rs]

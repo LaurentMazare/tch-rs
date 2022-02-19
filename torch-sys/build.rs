@@ -10,6 +10,7 @@ use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 const TORCH_VERSION: &str = "1.10.0";
 
@@ -75,6 +76,48 @@ fn check_system_location() -> Option<PathBuf> {
     match os.as_str() {
         "linux" => Path::new("/usr/lib/libtorch.so").exists().then(|| PathBuf::from("/usr")),
         _ => None,
+    }
+}
+
+fn find_python() -> String {
+    env::var("PYTHON3").ok().unwrap_or_else(|| {
+        let candidates = if cfg!(windows) {
+            ["python3.exe", "python.exe"]
+        } else {
+            ["python3", "python"]
+        };
+        for &name in &candidates {
+            if Command::new(name)
+                .arg("--version")
+                .output()
+                .ok()
+                .map_or(false, |out| out.status.success())
+            {
+                return name.to_owned();
+            }
+        }
+        panic!(
+            "Can't find python (tried {})! Try fixing PATH or setting the PYTHON_INCLUDE_DIRS env var explicitly",
+            candidates.join(", ")
+        )
+    })
+}
+
+fn find_python_include_dir() -> PathBuf {
+    if let Ok(python_dir) = env_var_rerun("PYTHON_INCLUDE_DIRS") {
+        PathBuf::from(python_dir)
+    } else {
+        let python = find_python();
+        let output = Command::new(python)
+            .arg("-c")
+            .arg("from sysconfig import get_paths as gp; print(gp()['include'])")
+            .output()
+            .expect("Failed to run python")
+            .stdout;
+        let python_dir = String::from_utf8(output)
+            .expect("Python output not utf8")
+            .trim().to_owned();
+        PathBuf::from(python_dir)
     }
 }
 
@@ -145,8 +188,16 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
+fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+
+    let python_includes = if use_python {
+        let python_include_dir = find_python_include_dir();
+        vec![python_include_dir]
+    } else {
+        vec![]
+    };
+    let use_python_flag = if use_python { "1".to_owned() } else { "0".to_owned() };
 
     let cuda_dependency = if use_cuda || use_hip {
         "libtch/dummy_cuda_dependency.cpp"
@@ -170,9 +221,11 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .warnings(false)
                 .include(libtorch.as_ref().join("include"))
                 .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .includes(python_includes)
                 .flag(&format!("-Wl,-rpath={}", libtorch.as_ref().join("lib").display()))
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
+                .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
                 .compile("tch");
@@ -187,6 +240,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .warnings(false)
                 .include(libtorch.as_ref().join("include"))
                 .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .includes(python_includes)
+                .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
                 .compile("tch");
@@ -220,9 +275,17 @@ fn main() {
             || libtorch.join("lib").join("torch_cuda_cpp.dll").exists();
         let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
             || libtorch.join("lib").join("torch_hip.dll").exists();
+
+        let use_python = cfg!(feature = "python");
+        if use_python
+            && !libtorch.join("lib").join("libtorch_python.so").exists()
+            && !libtorch.join("lib").join("torch_python.dll").exists() {
+                panic!("libtorch_python.so or torch_python.dll not found");
+        }
+
         println!("cargo:rustc-link-search=native={}", libtorch.join("lib").display());
 
-        make(&libtorch, use_cuda, use_hip);
+        make(&libtorch, use_cuda, use_hip, use_python);
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
@@ -242,6 +305,9 @@ fn main() {
         println!("cargo:rustc-link-lib=c10");
         if use_hip {
             println!("cargo:rustc-link-lib=c10_hip");
+        }
+        if use_python {
+            println!("cargo:rustc-link-lib=torch_python");
         }
 
         let target = env::var("TARGET").unwrap();
