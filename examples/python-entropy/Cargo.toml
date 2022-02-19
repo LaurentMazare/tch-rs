@@ -1,0 +1,15 @@
+[package]
+name = "python-entropy"
+version = "0.1.0"
+authors = ["Egor Dmitriev <egordmitriev2@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "python_entropy"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.15.1", features = ["extension-module"] }
+tch = { path = "../../", features = ["torch_python"], default-features = false }
+torch-sys = { path = "../../torch-sys", features = ["python"], default-features = false }
