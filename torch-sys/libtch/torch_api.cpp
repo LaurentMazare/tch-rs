@@ -1426,7 +1426,10 @@ bool thp_variable_check(PyObject* obj) {
 }
 
 PyObject* thp_variable_wrap(tensor var){
-    return THPVariable_Wrap(*var);
+    PROTECT(
+        return THPVariable_Wrap(*var);
+    )
+    return nullptr;
 }
 #endif
 
