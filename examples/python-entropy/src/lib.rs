@@ -1,5 +1,5 @@
-use std::ops::{Div, Mul};
 use pyo3::prelude::*;
+use std::ops::{Div, Mul};
 use tch::{Device, Kind, Scalar, Tensor};
 
 #[pyclass(name = "EntropyMetric")]
@@ -11,9 +11,7 @@ pub struct EntropyMetric {
 impl EntropyMetric {
     #[new]
     fn __new__(n_classes: i64) -> Self {
-        EntropyMetric {
-            counter: Tensor::zeros(&[n_classes], (Kind::Float, Device::Cpu))
-        }
+        EntropyMetric { counter: Tensor::zeros(&[n_classes], (Kind::Float, Device::Cpu)) }
     }
 
     fn update(&mut self, x: Tensor) -> PyResult<()> {

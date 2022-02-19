@@ -834,19 +834,15 @@ impl Reduction {
 }
 
 #[cfg(feature = "torch_python")]
-use pyo3::{ToPyObject, AsPyPointer, Python, PyObject};
+use pyo3::{AsPyPointer, PyObject, Python, ToPyObject};
 
 #[cfg(feature = "torch_python")]
 impl<'a> pyo3::FromPyObject<'a> for Tensor {
     fn extract(ob: &'a pyo3::PyAny) -> pyo3::PyResult<Self> {
         if unsafe_torch!(thp_variable_check(ob.as_ptr() as *mut c_void)) {
-            Ok(unsafe_torch!(
-                Tensor::from_ptr(thp_variable_unpack(ob.as_ptr() as *mut c_void))
-            ))
+            Ok(unsafe_torch!(Tensor::from_ptr(thp_variable_unpack(ob.as_ptr() as *mut c_void))))
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected a torch.Tensor",
-            ))
+            Err(pyo3::exceptions::PyTypeError::new_err("Expected a torch.Tensor"))
         }
     }
 }
@@ -854,13 +850,10 @@ impl<'a> pyo3::FromPyObject<'a> for Tensor {
 #[cfg(feature = "torch_python")]
 impl pyo3::ToPyObject for Tensor {
     fn to_object(&self, py: Python) -> PyObject {
-        let pyobj = unsafe_torch!(
-            thp_variable_wrap(self.as_ptr() as *mut torch_sys::C_tensor) as *mut pyo3::ffi::PyObject
-        );
+        let pyobj = unsafe_torch!(thp_variable_wrap(self.as_ptr() as *mut torch_sys::C_tensor)
+            as *mut pyo3::ffi::PyObject);
 
-        unsafe {
-            pyo3::PyObject::from_owned_ptr(py, pyobj)
-        }
+        unsafe { pyo3::PyObject::from_owned_ptr(py, pyobj) }
     }
 }
 

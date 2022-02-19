@@ -114,9 +114,8 @@ fn find_python_include_dir() -> PathBuf {
             .output()
             .expect("Failed to run python")
             .stdout;
-        let python_dir = String::from_utf8(output)
-            .expect("Python output not utf8")
-            .trim().to_owned();
+        let python_dir =
+            String::from_utf8(output).expect("Python output not utf8").trim().to_owned();
         PathBuf::from(python_dir)
     }
 }
@@ -279,8 +278,9 @@ fn main() {
         let use_python = cfg!(feature = "python");
         if use_python
             && !libtorch.join("lib").join("libtorch_python.so").exists()
-            && !libtorch.join("lib").join("torch_python.dll").exists() {
-                panic!("libtorch_python.so or torch_python.dll not found");
+            && !libtorch.join("lib").join("torch_python.dll").exists()
+        {
+            panic!("libtorch_python.so or torch_python.dll not found");
         }
 
         println!("cargo:rustc-link-search=native={}", libtorch.join("lib").display());

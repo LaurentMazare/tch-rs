@@ -288,17 +288,11 @@ extern "C" {
 
 #[cfg(feature = "python")]
 extern "C" {
-    pub fn thp_variable_unpack(
-        obj: *mut c_void,
-    ) -> *mut C_tensor;
+    pub fn thp_variable_unpack(obj: *mut c_void) -> *mut C_tensor;
 
-    pub fn thp_variable_check(
-        obj: *mut c_void,
-    ) -> bool;
+    pub fn thp_variable_check(obj: *mut c_void) -> bool;
 
-    pub fn thp_variable_wrap(
-        var: *mut C_tensor,
-    ) -> *mut c_void;
+    pub fn thp_variable_wrap(var: *mut C_tensor) -> *mut c_void;
 }
 
 extern "C" {
