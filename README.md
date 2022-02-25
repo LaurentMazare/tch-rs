@@ -21,9 +21,9 @@ your system. You can either:
 
 - Use the system-wide libtorch installation (default).
 - Install libtorch manually and let the build script know about it via the `LIBTORCH` environment variable.
-- When a system-wide libtorch can't be found and `LIBTORCH` is not set, the build script will download a pre-built binary version
-of libtorch. By default a CPU version is used. The `TORCH_CUDA_VERSION` environment variable
-can be set to `cu111` in order to get a pre-built binary using CUDA 11.1.
+- When a system-wide libtorch can't be found, `LIBTORCH` is not set, and the `download-libtorch` feature is enabled,
+the build script will download a pre-built binary version of libtorch.
+By default a CPU version is used. The `TORCH_CUDA_VERSION` environment variable can be set to `cu111` in order to get a pre-built binary using CUDA 11.1.
 
 ### System-wide Libtorch
 
