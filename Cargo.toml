@@ -30,10 +30,10 @@ anyhow = "1"
 members = ["torch-sys"]
 
 [features]
-default = ["torch-sys/download-libtorch"]
 python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
+download-libtorch = ["torch-sys/download-libtorch"]
 
 [package.metadata.docs.rs]
 features = [ "doc-only" ]
