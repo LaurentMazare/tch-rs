@@ -16,17 +16,19 @@ class Foo1(torch.jit.ScriptModule):
     def __init__(self):
         super(Foo1, self).__init__()
 
+    @torch.jit.script_method
     def forward(self, x, y):
         return 2 * x + y
 
 foo = Foo1()
-traced_foo = torch.jit.trace(foo, (torch.rand(3), torch.rand(3)))
-traced_foo.save('foo1.pt')
+script_foo = torch.jit.script(foo)
+script_foo.save('foo1.pt')
 
 class Foo2(torch.jit.ScriptModule):
     def __init__(self):
         super(Foo2, self).__init__()
 
+    @torch.jit.script_method
     def forward(self, x, y):
         return (2 * x + y, x - y)
 
