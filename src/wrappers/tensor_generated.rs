@@ -151,8 +151,28 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_baddbmm_mkl_(&mut self, batch1: &Tensor, batch2: &Tensor) -> Tensor {
-        self.f_internal_baddbmm_mkl_(batch1, batch2).unwrap()
+    pub fn internal_autocast_to_full_precision(
+        &self,
+        cuda_enabled: bool,
+        cpu_enabled: bool,
+    ) -> Tensor {
+        self.f_internal_autocast_to_full_precision(cuda_enabled, cpu_enabled).unwrap()
+    }
+
+    pub fn internal_autocast_to_reduced_precision(
+        &self,
+        cuda_enabled: bool,
+        cpu_enabled: bool,
+        cuda_dtype: Kind,
+        cpu_dtype: Kind,
+    ) -> Tensor {
+        self.f_internal_autocast_to_reduced_precision(
+            cuda_enabled,
+            cpu_enabled,
+            cuda_dtype,
+            cpu_dtype,
+        )
+        .unwrap()
     }
 
     pub fn internal_cast_byte(&self, non_blocking: bool) -> Tensor {
@@ -250,30 +270,6 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn internal_conv_depthwise2d_backward(
-        &self,
-        grad_input: &Tensor,
-        grad_weight: &Tensor,
-        grad_output: &Tensor,
-        weight: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
-    ) -> (Tensor, Tensor) {
-        self.f_internal_conv_depthwise2d_backward(
-            grad_input,
-            grad_weight,
-            grad_output,
-            weight,
-            kernel_size,
-            stride,
-            padding,
-            dilation,
-        )
-        .unwrap()
-    }
-
     pub fn internal_conv_depthwise2d_out<T: Borrow<Tensor>>(
         &self,
         out: &Tensor,
@@ -307,6 +303,38 @@ impl Tensor {
         out_int32: bool,
     ) -> Tensor {
         self.f_internal_convert_indices_from_coo_to_csr_out(out, size, out_int32).unwrap()
+    }
+
+    pub fn internal_convert_indices_from_csr_to_coo(
+        crow_indices: &Tensor,
+        col_indices: &Tensor,
+        out_int32: bool,
+        transpose: bool,
+    ) -> Tensor {
+        Tensor::f_internal_convert_indices_from_csr_to_coo(
+            crow_indices,
+            col_indices,
+            out_int32,
+            transpose,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_convert_indices_from_csr_to_coo_out(
+        out: &Tensor,
+        crow_indices: &Tensor,
+        col_indices: &Tensor,
+        out_int32: bool,
+        transpose: bool,
+    ) -> Tensor {
+        Tensor::f_internal_convert_indices_from_csr_to_coo_out(
+            out,
+            crow_indices,
+            col_indices,
+            out_int32,
+            transpose,
+        )
+        .unwrap()
     }
 
     pub fn internal_convolution<T: Borrow<Tensor>>(
@@ -381,28 +409,6 @@ impl Tensor {
         groups: i64,
     ) -> Tensor {
         self.f_internal_convolution_mode(weight, bias, stride, padding, dilation, groups).unwrap()
-    }
-
-    pub fn internal_convolution_nogroup<T: Borrow<Tensor>>(
-        &self,
-        weight: &Tensor,
-        bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
-        transposed: bool,
-        output_padding: &[i64],
-    ) -> Tensor {
-        self.f_internal_convolution_nogroup(
-            weight,
-            bias,
-            stride,
-            padding,
-            dilation,
-            transposed,
-            output_padding,
-        )
-        .unwrap()
     }
 
     pub fn internal_copy_from(&self, dst: &Tensor, non_blocking: bool) -> Tensor {
@@ -590,6 +596,10 @@ impl Tensor {
 
     pub fn internal_dirichlet_grad(x: &Tensor, alpha: &Tensor, total: &Tensor) -> Tensor {
         Tensor::f_internal_dirichlet_grad(x, alpha, total).unwrap()
+    }
+
+    pub fn internal_efficientzerotensor(size: &[i64], options: (Kind, Device)) -> Tensor {
+        Tensor::f_internal_efficientzerotensor(size, options).unwrap()
     }
 
     pub fn internal_embedding_bag<T: Borrow<Tensor>>(
@@ -1005,6 +1015,39 @@ impl Tensor {
         self.f_internal_has_compatible_shallow_copy_type(from).unwrap()
     }
 
+    pub fn internal_has_same_storage_numel(&self, other: &Tensor) -> bool {
+        self.f_internal_has_same_storage_numel(other).unwrap()
+    }
+
+    pub fn internal_histogramdd_bin_edges<T: Borrow<Tensor>>(
+        &self,
+        bins: &[i64],
+        range: &[f64],
+        weight: Option<T>,
+        density: bool,
+    ) -> Vec<Tensor> {
+        self.f_internal_histogramdd_bin_edges(bins, range, weight, density).unwrap()
+    }
+
+    pub fn internal_histogramdd_from_bin_cts<T: Borrow<Tensor>>(
+        &self,
+        bins: &[i64],
+        range: &[f64],
+        weight: Option<T>,
+        density: bool,
+    ) -> Tensor {
+        self.f_internal_histogramdd_from_bin_cts(bins, range, weight, density).unwrap()
+    }
+
+    pub fn internal_histogramdd_from_bin_tensors<T: Borrow<Tensor>>(
+        &self,
+        bins: &[T],
+        weight: Option<T>,
+        density: bool,
+    ) -> Tensor {
+        self.f_internal_histogramdd_from_bin_tensors(bins, weight, density).unwrap()
+    }
+
     pub fn internal_index_copy_(&mut self, dim: i64, index: &Tensor, source: &Tensor) -> Tensor {
         self.f_internal_index_copy_(dim, index, source).unwrap()
     }
@@ -1023,8 +1066,12 @@ impl Tensor {
         self.f_internal_indices().unwrap()
     }
 
-    pub fn internal_inverse_helper(&self) -> Tensor {
-        self.f_internal_inverse_helper().unwrap()
+    pub fn internal_is_zerotensor(&self) -> bool {
+        self.f_internal_is_zerotensor().unwrap()
+    }
+
+    pub fn internal_linalg_check_errors(info: &Tensor, api_name: &str, is_matrix: bool) {
+        Tensor::f_internal_linalg_check_errors(info, api_name, is_matrix).unwrap()
     }
 
     pub fn internal_linalg_inv_out_helper_(
@@ -1039,27 +1086,47 @@ impl Tensor {
         self.f_internal_linalg_qr_helper(mode).unwrap()
     }
 
+    pub fn internal_linalg_svd(
+        a: &Tensor,
+        full_matrices: bool,
+        compute_uv: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_internal_linalg_svd(a, full_matrices, compute_uv).unwrap()
+    }
+
+    pub fn internal_linalg_svd_u(
+        u: &Tensor,
+        s: &Tensor,
+        vh: &Tensor,
+        a: &Tensor,
+        full_matrices: bool,
+        compute_uv: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_internal_linalg_svd_u(u, s, vh, a, full_matrices, compute_uv).unwrap()
+    }
+
     pub fn internal_log_softmax(&self, dim: i64, half_to_float: bool) -> Tensor {
         self.f_internal_log_softmax(dim, half_to_float).unwrap()
     }
 
     pub fn internal_log_softmax_backward_data(
-        &self,
         grad_output: &Tensor,
         output: &Tensor,
         dim: i64,
+        input_dtype: Kind,
     ) -> Tensor {
-        self.f_internal_log_softmax_backward_data(grad_output, output, dim).unwrap()
+        Tensor::f_internal_log_softmax_backward_data(grad_output, output, dim, input_dtype).unwrap()
     }
 
     pub fn internal_log_softmax_backward_data_out(
-        &self,
         out: &Tensor,
         grad_output: &Tensor,
         output: &Tensor,
         dim: i64,
+        input_dtype: Kind,
     ) -> Tensor {
-        self.f_internal_log_softmax_backward_data_out(out, grad_output, output, dim).unwrap()
+        Tensor::f_internal_log_softmax_backward_data_out(out, grad_output, output, dim, input_dtype)
+            .unwrap()
     }
 
     pub fn internal_log_softmax_out(&self, out: &Tensor, dim: i64, half_to_float: bool) -> Tensor {
@@ -1103,6 +1170,10 @@ impl Tensor {
         self.f_internal_masked_scale(mask, scale).unwrap()
     }
 
+    pub fn internal_masked_softmax(&self, mask: &Tensor) -> Tensor {
+        self.f_internal_masked_softmax(mask).unwrap()
+    }
+
     pub fn internal_mkldnn_reshape(&self, shape: &[i64]) -> Tensor {
         self.f_internal_mkldnn_reshape(shape).unwrap()
     }
@@ -1115,8 +1186,35 @@ impl Tensor {
         self.f_internal_mkldnn_transpose_(dim0, dim1).unwrap()
     }
 
+    pub fn internal_native_multi_head_self_attention<T: Borrow<Tensor>>(
+        query: &Tensor,
+        qkv_weight: &Tensor,
+        qkv_bias: &Tensor,
+        proj_weight: &Tensor,
+        proj_bias: &Tensor,
+        mask: Option<T>,
+    ) -> Tensor {
+        Tensor::f_internal_native_multi_head_self_attention(
+            query,
+            qkv_weight,
+            qkv_bias,
+            proj_weight,
+            proj_bias,
+            mask,
+        )
+        .unwrap()
+    }
+
     pub fn internal_neg_view(&self) -> Tensor {
         self.f_internal_neg_view().unwrap()
+    }
+
+    pub fn internal_new_zeros_with_same_feature_meta(
+        &self,
+        other: &Tensor,
+        self_num_batch_dims: i64,
+    ) -> Tensor {
+        self.f_internal_new_zeros_with_same_feature_meta(other, self_num_batch_dims).unwrap()
     }
 
     pub fn internal_nnpack_available() -> bool {
@@ -1131,26 +1229,6 @@ impl Tensor {
         stride: &[i64],
     ) -> Tensor {
         self.f_internal_nnpack_spatial_convolution(weight, bias, padding, stride).unwrap()
-    }
-
-    pub fn internal_nnpack_spatial_convolution_backward_input(
-        &self,
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-    ) -> Tensor {
-        self.f_internal_nnpack_spatial_convolution_backward_input(grad_output, weight, padding)
-            .unwrap()
-    }
-
-    pub fn internal_nnpack_spatial_convolution_backward_weight(
-        &self,
-        weightsize: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-    ) -> Tensor {
-        self.f_internal_nnpack_spatial_convolution_backward_weight(weightsize, grad_output, padding)
-            .unwrap()
     }
 
     pub fn internal_nnz(&self) -> i64 {
@@ -1248,6 +1326,30 @@ impl Tensor {
         self.f_internal_shape_as_tensor().unwrap()
     }
 
+    pub fn internal_slow_conv2d_backward(
+        &self,
+        grad_input: &Tensor,
+        grad_weight: &Tensor,
+        grad_bias: &Tensor,
+        grad_output: &Tensor,
+        weight: &Tensor,
+        kernel_size: &[i64],
+        stride: &[i64],
+        padding: &[i64],
+    ) -> (Tensor, Tensor, Tensor) {
+        self.f_internal_slow_conv2d_backward(
+            grad_input,
+            grad_weight,
+            grad_bias,
+            grad_output,
+            weight,
+            kernel_size,
+            stride,
+            padding,
+        )
+        .unwrap()
+    }
+
     pub fn internal_sobol_engine_draw(
         quasi: &Tensor,
         n: i64,
@@ -1283,22 +1385,29 @@ impl Tensor {
     }
 
     pub fn internal_softmax_backward_data(
-        &self,
         grad_output: &Tensor,
         output: &Tensor,
         dim: i64,
+        input_dtype: Kind,
     ) -> Tensor {
-        self.f_internal_softmax_backward_data(grad_output, output, dim).unwrap()
+        Tensor::f_internal_softmax_backward_data(grad_output, output, dim, input_dtype).unwrap()
     }
 
     pub fn internal_softmax_backward_data_out(
-        &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
         output: &Tensor,
         dim: i64,
+        input_dtype: Kind,
     ) -> Tensor {
-        self.f_internal_softmax_backward_data_out(grad_input, grad_output, output, dim).unwrap()
+        Tensor::f_internal_softmax_backward_data_out(
+            grad_input,
+            grad_output,
+            output,
+            dim,
+            input_dtype,
+        )
+        .unwrap()
     }
 
     pub fn internal_softmax_out(&self, out: &Tensor, dim: i64, half_to_float: bool) -> Tensor {
@@ -1311,6 +1420,10 @@ impl Tensor {
 
     pub fn internal_sparse_addmm(&self, sparse: &Tensor, dense: &Tensor) -> Tensor {
         self.f_internal_sparse_addmm(sparse, dense).unwrap()
+    }
+
+    pub fn internal_sparse_broadcast_to(&self, size: &[i64]) -> Tensor {
+        self.f_internal_sparse_broadcast_to(size).unwrap()
     }
 
     pub fn internal_sparse_coo_tensor_unsafe(
@@ -1445,10 +1558,6 @@ impl Tensor {
         self.f_internal_standard_gamma_grad(output).unwrap()
     }
 
-    pub fn internal_svd_helper(&self, some: bool, compute_uv: bool) -> (Tensor, Tensor, Tensor) {
-        self.f_internal_svd_helper(some, compute_uv).unwrap()
-    }
-
     pub fn internal_symeig_helper(&self, eigenvectors: bool, upper: bool) -> (Tensor, Tensor) {
         self.f_internal_symeig_helper(eigenvectors, upper).unwrap()
     }
@@ -1487,12 +1596,20 @@ impl Tensor {
         Tensor::f_internal_test_string_default(dummy, a, b).unwrap()
     }
 
+    pub fn internal_test_warn_in_autograd(&self) -> Tensor {
+        self.f_internal_test_warn_in_autograd().unwrap()
+    }
+
     pub fn internal_to_copy(&self, options: (Kind, Device), non_blocking: bool) -> Tensor {
         self.f_internal_to_copy(options, non_blocking).unwrap()
     }
 
     pub fn internal_to_cpu<T: Borrow<Tensor>>(tensors: &[T]) -> Vec<Tensor> {
         Tensor::f_internal_to_cpu(tensors).unwrap()
+    }
+
+    pub fn internal_torch_cuda_cu_linker_symbol_op(&self) -> Tensor {
+        self.f_internal_torch_cuda_cu_linker_symbol_op().unwrap()
     }
 
     pub fn internal_trilinear(
@@ -1528,6 +1645,433 @@ impl Tensor {
 
     pub fn internal_unsafe_view(&self, size: &[i64]) -> Tensor {
         self.f_internal_unsafe_view(size).unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa(
+        &self,
+        output_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_bicubic2d_aa(output_size, align_corners, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa_backward(
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bicubic2d_aa_backward(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bicubic2d_aa_backward_grad_input(
+            grad_input,
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa_backward_vec<'a>(
+        grad_output: &Tensor,
+        output_size: impl Into<Option<&'a [i64]>>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bicubic2d_aa_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa_out(
+        &self,
+        out: &Tensor,
+        output_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_bicubic2d_aa_out(
+            out,
+            output_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bicubic2d_aa_vec<'a>(
+        &self,
+        output_size: impl Into<Option<&'a [i64]>>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_internal_upsample_bicubic2d_aa_vec(output_size, align_corners, scale_factors)
+            .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa(
+        &self,
+        output_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_bilinear2d_aa(output_size, align_corners, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa_backward(
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bilinear2d_aa_backward(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bilinear2d_aa_backward_grad_input(
+            grad_input,
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa_backward_vec<'a>(
+        grad_output: &Tensor,
+        output_size: impl Into<Option<&'a [i64]>>,
+        input_size: &[i64],
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_internal_upsample_bilinear2d_aa_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            align_corners,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa_out(
+        &self,
+        out: &Tensor,
+        output_size: &[i64],
+        align_corners: bool,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_bilinear2d_aa_out(
+            out,
+            output_size,
+            align_corners,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_bilinear2d_aa_vec<'a>(
+        &self,
+        output_size: impl Into<Option<&'a [i64]>>,
+        align_corners: bool,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_internal_upsample_bilinear2d_aa_vec(output_size, align_corners, scale_factors)
+            .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d(
+        &self,
+        output_size: &[i64],
+        scales: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact1d(output_size, scales).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d_backward(
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact1d_backward(
+            grad_output,
+            output_size,
+            input_size,
+            scales,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact1d_backward_grad_input(
+            grad_input,
+            grad_output,
+            output_size,
+            input_size,
+            scales,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d_backward_vec<'a>(
+        grad_output: &Tensor,
+        output_size: impl Into<Option<&'a [i64]>>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact1d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d_out(
+        &self,
+        out: &Tensor,
+        output_size: &[i64],
+        scales: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact1d_out(out, output_size, scales).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact1d_vec<'a>(
+        &self,
+        output_size: impl Into<Option<&'a [i64]>>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact1d_vec(output_size, scale_factors).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d(
+        &self,
+        output_size: &[i64],
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact2d(output_size, scales_h, scales_w).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d_backward(
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact2d_backward(
+            grad_output,
+            output_size,
+            input_size,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact2d_backward_grad_input(
+            grad_input,
+            grad_output,
+            output_size,
+            input_size,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d_backward_vec<'a>(
+        grad_output: &Tensor,
+        output_size: impl Into<Option<&'a [i64]>>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact2d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d_out(
+        &self,
+        out: &Tensor,
+        output_size: &[i64],
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact2d_out(out, output_size, scales_h, scales_w).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact2d_vec<'a>(
+        &self,
+        output_size: impl Into<Option<&'a [i64]>>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact2d_vec(output_size, scale_factors).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d(
+        &self,
+        output_size: &[i64],
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact3d(output_size, scales_d, scales_h, scales_w).unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d_backward(
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact3d_backward(
+            grad_output,
+            output_size,
+            input_size,
+            scales_d,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d_backward_grad_input(
+        grad_input: &Tensor,
+        grad_output: &Tensor,
+        output_size: &[i64],
+        input_size: &[i64],
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact3d_backward_grad_input(
+            grad_input,
+            grad_output,
+            output_size,
+            input_size,
+            scales_d,
+            scales_h,
+            scales_w,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d_backward_vec<'a>(
+        grad_output: &Tensor,
+        output_size: impl Into<Option<&'a [i64]>>,
+        input_size: &[i64],
+        scale_factors: &[f64],
+    ) -> Tensor {
+        Tensor::f_internal_upsample_nearest_exact3d_backward_vec(
+            grad_output,
+            output_size,
+            input_size,
+            scale_factors,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d_out(
+        &self,
+        out: &Tensor,
+        output_size: &[i64],
+        scales_d: impl Into<Option<f64>>,
+        scales_h: impl Into<Option<f64>>,
+        scales_w: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact3d_out(out, output_size, scales_d, scales_h, scales_w)
+            .unwrap()
+    }
+
+    pub fn internal_upsample_nearest_exact3d_vec<'a>(
+        &self,
+        output_size: impl Into<Option<&'a [i64]>>,
+        scale_factors: &[f64],
+    ) -> Tensor {
+        self.f_internal_upsample_nearest_exact3d_vec(output_size, scale_factors).unwrap()
     }
 
     pub fn internal_use_cudnn_ctc_loss(
@@ -1839,6 +2383,10 @@ impl Tensor {
         self.f_addr_out(out, vec1, vec2).unwrap()
     }
 
+    pub fn adjoint(&self) -> Tensor {
+        self.f_adjoint().unwrap()
+    }
+
     pub fn affine_grid_generator(theta: &Tensor, size: &[i64], align_corners: bool) -> Tensor {
         Tensor::f_affine_grid_generator(theta, size, align_corners).unwrap()
     }
@@ -2022,6 +2570,18 @@ impl Tensor {
         self.f_arctan().unwrap()
     }
 
+    pub fn arctan2(&self, other: &Tensor) -> Tensor {
+        self.f_arctan2(other).unwrap()
+    }
+
+    pub fn arctan2_(&mut self, other: &Tensor) -> Tensor {
+        self.f_arctan2_(other).unwrap()
+    }
+
+    pub fn arctan2_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
+        self.f_arctan2_out(out, other).unwrap()
+    }
+
     pub fn arctan_(&mut self) -> Tensor {
         self.f_arctan_().unwrap()
     }
@@ -2060,6 +2620,10 @@ impl Tensor {
 
     pub fn argsort(&self, dim: i64, descending: bool) -> Tensor {
         self.f_argsort(dim, descending).unwrap()
+    }
+
+    pub fn argwhere(&self) -> Tensor {
+        self.f_argwhere().unwrap()
     }
 
     pub fn as_strided(
@@ -3232,32 +3796,6 @@ impl Tensor {
         self.f_conv_depthwise3d(weight, kernel_size, bias, stride, padding, dilation).unwrap()
     }
 
-    pub fn conv_depthwise3d_backward(
-        &self,
-        grad_input: &Tensor,
-        grad_weight: &Tensor,
-        grad_bias: &Tensor,
-        grad_output: &Tensor,
-        weight: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
-    ) -> (Tensor, Tensor, Tensor) {
-        self.f_conv_depthwise3d_backward(
-            grad_input,
-            grad_weight,
-            grad_bias,
-            grad_output,
-            weight,
-            kernel_size,
-            stride,
-            padding,
-            dilation,
-        )
-        .unwrap()
-    }
-
     pub fn conv_tbc(&self, weight: &Tensor, bias: &Tensor, pad: i64) -> Tensor {
         self.f_conv_tbc(weight, bias, pad).unwrap()
     }
@@ -3613,105 +4151,6 @@ impl Tensor {
             .unwrap()
     }
 
-    pub fn cudnn_convolution_backward_input(
-        self_size: &[i64],
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-        allow_tf32: bool,
-    ) -> Tensor {
-        Tensor::f_cudnn_convolution_backward_input(
-            self_size,
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-            allow_tf32,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_backward_weight(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-        allow_tf32: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_backward_weight(
-            weight_size,
-            grad_output,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-            allow_tf32,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_deprecated<T: Borrow<Tensor>>(
-        &self,
-        weight: &Tensor,
-        bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_deprecated(
-            weight,
-            bias,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_deprecated2(
-        &self,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_deprecated2(
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
     pub fn cudnn_convolution_relu<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -3746,107 +4185,6 @@ impl Tensor {
             benchmark,
             deterministic,
             allow_tf32,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_transpose_backward_input(
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-        allow_tf32: bool,
-    ) -> Tensor {
-        Tensor::f_cudnn_convolution_transpose_backward_input(
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-            allow_tf32,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_transpose_backward_weight(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-        allow_tf32: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_transpose_backward_weight(
-            weight_size,
-            grad_output,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-            allow_tf32,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_transpose_deprecated<T: Borrow<Tensor>>(
-        &self,
-        weight: &Tensor,
-        bias: Option<T>,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_transpose_deprecated(
-            weight,
-            bias,
-            padding,
-            output_padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn cudnn_convolution_transpose_deprecated2(
-        &self,
-        weight: &Tensor,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_cudnn_convolution_transpose_deprecated2(
-            weight,
-            padding,
-            output_padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
         )
         .unwrap()
     }
@@ -3995,6 +4333,10 @@ impl Tensor {
         dim2: i64,
     ) -> Tensor {
         Tensor::f_diagonal_backward(grad_output, input_sizes, offset, dim1, dim2).unwrap()
+    }
+
+    pub fn diagonal_scatter(&self, src: &Tensor, offset: i64, dim1: i64, dim2: i64) -> Tensor {
+        self.f_diagonal_scatter(src, offset, dim1, dim2).unwrap()
     }
 
     pub fn diff<T: Borrow<Tensor>>(
@@ -4687,6 +5029,25 @@ impl Tensor {
         self.f_fft_hfft(n, dim, norm).unwrap()
     }
 
+    pub fn fft_hfft2<'a>(
+        &self,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_hfft2(s, dim, norm).unwrap()
+    }
+
+    pub fn fft_hfft2_out<'a>(
+        &self,
+        out: &Tensor,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_hfft2_out(out, s, dim, norm).unwrap()
+    }
+
     pub fn fft_hfft_out(
         &self,
         out: &Tensor,
@@ -4695,6 +5056,25 @@ impl Tensor {
         norm: &str,
     ) -> Tensor {
         self.f_fft_hfft_out(out, n, dim, norm).unwrap()
+    }
+
+    pub fn fft_hfftn<'a>(
+        &self,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: impl Into<Option<&'a [i64]>>,
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_hfftn(s, dim, norm).unwrap()
+    }
+
+    pub fn fft_hfftn_out<'a>(
+        &self,
+        out: &Tensor,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: impl Into<Option<&'a [i64]>>,
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_hfftn_out(out, s, dim, norm).unwrap()
     }
 
     pub fn fft_ifft(&self, n: impl Into<Option<i64>>, dim: i64, norm: &str) -> Tensor {
@@ -4757,6 +5137,25 @@ impl Tensor {
         self.f_fft_ihfft(n, dim, norm).unwrap()
     }
 
+    pub fn fft_ihfft2<'a>(
+        &self,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_ihfft2(s, dim, norm).unwrap()
+    }
+
+    pub fn fft_ihfft2_out<'a>(
+        &self,
+        out: &Tensor,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: &[i64],
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_ihfft2_out(out, s, dim, norm).unwrap()
+    }
+
     pub fn fft_ihfft_out(
         &self,
         out: &Tensor,
@@ -4765,6 +5164,25 @@ impl Tensor {
         norm: &str,
     ) -> Tensor {
         self.f_fft_ihfft_out(out, n, dim, norm).unwrap()
+    }
+
+    pub fn fft_ihfftn<'a>(
+        &self,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: impl Into<Option<&'a [i64]>>,
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_ihfftn(s, dim, norm).unwrap()
+    }
+
+    pub fn fft_ihfftn_out<'a>(
+        &self,
+        out: &Tensor,
+        s: impl Into<Option<&'a [i64]>>,
+        dim: impl Into<Option<&'a [i64]>>,
+        norm: &str,
+    ) -> Tensor {
+        self.f_fft_ihfftn_out(out, s, dim, norm).unwrap()
     }
 
     pub fn fft_irfft(&self, n: impl Into<Option<i64>>, dim: i64, norm: &str) -> Tensor {
@@ -5415,24 +5833,6 @@ impl Tensor {
         self.f_grid_sampler_2d(grid, interpolation_mode, padding_mode, align_corners).unwrap()
     }
 
-    pub fn grid_sampler_2d_backward(
-        &self,
-        grad_output: &Tensor,
-        grid: &Tensor,
-        interpolation_mode: i64,
-        padding_mode: i64,
-        align_corners: bool,
-    ) -> (Tensor, Tensor) {
-        self.f_grid_sampler_2d_backward(
-            grad_output,
-            grid,
-            interpolation_mode,
-            padding_mode,
-            align_corners,
-        )
-        .unwrap()
-    }
-
     pub fn grid_sampler_3d(
         &self,
         grid: &Tensor,
@@ -5931,24 +6331,8 @@ impl Tensor {
         self.f_index_add_(dim, index, source).unwrap()
     }
 
-    pub fn index_add_alpha<S: Into<Scalar>>(
-        &self,
-        dim: i64,
-        index: &Tensor,
-        source: &Tensor,
-        alpha: S,
-    ) -> Tensor {
-        self.f_index_add_alpha(dim, index, source, alpha).unwrap()
-    }
-
-    pub fn index_add_alpha_<S: Into<Scalar>>(
-        &mut self,
-        dim: i64,
-        index: &Tensor,
-        source: &Tensor,
-        alpha: S,
-    ) -> Tensor {
-        self.f_index_add_alpha_(dim, index, source, alpha).unwrap()
+    pub fn index_add_out(&self, out: &Tensor, dim: i64, index: &Tensor, source: &Tensor) -> Tensor {
+        self.f_index_add_out(out, dim, index, source).unwrap()
     }
 
     pub fn index_copy(&self, dim: i64, index: &Tensor, source: &Tensor) -> Tensor {
@@ -6553,12 +6937,24 @@ impl Tensor {
         self.f_linalg_cond_p_str_out(out, p).unwrap()
     }
 
+    pub fn linalg_cross(&self, other: &Tensor, dim: i64) -> Tensor {
+        self.f_linalg_cross(other, dim).unwrap()
+    }
+
+    pub fn linalg_cross_out(&self, out: &Tensor, other: &Tensor, dim: i64) -> Tensor {
+        self.f_linalg_cross_out(out, other, dim).unwrap()
+    }
+
     pub fn linalg_det(&self) -> Tensor {
         self.f_linalg_det().unwrap()
     }
 
     pub fn linalg_det_out(&self, out: &Tensor) -> Tensor {
         self.f_linalg_det_out(out).unwrap()
+    }
+
+    pub fn linalg_diagonal(a: &Tensor, offset: i64, dim1: i64, dim2: i64) -> Tensor {
+        Tensor::f_linalg_diagonal(a, offset, dim1, dim2).unwrap()
     }
 
     pub fn linalg_eig(&self) -> (Tensor, Tensor) {
@@ -6650,12 +7046,48 @@ impl Tensor {
             .unwrap()
     }
 
+    pub fn linalg_lu_factor(a: &Tensor, pivot: bool) -> (Tensor, Tensor) {
+        Tensor::f_linalg_lu_factor(a, pivot).unwrap()
+    }
+
+    pub fn linalg_lu_factor_ex(
+        a: &Tensor,
+        pivot: bool,
+        check_errors: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_linalg_lu_factor_ex(a, pivot, check_errors).unwrap()
+    }
+
+    pub fn linalg_lu_factor_ex_out(
+        lu: &Tensor,
+        pivots: &Tensor,
+        info: &Tensor,
+        a: &Tensor,
+        pivot: bool,
+        check_errors: bool,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_linalg_lu_factor_ex_out(lu, pivots, info, a, pivot, check_errors).unwrap()
+    }
+
+    pub fn linalg_lu_factor_out(
+        lu: &Tensor,
+        pivots: &Tensor,
+        a: &Tensor,
+        pivot: bool,
+    ) -> (Tensor, Tensor) {
+        Tensor::f_linalg_lu_factor_out(lu, pivots, a, pivot).unwrap()
+    }
+
     pub fn linalg_matmul(&self, other: &Tensor) -> Tensor {
         self.f_linalg_matmul(other).unwrap()
     }
 
     pub fn linalg_matmul_out(&self, out: &Tensor, other: &Tensor) -> Tensor {
         self.f_linalg_matmul_out(out, other).unwrap()
+    }
+
+    pub fn linalg_matrix_exp(&self) -> Tensor {
+        self.f_linalg_matrix_exp().unwrap()
     }
 
     pub fn linalg_matrix_power(&self, n: i64) -> Tensor {
@@ -6666,16 +7098,49 @@ impl Tensor {
         self.f_linalg_matrix_power_out(out, n).unwrap()
     }
 
-    pub fn linalg_matrix_rank(&self, tol: impl Into<Option<f64>>, hermitian: bool) -> Tensor {
+    pub fn linalg_matrix_rank(&self, tol: f64, hermitian: bool) -> Tensor {
         self.f_linalg_matrix_rank(tol, hermitian).unwrap()
     }
 
-    pub fn linalg_matrix_rank_out(
+    pub fn linalg_matrix_rank_atol_rtol_float(
         &self,
-        out: &Tensor,
-        tol: impl Into<Option<f64>>,
+        atol: impl Into<Option<f64>>,
+        rtol: impl Into<Option<f64>>,
         hermitian: bool,
     ) -> Tensor {
+        self.f_linalg_matrix_rank_atol_rtol_float(atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_matrix_rank_atol_rtol_float_out(
+        &self,
+        out: &Tensor,
+        atol: impl Into<Option<f64>>,
+        rtol: impl Into<Option<f64>>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_matrix_rank_atol_rtol_float_out(out, atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_matrix_rank_atol_rtol_tensor<T: Borrow<Tensor>>(
+        &self,
+        atol: Option<T>,
+        rtol: Option<T>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_matrix_rank_atol_rtol_tensor(atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_matrix_rank_atol_rtol_tensor_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        atol: Option<T>,
+        rtol: Option<T>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_matrix_rank_atol_rtol_tensor_out(out, atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_matrix_rank_out(&self, out: &Tensor, tol: f64, hermitian: bool) -> Tensor {
         self.f_linalg_matrix_rank_out(out, tol, hermitian).unwrap()
     }
 
@@ -6746,6 +7211,44 @@ impl Tensor {
         self.f_linalg_pinv(rcond, hermitian).unwrap()
     }
 
+    pub fn linalg_pinv_atol_rtol_float(
+        &self,
+        atol: impl Into<Option<f64>>,
+        rtol: impl Into<Option<f64>>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_pinv_atol_rtol_float(atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_pinv_atol_rtol_float_out(
+        &self,
+        out: &Tensor,
+        atol: impl Into<Option<f64>>,
+        rtol: impl Into<Option<f64>>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_pinv_atol_rtol_float_out(out, atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_pinv_atol_rtol_tensor<T: Borrow<Tensor>>(
+        &self,
+        atol: Option<T>,
+        rtol: Option<T>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_pinv_atol_rtol_tensor(atol, rtol, hermitian).unwrap()
+    }
+
+    pub fn linalg_pinv_atol_rtol_tensor_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        atol: Option<T>,
+        rtol: Option<T>,
+        hermitian: bool,
+    ) -> Tensor {
+        self.f_linalg_pinv_atol_rtol_tensor_out(out, atol, rtol, hermitian).unwrap()
+    }
+
     pub fn linalg_pinv_out(&self, out: &Tensor, rcond: f64, hermitian: bool) -> Tensor {
         self.f_linalg_pinv_out(out, rcond, hermitian).unwrap()
     }
@@ -6787,26 +7290,47 @@ impl Tensor {
         self.f_linalg_solve_out(out, other).unwrap()
     }
 
-    pub fn linalg_svd(&self, full_matrices: bool) -> (Tensor, Tensor, Tensor) {
-        self.f_linalg_svd(full_matrices).unwrap()
+    pub fn linalg_solve_triangular(
+        &self,
+        b: &Tensor,
+        upper: bool,
+        left: bool,
+        unitriangular: bool,
+    ) -> Tensor {
+        self.f_linalg_solve_triangular(b, upper, left, unitriangular).unwrap()
+    }
+
+    pub fn linalg_solve_triangular_out(
+        &self,
+        out: &Tensor,
+        b: &Tensor,
+        upper: bool,
+        left: bool,
+        unitriangular: bool,
+    ) -> Tensor {
+        self.f_linalg_solve_triangular_out(out, b, upper, left, unitriangular).unwrap()
+    }
+
+    pub fn linalg_svd(a: &Tensor, full_matrices: bool) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_linalg_svd(a, full_matrices).unwrap()
     }
 
     pub fn linalg_svd_u(
-        &self,
         u: &Tensor,
         s: &Tensor,
         vh: &Tensor,
+        a: &Tensor,
         full_matrices: bool,
     ) -> (Tensor, Tensor, Tensor) {
-        self.f_linalg_svd_u(u, s, vh, full_matrices).unwrap()
+        Tensor::f_linalg_svd_u(u, s, vh, a, full_matrices).unwrap()
     }
 
-    pub fn linalg_svdvals(&self) -> Tensor {
-        self.f_linalg_svdvals().unwrap()
+    pub fn linalg_svdvals(a: &Tensor) -> Tensor {
+        Tensor::f_linalg_svdvals(a).unwrap()
     }
 
-    pub fn linalg_svdvals_out(&self, out: &Tensor) -> Tensor {
-        self.f_linalg_svdvals_out(out).unwrap()
+    pub fn linalg_svdvals_out(out: &Tensor, a: &Tensor) -> Tensor {
+        Tensor::f_linalg_svdvals_out(out, a).unwrap()
     }
 
     pub fn linalg_tensorinv(&self, ind: i64) -> Tensor {
@@ -6850,18 +7374,13 @@ impl Tensor {
     pub fn linspace<S: Into<Scalar>>(
         start: S,
         end: S,
-        steps: impl Into<Option<i64>>,
+        steps: i64,
         options: (Kind, Device),
     ) -> Tensor {
         Tensor::f_linspace(start, end, steps, options).unwrap()
     }
 
-    pub fn linspace_out<S: Into<Scalar>>(
-        out: &Tensor,
-        start: S,
-        end: S,
-        steps: impl Into<Option<i64>>,
-    ) -> Tensor {
+    pub fn linspace_out<S: Into<Scalar>>(out: &Tensor, start: S, end: S, steps: i64) -> Tensor {
         Tensor::f_linspace_out(out, start, end, steps).unwrap()
     }
 
@@ -7046,7 +7565,7 @@ impl Tensor {
     pub fn logspace<S: Into<Scalar>>(
         start: S,
         end: S,
-        steps: impl Into<Option<i64>>,
+        steps: i64,
         base: f64,
         options: (Kind, Device),
     ) -> Tensor {
@@ -7057,7 +7576,7 @@ impl Tensor {
         out: &Tensor,
         start: S,
         end: S,
-        steps: impl Into<Option<i64>>,
+        steps: i64,
         base: f64,
     ) -> Tensor {
         Tensor::f_logspace_out(out, start, end, steps, base).unwrap()
@@ -7243,6 +7762,10 @@ impl Tensor {
 
     pub fn matrix_exp_backward(&self, grad: &Tensor) -> Tensor {
         self.f_matrix_exp_backward(grad).unwrap()
+    }
+
+    pub fn matrix_h(&self) -> Tensor {
+        self.f_matrix_h().unwrap()
     }
 
     pub fn matrix_power(&self, n: i64) -> Tensor {
@@ -7615,6 +8138,10 @@ impl Tensor {
         Tensor::f_meshgrid_indexing(tensors, indexing).unwrap()
     }
 
+    pub fn mh(&self) -> Tensor {
+        self.f_mh().unwrap()
+    }
+
     pub fn min(&self) -> Tensor {
         self.f_min().unwrap()
     }
@@ -7717,59 +8244,6 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn miopen_convolution_backward_bias(grad_output: &Tensor) -> Tensor {
-        Tensor::f_miopen_convolution_backward_bias(grad_output).unwrap()
-    }
-
-    pub fn miopen_convolution_backward_input(
-        self_size: &[i64],
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        Tensor::f_miopen_convolution_backward_input(
-            self_size,
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn miopen_convolution_backward_weight(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_miopen_convolution_backward_weight(
-            weight_size,
-            grad_output,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
     pub fn miopen_convolution_transpose<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -7796,53 +8270,6 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn miopen_convolution_transpose_backward_input(
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        Tensor::f_miopen_convolution_transpose_backward_input(
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn miopen_convolution_transpose_backward_weight(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_miopen_convolution_transpose_backward_weight(
-            weight_size,
-            grad_output,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
     pub fn miopen_depthwise_convolution<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -7857,55 +8284,6 @@ impl Tensor {
         self.f_miopen_depthwise_convolution(
             weight,
             bias,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn miopen_depthwise_convolution_backward_input(
-        self_size: &[i64],
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        Tensor::f_miopen_depthwise_convolution_backward_input(
-            self_size,
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            benchmark,
-            deterministic,
-        )
-        .unwrap()
-    }
-
-    pub fn miopen_depthwise_convolution_backward_weight(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        benchmark: bool,
-        deterministic: bool,
-    ) -> Tensor {
-        self.f_miopen_depthwise_convolution_backward_weight(
-            weight_size,
-            grad_output,
             padding,
             stride,
             dilation,
@@ -7984,51 +8362,6 @@ impl Tensor {
         groups: i64,
     ) -> Tensor {
         self.f_mkldnn_convolution(weight, bias, padding, stride, dilation, groups).unwrap()
-    }
-
-    pub fn mkldnn_convolution_backward_input(
-        self_size: &[i64],
-        grad_output: &Tensor,
-        weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        bias_defined: bool,
-    ) -> Tensor {
-        Tensor::f_mkldnn_convolution_backward_input(
-            self_size,
-            grad_output,
-            weight,
-            padding,
-            stride,
-            dilation,
-            groups,
-            bias_defined,
-        )
-        .unwrap()
-    }
-
-    pub fn mkldnn_convolution_backward_weights(
-        &self,
-        weight_size: &[i64],
-        grad_output: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
-        groups: i64,
-        bias_defined: bool,
-    ) -> (Tensor, Tensor) {
-        self.f_mkldnn_convolution_backward_weights(
-            weight_size,
-            grad_output,
-            padding,
-            stride,
-            dilation,
-            groups,
-            bias_defined,
-        )
-        .unwrap()
     }
 
     pub fn mkldnn_linear<T: Borrow<Tensor>>(&self, weight: &Tensor, bias: Option<T>) -> Tensor {
@@ -8214,6 +8547,10 @@ impl Tensor {
 
     pub fn msort_out(&self, out: &Tensor) -> Tensor {
         self.f_msort_out(out).unwrap()
+    }
+
+    pub fn mt(&self) -> Tensor {
+        self.f_mt().unwrap()
     }
 
     pub fn g_mul(&self, other: &Tensor) -> Tensor {
@@ -8414,50 +8751,14 @@ impl Tensor {
         self.f_nanmedian_dim_values(values, indices, dim, keepdim).unwrap()
     }
 
-    pub fn nanquantile(&self, q: &Tensor, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
-        self.f_nanquantile(q, dim, keepdim).unwrap()
-    }
-
-    pub fn nanquantile_new(
+    pub fn nanquantile(
         &self,
         q: &Tensor,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
         interpolation: &str,
     ) -> Tensor {
-        self.f_nanquantile_new(q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn nanquantile_new_out(
-        &self,
-        out: &Tensor,
-        q: &Tensor,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_nanquantile_new_out(out, q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn nanquantile_new_scalar(
-        &self,
-        q: f64,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_nanquantile_new_scalar(q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn nanquantile_new_scalar_out(
-        &self,
-        out: &Tensor,
-        q: f64,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_nanquantile_new_scalar_out(out, q, dim, keepdim, interpolation).unwrap()
+        self.f_nanquantile(q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn nanquantile_out(
@@ -8466,12 +8767,19 @@ impl Tensor {
         q: &Tensor,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
+        interpolation: &str,
     ) -> Tensor {
-        self.f_nanquantile_out(out, q, dim, keepdim).unwrap()
+        self.f_nanquantile_out(out, q, dim, keepdim, interpolation).unwrap()
     }
 
-    pub fn nanquantile_scalar(&self, q: f64, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
-        self.f_nanquantile_scalar(q, dim, keepdim).unwrap()
+    pub fn nanquantile_scalar(
+        &self,
+        q: f64,
+        dim: impl Into<Option<i64>>,
+        keepdim: bool,
+        interpolation: &str,
+    ) -> Tensor {
+        self.f_nanquantile_scalar(q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn nanquantile_scalar_out(
@@ -8480,8 +8788,9 @@ impl Tensor {
         q: f64,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
+        interpolation: &str,
     ) -> Tensor {
-        self.f_nanquantile_scalar_out(out, q, dim, keepdim).unwrap()
+        self.f_nanquantile_scalar_out(out, q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn nansum(&self, dtype: Kind) -> Tensor {
@@ -8558,6 +8867,18 @@ impl Tensor {
             eps,
         )
         .unwrap()
+    }
+
+    pub fn native_channel_shuffle(&self, groups: i64) -> Tensor {
+        self.f_native_channel_shuffle(groups).unwrap()
+    }
+
+    pub fn native_dropout(&self, p: f64, train: bool) -> (Tensor, Tensor) {
+        self.f_native_dropout(p, train).unwrap()
+    }
+
+    pub fn native_dropout_backward(grad_output: &Tensor, mask: &Tensor, scale: f64) -> Tensor {
+        Tensor::f_native_dropout_backward(grad_output, mask, scale).unwrap()
     }
 
     pub fn native_group_norm<T: Borrow<Tensor>>(
@@ -9157,50 +9478,14 @@ impl Tensor {
         self.f_qr_q(q, r, some).unwrap()
     }
 
-    pub fn quantile(&self, q: &Tensor, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
-        self.f_quantile(q, dim, keepdim).unwrap()
-    }
-
-    pub fn quantile_new(
+    pub fn quantile(
         &self,
         q: &Tensor,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
         interpolation: &str,
     ) -> Tensor {
-        self.f_quantile_new(q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn quantile_new_out(
-        &self,
-        out: &Tensor,
-        q: &Tensor,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_quantile_new_out(out, q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn quantile_new_scalar(
-        &self,
-        q: f64,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_quantile_new_scalar(q, dim, keepdim, interpolation).unwrap()
-    }
-
-    pub fn quantile_new_scalar_out(
-        &self,
-        out: &Tensor,
-        q: f64,
-        dim: impl Into<Option<i64>>,
-        keepdim: bool,
-        interpolation: &str,
-    ) -> Tensor {
-        self.f_quantile_new_scalar_out(out, q, dim, keepdim, interpolation).unwrap()
+        self.f_quantile(q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn quantile_out(
@@ -9209,12 +9494,19 @@ impl Tensor {
         q: &Tensor,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
+        interpolation: &str,
     ) -> Tensor {
-        self.f_quantile_out(out, q, dim, keepdim).unwrap()
+        self.f_quantile_out(out, q, dim, keepdim, interpolation).unwrap()
     }
 
-    pub fn quantile_scalar(&self, q: f64, dim: impl Into<Option<i64>>, keepdim: bool) -> Tensor {
-        self.f_quantile_scalar(q, dim, keepdim).unwrap()
+    pub fn quantile_scalar(
+        &self,
+        q: f64,
+        dim: impl Into<Option<i64>>,
+        keepdim: bool,
+        interpolation: &str,
+    ) -> Tensor {
+        self.f_quantile_scalar(q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn quantile_scalar_out(
@@ -9223,8 +9515,9 @@ impl Tensor {
         q: f64,
         dim: impl Into<Option<i64>>,
         keepdim: bool,
+        interpolation: &str,
     ) -> Tensor {
-        self.f_quantile_scalar_out(out, q, dim, keepdim).unwrap()
+        self.f_quantile_scalar_out(out, q, dim, keepdim, interpolation).unwrap()
     }
 
     pub fn quantize_per_channel(
@@ -9239,6 +9532,10 @@ impl Tensor {
 
     pub fn quantize_per_tensor(&self, scale: f64, zero_point: i64, dtype: Kind) -> Tensor {
         self.f_quantize_per_tensor(scale, zero_point, dtype).unwrap()
+    }
+
+    pub fn quantize_per_tensor_dynamic(&self, dtype: Kind, reduce_range: bool) -> Tensor {
+        self.f_quantize_per_tensor_dynamic(dtype, reduce_range).unwrap()
     }
 
     pub fn quantize_per_tensor_tensor_qparams(
@@ -9923,6 +10220,18 @@ impl Tensor {
         self.f_round_().unwrap()
     }
 
+    pub fn round_decimals(&self, decimals: i64) -> Tensor {
+        self.f_round_decimals(decimals).unwrap()
+    }
+
+    pub fn round_decimals_(&mut self, decimals: i64) -> Tensor {
+        self.f_round_decimals_(decimals).unwrap()
+    }
+
+    pub fn round_decimals_out(&self, out: &Tensor, decimals: i64) -> Tensor {
+        self.f_round_decimals_out(out, decimals).unwrap()
+    }
+
     pub fn round_out(&self, out: &Tensor) -> Tensor {
         self.f_round_out(out).unwrap()
     }
@@ -10095,27 +10404,40 @@ impl Tensor {
         self.f_scatter_value_reduce_out(out, dim, index, value, reduce).unwrap()
     }
 
-    pub fn searchsorted(&self, sorted_sequence: &Tensor, out_int32: bool, right: bool) -> Tensor {
-        self.f_searchsorted(sorted_sequence, out_int32, right).unwrap()
+    pub fn searchsorted<T: Borrow<Tensor>>(
+        &self,
+        sorted_sequence: &Tensor,
+        out_int32: bool,
+        right: bool,
+        side: &str,
+        sorter: Option<T>,
+    ) -> Tensor {
+        self.f_searchsorted(sorted_sequence, out_int32, right, side, sorter).unwrap()
     }
 
-    pub fn searchsorted_scalar<S: Into<Scalar>>(
+    pub fn searchsorted_scalar<T: Borrow<Tensor>, S: Into<Scalar>>(
         sorted_sequence: &Tensor,
         self_scalar: S,
         out_int32: bool,
         right: bool,
+        side: &str,
+        sorter: Option<T>,
     ) -> Tensor {
-        Tensor::f_searchsorted_scalar(sorted_sequence, self_scalar, out_int32, right).unwrap()
+        Tensor::f_searchsorted_scalar(sorted_sequence, self_scalar, out_int32, right, side, sorter)
+            .unwrap()
     }
 
-    pub fn searchsorted_tensor_out(
+    pub fn searchsorted_tensor_out<T: Borrow<Tensor>>(
         &self,
         out: &Tensor,
         sorted_sequence: &Tensor,
         out_int32: bool,
         right: bool,
+        side: &str,
+        sorter: Option<T>,
     ) -> Tensor {
-        self.f_searchsorted_tensor_out(out, sorted_sequence, out_int32, right).unwrap()
+        self.f_searchsorted_tensor_out(out, sorted_sequence, out_int32, right, side, sorter)
+            .unwrap()
     }
 
     pub fn segment_reduce<T: Borrow<Tensor>, S: Into<Scalar>>(
@@ -10141,6 +10463,10 @@ impl Tensor {
         index: i64,
     ) -> Tensor {
         Tensor::f_select_backward(grad_output, input_sizes, dim, index).unwrap()
+    }
+
+    pub fn select_scatter(&self, src: &Tensor, dim: i64, index: i64) -> Tensor {
+        self.f_select_scatter(src, dim, index).unwrap()
     }
 
     pub fn selu(&self) -> Tensor {
@@ -10298,6 +10624,17 @@ impl Tensor {
         step: i64,
     ) -> Tensor {
         Tensor::f_slice_backward(grad_output, input_sizes, dim, start, end, step).unwrap()
+    }
+
+    pub fn slice_scatter(
+        &self,
+        src: &Tensor,
+        dim: i64,
+        start: impl Into<Option<i64>>,
+        end: impl Into<Option<i64>>,
+        step: i64,
+    ) -> Tensor {
+        self.f_slice_scatter(src, dim, start, end, step).unwrap()
     }
 
     pub fn slogdet(&self) -> (Tensor, Tensor) {
@@ -10534,9 +10871,8 @@ impl Tensor {
         grad_output: &Tensor,
         beta: S,
         threshold: S,
-        output: &Tensor,
     ) -> Tensor {
-        self.f_softplus_backward(grad_output, beta, threshold, output).unwrap()
+        self.f_softplus_backward(grad_output, beta, threshold).unwrap()
     }
 
     pub fn softplus_backward_grad_input<S: Into<Scalar>>(
@@ -10545,10 +10881,8 @@ impl Tensor {
         grad_output: &Tensor,
         beta: S,
         threshold: S,
-        output: &Tensor,
     ) -> Tensor {
-        self.f_softplus_backward_grad_input(grad_input, grad_output, beta, threshold, output)
-            .unwrap()
+        self.f_softplus_backward_grad_input(grad_input, grad_output, beta, threshold).unwrap()
     }
 
     pub fn softplus_out(&self, out: &Tensor) -> Tensor {
@@ -10679,6 +11013,14 @@ impl Tensor {
         dense_dim: i64,
     ) -> Tensor {
         self.f_sparse_resize_and_clear_(size, sparse_dim, dense_dim).unwrap()
+    }
+
+    pub fn sparse_sampled_addmm(&self, mat1: &Tensor, mat2: &Tensor) -> Tensor {
+        self.f_sparse_sampled_addmm(mat1, mat2).unwrap()
+    }
+
+    pub fn sparse_sampled_addmm_out(&self, out: &Tensor, mat1: &Tensor, mat2: &Tensor) -> Tensor {
+        self.f_sparse_sampled_addmm_out(out, mat1, mat2).unwrap()
     }
 
     pub fn special_digamma(&self) -> Tensor {
@@ -10877,12 +11219,12 @@ impl Tensor {
         self.f_special_psi_out(out).unwrap()
     }
 
-    pub fn special_round(&self) -> Tensor {
-        self.f_special_round().unwrap()
+    pub fn special_round(&self, decimals: i64) -> Tensor {
+        self.f_special_round(decimals).unwrap()
     }
 
-    pub fn special_round_out(&self, out: &Tensor) -> Tensor {
-        self.f_special_round_out(out).unwrap()
+    pub fn special_round_out(&self, out: &Tensor, decimals: i64) -> Tensor {
+        self.f_special_round_out(out, decimals).unwrap()
     }
 
     pub fn special_sinc(&self) -> Tensor {
@@ -10891,6 +11233,10 @@ impl Tensor {
 
     pub fn special_sinc_out(&self, out: &Tensor) -> Tensor {
         self.f_special_sinc_out(out).unwrap()
+    }
+
+    pub fn special_softmax(&self, dim: i64, dtype: Kind) -> Tensor {
+        self.f_special_softmax(dim, dtype).unwrap()
     }
 
     pub fn special_xlog1py(&self, other: &Tensor) -> Tensor {

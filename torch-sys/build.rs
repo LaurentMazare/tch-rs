@@ -11,7 +11,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-const TORCH_VERSION: &str = "1.10.0";
+const TORCH_VERSION: &str = "1.11.0";
 
 #[cfg(feature = "curl")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {

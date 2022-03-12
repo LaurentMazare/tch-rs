@@ -23,7 +23,7 @@ unsafe impl Send for Tensor {}
 
 pub extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_tensor: *mut C_tensor) {
     let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
-    let name = name.replace("|", ".");
+    let name = name.replace('|', ".");
     let v: &mut Vec<(String, Tensor)> = unsafe { &mut *(data as *mut Vec<(String, Tensor)>) };
     v.push((name, Tensor { c_tensor }))
 }
@@ -580,7 +580,7 @@ impl Tensor {
         let c_tensors = named_tensors.iter().map(|nt| nt.1.as_ref().c_tensor).collect::<Vec<_>>();
         let names = named_tensors
             .iter()
-            .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
+            .map(|nt| nt.0.as_ref().replace('.', "|").into_bytes())
             .map(std::ffi::CString::new)
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
@@ -604,7 +604,7 @@ impl Tensor {
         let c_tensors = named_tensors.iter().map(|nt| nt.1.as_ref().c_tensor).collect::<Vec<_>>();
         let names = named_tensors
             .iter()
-            .map(|nt| nt.0.as_ref().replace(".", "|").into_bytes())
+            .map(|nt| nt.0.as_ref().replace('.', "|").into_bytes())
             .map(std::ffi::CString::new)
             .collect::<Result<Vec<_>, _>>()?;
         let name_ptrs = names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
