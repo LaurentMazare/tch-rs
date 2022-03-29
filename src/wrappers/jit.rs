@@ -696,6 +696,15 @@ pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
 
+pub fn f_set_graph_executor_optimize(b: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(at_set_graph_executor_optimize(b));
+    Ok(())
+}
+
+pub fn set_graph_executor_optimize(b: bool) {
+    f_set_graph_executor_optimize(b).unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::IValue;

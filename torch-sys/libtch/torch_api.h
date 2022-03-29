@@ -210,6 +210,8 @@ int ati_tag(ivalue);
 
 void ati_free(ivalue);
 
+void at_set_graph_executor_optimize(bool);
+
 #include "torch_api_generated.h"
 
 #ifdef __cplusplus
