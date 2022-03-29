@@ -3,6 +3,7 @@
 #include<torch/csrc/jit/runtime/graph_executor.h>
 #include <torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
 #include <torch/csrc/jit/passes/normalize_ops.h>
+#include <torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
@@ -1409,6 +1410,10 @@ ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int niva
 
 void ati_free(ivalue i) {
   delete(i);
+}
+
+void at_set_graph_executor_optimize(bool o) {
+  torch::jit::setGraphExecutorOptimize(o);
 }
 
 #include "torch_api_generated.cpp.h"
