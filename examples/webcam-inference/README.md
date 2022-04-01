@@ -14,6 +14,7 @@ Pretrained model and a test video also included in:
 * /webcam-inference/train_simple_classifier/ and /webcam-inference/.
 
 # Usage
-To run example use below command:
-* cargo run --example webcam-inference webcam-inference/train_simple_classifier/cifar10_mobilenet_v3_small.pt webcam-inference/test_video.mp4
-
+To run example on test video, use below command:
+* cargo run --example webcam-inference examples/webcam-inference/train_simple_classifier/cifar10_mobilenet_v3_small.pt examples/webcam-inference/test_video.mp4
+To run example on webcam, use below command (Linux):
+* cargo run --example webcam-inference examples/webcam-inference/train_simple_classifier/cifar10_mobilenet_v3_small.pt /dev/video0
