@@ -1,6 +1,6 @@
 # This script exports pre-trained model weights in numpy format.
 # These weights can then be converted to the libtorch native format via:
-# bin/tensor_tools.exe npz-to-pytorch resnet18.npz resnet18.ot
+# cargo run --example tensor-tools -- cp resnet18.npz resnet18.ot
 import numpy as np
 import torch
 import torchvision
