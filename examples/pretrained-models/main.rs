@@ -2,17 +2,17 @@
 // model to get the imagenet label for some image.
 //
 // The pre-trained weight files containing the pre-trained weights can be found here:
-// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
-// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/densenet121.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg13.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg19.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_0.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_1.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/inception-v3.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/mobilenet-v2.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet18.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet34.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/densenet121.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg13.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg19.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/squeezenet1_0.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/squeezenet1_1.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/alexnet.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/inception-v3.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/mw/mobilenet-v2.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b0.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b1.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b2.ot

@@ -174,8 +174,8 @@ More details on the training loop can be found in the
 The [pretrained-models  example](https://github.com/LaurentMazare/tch-rs/tree/master/examples/pretrained-models/main.rs)
 illustrates how to use some pre-trained computer vision model on an image.
 The weights - which have been extracted from the PyTorch implementation - can be
-downloaded here [resnet18.ot](https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot)
-and here [resnet34.ot](https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot).
+downloaded here [resnet18.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet18.ot)
+and here [resnet34.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet34.ot).
 
 The example can then be run via the following command:
 ```bash
@@ -213,7 +213,7 @@ Further examples include:
   illustrating character level language modeling using Recurrent Neural Networks.
 * [Neural style transfer](https://github.com/LaurentMazare/tch-rs/blob/master/examples/neural-style-transfer)
   uses a pre-trained VGG-16 model to compose an image in the style of another image (pre-trained weights:
-  [vgg16.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot)).
+  [vgg16.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot)).
 * Some [ResNet examples on CIFAR-10](https://github.com/LaurentMazare/tch-rs/tree/master/examples/cifar).
 * A [tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/jit)
   showing how to deploy/run some Python trained models using
