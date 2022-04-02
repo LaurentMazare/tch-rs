@@ -2,8 +2,8 @@
 // model to get the imagenet label for some image.
 //
 // The pre-trained weight files containing the pre-trained weights can be found here:
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/densenet121.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg13.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot
