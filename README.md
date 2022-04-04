@@ -226,6 +226,8 @@ Further examples include:
 
 External material:
 * A [tutorial](http://vegapit.com/article/how-to-use-torch-in-rust-with-tch-rs) showing how to use Torch to compute option prices and greeks.
+* [tchrs-opencv-webcam-inference](https://github.com/metobom/tchrs-opencv-webcam-inference) uses `tch-rs` and `opencv` to run inference
+  on a webcam feed for some Python trained model based on mobilenet v3.
 
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
