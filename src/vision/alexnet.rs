@@ -11,7 +11,7 @@ fn max_pool2d(xs: Tensor, ksize: i64, stride: i64) -> Tensor {
     xs.max_pool2d(&[ksize, ksize], &[stride, stride], &[0, 0], &[1, 1], false)
 }
 
-fn features(p: nn::Path) -> impl ModuleT {
+fn features(p: nn::Path) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     nn::seq_t()
         .add(conv2d(&p / "0", 3, 64, 11, 2, 4))
         .add_fn(|xs| max_pool2d(xs.relu(), 3, 2))
@@ -25,7 +25,7 @@ fn features(p: nn::Path) -> impl ModuleT {
         .add_fn(|xs| max_pool2d(xs.relu(), 3, 2))
 }
 
-fn classifier(p: nn::Path, nclasses: i64) -> impl ModuleT {
+fn classifier(p: nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     nn::seq_t()
         .add_fn_t(|xs, train| xs.dropout(0.5, train))
         .add(nn::linear(&p / "1", 256 * 6 * 6, 4096, Default::default()))
@@ -36,7 +36,7 @@ fn classifier(p: nn::Path, nclasses: i64) -> impl ModuleT {
         .add(nn::linear(&p / "6", 4096, nclasses, Default::default()))
 }
 
-pub fn alexnet(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn alexnet(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     nn::seq_t()
         .add(features(p / "features"))
         .add_fn(|xs| xs.adaptive_avg_pool2d(&[6, 6]).flat_view())

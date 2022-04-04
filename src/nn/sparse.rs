@@ -43,6 +43,9 @@ pub fn embedding<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for Embedding {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::embedding(
             &self.ws,

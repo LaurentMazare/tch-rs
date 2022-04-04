@@ -144,6 +144,9 @@ pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
 }
 
 impl super::module::Module for ConvTranspose1D {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv_transpose1d(
             xs,
@@ -159,6 +162,9 @@ impl super::module::Module for ConvTranspose1D {
 }
 
 impl super::module::Module for ConvTranspose2D {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv_transpose2d(
             xs,
@@ -174,6 +180,9 @@ impl super::module::Module for ConvTranspose2D {
 }
 
 impl super::module::Module for ConvTranspose3D {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::conv_transpose3d(
             xs,

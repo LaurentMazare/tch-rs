@@ -7,8 +7,11 @@
 */
 
 use anyhow::Result;
-use tch::nn::{FuncT, ModuleT, OptimizerConfig, SequentialT};
 use tch::{nn, Device};
+use tch::{
+    nn::{FuncT, ModuleT, OptimizerConfig, SequentialT},
+    Tensor,
+};
 
 fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
     let conv2d_cfg = nn::ConvConfig { padding: 1, bias: false, ..Default::default() };
@@ -18,15 +21,18 @@ fn conv_bn(vs: &nn::Path, c_in: i64, c_out: i64) -> SequentialT {
         .add_fn(|x| x.relu())
 }
 
-fn layer<'a>(vs: &nn::Path, c_in: i64, c_out: i64) -> FuncT<'a> {
+fn layer<'a>(vs: &nn::Path, c_in: i64, c_out: i64) -> FuncT<'a, Tensor, Tensor> {
     let pre = conv_bn(&vs.sub("pre"), c_in, c_out);
     let block1 = conv_bn(&vs.sub("b1"), c_out, c_out);
     let block2 = conv_bn(&vs.sub("b2"), c_out, c_out);
-    nn::func_t(move |xs, train| {
-        let pre = xs.apply_t(&pre, train).max_pool2d_default(2);
-        let ys = pre.apply_t(&block1, train).apply_t(&block2, train);
-        pre + ys
-    })
+    nn::func_t(
+        move |xs: &Tensor, train| {
+            let pre = xs.apply_t(&pre, train).max_pool2d_default(2);
+            let ys = pre.apply_t(&block1, train).apply_t(&block2, train);
+            pre + ys
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
 fn fast_resnet(vs: &nn::Path) -> SequentialT {

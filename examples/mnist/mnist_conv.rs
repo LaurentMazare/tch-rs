@@ -22,6 +22,9 @@ impl Net {
 }
 
 impl nn::ModuleT for Net {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         xs.view([-1, 1, 28, 28])
             .apply(&self.conv1)
@@ -33,6 +36,16 @@ impl nn::ModuleT for Net {
             .relu()
             .dropout(0.5, train)
             .apply(&self.fc2)
+    }
+
+    fn batch_accuracy_for_logits(
+        &self,
+        xs: &Self::Input,
+        ys: &Self::Input,
+        d: Device,
+        batch_size: i64,
+    ) -> f64 {
+        nn::batch_accuracy_for_logits(self, xs, ys, d, batch_size)
     }
 }
 

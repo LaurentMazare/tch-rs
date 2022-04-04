@@ -53,7 +53,7 @@ fn optimizer_test() {
     assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
 }
 
-fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
+fn my_module(p: nn::Path, dim: i64) -> impl nn::Module<Input = Tensor, Output = Tensor> {
     let x1 = p.zeros("x1", &[dim]);
     let x2 = p.zeros("x2", &[dim]);
     nn::func(move |xs| xs * &x1 + xs.exp() * &x2)

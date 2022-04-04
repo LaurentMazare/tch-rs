@@ -4,7 +4,11 @@
 //! https://openreview.net/forum?id=TVHS5Y4dNvM
 use crate::nn;
 
-fn block(p: nn::Path, dim: i64, kernel_size: i64) -> impl nn::ModuleT {
+fn block(
+    p: nn::Path,
+    dim: i64,
+    kernel_size: i64,
+) -> impl nn::ModuleT<Input = crate::Tensor, Output = crate::Tensor> {
     let conv2d_cfg = nn::ConvConfig { groups: dim, ..Default::default() };
     let p_fn = &(&p / "0") / "fn";
     let conv1 =
@@ -12,10 +16,13 @@ fn block(p: nn::Path, dim: i64, kernel_size: i64) -> impl nn::ModuleT {
     let bn1 = nn::batch_norm2d(&p_fn / "2", dim, Default::default());
     let conv2 = nn::conv2d(&p / "1", dim, dim, 1, Default::default());
     let bn2 = nn::batch_norm2d(&p / "3", dim, Default::default());
-    nn::func_t(move |xs, train| {
-        let ys = xs.apply(&conv1).gelu().apply_t(&bn1, train);
-        (xs + ys).apply(&conv2).gelu().apply_t(&bn2, train)
-    })
+    nn::func_t(
+        move |xs: &crate::Tensor, train| {
+            let ys = xs.apply(&conv1).gelu().apply_t(&bn1, train);
+            (xs + ys).apply(&conv2).gelu().apply_t(&bn2, train)
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
 fn convmixer<'a>(
@@ -25,25 +32,34 @@ fn convmixer<'a>(
     depth: i64,
     kernel_size: i64,
     patch_size: i64,
-) -> nn::FuncT<'static> {
+) -> nn::FuncT<'static, crate::Tensor, crate::Tensor> {
     let conv2d_cfg = nn::ConvConfig { stride: patch_size, ..Default::default() };
     let conv1 = nn::conv2d(p / "0", 3, dim, patch_size, conv2d_cfg);
     let bn1 = nn::batch_norm2d(p / "2", dim, Default::default());
     let blocks: Vec<_> = (0..depth).map(|index| block(p / (3 + index), dim, kernel_size)).collect();
     let fc = nn::linear(p / "25", dim, nclasses, Default::default());
-    nn::func_t(move |xs, train| {
-        let mut xs = xs.apply(&conv1).gelu().apply_t(&bn1, train);
-        for block in blocks.iter() {
-            xs = xs.apply_t(block, train)
-        }
-        xs.adaptive_avg_pool2d(&[1, 1]).flat_view().apply(&fc)
-    })
+    nn::func_t(
+        move |xs: &crate::Tensor, train| {
+            let mut xs = xs.apply(&conv1).gelu().apply_t(&bn1, train);
+            for block in blocks.iter() {
+                xs = xs.apply_t(block, train)
+            }
+            xs.adaptive_avg_pool2d(&[1, 1]).flat_view().apply(&fc)
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
-pub fn c1536_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1536_20<'a>(
+    p: &'a nn::Path,
+    nclasses: i64,
+) -> nn::FuncT<'static, crate::Tensor, crate::Tensor> {
     convmixer(p, nclasses, 1536, 20, 9, 7)
 }
 
-pub fn c1024_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1024_20<'a>(
+    p: &'a nn::Path,
+    nclasses: i64,
+) -> nn::FuncT<'static, crate::Tensor, crate::Tensor> {
     convmixer(p, nclasses, 1024, 20, 9, 14)
 }

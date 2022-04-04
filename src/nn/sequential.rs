@@ -5,7 +5,7 @@ use crate::Tensor;
 /// A sequential layer combining multiple other layers.
 #[derive(Debug)]
 pub struct Sequential {
-    layers: Vec<Box<dyn Module>>,
+    layers: Vec<Box<dyn Module<Input = Tensor, Output = Tensor>>>,
 }
 
 /// Creates a new empty sequential layer.
@@ -26,6 +26,9 @@ impl Sequential {
 }
 
 impl Module for Sequential {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         if self.layers.is_empty() {
             xs.shallow_clone()
@@ -39,7 +42,7 @@ impl Module for Sequential {
 impl Sequential {
     /// Appends a layer after all the current layers.
     #[allow(clippy::should_implement_trait)]
-    pub fn add<M: Module + 'static>(mut self, layer: M) -> Self {
+    pub fn add<M: Module<Input = Tensor, Output = Tensor> + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }
@@ -74,7 +77,7 @@ impl Sequential {
 /// A sequential layer combining new layers with support for a training mode.
 #[derive(Debug)]
 pub struct SequentialT {
-    layers: Vec<Box<dyn ModuleT>>,
+    layers: Vec<Box<dyn ModuleT<Input = Tensor, Output = Tensor>>>,
 }
 
 /// Creates a new empty sequential layer.
@@ -95,7 +98,10 @@ impl SequentialT {
 }
 
 impl ModuleT for SequentialT {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+    type Input = Tensor;
+    type Output = Tensor;
+
+    fn forward_t(&self, xs: &Self::Input, train: bool) -> Self::Output {
         if self.layers.is_empty() {
             xs.shallow_clone()
         } else {
@@ -103,12 +109,22 @@ impl ModuleT for SequentialT {
             self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward_t(&xs, train))
         }
     }
+
+    fn batch_accuracy_for_logits(
+        &self,
+        xs: &Self::Input,
+        ys: &Self::Input,
+        d: crate::Device,
+        batch_size: i64,
+    ) -> f64 {
+        super::module::batch_accuracy_for_logits(self, xs, ys, d, batch_size)
+    }
 }
 
 impl SequentialT {
     /// Appends a layer after all the current layers.
     #[allow(clippy::should_implement_trait)]
-    pub fn add<M: ModuleT + 'static>(mut self, layer: M) -> Self {
+    pub fn add<M: ModuleT<Input = Tensor, Output = Tensor> + 'static>(mut self, layer: M) -> Self {
         self.layers.push(Box::new(layer));
         self
     }
@@ -126,7 +142,9 @@ impl SequentialT {
     where
         F: 'static + Fn(&Tensor, bool) -> Tensor + Send,
     {
-        self.add(super::func_t(f))
+        self.add(super::func_t(f, |m, xs, ys, d, bs| {
+            super::module::batch_accuracy_for_logits(m, xs, ys, d, bs)
+        }))
     }
 
     /// Applies the forward pass and returns the output for each layer.
