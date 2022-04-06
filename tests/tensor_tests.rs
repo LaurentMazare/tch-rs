@@ -88,6 +88,19 @@ fn grad() {
 }
 
 #[test]
+fn grad_retain_grad() {
+    let x = Tensor::from(2.0).set_requires_grad(true);
+    let y = &x * &x;
+    let z = &y * 2 + &x + 36;
+    y.retain_grad();
+    z.backward();
+    let dz_over_dx = x.grad();
+    assert_eq!(Vec::<f64>::from(&dz_over_dx), [9.0]);
+    let dz_over_dy = y.grad();
+    assert_eq!(Vec::<f64>::from(&dz_over_dy), [2.0]);
+}
+
+#[test]
 fn grad_grad() {
     // Compute a second order derivative using run_backward.
     let mut x = Tensor::from(42.0).set_requires_grad(true);

@@ -54,6 +54,7 @@ bool at_autocast_set_enabled(bool b);
 void at_backward(tensor, int, int);
 int at_requires_grad(tensor);
 int at_grad_set_enabled(int);
+void at_retain_grad(tensor); // manual impl retain_grad
 
 tensor at_get(tensor, int index);
 void at_fill_double(tensor, double);

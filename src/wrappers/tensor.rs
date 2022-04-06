@@ -249,6 +249,19 @@ impl Tensor {
         unsafe_torch!(at_requires_grad(self.c_tensor)) != 0
     }
 
+    /// Enables this Tensor to have their grad populated during backward().
+    /// This is a no-op for leaf tensors.
+    pub fn f_retain_grad(&self) -> Result<(), TchError> {
+        unsafe_torch_err!(at_retain_grad(self.c_tensor));
+        Ok(())
+    }
+
+    /// Enables this Tensor to have their grad populated during backward().
+    /// This is a no-op for leaf tensors.
+    pub fn retain_grad(&self) {
+        self.f_retain_grad().unwrap()
+    }
+
     /// Returns the address of the first element of this tensor.
     pub fn data_ptr(&self) -> *mut c_void {
         unsafe_torch!(at_data_ptr(self.c_tensor))

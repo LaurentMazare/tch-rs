@@ -216,6 +216,8 @@ int at_grad_set_enabled(int b) {
   return -1;
 }
 
+void at_retain_grad(tensor t) { PROTECT(t->retain_grad();) }
+
 tensor at_get(tensor t, int index) {
   PROTECT(return new torch::Tensor((*t)[index]);)
   return nullptr;
