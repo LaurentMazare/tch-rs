@@ -2,7 +2,7 @@
 // imagenet model on another dataset.
 //
 // The pre-trained weight files containing the pre-trained weights can be found here:
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
+// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
 use anyhow::{bail, Result};
 use tch::nn::{self, OptimizerConfig};
 use tch::vision::{imagenet, resnet};

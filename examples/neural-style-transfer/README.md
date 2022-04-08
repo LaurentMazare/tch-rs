@@ -12,7 +12,7 @@ from the second image.
 
 ### Running the Code
 We use a pre-trained VGG-16 convolutional network, the weights can be found in
-[vgg16.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot).
+[vgg16.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot).
 Running the example can be done with the following command, this will create
 some new images in the current directory.
 

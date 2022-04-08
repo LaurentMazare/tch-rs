@@ -127,6 +127,10 @@ extern "C" {
     pub fn at_manual_seed(seed: i64);
 }
 
+extern "C" {
+    pub fn at_set_graph_executor_optimize(b: bool);
+}
+
 pub mod c_generated;
 
 extern "C" {

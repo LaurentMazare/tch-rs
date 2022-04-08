@@ -74,7 +74,7 @@ fn resnet(
 /// Creates a ResNet-18 model.
 ///
 /// Pre-trained weights can be downloaded at the following link:
-/// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
+/// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
 pub fn resnet18(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
     resnet(p, Some(num_classes), 2, 2, 2, 2)
 }
@@ -86,7 +86,7 @@ pub fn resnet18_no_final_layer(p: &nn::Path) -> FuncT<'static> {
 /// Creates a ResNet-34 model.
 ///
 /// Pre-trained weights can be downloaded at the following link:
-/// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot
+/// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot
 pub fn resnet34(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
     resnet(p, Some(num_classes), 3, 4, 6, 3)
 }

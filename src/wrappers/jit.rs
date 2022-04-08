@@ -613,7 +613,7 @@ impl TrainableCModule {
         let inner = CModule::load_on_device(module_path, path.device())?;
         for (name, tensor) in inner.named_parameters()? {
             let requires_grad = tensor.requires_grad();
-            let _t = path.add(&name.replace(".", "_"), tensor, requires_grad);
+            let _t = path.add(&name.replace('.', "_"), tensor, requires_grad);
         }
         Ok(TrainableCModule { inner })
     }
@@ -626,7 +626,7 @@ impl TrainableCModule {
         let inner = CModule::load_data_on_device(data, path.device())?;
         for (name, tensor) in inner.named_parameters()? {
             let requires_grad = tensor.requires_grad();
-            let _t = path.add(&name.replace(".", "_"), tensor, requires_grad);
+            let _t = path.add(&name.replace('.', "_"), tensor, requires_grad);
         }
         Ok(TrainableCModule { inner })
     }
@@ -699,6 +699,15 @@ pub fn f_set_profiling_mode(b: bool) -> Result<(), TchError> {
 
 pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
+}
+
+pub fn f_set_graph_executor_optimize(b: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(at_set_graph_executor_optimize(b));
+    Ok(())
+}
+
+pub fn set_graph_executor_optimize(b: bool) {
+    f_set_graph_executor_optimize(b).unwrap();
 }
 
 #[derive(Debug, PartialEq)]

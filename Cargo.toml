@@ -1,6 +1,6 @@
 [package]
 name = "tch"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 
@@ -17,7 +17,7 @@ libc = "0.2.0"
 ndarray = "0.15"
 rand = "0.8"
 thiserror = "1"
-torch-sys = { version = "0.6.1", path = "torch-sys" }
+torch-sys = { version = "0.7.0", path = "torch-sys" }
 zip = "0.5"
 half = "1.6"
 
