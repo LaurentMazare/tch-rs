@@ -71,6 +71,12 @@ impl From<f64> for Scalar {
     }
 }
 
+impl From<f32> for Scalar {
+    fn from(v: f32) -> Scalar {
+        Scalar::float(v as f64)
+    }
+}
+
 impl From<Scalar> for i64 {
     fn from(s: Scalar) -> i64 {
         Self::from(&s)
