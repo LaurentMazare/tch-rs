@@ -114,9 +114,8 @@ fn prepare_libtorch_dir() -> PathBuf {
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu92" => "%2Bcu92",
-                        "cu101" => "%2Bcu101",
-                        "cu111" => "%2Bcu111",
+                        "cu102" => "%2Bcu102",
+                        "cu113" => "%2Bcu113",
                         _ => ""
                     }
                 ),
@@ -128,9 +127,8 @@ fn prepare_libtorch_dir() -> PathBuf {
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu92" => "%2Bcu92",
-                        "cu101" => "%2Bcu101",
-                        "cu111" => "%2Bcu111",
+                        "cu102" => "%2Bcu102",
+                        "cu113" => "%2Bcu113",
                         _ => ""
                     }),
                 _ => panic!("Unsupported OS"),
