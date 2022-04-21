@@ -250,16 +250,19 @@ impl IValue {
                 let v = v.iter().map(Self::to_c).collect::<Result<Vec<_>, TchError>>()?;
                 let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
                 for x in v {
-                    ati_free(x);
+                    if unsafe_torch_err!(ati_tag(x)) != 14 {
+                        unsafe { ati_free(x) };
+                    }
                 }
-
                 tuple
             }
             IValue::GenericList(v) => {
                 let v = v.iter().map(Self::to_c).collect::<Result<Vec<_>, TchError>>()?;
                 let list = ati_generic_list(v.as_ptr(), v.len() as c_int);
                 for x in v {
-                    ati_free(x);
+                    if unsafe_torch_err!(ati_tag(x)) != 14 {
+                        unsafe { ati_free(x) };
+                    }
                 }
                 list
             }
@@ -292,7 +295,9 @@ impl IValue {
                     .collect::<Result<Vec<_>, TchError>>()?;
                 let dict = ati_generic_dict(v.as_ptr(), dict.len() as c_int);
                 for x in v {
-                    ati_free(x);
+                    if unsafe_torch_err!(ati_tag(x)) != 14 {
+                        unsafe { ati_free(x) };
+                    }
                 }
                 dict
             }
@@ -478,7 +483,9 @@ impl CModule {
         let c_ivalue =
             unsafe_torch_err!(atm_forward_(self.c_module, ts.as_ptr(), ts.len() as c_int));
         for x in ts {
-            unsafe { ati_free(x) }
+            if unsafe_torch_err!(ati_tag(x)) != 14 {
+                unsafe { ati_free(x) };
+            }
         }
         IValue::of_c(c_ivalue)
     }
@@ -515,7 +522,9 @@ impl CModule {
             ts.len() as c_int
         ));
         for x in ts {
-            unsafe { ati_free(x) }
+            if unsafe_torch_err!(ati_tag(x)) != 14 {
+                unsafe { ati_free(x) }
+            }
         }
         IValue::of_c(c_ivalue)
     }
@@ -730,7 +739,9 @@ impl Object {
             ts.len() as c_int
         ));
         for x in ts {
-            unsafe { ati_free(x) }
+            if unsafe_torch_err!(ati_tag(x)) != 14 {
+                unsafe { ati_free(x) }
+            }
         }
         IValue::of_c(c_ivalue)
     }
