@@ -342,10 +342,6 @@ impl Tensor {
     ///     accumulated into .grad. All other Tensors will be ignored. If not provided,
     ///     the gradient is accumulated into all the leaf Tensors that were used to
     ///     compute the attr::tensors.
-    ///
-    /// # note
-    ///     use this to custom function, pls see the test:
-    ///     [`tch::tests::tensor_tests::custom_functiom_part1()`]
     pub fn f_backward_with_grad_data<'a, T>(
         &self,
         grad: impl Into<Option<&'a Tensor>>,

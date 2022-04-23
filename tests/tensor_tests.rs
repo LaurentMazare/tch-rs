@@ -172,9 +172,10 @@ fn custom_functiom_part1() {
             &self.out
         }
         // custom function with GRL
-        fn backward(&self) -> Tensor {
+        fn backward(&self) {
             let grad = self.out.grad();
-            -grad * &self.inx * 6
+            let grad = -grad * &self.inx * 6;
+            self.inx.backward_with_grad(&grad);
         }
     }
 
@@ -182,13 +183,13 @@ fn custom_functiom_part1() {
     let mut m2 = ModelCustomFunction { inx: Tensor::default(), out: Tensor::default() };
 
     let x = Tensor::of_slice(&[1f64, 2., 3., 4., 5., 6.]).reshape(&[2, 3]).set_requires_grad(true);
-    let x1 = m1.fowrard(&x);
-    let x2 = m2.forward(&x1);
-    let out = x2.mean(tch::Kind::Float);
+    let y = m1.fowrard(&x);
+    let y = m2.forward(&y);
+    let y = y.mean(tch::Kind::Float);
     // now, let start bp
-    out.backward();
-    let grad = m2.backward();
-    x1.backward_with_grad_data::<Tensor, _, _>(&grad, None, None, &[]);
+    y.backward();
+    // m2 use custom function, so we need to call backward() manual
+    m2.backward();
     assert_eq!(Vec::<f32>::from(x.grad()), vec![-3., -4., -5., -6., -7., -8.]);
 }
 
