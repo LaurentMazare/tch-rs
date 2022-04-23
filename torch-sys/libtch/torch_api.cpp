@@ -202,6 +202,30 @@ void at_backward(tensor t, int keep_graph, int create_graph) {
   PROTECT(t->backward({}, keep_graph, create_graph);)
 }
 
+void at_backward_with_grad(
+		tensor t,
+		tensor grad,
+		int keep_graph,
+		int create_graph, 
+		tensor *inputs, 
+		int ninputs) {
+  if (grad == nullptr) {
+    if (ninputs <= 0) {
+      PROTECT(t->backward({}, keep_graph, create_graph);)
+    } else {
+      auto input_ = of_carray_tensor(inputs, ninputs);
+      PROTECT(t->backward({}, keep_graph, create_graph, input_);)
+    }
+  } else {
+    if (ninputs <= 0) {
+      PROTECT(t->backward(*grad, keep_graph, create_graph);)
+    } else {
+      auto input_ = of_carray_tensor(inputs, ninputs);
+      PROTECT(t->backward(*grad, keep_graph, create_graph, input_);)
+    }
+  }
+}
+
 int at_requires_grad(tensor t) {
   PROTECT(return t->requires_grad();)
   return -1;

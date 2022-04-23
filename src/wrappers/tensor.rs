@@ -295,6 +295,96 @@ impl Tensor {
         self.f_backward().unwrap()
     }
 
+    /// Runs the backward pass, populating the gradient tensors for tensors
+    /// which gradients are tracked.
+    ///
+    /// Gradients tracking can be turned on via `set_requires_grad`.
+    /// Panics if the C++ api returns an exception.
+    pub fn backward_with_grad(&self, grad: &Tensor) {
+        self.f_backward_with_grad(grad).unwrap()
+    }
+
+    /// Runs the backward pass, populating the gradient tensors for tensors
+    /// which gradients are tracked.
+    ///
+    /// Gradients tracking can be turned on via `set_requires_grad`.
+    /// Panics if the C++ api returns an exception.
+    pub fn f_backward_with_grad(&self, grad: &Tensor) -> Result<(), TchError> {
+        self.f_backward_with_grad_data(grad, None, None, &[Tensor::default(); 0])
+    }
+
+    /// The graph is differentiated using the chain rule.
+    ///
+    /// If the tensor is non-scalar (i.e. its data has more than one element)
+    /// and requires gradient, the function additionally requires specifying
+    /// gradient. It should be a tensor of matching type and location,
+    /// that contains the gradient of the differentiated function w.r.t. self.
+    ///
+    /// # arguments
+    ///
+    /// * gradient Tensor – Gradient w.r.t. the tensor.
+    ///     If it is a tensor, it will be automatically converted to a Tensor
+    ///     that does not require grad unless create_graph is True. None values
+    ///     can be specified for scalar Tensors or ones that don’t require grad.
+    ///     If a None value would be acceptable then this argument is optional.
+    ///
+    /// * retain_graph (bool, optional) – If False, the graph used to compute the
+    ///     grads will be freed. Note that in nearly all cases setting this option
+    ///     to True is not needed and often can be worked around in a much more
+    ///     efficient way.
+    ///     Defaults to the value of create_graph.
+    ///
+    /// * create_graph (bool, optional) – If True, graph of the derivative will be
+    ///     constructed, allowing to compute higher order derivative products.
+    ///     Defaults to False.
+    ///
+    /// * inputs (sequence of Tensor) – Inputs w.r.t. which the gradient will be
+    ///     accumulated into .grad. All other Tensors will be ignored. If not provided,
+    ///     the gradient is accumulated into all the leaf Tensors that were used to
+    ///     compute the attr::tensors.
+    ///
+    /// # note
+    ///     use this to custom function, pls see the test:
+    ///     [`tch::tests::tensor_tests::custom_functiom_part1()`]
+    pub fn f_backward_with_grad_data<'a, T>(
+        &self,
+        grad: impl Into<Option<&'a Tensor>>,
+        retain_graph: impl Into<Option<bool>>,
+        create_graph: impl Into<Option<bool>>,
+        inputs: &[T],
+    ) -> Result<(), TchError>
+    where
+        T: Borrow<Tensor>,
+    {
+        let create_graph = create_graph.into().unwrap_or(false);
+        let retain_graph = retain_graph.into().unwrap_or(create_graph);
+        let inputs: Vec<_> = inputs.iter().map(|x| x.borrow().c_tensor).collect();
+        let grad: *mut C_tensor = grad.into().map(|g| g.c_tensor).unwrap_or(std::ptr::null_mut());
+        unsafe_torch_err!(at_backward_with_grad(
+            self.c_tensor,
+            grad,
+            retain_graph as c_int,
+            create_graph as c_int,
+            inputs.as_ptr(),
+            inputs.len() as c_int,
+        ));
+        Ok(())
+    }
+
+    pub fn backward_with_grad_data<'a, T, G, B>(
+        &self,
+        grad: G,
+        retain_graph: B,
+        create_graph: B,
+        inputs: &[T],
+    ) where
+        G: Into<Option<&'a Tensor>>,
+        T: Borrow<Tensor>,
+        B: Into<Option<bool>>,
+    {
+        self.f_backward_with_grad_data(grad, retain_graph, create_graph, inputs).unwrap()
+    }
+
     pub fn f_run_backward<T1, T2>(
         tensors: &[T1],
         inputs: &[T2],

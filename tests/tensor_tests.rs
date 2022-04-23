@@ -102,6 +102,97 @@ fn grad_grad() {
 }
 
 #[test]
+fn grad_with_grad_backward() {
+    // scalar
+    let mut x = Tensor::from(42f64).set_requires_grad(true);
+    let y = &x * &x * &x + &x + &x * &x; // y = x^3 + x^2 + x
+    x.zero_grad();
+    y.backward_with_grad_data::<Tensor, _, _>(None, None, None, &[]);
+    assert_eq!(f64::from(x.grad()), 5377.0);
+
+    // multi dim
+    {
+        let mut x =
+            Tensor::of_slice(&[1f64, 2., 3., 4., 5., 6.]).reshape(&[2, 3]).set_requires_grad(true);
+        let y = &x + 2;
+        let z = &y * &y * 3;
+        let out = z.mean(tch::Kind::Float);
+        x.zero_grad();
+        out.backward_with_grad_data::<Tensor, _, _>(None, None, None, &[]);
+        assert_eq!(Vec::<f32>::from(x.grad()), vec![3., 4., 5., 6., 7., 8.]);
+    }
+
+    // manual grad
+    {
+        let mut x =
+            Tensor::of_slice(&[1f64, 2., 3., 4., 5., 6.]).reshape(&[2, 3]).set_requires_grad(true);
+        let y = &x + 2;
+        let z = &y * &y * 3;
+        let out = z.mean(tch::Kind::Float);
+        let grad = Tensor::of_slice(&[1.0]);
+        x.zero_grad();
+        out.backward_with_grad(&grad);
+        assert_eq!(Vec::<f32>::from(x.grad()), vec![3., 4., 5., 6., 7., 8.]);
+    }
+    // manual grad 2
+    {
+        let mut x =
+            Tensor::of_slice(&[1f64, 2., 3., 4., 5., 6.]).reshape(&[2, 3]).set_requires_grad(true);
+        let y = &x + 2;
+        let z = &y * &y * 3;
+        let grad = Tensor::of_slice(&[1., 1., 1., 1., 1., 1.]).reshape(&[2, 3]);
+        x.zero_grad();
+        z.backward_with_grad(&grad);
+        assert_eq!(Vec::<f32>::from(x.grad()), vec![18., 24., 30., 36., 42., 48.]);
+
+        let z = &y * &y * 3;
+        let grad = Tensor::of_slice(&[0.5, 0.5, 0.5, 0.5, 1., 1.]).reshape(&[2, 3]);
+        x.zero_grad();
+        z.backward_with_grad(&grad);
+        assert_eq!(Vec::<f32>::from(x.grad()), vec![9., 12., 15., 18., 42., 48.]);
+    }
+}
+
+#[test]
+fn custom_functiom_part1() {
+    struct Model1;
+    impl Model1 {
+        fn fowrard(&self, x: &Tensor) -> Tensor {
+            x + 2
+        }
+    }
+    struct ModelCustomFunction {
+        inx: Tensor,
+        out: Tensor,
+    }
+    impl ModelCustomFunction {
+        fn forward(&mut self, x: &Tensor) -> &Tensor {
+            self.inx = x.copy();
+            self.out = tch::no_grad(|| x * x * 3).detach().requires_grad_(true);
+            &self.out
+        }
+        // custom function with GRL
+        fn backward(&self) -> Tensor {
+            let grad = self.out.grad();
+            -grad * &self.inx * 6
+        }
+    }
+
+    let m1 = Model1;
+    let mut m2 = ModelCustomFunction { inx: Tensor::default(), out: Tensor::default() };
+
+    let x = Tensor::of_slice(&[1f64, 2., 3., 4., 5., 6.]).reshape(&[2, 3]).set_requires_grad(true);
+    let x1 = m1.fowrard(&x);
+    let x2 = m2.forward(&x1);
+    let out = x2.mean(tch::Kind::Float);
+    // now, let start bp
+    out.backward();
+    let grad = m2.backward();
+    x1.backward_with_grad_data::<Tensor, _, _>(&grad, None, None, &[]);
+    assert_eq!(Vec::<f32>::from(x.grad()), vec![-3., -4., -5., -6., -7., -8.]);
+}
+
+#[test]
 #[should_panic(expected = "one of the input tensor does not use set_requires_grad")]
 fn grad_without_requires() {
     let x = Tensor::from(2.0);
