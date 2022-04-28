@@ -195,13 +195,13 @@ impl crate::Tensor {
                 let name = file.name();
                 name.strip_suffix(NPY_SUFFIX).unwrap_or(name).to_owned()
             };
+            let mut data: Vec<u8> = Vec::with_capacity(file.size() as usize);
             let mut buf_reader = BufReader::new(file);
             let header = read_header(&mut buf_reader)?;
             let header = Header::parse(&header)?;
             if header.fortran_order {
                 return Err(TchError::FileFormat("fortran order not supported".to_string()));
             }
-            let mut data: Vec<u8> = vec![];
             buf_reader.read_to_end(&mut data)?;
             let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
             result.push((name, tensor))
