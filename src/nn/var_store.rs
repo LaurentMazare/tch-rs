@@ -186,6 +186,23 @@ impl VarStore {
     ) -> Result<Vec<String>, TchError> {
         let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
         let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        self.load_partial_from_state_dict(&named_tensors)
+    }
+
+    /// Loads the var-store variable values from a state dict.
+    ///
+    /// Weight values for the tensors currently stored in the var-store and the given dict get
+    /// loaded from the given dict. If a variable in the var store is not present in the given dict,
+    /// it is skipped and its values are not updated. This method should be used if pre-trained
+    /// weight for only parts of the model are available.
+    /// Note that the set of variables stored in the var-store is not changed, only the values
+    /// for these tensors are modified.
+    ///
+    /// Returns a String Vector containing the names of missing variables.
+    pub fn load_partial_from_state_dict(
+        &mut self,
+        named_tensors: &HashMap<String, Tensor>,
+    ) -> Result<Vec<String>, TchError> {
         let mut variables = self.variables_.lock().unwrap();
         let mut missing_variables = Vec::new();
         for (name, var) in variables.named_variables.iter_mut() {

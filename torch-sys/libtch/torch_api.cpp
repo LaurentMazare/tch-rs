@@ -938,6 +938,10 @@ void atc_set_benchmark_cudnn(int b) {
   at::globalContext().setBenchmarkCuDNN(b);
 }
 
+void atc_set_deterministic_cudnn(int b) {
+  at::globalContext().setDeterministicCuDNN(b);
+}
+
 module atm_load(char *filename) {
   PROTECT(
     return new torch::jit::script::Module(torch::jit::load(filename));

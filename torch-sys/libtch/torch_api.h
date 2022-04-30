@@ -151,6 +151,7 @@ int atc_cudnn_is_available();
 int atc_user_enabled_cudnn();
 void atc_set_user_enabled_cudnn(int b);
 void atc_set_benchmark_cudnn(int b);
+void atc_set_deterministic_cudnn(int b);
 
 module atm_load(char *);
 module atm_load_on_device(char *, int device);

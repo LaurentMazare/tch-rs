@@ -140,6 +140,7 @@ extern "C" {
     pub fn atc_user_enabled_cudnn() -> c_int;
     pub fn atc_set_user_enabled_cudnn(b: c_int);
     pub fn atc_set_benchmark_cudnn(b: c_int);
+    pub fn atc_set_deterministic_cudnn(b: c_int);
 }
 
 extern "C" {

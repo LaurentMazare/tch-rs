@@ -49,6 +49,10 @@ impl Cuda {
     pub fn cudnn_set_benchmark(b: bool) {
         unsafe_torch!(torch_sys::atc_set_benchmark_cudnn(if b { 1 } else { 0 }))
     }
+
+    pub fn cudnn_set_deterministic(b: bool) {
+        unsafe_torch!(torch_sys::atc_set_benchmark_cudnn(if b { 1 } else { 0 }))
+    }
 }
 
 impl Device {
