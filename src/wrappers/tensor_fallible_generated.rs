@@ -24885,7 +24885,7 @@ impl Tensor {
         unsafe_torch_err!(atg_upsample_bilinear2d_backward(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            if output_size.len() > 0 { output_size.as_ptr() } else { std::ptr::null_mut() },
+            output_size.as_ptr(),
             output_size.len() as i32,
             input_size.as_ptr(),
             input_size.len() as i32,
