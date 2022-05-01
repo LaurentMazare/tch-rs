@@ -238,6 +238,7 @@ extern "C" {
     pub fn ati_to_tensor_list(arg: *mut CIValue, outputs: *mut *mut C_tensor, n: c_int);
     pub fn ati_to_string(arg: *mut CIValue) -> *mut c_char;
 
+    pub fn ati_clone(arg: *mut CIValue) -> *mut CIValue;
     pub fn ati_free(arg: *mut CIValue);
 
     pub fn ati_object_method_(

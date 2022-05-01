@@ -153,7 +153,10 @@ fn jit_double_free() {
             &Tensor::of_slice(&[4_f32, 5_f32, 6_f32]).into(),
         ],
     );
-    if false {
-        let _output = foo.method_is("add_them", &[&input.unwrap()]);
-    }
+    let result = foo.method_is("add_them", &[&input.unwrap()]);
+    let result = match result.unwrap() {
+        IValue::Tensor(tensor) => tensor,
+        result => panic!("expected a tensor got {:?}", result),
+    };
+    assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
 }
