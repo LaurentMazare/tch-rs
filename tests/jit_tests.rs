@@ -141,3 +141,19 @@ fn create_traced() {
     let result = modl.method_ts("MyFn", &[xs, ys]).unwrap();
     assert_eq!(Vec::<f64>::from(&result), [42.0, 1337.0, 3.1415, 8.0, 10.0])
 }
+
+// https://github.com/LaurentMazare/tch-rs/issues/475
+#[test]
+fn jit_double_free() {
+    let foo = tch::CModule::load("tests/foo7.pt").unwrap();
+    let input = foo.method_is(
+        "make_input_object",
+        &[
+            &Tensor::of_slice(&[1_f32, 2_f32, 3_f32]).into(),
+            &Tensor::of_slice(&[4_f32, 5_f32, 6_f32]).into(),
+        ],
+    );
+    if false {
+        let _output = foo.method_is("add_them", &[&input.unwrap()]);
+    }
+}
