@@ -100,6 +100,8 @@ void at_set_qengine(int qengine);
 
 void at_free(tensor);
 
+void at_leaky_relu_slope(tensor *, tensor self, scalar negative_slope);
+
 void at_run_backward(tensor *tensors,
                       int ntensors,
                       tensor *inputs,

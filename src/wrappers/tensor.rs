@@ -5,7 +5,7 @@ use super::{
     kind,
     kind::Kind,
 };
-use crate::TchError;
+use crate::{Scalar, TchError};
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::io::{Read, Seek, Write};
@@ -699,6 +699,23 @@ impl Tensor {
             None => Err(TchError::Kind("nullptr representation".to_string())),
             Some(s) => Ok(s),
         }
+    }
+
+    pub fn f_leaky_relu_slope<S: Into<Scalar>>(
+        &self,
+        negative_slope: S,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(at_leaky_relu_slope(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            negative_slope.into().c_scalar,
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn leaky_relu_slope<S: Into<Scalar>>(&self, negative_slope: S) -> Tensor {
+        self.f_leaky_relu_slope(negative_slope).unwrap()
     }
 }
 

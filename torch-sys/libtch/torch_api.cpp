@@ -602,6 +602,13 @@ void at_free(tensor t) {
   delete(t);
 }
 
+void at_leaky_relu_slope(tensor *out__, tensor self, scalar negative_slope) {
+  PROTECT(
+    auto outputs__ = torch::leaky_relu(*self, *negative_slope);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void at_run_backward(tensor *tensors,
                      int ntensors,
                      tensor *inputs,

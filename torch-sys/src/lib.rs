@@ -189,6 +189,11 @@ extern "C" {
         img_data_len: size_t,
     ) -> *mut C_tensor;
     pub fn at_resize_image(arg: *mut C_tensor, out_w: c_int, out_h: c_int) -> *mut C_tensor;
+    pub fn at_leaky_relu_slope(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        slope: *mut C_scalar,
+    ) -> *mut C_tensor;
 }
 
 #[allow(clippy::upper_case_acronyms)]
