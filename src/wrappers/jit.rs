@@ -738,6 +738,18 @@ impl Object {
         }
         IValue::of_c(c_ivalue)
     }
+
+    pub fn getattr(&self, attr_name: &str) -> Result<IValue, TchError> {
+        let property_name = std::ffi::CString::new(attr_name)?;
+        let c_ivalue =
+            unsafe_torch_err!(ati_object_getattr_(self.c_ivalue, property_name.as_ptr()));
+        if c_ivalue == std::ptr::null_mut() {
+            return Err(TchError::Torch(
+                "getattr return nullptr c_ivalue".to_string(),
+            ));
+        }
+        IValue::of_c(c_ivalue)
+    }
 }
 
 impl Drop for Object {
