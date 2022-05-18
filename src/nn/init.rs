@@ -15,6 +15,9 @@ pub enum Init {
 
     /// Kaiming uniform initialization.
     KaimingUniform,
+
+    /// Orthogonal initialization
+    Orthogonal { gain: f64 },
 }
 
 /// Creates a new float tensor with the specified shape, device, and initialization.
@@ -45,6 +48,29 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             let bound = (1.0 / fan_in as f64).sqrt();
             Tensor::f_zeros(dims, (Kind::Float, device))?.f_uniform_(-bound, bound)
         }
+        Init::Orthogonal { gain } => {
+            if dims.len() < 2 {
+                return Err(TchError::Shape(
+                    "Only tensors with 2 or more dimensions are supported".to_string(),
+                ));
+            }
+            let rows = dims[0];
+            let cols: i64 = dims.iter().skip(1).product();
+
+            let mut flattened =
+                Tensor::f_empty(&[rows, cols], (Kind::Float, device))?.f_normal_(0.0, 1.0)?;
+            let flattened = if rows < cols { flattened.f_t_()? } else { flattened };
+
+            let (mut q, r) = flattened.f_linalg_qr("reduced")?;
+            let d = r.f_diag(0)?;
+            let ph = d.f_sign()?;
+            q *= ph;
+
+            let mut q = if rows < cols { q.f_t_()? } else { q };
+            crate::no_grad(|| q *= gain);
+
+            q.f_contiguous()
+        }
     }
 }
 
@@ -70,6 +96,10 @@ impl Init {
             }
             Init::Randn { mean, stdev } => {
                 tensor.copy_(&(tensor.randn_like() * stdev + mean));
+            }
+            Init::Orthogonal { gain } => {
+                let q = f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device()).unwrap();
+                crate::no_grad(|| tensor.view_as(&q).copy_(&q));
             }
         }
     }
