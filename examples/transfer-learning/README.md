@@ -34,7 +34,7 @@ cargo test
 
 The ants and bees dataset can be downloaded [here](https://download.pytorch.org/tutorial/hymenoptera_data.zip).
 You can download the weights for a ResNet-18 network pretrained on ImageNet,
-[resnet18.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).
+[resnet18.ot](https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot).
 
 Once this is done and the dataset has been extracted we can build and run the code with:
 ```bash

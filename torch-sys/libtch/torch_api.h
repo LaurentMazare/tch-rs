@@ -218,7 +218,10 @@ int ati_tag(ivalue);
 
 ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
 
+ivalue ati_clone(ivalue);
 void ati_free(ivalue);
+
+void at_set_graph_executor_optimize(bool);
 
 // for internal use
 bool tch_write_stream_destructor(void *stream_ptr);

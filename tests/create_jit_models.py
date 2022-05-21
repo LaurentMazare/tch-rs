@@ -16,17 +16,19 @@ class Foo1(torch.jit.ScriptModule):
     def __init__(self):
         super(Foo1, self).__init__()
 
+    @torch.jit.script_method
     def forward(self, x, y):
         return 2 * x + y
 
 foo = Foo1()
-traced_foo = torch.jit.trace(foo, (torch.rand(3), torch.rand(3)))
-traced_foo.save('foo1.pt')
+script_foo = torch.jit.script(foo)
+script_foo.save('foo1.pt')
 
 class Foo2(torch.jit.ScriptModule):
     def __init__(self):
         super(Foo2, self).__init__()
 
+    @torch.jit.script_method
     def forward(self, x, y):
         return (2 * x + y, x - y)
 
@@ -86,3 +88,22 @@ def foo_6(x: torch.Tensor):
 
 
 foo_6.save("foo6.pt")
+
+# https://github.com/LaurentMazare/tch-rs/issues/475
+@torch.jit.script
+class InputObject:
+    def __init__(self, foo, bar):
+        self.foo = foo
+        self.bar = bar
+
+class TorchScriptExample(torch.jit.ScriptModule):
+    @torch.jit.script_method
+    def add_them(self, data: InputObject) -> torch.Tensor:
+        return data.foo + data.bar
+
+    @torch.jit.script_method
+    def make_input_object(self, foo, bar):
+        return InputObject(foo, bar)
+
+foo_7 = TorchScriptExample()
+foo_7.save("foo7.pt")

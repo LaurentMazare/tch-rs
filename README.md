@@ -16,14 +16,14 @@ The code generation part for the C api on top of libtorch comes from
 
 ## Getting Started
 
-This crate requires the C++ PyTorch library (libtorch) in version *v1.10.0* to be available on
+This crate requires the C++ PyTorch library (libtorch) in version *v1.11.0* to be available on
 your system. You can either:
 
 - Use the system-wide libtorch installation (default).
 - Install libtorch manually and let the build script know about it via the `LIBTORCH` environment variable.
 - When a system-wide libtorch can't be found and `LIBTORCH` is not set, the build script will download a pre-built binary version
 of libtorch. By default a CPU version is used. The `TORCH_CUDA_VERSION` environment variable
-can be set to `cu111` in order to get a pre-built binary using CUDA 11.1.
+can be set to `cu113` in order to get a pre-built binary using CUDA 11.3.
 
 ### System-wide Libtorch
 
@@ -174,8 +174,8 @@ More details on the training loop can be found in the
 The [pretrained-models  example](https://github.com/LaurentMazare/tch-rs/tree/master/examples/pretrained-models/main.rs)
 illustrates how to use some pre-trained computer vision model on an image.
 The weights - which have been extracted from the PyTorch implementation - can be
-downloaded here [resnet18.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot)
-and here [resnet34.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot).
+downloaded here [resnet18.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet18.ot)
+and here [resnet34.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet34.ot).
 
 The example can then be run via the following command:
 ```bash
@@ -213,7 +213,7 @@ Further examples include:
   illustrating character level language modeling using Recurrent Neural Networks.
 * [Neural style transfer](https://github.com/LaurentMazare/tch-rs/blob/master/examples/neural-style-transfer)
   uses a pre-trained VGG-16 model to compose an image in the style of another image (pre-trained weights:
-  [vgg16.ot](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot)).
+  [vgg16.ot](https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot)).
 * Some [ResNet examples on CIFAR-10](https://github.com/LaurentMazare/tch-rs/tree/master/examples/cifar).
 * A [tutorial](https://github.com/LaurentMazare/tch-rs/tree/master/examples/jit)
   showing how to deploy/run some Python trained models using
@@ -226,6 +226,8 @@ Further examples include:
 
 External material:
 * A [tutorial](http://vegapit.com/article/how-to-use-torch-in-rust-with-tch-rs) showing how to use Torch to compute option prices and greeks.
+* [tchrs-opencv-webcam-inference](https://github.com/metobom/tchrs-opencv-webcam-inference) uses `tch-rs` and `opencv` to run inference
+  on a webcam feed for some Python trained model based on mobilenet v3.
 
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
