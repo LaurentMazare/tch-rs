@@ -285,27 +285,29 @@ fn main() {
 
         make(&libtorch, use_cuda, use_hip, use_python);
 
+        let link_type = if use_python { "dylib" } else { "static" };
+
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
-            println!("cargo:rustc-link-lib=torch_cuda");
+            println!("cargo:rustc-link-lib={}=torch_cuda", link_type);
         }
         if use_cuda_cu {
-            println!("cargo:rustc-link-lib=torch_cuda_cu");
+            println!("cargo:rustc-link-lib={}=torch_cuda_cu", link_type);
         }
         if use_cuda_cpp {
-            println!("cargo:rustc-link-lib=torch_cuda_cpp");
+            println!("cargo:rustc-link-lib={}=torch_cuda_cpp", link_type);
         }
         if use_hip {
-            println!("cargo:rustc-link-lib=torch_hip");
+            println!("cargo:rustc-link-lib={}=torch_hip", link_type);
         }
-        println!("cargo:rustc-link-lib=torch_cpu");
-        println!("cargo:rustc-link-lib=torch");
-        println!("cargo:rustc-link-lib=c10");
+        println!("cargo:rustc-link-lib={}=torch_cpu", link_type);
+        println!("cargo:rustc-link-lib={}=torch", link_type);
+        println!("cargo:rustc-link-lib={}=c10", link_type);
         if use_hip {
-            println!("cargo:rustc-link-lib=c10_hip");
+            println!("cargo:rustc-link-lib={}=c10_hip", link_type);
         }
         if use_python {
-            println!("cargo:rustc-link-lib=torch_python");
+            println!("cargo:rustc-link-lib={}=torch_python", link_type);
         }
 
         let target = env::var("TARGET").unwrap();
