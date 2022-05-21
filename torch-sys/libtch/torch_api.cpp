@@ -1411,6 +1411,13 @@ ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int niva
   return nullptr;
 }
 
+ivalue ati_clone(ivalue i) {
+  PROTECT(
+    return new torch::jit::IValue(*i);
+  )
+  return nullptr;
+}
+
 void ati_free(ivalue i) {
   delete(i);
 }

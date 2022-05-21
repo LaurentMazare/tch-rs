@@ -239,6 +239,7 @@ impl From<&str> for IValue {
 }
 
 impl IValue {
+    #![allow(unused_unsafe)]
     pub(super) fn to_c(&self) -> Result<*mut CIValue, TchError> {
         let c = unsafe_torch_err!(match self {
             IValue::Tensor(tensor) => ati_tensor(tensor.c_tensor),
@@ -296,7 +297,10 @@ impl IValue {
                 }
                 dict
             }
-            IValue::Object(Object { c_ivalue }) => *c_ivalue,
+            IValue::Object(Object { c_ivalue }) => {
+                // Clone the object if necessary before passing the pointer to the C++ side.
+                unsafe_torch_err!(ati_clone(*c_ivalue))
+            }
         });
         Ok(c)
     }
