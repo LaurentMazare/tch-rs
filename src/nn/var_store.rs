@@ -652,7 +652,7 @@ impl<'a> Path<'a> {
         self.f_kaiming_uniform(name, dims).unwrap()
     }
 
-    /// Creats a new variable initialized randomly with an orthogonal matrix
+    /// Creates a new variable initialized randomly with an orthogonal matrix
     ///
     /// The new variable is named according to the name parameter and
     /// has the specified shape. The variable is trainable, its gradient
