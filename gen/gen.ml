@@ -15,6 +15,8 @@ let excluded_functions =
     ; "log_softmax_backward_data"
     ; "softmax_backward_data"
     ; "clone"
+    ; "copy"
+    ; "copy_out"
     ; "copy_"
     ; "conv_transpose2d_backward_out"
     ; "conv_transpose3d_backward_out"
@@ -39,6 +41,11 @@ let excluded_functions =
     ; "linalg_vector_norm_out"
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
+      (* Deactivate normal_out, bernoulli_out as these result in some
+         ambiguous function calls. *)
+    ; "normal_out"
+    ; "bernoulli_out"
+    ; "nested_tensor"
     ]
 
 let no_tensor_options =
@@ -258,8 +265,8 @@ module Func = struct
     | "scatter_reduce" ->
       (* scatter_reduce is both an operator name and also obtained from the
          scatter operator when using the reduce overload. *)
-      "scatter__reduce"
-    | "scatter_reduce_" -> "scatter__reduce_"
+      "_scatter_reduce"
+    | "scatter_reduce_" -> "_scatter_reduce_"
     | other -> other
 
   let c_rust_args_list t =

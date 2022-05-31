@@ -1714,6 +1714,40 @@ impl Tensor {
         Tensor::f_internal_saturate_weight_to_fp16(weight).unwrap()
     }
 
+    pub fn internal_scatter_reduce(
+        &self,
+        dim: i64,
+        index: &Tensor,
+        src: &Tensor,
+        reduce: &str,
+        include_self: bool,
+    ) -> Tensor {
+        self.f_internal_scatter_reduce(dim, index, src, reduce, include_self).unwrap()
+    }
+
+    pub fn internal_scatter_reduce_(
+        &mut self,
+        dim: i64,
+        index: &Tensor,
+        src: &Tensor,
+        reduce: &str,
+        include_self: bool,
+    ) -> Tensor {
+        self.f_internal_scatter_reduce_(dim, index, src, reduce, include_self).unwrap()
+    }
+
+    pub fn internal_scatter_reduce_two_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        index: &Tensor,
+        src: &Tensor,
+        reduce: &str,
+        include_self: bool,
+    ) -> Tensor {
+        self.f_internal_scatter_reduce_two_out(out, dim, index, src, reduce, include_self).unwrap()
+    }
+
     pub fn internal_segment_reduce_backward<T: Borrow<Tensor>>(
         grad: &Tensor,
         output: &Tensor,
@@ -3697,24 +3731,12 @@ impl Tensor {
         self.f_bernoulli_float_(p).unwrap()
     }
 
-    pub fn bernoulli_float_out(&self, out: &Tensor, p: f64) -> Tensor {
-        self.f_bernoulli_float_out(out, p).unwrap()
-    }
-
-    pub fn bernoulli_out(&self, out: &Tensor) -> Tensor {
-        self.f_bernoulli_out(out).unwrap()
-    }
-
     pub fn bernoulli_p(&self, p: f64) -> Tensor {
         self.f_bernoulli_p(p).unwrap()
     }
 
     pub fn bernoulli_tensor_functional(&self, p: &Tensor) -> Tensor {
         self.f_bernoulli_tensor_functional(p).unwrap()
-    }
-
-    pub fn bernoulli_tensor_out(&self, out: &Tensor, p: &Tensor) -> Tensor {
-        self.f_bernoulli_tensor_out(out, p).unwrap()
     }
 
     pub fn bilinear<T: Borrow<Tensor>>(
@@ -4560,14 +4582,6 @@ impl Tensor {
             groups,
         )
         .unwrap()
-    }
-
-    pub fn copy(&self, src: &Tensor, non_blocking: bool) -> Tensor {
-        self.f_copy(src, non_blocking).unwrap()
-    }
-
-    pub fn copy_out(&self, out: &Tensor, src: &Tensor, non_blocking: bool) -> Tensor {
-        self.f_copy_out(out, src, non_blocking).unwrap()
     }
 
     pub fn copy_sparse_to_sparse(&self, out: &Tensor, src: &Tensor, non_blocking: bool) -> Tensor {
@@ -9888,15 +9902,6 @@ impl Tensor {
         self.f_negative_out(out).unwrap()
     }
 
-    pub fn nested_tensor<T: Borrow<Tensor>>(
-        list: &[T],
-        dtype: Kind,
-        device: Device,
-        pin_memory: bool,
-    ) -> Tensor {
-        Tensor::f_nested_tensor(list, dtype, device, pin_memory).unwrap()
-    }
-
     pub fn new_empty(&self, size: &[i64], options: (Kind, Device)) -> Tensor {
         self.f_new_empty(size, options).unwrap()
     }
@@ -10127,32 +10132,12 @@ impl Tensor {
         self.f_norm_scalaropt_dtype(p, dtype).unwrap()
     }
 
-    pub fn normal(out: &Tensor, mean: &Tensor, std: f64) -> Tensor {
-        Tensor::f_normal(out, mean, std).unwrap()
+    pub fn normal(&self, mean: f64, std: f64) -> Tensor {
+        self.f_normal(mean, std).unwrap()
     }
 
     pub fn normal_(&mut self, mean: f64, std: f64) -> Tensor {
         self.f_normal_(mean, std).unwrap()
-    }
-
-    pub fn normal_float_float_out(out: &Tensor, mean: f64, std: f64, size: &[i64]) -> Tensor {
-        Tensor::f_normal_float_float_out(out, mean, std, size).unwrap()
-    }
-
-    pub fn normal_float_tensor_out(out: &Tensor, mean: f64, std: &Tensor) -> Tensor {
-        Tensor::f_normal_float_tensor_out(out, mean, std).unwrap()
-    }
-
-    pub fn normal_functional(&self, mean: f64, std: f64) -> Tensor {
-        self.f_normal_functional(mean, std).unwrap()
-    }
-
-    pub fn normal_out(&self, out: &Tensor, mean: f64, std: f64) -> Tensor {
-        self.f_normal_out(out, mean, std).unwrap()
-    }
-
-    pub fn normal_tensor_tensor_out(out: &Tensor, mean: &Tensor, std: &Tensor) -> Tensor {
-        Tensor::f_normal_tensor_tensor_out(out, mean, std).unwrap()
     }
 
     pub fn not_equal<S: Into<Scalar>>(&self, other: S) -> Tensor {
@@ -11328,40 +11313,6 @@ impl Tensor {
 
     pub fn scatter_(&mut self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
         self.f_scatter_(dim, index, src).unwrap()
-    }
-
-    pub fn scatter_reduce(
-        &self,
-        dim: i64,
-        index: &Tensor,
-        src: &Tensor,
-        reduce: &str,
-        include_self: bool,
-    ) -> Tensor {
-        self.f_scatter_reduce(dim, index, src, reduce, include_self).unwrap()
-    }
-
-    pub fn scatter_reduce_(
-        &mut self,
-        dim: i64,
-        index: &Tensor,
-        src: &Tensor,
-        reduce: &str,
-        include_self: bool,
-    ) -> Tensor {
-        self.f_scatter_reduce_(dim, index, src, reduce, include_self).unwrap()
-    }
-
-    pub fn scatter_reduce_two_out(
-        &self,
-        out: &Tensor,
-        dim: i64,
-        index: &Tensor,
-        src: &Tensor,
-        reduce: &str,
-        include_self: bool,
-    ) -> Tensor {
-        self.f_scatter_reduce_two_out(out, dim, index, src, reduce, include_self).unwrap()
     }
 
     pub fn scatter_add(&self, dim: i64, index: &Tensor, src: &Tensor) -> Tensor {
