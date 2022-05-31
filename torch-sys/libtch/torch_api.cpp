@@ -1420,6 +1420,7 @@ ivalue ati_clone(ivalue i) {
   PROTECT(
     return new torch::jit::IValue(*i);
   )
+  return nullptr;
 }
 
 void ati_free(ivalue i) {
