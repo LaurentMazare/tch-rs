@@ -253,6 +253,15 @@ module Func = struct
     in
     if String.is_prefix name ~prefix:"_" then "internal" ^ name else name
 
+  let operator_name t =
+    match String.lowercase t.operator_name with
+    | "scatter_reduce" ->
+      (* scatter_reduce is both an operator name and also obtained from the
+         scatter operator when using the reduce overload. *)
+      "scatter__reduce"
+    | "scatter_reduce_" -> "scatter__reduce_"
+    | other -> other
+
   let c_rust_args_list t =
     List.map t.args ~f:(fun arg ->
         let an = arg.arg_name in
@@ -793,7 +802,7 @@ let run
   printf "Generating code for %d functions.\n%!" (List.length funcs);
   (* Generate some unique names for overloaded functions. *)
   let funcs =
-    List.map funcs ~f:(fun func -> String.lowercase func.operator_name, func)
+    List.map funcs ~f:(fun func -> Func.operator_name func, func)
     |> Map.of_alist_multi (module String)
     |> Map.to_alist
     |> List.concat_map ~f:(fun (name, funcs) ->
@@ -810,7 +819,7 @@ let run
                  | 0 -> Int.compare (List.length f1.args) (List.length f2.args)
                  | cmp -> cmp)
              |> List.mapi ~f:(fun index (func : Func.t) ->
-                    let operator_name = String.lowercase func.operator_name in
+                    let operator_name = Func.operator_name func in
                     let overload_name = String.lowercase func.overload_name in
                     let name =
                       if String.is_empty overload_name
@@ -830,7 +839,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.11.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.12.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"
