@@ -744,9 +744,10 @@ impl Object {
         let c_ivalue =
             unsafe_torch_err!(ati_object_getattr_(self.c_ivalue, property_name.as_ptr()));
         if c_ivalue.is_null() {
-            return Err(TchError::Torch(
-                format!("Object.getattr(\"{}\") returned CIValue nullptr", attr_name),
-            ));
+            return Err(TchError::Torch(format!(
+                "Object.getattr(\"{}\") returned CIValue nullptr",
+                attr_name
+            )));
         }
         IValue::of_c(c_ivalue)
     }
