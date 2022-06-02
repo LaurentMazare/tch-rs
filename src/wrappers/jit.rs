@@ -525,7 +525,11 @@ impl CModule {
     }
 
     /// Create a specified custom JIT class object with the given class name, eg: `__torch__.foo.Bar`
-    pub fn create_class_is<T: Borrow<IValue>>(&self, clz_name: &str, ts: &[T]) -> Result<IValue, TchError> {
+    pub fn create_class_is<T: Borrow<IValue>>(
+        &self,
+        clz_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
         let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
         let clz_name = std::ffi::CString::new(clz_name)?;
         let c_ivalue = unsafe_torch_err!(atm_create_class_(
