@@ -59,6 +59,10 @@ pub struct RNNConfig {
     pub train: bool,
     pub bidirectional: bool,
     pub batch_first: bool,
+    pub w_ih_init: super::Init,
+    pub w_hh_init: super::Init,
+    pub b_ih_init: Option<super::Init>,
+    pub b_hh_init: Option<super::Init>,
 }
 
 impl Default for RNNConfig {
@@ -70,8 +74,57 @@ impl Default for RNNConfig {
             train: true,
             bidirectional: false,
             batch_first: true,
+            w_ih_init: super::Init::KaimingUniform,
+            w_hh_init: super::Init::KaimingUniform,
+            b_ih_init: Some(super::Init::Const(0.)),
+            b_hh_init: Some(super::Init::Const(0.)),
         }
     }
+}
+
+fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
+    vs: T,
+    in_dim: i64,
+    hidden_dim: i64,
+    gate_dim: i64,
+    num_directions: i64,
+    c: RNNConfig,
+) -> Vec<Tensor> {
+    let vs = vs.borrow();
+    let mut flat_weights = vec![];
+    for layer_idx in 0..c.num_layers {
+        for direction_idx in 0..num_directions {
+            let in_dim = if layer_idx == 0 { in_dim } else { hidden_dim * num_directions };
+            let suffix = if direction_idx == 1 { "_reverse" } else { "" };
+            let w_ih = vs.var(
+                &format!("weight_ih_l{}{}", layer_idx, suffix),
+                &[gate_dim, in_dim],
+                c.w_ih_init,
+            );
+            let w_hh = vs.var(
+                &format!("weight_hh_l{}{}", layer_idx, suffix),
+                &[gate_dim, hidden_dim],
+                c.w_hh_init,
+            );
+            flat_weights.push(w_ih);
+            flat_weights.push(w_hh);
+            if c.has_biases {
+                let b_ih = vs.var(
+                    &format!("bias_ih_l{}{}", layer_idx, suffix),
+                    &[gate_dim],
+                    c.b_ih_init.unwrap(),
+                );
+                let b_hh = vs.var(
+                    &format!("bias_hh_l{}{}", layer_idx, suffix),
+                    &[gate_dim],
+                    c.b_hh_init.unwrap(),
+                );
+                flat_weights.push(b_ih);
+                flat_weights.push(b_hh);
+            }
+        }
+    }
+    flat_weights
 }
 
 /// A Long Short-Term Memory (LSTM) layer.
@@ -96,29 +149,8 @@ pub fn lstm<'a, T: Borrow<super::Path<'a>>>(
     let vs = vs.borrow();
     let num_directions = if c.bidirectional { 2 } else { 1 };
     let gate_dim = 4 * hidden_dim;
-    let mut flat_weights = vec![];
-    for layer_idx in 0..c.num_layers {
-        for direction_idx in 0..num_directions {
-            let in_dim = if layer_idx == 0 { in_dim } else { hidden_dim * num_directions };
-            let suffix = if direction_idx == 1 { "_reverse" } else { "" };
-            let w_ih = vs.kaiming_uniform(
-                &format!("weight_ih_l{}{}", layer_idx, suffix),
-                &[gate_dim, in_dim],
-            );
-            let w_hh = vs.kaiming_uniform(
-                &format!("weight_hh_l{}{}", layer_idx, suffix),
-                &[gate_dim, hidden_dim],
-            );
-            flat_weights.push(w_ih);
-            flat_weights.push(w_hh);
-            if c.has_biases {
-                let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
-                let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
-                flat_weights.push(b_ih);
-                flat_weights.push(b_hh);
-            }
-        }
-    }
+    let flat_weights = rnn_weights(vs, in_dim, hidden_dim, gate_dim, num_directions, c);
+
     if vs.device().is_cuda() && crate::Cuda::cudnn_is_available() {
         let _ = Tensor::internal_cudnn_rnn_flatten_weight(
             &flat_weights,
@@ -202,29 +234,8 @@ pub fn gru<'a, T: Borrow<super::Path<'a>>>(
     let vs = vs.borrow();
     let num_directions = if c.bidirectional { 2 } else { 1 };
     let gate_dim = 3 * hidden_dim;
-    let mut flat_weights = vec![];
-    for layer_idx in 0..c.num_layers {
-        for direction_idx in 0..num_directions {
-            let in_dim = if layer_idx == 0 { in_dim } else { hidden_dim * num_directions };
-            let suffix = if direction_idx == 1 { "_reverse" } else { "" };
-            let w_ih = vs.kaiming_uniform(
-                &format!("weight_ih_l{}{}", layer_idx, suffix),
-                &[gate_dim, in_dim],
-            );
-            let w_hh = vs.kaiming_uniform(
-                &format!("weight_hh_l{}{}", layer_idx, suffix),
-                &[gate_dim, hidden_dim],
-            );
-            flat_weights.push(w_ih);
-            flat_weights.push(w_hh);
-            if c.has_biases {
-                let b_ih = vs.zeros(&format!("bias_ih_l{}{}", layer_idx, suffix), &[gate_dim]);
-                let b_hh = vs.zeros(&format!("bias_hh_l{}{}", layer_idx, suffix), &[gate_dim]);
-                flat_weights.push(b_ih);
-                flat_weights.push(b_hh);
-            }
-        }
-    }
+    let flat_weights = rnn_weights(vs, in_dim, hidden_dim, gate_dim, num_directions, c);
+
     if vs.device().is_cuda() && crate::Cuda::cudnn_is_available() {
         let _ = Tensor::internal_cudnn_rnn_flatten_weight(
             &flat_weights,

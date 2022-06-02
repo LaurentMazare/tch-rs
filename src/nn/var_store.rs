@@ -530,6 +530,20 @@ impl<'a> Path<'a> {
         self.f_var(name, dims, Init::KaimingUniform)
     }
 
+    /// Creates a new variable initialized randomly with an orthogonal matrix
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly with an orthogonal
+    /// matrix as described in *Exact solutions to the nonlinear dynamics
+    /// of learning in deep linear neural networks* - Saxe, A. et. al. (2013).
+    /// The input tensor must have at least 2 dimensions, and for tensors
+    /// with more than 2 dimensions the trailing dimensions are flattened.
+    pub fn f_orthogonal(&self, name: &str, dims: &[i64], gain: f64) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Orthogonal { gain })
+    }
+
     /// Creates a new variable initialized by copying an existing tensor.
     ///
     /// The new variable is named according to the name parameter and
@@ -638,6 +652,20 @@ impl<'a> Path<'a> {
         self.f_kaiming_uniform(name, dims).unwrap()
     }
 
+    /// Creates a new variable initialized randomly with an orthogonal matrix
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly with an orthogonal
+    /// matrix as described in *Exact solutions to the nonlinear dynamics
+    /// of learning in deep linear neural networks* - Saxe, A. et. al. (2013).
+    /// The input tensor must have at least 2 dimensions, and for tensors
+    /// with more than 2 dimensions the trailing dimensions are flattened.
+    pub fn orthogonal(&self, name: &str, dims: &[i64], gain: f64) -> Tensor {
+        self.f_orthogonal(name, dims, gain).unwrap()
+    }
+
     /// Creates a new variable initialized by copying an existing tensor.
     ///
     /// The new variable is named according to the name parameter and
@@ -685,6 +713,11 @@ impl<'a> Entry<'a> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
         self.or_var(dims, Init::KaimingUniform)
+    }
+
+    /// Returns the existing entry if, otherwise create a new variable.
+    pub fn or_orthogonal(self, dims: &[i64], gain: f64) -> Tensor {
+        self.or_var(dims, Init::Orthogonal { gain })
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
