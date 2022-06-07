@@ -59,6 +59,58 @@ impl VarStore {
         VarStore { variables_: Arc::new(Mutex::new(variables)), device }
     }
 
+    pub fn from_existing(
+        mut var_stores: Vec<VarStore>,
+        prefixes: Option<&[&str]>,
+    ) -> Result<VarStore, TchError> {
+        let mut new_var_store = VarStore::new(Device::Cpu);
+
+        if var_stores.is_empty() {
+            Ok(new_var_store)
+        } else if var_stores.len() == 1 {
+            Ok(var_stores.pop().unwrap())
+        } else {
+            let mut new_variables =
+                Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
+            let device = var_stores[0].device();
+            if let Some(prefixes_value) = prefixes {
+                if prefixes_value.len() != var_stores.len() {
+                    return Err(TchError::Shape(format!(
+                    "if prefixes are provided they must be of the same length of the var_stores, got {} prefixes and {} var stores",
+                    prefixes_value.len(),
+                    var_stores.len())));
+                }
+            }
+            for (var_store_index, var_store) in var_stores.into_iter().enumerate() {
+                if var_store.device() != device {
+                    return Err(TchError::Torch(format!(
+                        "All VarStores must be on the same device, got {:?} and {:?}",
+                        device,
+                        var_store.device()
+                    )));
+                }
+                for (var_name, var) in var_store.variables() {
+                    let prefix = prefixes.map_or("", |prefixes| prefixes[var_store_index]);
+                    let new_var_name = format!("{}{}", prefix, var_name);
+                    new_variables.named_variables.insert(new_var_name, var);
+                }
+                for trainable_var in Arc::try_unwrap(var_store.variables_)
+                    .unwrap()
+                    .into_inner()
+                    .unwrap()
+                    .trainable_variables
+                    .into_iter()
+                {
+                    new_variables.trainable_variables.push(trainable_var);
+                }
+            }
+            new_var_store.variables_ = Arc::new(Mutex::new(new_variables));
+            new_var_store.device = device;
+
+            Ok(new_var_store)
+        }
+    }
+
     /// Gets the device for this var-store.
     pub fn device(&self) -> Device {
         self.device
