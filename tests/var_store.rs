@@ -508,7 +508,7 @@ fn merge_var_stores_no_prefixes() {
     let _ = vs_2.root().entry("key_3").or_zeros(&[2, 4, 4]);
     let _ = vs_2.root().entry("key_4").or_zeros(&[5, 2, 3]);
 
-    let merged_vs = VarStore::from_existing(vec![vs_1, vs_2], None).unwrap();
+    let merged_vs = VarStore::merge(vec![(vs_1, None), (vs_2, None)]).unwrap();
     assert_eq!(merged_vs.variables().len(), 4);
     assert_eq!(merged_vs.trainable_variables().len(), 4);
     assert!(merged_vs.variables().contains_key("key_1"));
@@ -527,7 +527,7 @@ fn merge_var_stores_with_prefixes() {
     let _ = vs_2.root().entry("key_3").or_zeros(&[2, 4, 4]);
     let _ = vs_2.root().entry("key_4").or_zeros(&[5, 2, 3]);
 
-    let merged_vs = VarStore::from_existing(vec![vs_1, vs_2], Some(&["vs_1.", "vs_2."])).unwrap();
+    let merged_vs = VarStore::merge(vec![(vs_1, Some("vs_1.")), (vs_2, Some("vs_2."))]).unwrap();
     assert_eq!(merged_vs.variables().len(), 4);
     assert_eq!(merged_vs.trainable_variables().len(), 4);
     assert!(merged_vs.variables().contains_key("vs_1.key_1"));
