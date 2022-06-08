@@ -3,6 +3,7 @@ use super::Init;
 use crate::tensor::Tensor;
 use crate::wrappers::stream::ReadSeekAdapter;
 use crate::{Device, Kind, TchError};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::ops::Div;
@@ -79,7 +80,17 @@ impl VarStore {
                 }
                 for (var_name, var) in var_store.variables() {
                     let new_var_name = format!("{}{}", prefix.unwrap_or(""), var_name);
-                    new_variables.named_variables.insert(new_var_name, var);
+                    match new_variables.named_variables.entry(new_var_name) {
+                        Occupied(v) => {
+                            return Err(TchError::Torch(format!(
+                                "Duplicate variable name found: {}. Provide a unique prefix to allow merge operation",
+                                v.key(),
+                            )));
+                        }
+                        Vacant(v) => {
+                            v.insert(var);
+                        }
+                    }
                 }
                 for trainable_var in Arc::try_unwrap(var_store.variables_)
                     .unwrap()
