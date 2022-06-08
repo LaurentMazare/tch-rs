@@ -19,7 +19,7 @@ libc = "0.2.0"
 anyhow = "1.0"
 cc = "1.0"
 curl = { version = "0.4.9", optional = true }
-zip = "0.5"
+zip = "0.6"
 
 [features]
 download-libtorch = ["curl"]
