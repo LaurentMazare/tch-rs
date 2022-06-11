@@ -92,12 +92,8 @@ impl VarStore {
                         }
                     }
                 }
-                for trainable_var in Arc::try_unwrap(var_store.variables_)
-                    .unwrap()
-                    .into_inner()
-                    .unwrap()
-                    .trainable_variables
-                    .into_iter()
+                for trainable_var in
+                    var_store.variables_.lock().unwrap().trainable_variables.drain(..)
                 {
                     new_variables.trainable_variables.push(trainable_var);
                 }
