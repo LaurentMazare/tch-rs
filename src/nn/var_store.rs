@@ -3,6 +3,7 @@ use super::Init;
 use crate::tensor::Tensor;
 use crate::wrappers::stream::ReadSeekAdapter;
 use crate::{Device, Kind, TchError};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::ops::Div;
@@ -57,6 +58,51 @@ impl VarStore {
         let variables =
             Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
         VarStore { variables_: Arc::new(Mutex::new(variables)), device }
+    }
+
+    pub fn merge(var_stores: Vec<(VarStore, Option<&str>)>) -> Result<VarStore, TchError> {
+        let mut new_var_store = VarStore::new(Device::Cpu);
+
+        if var_stores.is_empty() {
+            Ok(new_var_store)
+        } else {
+            let mut new_variables =
+                Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
+            let device = var_stores[0].0.device();
+
+            for (var_store, prefix) in var_stores {
+                if var_store.device() != device {
+                    return Err(TchError::Torch(format!(
+                        "All VarStores must be on the same device, got {:?} and {:?}",
+                        device,
+                        var_store.device()
+                    )));
+                }
+                for (var_name, var) in var_store.variables() {
+                    let new_var_name = format!("{}{}", prefix.unwrap_or(""), var_name);
+                    match new_variables.named_variables.entry(new_var_name) {
+                        Occupied(v) => {
+                            return Err(TchError::Torch(format!(
+                                "Duplicate variable name found: {}. Provide a unique prefix to allow merge operation",
+                                v.key(),
+                            )));
+                        }
+                        Vacant(v) => {
+                            v.insert(var);
+                        }
+                    }
+                }
+                for trainable_var in
+                    var_store.variables_.lock().unwrap().trainable_variables.drain(..)
+                {
+                    new_variables.trainable_variables.push(trainable_var);
+                }
+            }
+            new_var_store.variables_ = Arc::new(Mutex::new(new_variables));
+            new_var_store.device = device;
+
+            Ok(new_var_store)
+        }
     }
 
     /// Gets the device for this var-store.
