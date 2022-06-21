@@ -1,10 +1,18 @@
 //! MobileNet V2 implementation.
 //! https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.html
 use crate::nn::{self, ModuleT};
+use crate::Tensor;
 
 #[allow(clippy::identity_op)]
 // Conv2D + BatchNorm2D + ReLU6
-fn cbr(p: nn::Path, c_in: i64, c_out: i64, ks: i64, stride: i64, g: i64) -> impl ModuleT {
+fn cbr(
+    p: nn::Path,
+    c_in: i64,
+    c_out: i64,
+    ks: i64,
+    stride: i64,
+    g: i64,
+) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     let conv2d = nn::ConvConfig {
         stride,
         padding: (ks - 1) / 2,
@@ -19,7 +27,13 @@ fn cbr(p: nn::Path, c_in: i64, c_out: i64, ks: i64, stride: i64, g: i64) -> impl
 }
 
 // Inverted Residual block.
-fn inv(p: nn::Path, c_in: i64, c_out: i64, stride: i64, er: i64) -> impl ModuleT {
+fn inv(
+    p: nn::Path,
+    c_in: i64,
+    c_out: i64,
+    stride: i64,
+    er: i64,
+) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     let c_hidden = er * c_in;
     let mut conv = nn::seq_t();
     let mut id = 0;
@@ -31,14 +45,17 @@ fn inv(p: nn::Path, c_in: i64, c_out: i64, stride: i64, er: i64) -> impl ModuleT
         .add(cbr(&p / id, c_hidden, c_hidden, 3, stride, c_hidden))
         .add(nn::conv2d(&p / (id + 1), c_hidden, c_out, 1, nn::no_bias()))
         .add(nn::batch_norm2d(&p / (id + 2), c_out, Default::default()));
-    nn::func_t(move |xs, train| {
-        let ys = xs.apply_t(&conv, train);
-        if stride == 1 && c_in == c_out {
-            xs + ys
-        } else {
-            ys
-        }
-    })
+    nn::func_t(
+        move |xs: &Tensor, train| {
+            let ys = xs.apply_t(&conv, train);
+            if stride == 1 && c_in == c_out {
+                xs + ys
+            } else {
+                ys
+            }
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
 const INVERTED_RESIDUAL_SETTINGS: [(i64, i64, i64, i64); 7] = [
@@ -52,7 +69,7 @@ const INVERTED_RESIDUAL_SETTINGS: [(i64, i64, i64, i64); 7] = [
 ];
 
 #[allow(clippy::identity_op)]
-pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     let f_p = p / "features";
     let c_p = p / "classifier";
     let mut c_in = 32;
@@ -74,10 +91,13 @@ pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
         nclasses,
         Default::default(),
     ));
-    nn::func_t(move |xs, train| {
-        xs.apply_t(&features, train)
-            .mean_dim(&[2], false, crate::Kind::Float)
-            .mean_dim(&[2], false, crate::Kind::Float)
-            .apply_t(&classifier, train)
-    })
+    nn::func_t(
+        move |xs: &Tensor, train| {
+            xs.apply_t(&features, train)
+                .mean_dim(&[2], false, crate::Kind::Float)
+                .mean_dim(&[2], false, crate::Kind::Float)
+                .apply_t(&classifier, train)
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }

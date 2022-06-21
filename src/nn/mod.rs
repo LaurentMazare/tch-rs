@@ -9,7 +9,7 @@ mod var_store;
 pub use var_store::{Path, VarStore, Variables};
 
 mod module;
-pub use module::{Module, ModuleT};
+pub use module::{batch_accuracy_for_logits, Module, ModuleT};
 
 mod linear;
 pub use linear::*;
@@ -48,19 +48,48 @@ pub use optimizer::{
 pub struct Id();
 
 impl ModuleT for Id {
+    type Input = crate::Tensor;
+    type Output = crate::Tensor;
+
     fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
         xs.shallow_clone()
+    }
+
+    fn batch_accuracy_for_logits(
+        &self,
+        xs: &Self::Input,
+        ys: &Self::Input,
+        d: crate::Device,
+        batch_size: i64,
+    ) -> f64 {
+        module::batch_accuracy_for_logits(self, xs, ys, d, batch_size)
     }
 }
 
 impl Module for crate::CModule {
-    fn forward(&self, xs: &crate::Tensor) -> crate::Tensor {
+    type Input = crate::Tensor;
+    type Output = crate::Tensor;
+
+    fn forward(&self, xs: &Self::Input) -> Self::Output {
         self.forward_ts(&[xs]).unwrap()
     }
 }
 
 impl ModuleT for crate::TrainableCModule {
-    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
+    type Input = crate::Tensor;
+    type Output = crate::Tensor;
+
+    fn forward_t(&self, xs: &Self::Input, _train: bool) -> Self::Output {
         self.inner.forward_ts(&[xs]).unwrap()
+    }
+
+    fn batch_accuracy_for_logits(
+        &self,
+        xs: &Self::Input,
+        ys: &Self::Input,
+        d: crate::Device,
+        batch_size: i64,
+    ) -> f64 {
+        module::batch_accuracy_for_logits(self, xs, ys, d, batch_size)
     }
 }

@@ -102,7 +102,7 @@ pub fn parse_config<T: AsRef<Path>>(path: T) -> Result<Darknet> {
 }
 
 enum Bl {
-    Layer(Box<dyn ModuleT>),
+    Layer(Box<dyn ModuleT<Input = Tensor, Output = Tensor>>),
     Route(Vec<usize>),
     Shortcut(usize),
     Yolo(i64, Vec<(i64, i64)>),
@@ -131,26 +131,32 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
         "linear" => false,
         otherwise => bail!("unsupported activation {}", otherwise),
     };
-    let func = nn::func_t(move |xs, train| {
-        let xs = xs.apply(&conv);
-        let xs = match &bn {
-            Some(bn) => xs.apply_t(bn, train),
-            None => xs,
-        };
-        if leaky {
-            xs.maximum(&(&xs * 0.1))
-        } else {
-            xs
-        }
-    });
+    let func = nn::func_t(
+        move |xs: &Tensor, train| {
+            let xs = xs.apply(&conv);
+            let xs = match &bn {
+                Some(bn) => xs.apply_t(bn, train),
+                None => xs,
+            };
+            if leaky {
+                xs.maximum(&(&xs * 0.1))
+            } else {
+                xs
+            }
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    );
     Ok((filters, Bl::Layer(Box::new(func))))
 }
 
 fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
-    let layer = nn::func_t(|xs, _is_training| {
-        let (_n, _c, h, w) = xs.size4().unwrap();
-        xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
-    });
+    let layer = nn::func_t(
+        |xs: &Tensor, _is_training| {
+            let (_n, _c, h, w) = xs.size4().unwrap();
+            xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    );
     Ok((prev_channels, Bl::Layer(Box::new(layer))))
 }
 
@@ -241,7 +247,7 @@ impl Darknet {
         Ok(image_width)
     }
 
-    pub fn build_model(&self, vs: &nn::Path) -> Result<FuncT> {
+    pub fn build_model(&self, vs: &nn::Path) -> Result<FuncT<Tensor, Tensor>> {
         let mut blocks: Vec<(i64, Bl)> = vec![];
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {
@@ -257,30 +263,33 @@ impl Darknet {
             blocks.push(channels_and_bl);
         }
         let image_height = self.height()?;
-        let func = nn::func_t(move |xs, train| {
-            let mut prev_ys: Vec<Tensor> = vec![];
-            let mut detections: Vec<Tensor> = vec![];
-            for (_, b) in blocks.iter() {
-                let ys = match b {
-                    Bl::Layer(l) => {
-                        let xs = prev_ys.last().unwrap_or(&xs);
-                        l.forward_t(&xs, train)
-                    }
-                    Bl::Route(layers) => {
-                        let layers: Vec<_> = layers.iter().map(|&i| &prev_ys[i]).collect();
-                        Tensor::cat(&layers, 1)
-                    }
-                    Bl::Shortcut(from) => prev_ys.last().unwrap() + prev_ys.get(*from).unwrap(),
-                    Bl::Yolo(classes, anchors) => {
-                        let xs = prev_ys.last().unwrap_or(&xs);
-                        detections.push(detect(xs, image_height, *classes, anchors));
-                        Tensor::default()
-                    }
-                };
-                prev_ys.push(ys);
-            }
-            Tensor::cat(&detections, 1)
-        });
+        let func = nn::func_t(
+            move |xs: &Tensor, train| {
+                let mut prev_ys: Vec<Tensor> = vec![];
+                let mut detections: Vec<Tensor> = vec![];
+                for (_, b) in blocks.iter() {
+                    let ys = match b {
+                        Bl::Layer(l) => {
+                            let xs = prev_ys.last().unwrap_or(&xs);
+                            l.forward_t(&xs, train)
+                        }
+                        Bl::Route(layers) => {
+                            let layers: Vec<_> = layers.iter().map(|&i| &prev_ys[i]).collect();
+                            Tensor::cat(&layers, 1)
+                        }
+                        Bl::Shortcut(from) => prev_ys.last().unwrap() + prev_ys.get(*from).unwrap(),
+                        Bl::Yolo(classes, anchors) => {
+                            let xs = prev_ys.last().unwrap_or(&xs);
+                            detections.push(detect(xs, image_height, *classes, anchors));
+                            Tensor::default()
+                        }
+                    };
+                    prev_ys.push(ys);
+                }
+                Tensor::cat(&detections, 1)
+            },
+            |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+        );
         Ok(func)
     }
 }

@@ -45,6 +45,9 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for Linear {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         if let Some(bias) = &self.bs {
             xs.matmul(&self.ws.tr()) + bias

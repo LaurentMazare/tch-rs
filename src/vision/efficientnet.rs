@@ -67,10 +67,16 @@ impl Params {
 
 /// Conv2D with same padding.
 #[allow(clippy::many_single_char_names)]
-pub fn conv2d_same(vs: nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl Module {
+pub fn conv2d_same(
+    vs: nn::Path,
+    i: i64,
+    o: i64,
+    k: i64,
+    c: ConvConfig,
+) -> impl Module<Input = Tensor, Output = Tensor> {
     let conv2d = nn::conv2d(vs, i, o, k, c);
     let s = c.stride;
-    nn::func(move |xs| {
+    nn::func(move |xs: &Tensor| {
         let size = xs.size();
         let ih = size[2];
         let iw = size[3];
@@ -122,7 +128,7 @@ impl Tensor {
     }
 }
 
-fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
+fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     let inp = args.input_filters;
     let oup = args.input_filters * args.expand_ratio;
     let final_oup = args.output_filters;
@@ -155,25 +161,35 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
     });
     let project_conv = conv2d_same(&p / "_project_conv", oup, final_oup, 1, conv_no_bias);
     let project_bn = nn::batch_norm2d(&p / "_bn2", final_oup, bn2d);
-    nn::func_t(move |xs, train| {
-        let ys =
-            if args.expand_ratio != 1 { xs.apply_t(&expansion, train) } else { xs.shallow_clone() };
-        let ys = ys.apply(&depthwise_conv).apply_t(&depthwise_bn, train).swish();
-        let ys = match &se {
-            None => ys,
-            Some(seq) => ys.adaptive_avg_pool2d(&[1, 1]).apply_t(seq, train).sigmoid() * ys,
-        };
-        let ys = ys.apply(&project_conv).apply_t(&project_bn, train);
-        if args.stride == 1 && inp == final_oup {
-            // Maybe add a drop_connect layer here ?
-            ys + xs
-        } else {
-            ys
-        }
-    })
+    nn::func_t(
+        move |xs: &Tensor, train| {
+            let ys = if args.expand_ratio != 1 {
+                xs.apply_t(&expansion, train)
+            } else {
+                xs.shallow_clone()
+            };
+            let ys = ys.apply(&depthwise_conv).apply_t(&depthwise_bn, train).swish();
+            let ys = match &se {
+                None => ys,
+                Some(seq) => ys.adaptive_avg_pool2d(&[1, 1]).apply_t(seq, train).sigmoid() * ys,
+            };
+            let ys = ys.apply(&project_conv).apply_t(&project_bn, train);
+            if args.stride == 1 && inp == final_oup {
+                // Maybe add a drop_connect layer here ?
+                ys + xs
+            } else {
+                ys
+            }
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
-fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
+fn efficientnet(
+    p: &nn::Path,
+    params: Params,
+    nclasses: i64,
+) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     let args = block_args();
     let bn2d = nn::BatchNormConfig {
         momentum: 1.0 - BATCH_NORM_MOMENTUM,
@@ -212,42 +228,45 @@ fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
         nclasses,
         Default::default(),
     ));
-    nn::func_t(move |xs, train| {
-        xs.apply(&conv_stem)
-            .apply_t(&bn0, train)
-            .swish()
-            .apply_t(&blocks, train)
-            .apply(&conv_head)
-            .apply_t(&bn1, train)
-            .swish()
-            .adaptive_avg_pool2d(&[1, 1])
-            .squeeze_dim(-1)
-            .squeeze_dim(-1)
-            .apply_t(&classifier, train)
-    })
+    nn::func_t(
+        move |xs: &Tensor, train| {
+            xs.apply(&conv_stem)
+                .apply_t(&bn0, train)
+                .swish()
+                .apply_t(&blocks, train)
+                .apply(&conv_head)
+                .apply_t(&bn1, train)
+                .swish()
+                .adaptive_avg_pool2d(&[1, 1])
+                .squeeze_dim(-1)
+                .squeeze_dim(-1)
+                .apply_t(&classifier, train)
+        },
+        |m, xs, ys, d, bs| nn::batch_accuracy_for_logits(m, xs, ys, d, bs),
+    )
 }
 
-pub fn b0(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b0(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b0(), nclasses)
 }
-pub fn b1(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b1(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b1(), nclasses)
 }
-pub fn b2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b2(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b2(), nclasses)
 }
-pub fn b3(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b3(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b3(), nclasses)
 }
-pub fn b4(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b4(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b4(), nclasses)
 }
-pub fn b5(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b5(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b5(), nclasses)
 }
-pub fn b6(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b6(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b6(), nclasses)
 }
-pub fn b7(p: &nn::Path, nclasses: i64) -> impl ModuleT {
+pub fn b7(p: &nn::Path, nclasses: i64) -> impl ModuleT<Input = Tensor, Output = Tensor> {
     efficientnet(p, Params::b7(), nclasses)
 }

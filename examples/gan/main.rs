@@ -21,7 +21,7 @@ fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::
     nn::conv2d(&p, c_in, c_out, 4, cfg)
 }
 
-fn generator(p: nn::Path) -> impl nn::ModuleT {
+fn generator(p: nn::Path) -> impl nn::ModuleT<Input = Tensor, Output = Tensor> {
     nn::seq_t()
         .add(tr2d(&p / "tr1", LATENT_DIM, 1024, 0, 1))
         .add(nn::batch_norm2d(&p / "bn1", 1024, Default::default()))
@@ -43,7 +43,7 @@ fn leaky_relu(xs: &Tensor) -> Tensor {
     xs.maximum(&(xs * 0.2))
 }
 
-fn discriminator(p: nn::Path) -> impl nn::ModuleT {
+fn discriminator(p: nn::Path) -> impl nn::ModuleT<Input = Tensor, Output = Tensor> {
     nn::seq_t()
         .add(conv2d(&p / "conv1", 3, 128, 1, 2))
         .add_fn(leaky_relu)

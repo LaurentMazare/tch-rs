@@ -52,6 +52,9 @@ pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for LayerNorm {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward(&self, xs: &Tensor) -> Tensor {
         Tensor::layer_norm(
             xs,

@@ -89,6 +89,9 @@ pub fn batch_norm3d<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::ModuleT for BatchNorm {
+    type Input = Tensor;
+    type Output = Tensor;
+
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         let dim = xs.dim();
         if self.nd == 1 && dim != 2 && dim != 3 {
@@ -108,5 +111,15 @@ impl super::module::ModuleT for BatchNorm {
             self.config.eps,
             self.config.cudnn_enabled,
         )
+    }
+
+    fn batch_accuracy_for_logits(
+        &self,
+        xs: &Self::Input,
+        ys: &Self::Input,
+        d: crate::Device,
+        batch_size: i64,
+    ) -> f64 {
+        super::module::batch_accuracy_for_logits(self, xs, ys, d, batch_size)
     }
 }

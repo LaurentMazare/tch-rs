@@ -21,11 +21,11 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1536_20.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1024_20.ot
 use anyhow::{bail, Result};
-use tch::nn::ModuleT;
 use tch::vision::{
     alexnet, convmixer, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet,
     vgg,
 };
+use tch::{nn::ModuleT, Tensor};
 
 pub fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
@@ -38,7 +38,12 @@ pub fn main() -> Result<()> {
 
     // Create the model and load the weights from the file.
     let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    let net: Box<dyn ModuleT> = match weights.file_name().unwrap().to_str().unwrap() {
+    let net: Box<dyn ModuleT<Input = Tensor, Output = Tensor>> = match weights
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+    {
         "resnet18.ot" => Box::new(resnet::resnet18(&vs.root(), imagenet::CLASS_COUNT)),
         "resnet34.ot" => Box::new(resnet::resnet34(&vs.root(), imagenet::CLASS_COUNT)),
         "densenet121.ot" => Box::new(densenet::densenet121(&vs.root(), imagenet::CLASS_COUNT)),
