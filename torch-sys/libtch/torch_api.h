@@ -219,6 +219,7 @@ ivalue ati_object_getattr_(ivalue i, char *attr_name);
 ivalue ati_clone(ivalue);
 void ati_free(ivalue);
 
+/// Enables or disables the graph executor optimizer for the current thread.
 void at_set_graph_executor_optimize(bool);
 
 // for internal use
