@@ -1,3 +1,4 @@
+pub mod cuda;
 pub mod io;
 
 use libc::{c_char, c_int, c_uchar, c_void, size_t};
@@ -132,15 +133,6 @@ extern "C" {
 }
 
 pub mod c_generated;
-
-extern "C" {
-    pub fn atc_cuda_device_count() -> c_int;
-    pub fn atc_cuda_is_available() -> c_int;
-    pub fn atc_cudnn_is_available() -> c_int;
-    pub fn atc_user_enabled_cudnn() -> c_int;
-    pub fn atc_set_user_enabled_cudnn(b: c_int);
-    pub fn atc_set_benchmark_cudnn(b: c_int);
-}
 
 extern "C" {
     pub fn get_and_reset_last_err() -> *mut c_char;
