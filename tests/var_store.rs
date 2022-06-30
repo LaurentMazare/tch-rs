@@ -1,6 +1,6 @@
 use std::fs;
 use tch::nn::OptimizerConfig;
-use tch::{nn::linear, nn::Init, nn::VarStore, Device, Kind, Tensor};
+use tch::{nn::linear, nn::Init, nn::VarStore, Device, Kind, TchError, Tensor};
 
 #[test]
 fn path_components() {
@@ -246,7 +246,7 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
     let ortho = vs.root().var("orthogonal", &[100, 100], Init::Orthogonal { gain: 2.0 });
     let ortho_norm = f64::from(ortho.linalg_norm_ord_str("fro", None, true, Kind::Float));
-    assert_eq!(20., ortho_norm);
+    assert!(f64::abs(ortho_norm - 20.) < 1e-5, "ortho_norm initialization failed {}", ortho_norm);
     let ortho_shape_fail = tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu);
     assert!(ortho_shape_fail.is_err());
 }
@@ -496,4 +496,57 @@ fn device_migration() {
         assert_eq!(linear_layer.bs.as_ref().unwrap().device(), Device::Cpu);
         assert_eq!(vs.device(), Device::Cpu);
     }
+}
+
+#[test]
+fn merge_var_stores_no_prefixes() {
+    let vs_1 = VarStore::new(Device::Cpu);
+    let _ = vs_1.root().entry("key_1").or_zeros(&[3, 1, 4]);
+    let _ = vs_1.root().entry("key_2").or_zeros(&[1, 5, 9]);
+
+    let vs_2 = VarStore::new(Device::Cpu);
+    let _ = vs_2.root().entry("key_3").or_zeros(&[2, 4, 4]);
+    let _ = vs_2.root().entry("key_4").or_zeros(&[5, 2, 3]);
+
+    let merged_vs = VarStore::merge(vec![(vs_1, None), (vs_2, None)]).unwrap();
+    assert_eq!(merged_vs.variables().len(), 4);
+    assert_eq!(merged_vs.trainable_variables().len(), 4);
+    assert!(merged_vs.variables().contains_key("key_1"));
+    assert!(merged_vs.variables().contains_key("key_2"));
+    assert!(merged_vs.variables().contains_key("key_3"));
+    assert!(merged_vs.variables().contains_key("key_4"));
+}
+
+#[test]
+fn merge_var_stores_conflicting_keys() {
+    let vs_1 = VarStore::new(Device::Cpu);
+    let _ = vs_1.root().entry("duplicate_key_1").or_zeros(&[3, 1, 4]);
+    let _ = vs_1.root().entry("key_2").or_zeros(&[1, 5, 9]);
+
+    let vs_2 = VarStore::new(Device::Cpu);
+    let _ = vs_2.root().entry("duplicate_key_1").or_zeros(&[2, 4, 4]);
+    let _ = vs_2.root().entry("key_3").or_zeros(&[5, 2, 3]);
+
+    let merged_vs = VarStore::merge(vec![(vs_1, None), (vs_2, None)]);
+    assert!(matches!(merged_vs, Err(TchError::Torch(t)) if t==
+            "Duplicate variable name found: duplicate_key_1. Provide a unique prefix to allow merge operation"));
+}
+
+#[test]
+fn merge_var_stores_with_prefixes() {
+    let vs_1 = VarStore::new(Device::Cpu);
+    let _ = vs_1.root().entry("key_1").or_zeros(&[3, 1, 4]);
+    let _ = vs_1.root().entry("key_2").or_zeros(&[1, 5, 9]);
+
+    let vs_2 = VarStore::new(Device::Cpu);
+    let _ = vs_2.root().entry("key_3").or_zeros(&[2, 4, 4]);
+    let _ = vs_2.root().entry("key_4").or_zeros(&[5, 2, 3]);
+
+    let merged_vs = VarStore::merge(vec![(vs_1, Some("vs_1.")), (vs_2, Some("vs_2."))]).unwrap();
+    assert_eq!(merged_vs.variables().len(), 4);
+    assert_eq!(merged_vs.trainable_variables().len(), 4);
+    assert!(merged_vs.variables().contains_key("vs_1.key_1"));
+    assert!(merged_vs.variables().contains_key("vs_1.key_2"));
+    assert!(merged_vs.variables().contains_key("vs_2.key_3"));
+    assert!(merged_vs.variables().contains_key("vs_2.key_4"));
 }

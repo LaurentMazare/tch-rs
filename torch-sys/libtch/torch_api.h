@@ -214,6 +214,7 @@ void ati_to_tensor_list(ivalue, tensor *, int);
 int ati_tag(ivalue);
 
 ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
+ivalue ati_object_getattr_(ivalue i, char *attr_name);
 
 ivalue ati_clone(ivalue);
 void ati_free(ivalue);

@@ -15,6 +15,8 @@ let excluded_functions =
     ; "log_softmax_backward_data"
     ; "softmax_backward_data"
     ; "clone"
+    ; "copy"
+    ; "copy_out"
     ; "copy_"
     ; "conv_transpose2d_backward_out"
     ; "conv_transpose3d_backward_out"
@@ -39,6 +41,11 @@ let excluded_functions =
     ; "linalg_vector_norm_out"
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
+      (* Deactivate normal_out, bernoulli_out as these result in some
+         ambiguous function calls. *)
+    ; "normal_out"
+    ; "bernoulli_out"
+    ; "nested_tensor"
     ]
 
 let no_tensor_options =
@@ -252,6 +259,15 @@ module Func = struct
       |> String.substr_replace_all ~pattern:"__" ~with_:"_"
     in
     if String.is_prefix name ~prefix:"_" then "internal" ^ name else name
+
+  let operator_name t =
+    match String.lowercase t.operator_name with
+    | "scatter_reduce" ->
+      (* scatter_reduce is both an operator name and also obtained from the
+         scatter operator when using the reduce overload. *)
+      "_scatter_reduce"
+    | "scatter_reduce_" -> "_scatter_reduce_"
+    | other -> other
 
   let c_rust_args_list t =
     List.map t.args ~f:(fun arg ->
@@ -793,7 +809,7 @@ let run
   printf "Generating code for %d functions.\n%!" (List.length funcs);
   (* Generate some unique names for overloaded functions. *)
   let funcs =
-    List.map funcs ~f:(fun func -> String.lowercase func.operator_name, func)
+    List.map funcs ~f:(fun func -> Func.operator_name func, func)
     |> Map.of_alist_multi (module String)
     |> Map.to_alist
     |> List.concat_map ~f:(fun (name, funcs) ->
@@ -810,7 +826,7 @@ let run
                  | 0 -> Int.compare (List.length f1.args) (List.length f2.args)
                  | cmp -> cmp)
              |> List.mapi ~f:(fun index (func : Func.t) ->
-                    let operator_name = String.lowercase func.operator_name in
+                    let operator_name = Func.operator_name func in
                     let overload_name = String.lowercase func.overload_name in
                     let name =
                       if String.is_empty overload_name
@@ -830,7 +846,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.11.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v1.12.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"
