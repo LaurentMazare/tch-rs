@@ -95,7 +95,8 @@ fn block(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let lin2 = linear(p / "lin2", 4 * cfg.n_embd, cfg.n_embd);
     nn::func_t(move |xs, train| {
         let xs = xs + xs.apply(&ln1).apply_t(&attn, train);
-        let ys = xs.apply(&ln2).apply(&lin1).gelu().apply(&lin2).dropout(cfg.resid_pdrop, train);
+        let ys =
+            xs.apply(&ln2).apply(&lin1).gelu("none").apply(&lin2).dropout(cfg.resid_pdrop, train);
         xs + ys
     })
 }
