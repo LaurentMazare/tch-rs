@@ -18,7 +18,7 @@ ndarray = "0.15"
 rand = "0.8"
 thiserror = "1"
 torch-sys = { version = "0.8.0", path = "torch-sys" }
-zip = "0.5"
+zip = "0.6"
 half = "1.6"
 
 cpython = { version = "0.2.0", optional = true }
