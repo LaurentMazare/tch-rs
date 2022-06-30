@@ -246,7 +246,7 @@ fn init_test() {
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
     let ortho = vs.root().var("orthogonal", &[100, 100], Init::Orthogonal { gain: 2.0 });
     let ortho_norm = f64::from(ortho.linalg_norm_ord_str("fro", None, true, Kind::Float));
-    assert!(f64::abs(ortho_norm - 20.) < 1e-6, "ortho_norm initialization failed {}", ortho_norm);
+    assert!(f64::abs(ortho_norm - 20.) < 1e-5, "ortho_norm initialization failed {}", ortho_norm);
     let ortho_shape_fail = tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu);
     assert!(ortho_shape_fail.is_err());
 }
