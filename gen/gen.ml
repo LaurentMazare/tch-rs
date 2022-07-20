@@ -3,7 +3,7 @@
    building PyTorch from source.
 
    Run with: dune exec gen/gen.exe
- *)
+*)
 open Base
 open Stdio
 
@@ -42,7 +42,7 @@ let excluded_functions =
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
       (* Deactivate normal_out, bernoulli_out as these result in some
-         ambiguous function calls. *)
+       ambiguous function calls. *)
     ; "normal_out"
     ; "bernoulli_out"
     ; "nested_tensor"
@@ -75,6 +75,13 @@ let prefixed_functions =
     ; "to_mkldnn"
     ]
 
+(* By default, scalar argument that have a default value are not available on
+   the Rust side, this is to preserve the Rust api simplicity assuming that
+   these scalars arguments are not often overriden.
+   Adding function name [foo] in [with_optional_scalar_args] results in [foo_s]
+   being generated that will have explicit scalar arguments even if a default
+   value is present.  *)
+let with_optional_scalar_args = Set.of_list (module String) [ "baddbmm" ]
 let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp_foreach" ]
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
 let yaml_error yaml ~msg = Printf.failwithf "%s, %s" msg (Yaml.to_string_exn yaml) ()
@@ -510,7 +517,7 @@ let read_yaml filename =
         Option.both returns kind
         |> Option.bind ~f:(fun (returns, kind) ->
                try
-                 let args =
+                 let args ~with_optional_scalar_args =
                    List.filter_map arguments ~f:(fun arg ->
                        let arg = extract_map arg in
                        let arg_name = Map.find_exn arg "name" |> extract_string in
@@ -524,7 +531,10 @@ let read_yaml filename =
                        in
                        match Func.arg_type_of_string arg_type ~is_nullable with
                        | Some Scalar when Option.is_some default_value && not is_nullable
-                         -> None
+                         ->
+                         if with_optional_scalar_args
+                         then Some { Func.arg_name; arg_type = Scalar; default_value }
+                         else None
                        | Some TensorOptions
                          when Option.is_some default_value
                               && Set.mem no_tensor_options name -> None
@@ -540,7 +550,24 @@ let read_yaml filename =
                          then None
                          else raise Not_a_simple_arg)
                  in
-                 Some { Func.name; operator_name; overload_name; args; returns; kind }
+                 if Set.mem with_optional_scalar_args name
+                 then (
+                   let args_opt = args ~with_optional_scalar_args:true in
+                   let args = args ~with_optional_scalar_args:false in
+                   Some
+                     [ { Func.name; operator_name; overload_name; args; returns; kind }
+                     ; { Func.name
+                       ; operator_name
+                       ; overload_name = "s"
+                       ; args = args_opt
+                       ; returns
+                       ; kind
+                       }
+                     ])
+                 else (
+                   let args = args ~with_optional_scalar_args:false in
+                   Some
+                     [ { Func.name; operator_name; overload_name; args; returns; kind } ])
                with
                | Not_a_simple_arg -> None)
       else None)
@@ -804,7 +831,7 @@ let run
     ~wrapper_filename
     ~fallible_wrapper_filename
   =
-  let funcs = read_yaml yaml_filename in
+  let funcs = read_yaml yaml_filename |> List.concat in
   let funcs = methods @ funcs in
   printf "Generating code for %d functions.\n%!" (List.length funcs);
   (* Generate some unique names for overloaded functions. *)

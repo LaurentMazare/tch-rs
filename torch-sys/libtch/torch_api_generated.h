@@ -453,6 +453,7 @@ void atg_avg_pool3d_out(tensor *, tensor out, tensor self, int64_t *kernel_size_
 void atg_baddbmm(tensor *, tensor self, tensor batch1, tensor batch2);
 void atg_baddbmm_(tensor *, tensor self, tensor batch1, tensor batch2);
 void atg_baddbmm_out(tensor *, tensor out, tensor self, tensor batch1, tensor batch2);
+void atg_baddbmm_s(tensor *, tensor self, tensor batch1, tensor batch2, scalar beta, scalar alpha);
 void atg_bartlett_window(tensor *, int64_t window_length, int options_kind, int options_device);
 void atg_bartlett_window_periodic(tensor *, int64_t window_length, int periodic, int options_kind, int options_device);
 void atg_batch_norm(tensor *, tensor input, tensor weight, tensor bias, tensor running_mean, tensor running_var, int training, double momentum, double eps, int cudnn_enabled);

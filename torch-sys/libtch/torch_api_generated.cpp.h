@@ -3271,6 +3271,13 @@ void atg_baddbmm_out(tensor *out__, tensor out, tensor self, tensor batch1, tens
   )
 }
 
+void atg_baddbmm_s(tensor *out__, tensor self, tensor batch1, tensor batch2, scalar beta, scalar alpha) {
+  PROTECT(
+    auto outputs__ = torch::baddbmm(*self, *batch1, *batch2, *beta, *alpha);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_bartlett_window(tensor *out__, int64_t window_length, int options_kind, int options_device) {
   PROTECT(
     auto outputs__ = torch::bartlett_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));

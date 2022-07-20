@@ -6762,6 +6762,25 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_baddbmm_s<S: Into<Scalar>>(
+        &self,
+        batch1: &Tensor,
+        batch2: &Tensor,
+        beta: S,
+        alpha: S,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_baddbmm_s(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            batch1.c_tensor,
+            batch2.c_tensor,
+            beta.into().c_scalar,
+            alpha.into().c_scalar
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_bartlett_window(
         window_length: i64,
         options: (Kind, Device),
