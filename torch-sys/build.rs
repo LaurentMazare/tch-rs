@@ -147,6 +147,7 @@ fn prepare_libtorch_dir() -> PathBuf {
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+    let includes: PathBuf = env::var("LIBTORCH_INCULDES").map(Into::into).unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
     let cuda_dependency = if use_cuda || use_hip {
         "libtch/dummy_cuda_dependency.cpp"
@@ -168,8 +169,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(&includes)
+                .include(includes.join("torch/csrc/api/include"))
                 .flag(&format!("-Wl,-rpath={}", libtorch.as_ref().join("lib").display()))
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
@@ -185,8 +186,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(&includes)
+                .include(includes.join("torch/csrc/api/include"))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
                 .compile("tch");
