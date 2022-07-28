@@ -41,6 +41,14 @@ is the path to the directory that was created when unzipping the file.
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
+You can specify header files location separatly from shared library sybols
+using (done the same way as in `openssl` crate):
+```bash
+# LIBTORCH_INCLUDE must contains `include` directory.
+export LIBTORCH_INCLUDE=/path/to/libtorch/include
+# LIBTORCH_LIB must contains `lib` directory.
+export LIBTORCH_LIB=/path/to/libtorch/
+```
 - For Windows users, assuming that `X:\path\to\libtorch` is the unzipped libtorch directory.
     - Navigate to Control Panel -> View advanced system settings -> Environment variables.
     - Create the `LIBTORCH` variable and set it to `X:\path\to\libtorch`.
