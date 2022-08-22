@@ -117,7 +117,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
                         "cu116" => "%2Bcu116",
-                        _ => ""
+                        _ => panic!("unsupported device {}, TORCH_CUDA_VERSION may be set incorrectly?", device),
                     }
                 ),
                 "macos" => format!(
