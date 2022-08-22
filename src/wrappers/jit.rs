@@ -714,6 +714,7 @@ pub fn set_graph_executor_optimize(b: bool) {
     f_set_graph_executor_optimize(b).unwrap();
 }
 
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Debug, PartialEq)]
 pub struct Object {
     c_ivalue: *mut CIValue,
