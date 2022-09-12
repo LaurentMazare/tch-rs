@@ -268,6 +268,12 @@ extern "C" {
         args: *const *mut CIValue,
         n: c_int,
     ) -> *mut CIValue;
+    pub fn atm_create_class_(
+        m: *mut CModule_,
+        clz_name: *const c_char,
+        args: *const *mut CIValue,
+        n: c_int,
+    ) -> *mut CIValue;
     pub fn atm_eval(m: *mut CModule_);
     pub fn atm_train(m: *mut CModule_);
     pub fn atm_free(m: *mut CModule_);
