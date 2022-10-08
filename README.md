@@ -57,6 +57,8 @@ $Env:Path += ";X:\path\to\libtorch\lib"
 
 As per [the pytorch docs](https://pytorch.org/cppdocs/installing.html) the Windows debug and release builds are not ABI-compatible. This could lead to some segfaults if the incorrect version of libtorch is used.
 
+It is recommended to use the MSVC Rust toolchain (e.g. by installing `stable-x86_64-pc-windows-msvc` via rustup) rather than a MinGW based one as PyTorch has compatibilities issues with MinGW.
+
 ## Examples
 
 ### Basic Tensor Operations
