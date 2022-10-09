@@ -147,8 +147,12 @@ fn prepare_libtorch_dir() -> PathBuf {
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
-    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE").map(Into::into).unwrap_or_else(|_| libtorch.as_ref().to_owned());
-    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB").map(Into::into).unwrap_or_else(|_| libtorch.as_ref().to_owned());
+    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
+    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
     let cuda_dependency = if use_cuda || use_hip {
         "libtch/dummy_cuda_dependency.cpp"

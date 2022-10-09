@@ -41,8 +41,8 @@ is the path to the directory that was created when unzipping the file.
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
-You can specify header files location separatly from shared library sybols
-using (done the same way as in `openssl` crate):
+The header files location can also be specified separately from the shared library via
+the following:
 ```bash
 # LIBTORCH_INCLUDE must contains `include` directory.
 export LIBTORCH_INCLUDE=/path/to/libtorch/include
