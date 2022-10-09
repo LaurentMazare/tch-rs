@@ -316,3 +316,31 @@ fn linear() {
     linear_test(nn::LinearConfig { bias: true, ..Default::default() });
     linear_test(nn::LinearConfig { bias: false, ..Default::default() });
 }
+
+#[test]
+fn pad() {
+    let xs = Tensor::of_slice(&[1., 2., 3.]);
+    let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
+    assert_eq!(Vec::<f32>::from(&padded), [0., 1., 2., 3., 0.]);
+
+    let xs = Tensor::of_slice(&[1., 2., 3.]).view([1, 3]);
+    let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
+    assert_eq!(Vec::<f32>::from(&padded), [0., 1., 2., 3., 0.]);
+
+    let xs = Tensor::of_slice(&[1., 2., 3., 4.]).view([1, 2, 2]);
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        Vec::<f32>::from(&padded),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        Vec::<f32>::from(&padded),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        Vec::<f32>::from(&padded),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+}
