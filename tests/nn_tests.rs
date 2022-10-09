@@ -344,3 +344,30 @@ fn pad() {
         &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
     );
 }
+
+fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let conv_cfg = nn::ConvConfig { padding: 1, bias: false, padding_mode, ..Default::default() };
+    let mut conv = nn::conv2d(&vs.root(), 1, 1, 3, conv_cfg);
+    tch::no_grad(|| {
+        _ = conv.ws.fill_(1.);
+    });
+    conv.forward(&xs)
+}
+
+#[test]
+fn conv() {
+    let xs = Tensor::of_slice(&[1f32, 2., 3., 4.]).view([1, 1, 2, 2]); // NCHW
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Zeros);
+    assert_eq!(Vec::<f32>::from(&conved), &[10.0, 10.0, 10.0, 10.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Reflect);
+    assert_eq!(Vec::<f32>::from(&conved), &[27.0, 24.0, 21.0, 18.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Circular);
+    assert_eq!(Vec::<f32>::from(&conved), &[27.0, 24.0, 21.0, 18.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Replicate);
+    assert_eq!(Vec::<f32>::from(&conved), &[18.0, 21.0, 24.0, 27.0]);
+}

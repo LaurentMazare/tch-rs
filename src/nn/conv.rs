@@ -151,7 +151,7 @@ trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
             bias: config.bias,
             ws_init: config.ws_init,
             bs_init: config.bs_init,
-            padding_mode: PaddingMode::Zeros,
+            padding_mode: config.padding_mode,
         };
         conv(vs, in_dim, out_dim, Self::make_array(ksize), config)
     }
