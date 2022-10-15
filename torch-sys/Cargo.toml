@@ -1,6 +1,6 @@
 [package]
 name = "torch-sys"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 build = "build.rs"
