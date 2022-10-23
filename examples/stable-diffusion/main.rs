@@ -615,6 +615,13 @@ impl ClipTextTransformer {
     }
 }
 
+// TODO: AutoencoderKL
+// https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
+// TODO: UNet2DConditionModel
+// https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/unet_2d_condition.py#L37
+// TODO: LMSDiscreteScheduler
+// https://github.com/huggingface/diffusers/blob/32bf4fdc4386809c870528cb261028baae012d27/src/diffusers/schedulers/scheduling_lms_discrete.py#L47
+
 fn main() -> anyhow::Result<()> {
     tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
