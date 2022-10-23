@@ -629,6 +629,7 @@ fn main() -> anyhow::Result<()> {
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
 
+    let _no_grad_guard = tch::no_grad_guard();
     let mut vs = nn::VarStore::new(Device::Cpu);
     let text_model = ClipTextTransformer::new(vs.root());
     vs.load("data/pytorch_model.ot")?;
