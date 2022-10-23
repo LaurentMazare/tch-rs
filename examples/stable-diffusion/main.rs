@@ -7,6 +7,19 @@
 // mkdir -p data && cd data
 // wget https://github.com/openai/CLIP/raw/main/clip/bpe_simple_vocab_16e6.txt.gz
 // gunzip bpe_simple_vocab_16e6.txt.gz
+//
+// Download and convert the weights:
+// wget https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/pytorch_model.bin
+// From python, extract the weights and save them as a .npz file.
+//   import numpy as np
+//   import torch
+//   model = torch.load("./pytorch_model.bin")
+//   np.savez("./pytorch_model.npz", **{k: v.numpy() for k, v in model.items() if "text_model" in k})
+//
+// Then use tensor_tools to convert this to a .ot file that tch can use.
+//   cargo run --release --example tensor-tools ls ./data/pytorch_model.npz ./data/pytorch_model.ot
+// TODO: fix tensor_tools so that it works properly there.
+
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use tch::{nn, nn::Module, Device, Kind, Tensor};
@@ -579,6 +592,7 @@ struct ClipTextTransformer {
 
 impl ClipTextTransformer {
     fn new(vs: nn::Path) -> Self {
+        let vs = &vs / "text_model";
         let embeddings = ClipTextEmbeddings::new(&vs / "embeddings");
         let encoder = ClipEncoder::new(&vs / "encoder");
         let final_layer_norm =
@@ -615,12 +629,13 @@ fn main() -> anyhow::Result<()> {
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
 
-    let vs = nn::VarStore::new(Device::Cpu);
+    let mut vs = nn::VarStore::new(Device::Cpu);
     let text_model = ClipTextTransformer::new(vs.root());
+    vs.load("data/pytorch_model.ot")?;
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
     let tokens = Tensor::of_slice(&tokens).view((1, -1));
     println!("Input tensor {:?}", tokens.size());
     let text_embeddings = text_model.forward(&tokens);
-    text_embeddings.print();
+    println!("Embedding shape {:?}", text_embeddings.size());
     Ok(())
 }
