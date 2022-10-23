@@ -495,7 +495,7 @@ impl ClipAttention {
         attn_output
             .view((bsz, NUM_ATTENTION_HEADS, tgt_len, self.head_dim))
             .transpose(1, 2)
-            .reshape(&[bsz, tgt_len, EMBED_DIM])
+            .reshape(&[bsz, tgt_len, embed_dim])
             .apply(&self.out_proj)
     }
 }
@@ -589,9 +589,7 @@ impl ClipTextTransformer {
     // https://github.com/huggingface/transformers/blob/674f750a57431222fa2832503a108df3badf1564/src/transformers/models/clip/modeling_clip.py#L678
     fn build_causal_attention_mask(bsz: i64, seq_len: i64, device: Device) -> Tensor {
         let mut mask = Tensor::ones(&[bsz, seq_len, seq_len], (Kind::Float, device));
-        mask.fill_(f32::MIN as f64);
-        mask.triu_(1);
-        mask.unsqueeze(1)
+        mask.fill_(f32::MIN as f64).triu_(1).unsqueeze(1)
     }
 
     fn forward(&self, xs: &Tensor) -> Tensor {
@@ -616,5 +614,13 @@ fn main() -> anyhow::Result<()> {
     println!("Tokens: {:?}", tokens);
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
+
+    let vs = nn::VarStore::new(Device::Cpu);
+    let text_model = ClipTextTransformer::new(vs.root());
+    let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
+    let tokens = Tensor::of_slice(&tokens).view((1, -1));
+    println!("Input tensor {:?}", tokens.size());
+    let text_embeddings = text_model.forward(&tokens);
+    text_embeddings.print();
     Ok(())
 }
