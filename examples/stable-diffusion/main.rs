@@ -3,7 +3,7 @@
 // mkdir -p data && cd data
 // wget https://github.com/openai/CLIP/raw/main/clip/bpe_simple_vocab_16e6.txt.gz
 // gunzip bpe_simple_vocab_16e6.txt.gz
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use tch::{kind, Tensor};
 
@@ -313,8 +313,59 @@ impl Tokenizer {
         Ok(tokenizer)
     }
 
+    fn get_pairs(word: &[String]) -> HashSet<(String, String)> {
+        let mut pairs = HashSet::new();
+        for (i, v) in word.iter().enumerate() {
+            if i > 0 {
+                pairs.insert((word[i - 1].clone(), v.clone()));
+            }
+        }
+        pairs
+    }
+
     fn bpe(&self, token: &str) -> Vec<usize> {
-        vec![]
+        let mut word: Vec<String> = token.chars().map(|x| x.to_string()).collect();
+        if word.is_empty() {
+            return Vec::new();
+        }
+        let last_index = word.len() - 1;
+        word[last_index] = format!("{}</w>", word[last_index]);
+        while word.len() > 1 {
+            let mut current_min = None;
+            let pairs = Self::get_pairs(&word);
+            for p in pairs.iter() {
+                match self.bpe_ranks.get(&p) {
+                    None => {}
+                    Some(v) => {
+                        let should_replace = match current_min {
+                            None => true,
+                            Some((current_min, _)) => v < current_min,
+                        };
+                        if should_replace {
+                            current_min = Some((v, p))
+                        }
+                    }
+                }
+            }
+            let (first, second) = match current_min {
+                None => break,
+                Some((_v, (first, second))) => (first, second),
+            };
+            let mut new_word = vec![];
+            let mut index = 0;
+            while index < word.len() {
+                let w = &word[index];
+                if index + 1 < word.len() && w == first && &word[index + 1] == second {
+                    new_word.push(format!("{}{}", first, second));
+                    index += 2
+                } else {
+                    new_word.push(w.clone());
+                    index += 1
+                }
+            }
+            word = new_word
+        }
+        word.iter().map(|x| *self.encoder.get(x).unwrap()).collect()
     }
 
     fn tokenize(&self, s: &str) -> anyhow::Result<Vec<usize>> {
