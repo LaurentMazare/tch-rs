@@ -1,3 +1,7 @@
+// Stable Diffusion implementation inspired by Jonathan Whitaker
+// "Grokking Stable Diffusion" notebook.
+// https://colab.research.google.com/drive/1dlgggNa5Mz8sEAGU0wFCHhGLFooW_pf1?usp=sharing
+//
 // In order to run this, first download the following and extract the file in data/
 //
 // mkdir -p data && cd data
@@ -5,7 +9,17 @@
 // gunzip bpe_simple_vocab_16e6.txt.gz
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
-use tch::{kind, Tensor};
+use tch::{nn, nn::Module, Device, Kind, Tensor};
+
+// The config details can be found in the "text_config" section of this json file:
+// https://huggingface.co/openai/clip-vit-large-patch14/blob/main/config.json
+//   "hidden_act": "quick_gelu"
+const VOCAB_SIZE: i64 = 49408;
+const EMBED_DIM: i64 = 768; // a.k.a. config.hidden_size
+const INTERMEDIATE_SIZE: i64 = 3072;
+const MAX_POSITION_EMBEDDINGS: i64 = 77;
+const NUM_HIDDEN_LAYERS: i64 = 12;
+const NUM_ATTENTION_HEADS: i64 = 12;
 
 const BYTES_TO_UNICODE: [(u8, char); 256] = [
     (33, '!'),
@@ -276,6 +290,8 @@ struct Tokenizer {
     encoder: HashMap<String, usize>,
     decoder: HashMap<usize, String>,
     bpe_ranks: HashMap<(String, String), usize>,
+    start_of_text_token: usize,
+    end_of_text_token: usize,
 }
 
 impl Tokenizer {
@@ -304,14 +320,17 @@ impl Tokenizer {
         for elem in bpe_lines.iter() {
             vocab.push(format!("{}{}", elem.0, elem.1))
         }
+        let start_of_text_token = vocab.len();
         vocab.push("<|startoftext|>".to_string());
+        let end_of_text_token = vocab.len();
         vocab.push("<|endoftext|>".to_string());
         let encoder: HashMap<_, _> = vocab.into_iter().enumerate().map(|(i, v)| (v, i)).collect();
         let decoder: HashMap<_, _> = encoder.iter().map(|(k, v)| (*v, k.clone())).collect();
         let bpe_ranks: HashMap<_, _> =
             bpe_lines.into_iter().enumerate().map(|(i, v)| (v, i)).collect();
         let re = regex::Regex::new(PAT)?;
-        let tokenizer = Tokenizer { encoder, re, bpe_ranks, decoder };
+        let tokenizer =
+            Tokenizer { encoder, re, bpe_ranks, decoder, start_of_text_token, end_of_text_token };
         Ok(tokenizer)
     }
 
@@ -370,13 +389,25 @@ impl Tokenizer {
         word.iter().map(|x| *self.encoder.get(x).unwrap()).collect()
     }
 
-    fn encode(&self, s: &str) -> anyhow::Result<Vec<usize>> {
+    fn encode(&self, s: &str, pad_size_to: Option<usize>) -> anyhow::Result<Vec<usize>> {
         let s = s.to_lowercase();
-        let mut bpe_tokens: Vec<usize> = Vec::new();
+        let mut bpe_tokens: Vec<usize> = vec![self.start_of_text_token];
         for token in self.re.captures_iter(&s) {
             let token = token.get(0).unwrap().as_str();
             println!(">>> {:?}", token);
             bpe_tokens.extend(self.bpe(token))
+        }
+        match pad_size_to {
+            None => bpe_tokens.push(self.end_of_text_token),
+            Some(pad_size_to) => {
+                bpe_tokens.resize_with(
+                    std::cmp::min(bpe_tokens.len(), pad_size_to - 1),
+                    Default::default,
+                );
+                while bpe_tokens.len() < pad_size_to {
+                    bpe_tokens.push(self.end_of_text_token)
+                }
+            }
         }
         Ok(bpe_tokens)
     }
@@ -387,12 +418,201 @@ impl Tokenizer {
     }
 }
 
+// CLIP Text Model
+// https://github.com/huggingface/transformers/blob/674f750a57431222fa2832503a108df3badf1564/src/transformers/models/clip/modeling_clip.py
+struct ClipTextEmbeddings {
+    token_embedding: nn::Embedding,
+    position_embedding: nn::Embedding,
+    position_ids: Tensor,
+}
+
+impl ClipTextEmbeddings {
+    fn new(vs: nn::Path) -> Self {
+        let token_embedding =
+            nn::embedding(&vs / "token_embedding", VOCAB_SIZE, EMBED_DIM, Default::default());
+        let position_embedding = nn::embedding(
+            &vs / "position_embedding",
+            MAX_POSITION_EMBEDDINGS,
+            EMBED_DIM,
+            Default::default(),
+        );
+        let position_ids = Tensor::arange(MAX_POSITION_EMBEDDINGS, (Kind::Int64, vs.device()))
+            .expand(&[1, -1], false);
+        ClipTextEmbeddings { token_embedding, position_embedding, position_ids }
+    }
+
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let token_embedding = self.token_embedding.forward(&xs);
+        let position_embedding = self.position_embedding.forward(&self.position_ids);
+        token_embedding + position_embedding
+    }
+}
+
+fn quick_gelu(xs: &Tensor) -> Tensor {
+    xs * (xs * 1.702).sigmoid()
+}
+
+struct ClipAttention {
+    k_proj: nn::Linear,
+    v_proj: nn::Linear,
+    q_proj: nn::Linear,
+    out_proj: nn::Linear,
+    head_dim: i64,
+    scale: f64,
+}
+
+impl ClipAttention {
+    fn new(vs: nn::Path) -> Self {
+        let k_proj = nn::linear(&vs / "k_proj", EMBED_DIM, EMBED_DIM, Default::default());
+        let v_proj = nn::linear(&vs / "v_proj", EMBED_DIM, EMBED_DIM, Default::default());
+        let q_proj = nn::linear(&vs / "q_proj", EMBED_DIM, EMBED_DIM, Default::default());
+        let out_proj = nn::linear(&vs / "out_proj", EMBED_DIM, EMBED_DIM, Default::default());
+        let head_dim = EMBED_DIM / NUM_ATTENTION_HEADS;
+        let scale = (head_dim as f64).powf(-0.5);
+        ClipAttention { k_proj, v_proj, q_proj, out_proj, head_dim, scale }
+    }
+
+    fn shape(&self, xs: &Tensor, seq_len: i64, bsz: i64) -> Tensor {
+        xs.view((bsz, seq_len, NUM_ATTENTION_HEADS, self.head_dim)).transpose(1, 2).contiguous()
+    }
+
+    fn forward(&self, xs: &Tensor, causal_attention_mask: &Tensor) -> Tensor {
+        let (bsz, tgt_len, embed_dim) = xs.size3().unwrap();
+        let query_states = xs.apply(&self.q_proj) * self.scale;
+        let proj_shape = (bsz * NUM_ATTENTION_HEADS, -1, self.head_dim);
+        let query_states = self.shape(&query_states, tgt_len, bsz).view(proj_shape.clone());
+        let key_states = self.shape(&xs.apply(&self.k_proj), -1, bsz).view(proj_shape.clone());
+        let value_states = self.shape(&xs.apply(&self.v_proj), -1, bsz).view(proj_shape.clone());
+        let attn_weights = query_states.bmm(&key_states.transpose(1, 2));
+
+        let src_len = key_states.size()[1];
+        let attn_weights =
+            attn_weights.view((bsz, NUM_ATTENTION_HEADS, tgt_len, src_len)) + causal_attention_mask;
+        let attn_weights = attn_weights.view((bsz * NUM_ATTENTION_HEADS, tgt_len, src_len));
+        let attn_weights = attn_weights.softmax(-1, Kind::Float);
+
+        let attn_output = attn_weights.bmm(&value_states);
+        attn_output
+            .view((bsz, NUM_ATTENTION_HEADS, tgt_len, self.head_dim))
+            .transpose(1, 2)
+            .reshape(&[bsz, tgt_len, EMBED_DIM])
+            .apply(&self.out_proj)
+    }
+}
+
+struct ClipMlp {
+    fc1: nn::Linear,
+    fc2: nn::Linear,
+}
+
+impl ClipMlp {
+    fn new(vs: nn::Path) -> Self {
+        let fc1 = nn::linear(&vs / "fc1", EMBED_DIM, INTERMEDIATE_SIZE, Default::default());
+        let fc2 = nn::linear(&vs / "fc2", INTERMEDIATE_SIZE, EMBED_DIM, Default::default());
+        ClipMlp { fc1, fc2 }
+    }
+
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let xs = xs.apply(&self.fc1);
+        quick_gelu(&xs).apply(&self.fc2)
+    }
+}
+
+struct ClipEncoderLayer {
+    self_attn: ClipAttention,
+    layer_norm1: nn::LayerNorm,
+    mlp: ClipMlp,
+    layer_norm2: nn::LayerNorm,
+}
+
+impl ClipEncoderLayer {
+    fn new(vs: nn::Path) -> Self {
+        let self_attn = ClipAttention::new(&vs / "self_attn");
+        let layer_norm1 = nn::layer_norm(&vs / "layer_norm1", vec![EMBED_DIM], Default::default());
+        let mlp = ClipMlp::new(&vs / "mlp");
+        let layer_norm2 = nn::layer_norm(&vs / "layer_norm2", vec![EMBED_DIM], Default::default());
+        ClipEncoderLayer { self_attn, layer_norm1, mlp, layer_norm2 }
+    }
+
+    fn forward(&self, xs: &Tensor, causal_attention_mask: &Tensor) -> Tensor {
+        let residual = xs;
+        let xs = self.layer_norm1.forward(xs);
+        let xs = self.self_attn.forward(&xs, &causal_attention_mask);
+        let xs = xs + residual;
+
+        let residual = &xs;
+        let xs = self.layer_norm2.forward(&xs);
+        let xs = self.mlp.forward(&xs);
+        xs + residual
+    }
+}
+
+struct ClipEncoder {
+    layers: Vec<ClipEncoderLayer>,
+}
+
+impl ClipEncoder {
+    fn new(vs: nn::Path) -> Self {
+        let vs = &vs / "layers";
+        let mut layers: Vec<ClipEncoderLayer> = Vec::new();
+        for index in 0..NUM_HIDDEN_LAYERS {
+            let layer = ClipEncoderLayer::new(&vs / index.to_string());
+            layers.push(layer)
+        }
+        ClipEncoder { layers }
+    }
+
+    fn forward(&self, xs: &Tensor, causal_attention_mask: &Tensor) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for layer in self.layers.iter() {
+            xs = layer.forward(&xs, causal_attention_mask)
+        }
+        xs
+    }
+}
+
+struct ClipTextTransformer {
+    embeddings: ClipTextEmbeddings,
+    encoder: ClipEncoder,
+    final_layer_norm: nn::LayerNorm,
+}
+
+impl ClipTextTransformer {
+    fn new(vs: nn::Path) -> Self {
+        let embeddings = ClipTextEmbeddings::new(&vs / "embeddings");
+        let encoder = ClipEncoder::new(&vs / "encoder");
+        let final_layer_norm =
+            nn::layer_norm(&vs / "final_layer_norm", vec![EMBED_DIM], Default::default());
+        ClipTextTransformer { embeddings, encoder, final_layer_norm }
+    }
+
+    // https://github.com/huggingface/transformers/blob/674f750a57431222fa2832503a108df3badf1564/src/transformers/models/clip/modeling_clip.py#L678
+    fn build_causal_attention_mask(bsz: i64, seq_len: i64, device: Device) -> Tensor {
+        let mut mask = Tensor::ones(&[bsz, seq_len, seq_len], (Kind::Float, device));
+        mask.fill_(f32::MIN as f64);
+        mask.triu_(1);
+        mask.unsqueeze(1)
+    }
+
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let (bsz, seq_len) = xs.size2().unwrap();
+        let xs = self.embeddings.forward(xs);
+        let causal_attention_mask = Self::build_causal_attention_mask(bsz, seq_len, xs.device());
+        let xs = self.encoder.forward(&xs, &causal_attention_mask);
+        xs.apply(&self.final_layer_norm)
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
-    let tokens = tokenizer.encode("This is some sample text to be tokenized.")?;
+    let tokens = tokenizer.encode("This is some sample text to be tokenized.", Some(77))?;
+    println!("Tokens: {:?}", tokens);
+    let str = tokenizer.decode(&tokens);
+    println!("Str: {}", str);
+    let tokens = tokenizer.encode("Cave painting of a bird, flooble", Some(77))?;
     println!("Tokens: {:?}", tokens);
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
