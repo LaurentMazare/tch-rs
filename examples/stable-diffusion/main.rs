@@ -274,6 +274,7 @@ const PAT: &str =
 struct Tokenizer {
     re: regex::Regex,
     encoder: HashMap<String, usize>,
+    decoder: HashMap<usize, String>,
     bpe_ranks: HashMap<(String, String), usize>,
 }
 
@@ -306,10 +307,11 @@ impl Tokenizer {
         vocab.push("<|startoftext|>".to_string());
         vocab.push("<|endoftext|>".to_string());
         let encoder: HashMap<_, _> = vocab.into_iter().enumerate().map(|(i, v)| (v, i)).collect();
+        let decoder: HashMap<_, _> = encoder.iter().map(|(k, v)| (*v, k.clone())).collect();
         let bpe_ranks: HashMap<_, _> =
             bpe_lines.into_iter().enumerate().map(|(i, v)| (v, i)).collect();
         let re = regex::Regex::new(PAT)?;
-        let tokenizer = Tokenizer { encoder, re, bpe_ranks };
+        let tokenizer = Tokenizer { encoder, re, bpe_ranks, decoder };
         Ok(tokenizer)
     }
 
@@ -368,7 +370,7 @@ impl Tokenizer {
         word.iter().map(|x| *self.encoder.get(x).unwrap()).collect()
     }
 
-    fn tokenize(&self, s: &str) -> anyhow::Result<Vec<usize>> {
+    fn encode(&self, s: &str) -> anyhow::Result<Vec<usize>> {
         let s = s.to_lowercase();
         let mut bpe_tokens: Vec<usize> = Vec::new();
         for token in self.re.captures_iter(&s) {
@@ -378,6 +380,11 @@ impl Tokenizer {
         }
         Ok(bpe_tokens)
     }
+
+    fn decode(&self, tokens: &[usize]) -> String {
+        let s: String = tokens.iter().map(|token| self.decoder[token].as_str()).collect();
+        s.replace("</w>", " ")
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -385,7 +392,9 @@ fn main() -> anyhow::Result<()> {
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
-    let tokens = tokenizer.tokenize("This is some sample text to be tokenized.")?;
+    let tokens = tokenizer.encode("This is some sample text to be tokenized.")?;
     println!("Tokens: {:?}", tokens);
+    let str = tokenizer.decode(&tokens);
+    println!("Str: {}", str);
     Ok(())
 }
