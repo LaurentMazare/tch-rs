@@ -617,7 +617,7 @@ impl ClipTextTransformer {
 
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
 struct AttentionBlock {
-    group_norm: nn::LayerNorm, // TODO: Use GroupNorm
+    group_norm: nn::GroupNorm,
     query: nn::Linear,
     key: nn::Linear,
     value: nn::Linear,
@@ -646,9 +646,9 @@ impl Upsample2D {
 }
 
 struct ResnetBlock2D {
-    norm1: nn::LayerNorm, // TODO: Use GroupNorm
+    norm1: nn::GroupNorm,
     conv1: nn::Conv2D,
-    norm2: nn::LayerNorm, // TODO: Use GroupNorm
+    norm2: nn::GroupNorm,
     conv2: nn::Conv2D,
     conv_shortcut: Option<nn::Conv2D>,
 }
@@ -672,14 +672,14 @@ struct Encoder {
     conv_in: nn::Conv2D,
     down_blocks: Vec<DownEncoderBlock2D>,
     mid_block: UNetMidBlock2D,
-    conv_norm_out: nn::LayerNorm, // TODO: Use GroupNorm
+    conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
 }
 
 struct Decoder {
     conv_in: nn::Conv2D,
     up_blocks: Vec<UpDecoderBlock2D>,
-    conv_norm_out: nn::LayerNorm, // TODO: Use GroupNorm
+    conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
 }
 
