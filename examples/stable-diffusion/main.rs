@@ -660,14 +660,20 @@ impl Downsample2D {
     }
 }
 
+// This does not support the conv-transpose mode.
 struct Upsample2D {
     conv: nn::Conv2D,
 }
 
 impl Upsample2D {
+    fn new(vs: nn::Path, in_channels: i64, out_channels: i64) -> Self {
+        let config = nn::ConvConfig { padding: 1, ..Default::default() };
+        let conv = nn::conv2d(&vs / "conv", in_channels, out_channels, 3, config);
+        Self { conv }
+    }
+
     fn forward(&self, xs: &Tensor) -> Tensor {
-        // TODO: F.interpolate(hidden_states, scale_factor=2.0, mode="nearest")
-        xs.apply(&self.conv)
+        xs.upsample_nearest2d(&[], Some(2.), Some(2.)).apply(&self.conv)
     }
 }
 
@@ -745,6 +751,7 @@ impl ResnetBlock2D {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 struct DownEncoderBlock2DConfig {
     num_layers: i64,
     resnet_eps: f64,
@@ -814,9 +821,66 @@ impl DownEncoderBlock2D {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct UpDecoderBlock2DConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    resnet_groups: i64,
+    resnet_pre_norm: bool,
+    output_scale_factor: f64,
+    add_upsample: bool,
+}
+
+impl Default for UpDecoderBlock2DConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: 32,
+            resnet_pre_norm: true,
+            output_scale_factor: 1.,
+            add_upsample: true,
+        }
+    }
+}
+
 struct UpDecoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     upsampler: Option<Upsample2D>,
+    config: UpDecoderBlock2DConfig,
+}
+
+impl UpDecoderBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        out_channels: i64,
+        config: UpDecoderBlock2DConfig,
+    ) -> Self {
+        let resnets: Vec<_> = {
+            let vs = &vs / "resnets";
+            let conv_cfg = ResnetBlock2DConfig {
+                eps: config.resnet_eps,
+                groups: config.resnet_groups,
+                output_scale_factor: config.output_scale_factor,
+                pre_norm: config.resnet_pre_norm,
+                ..Default::default()
+            };
+            (0..(config.num_layers))
+                .map(|i| {
+                    let in_channels = if i == 0 { in_channels } else { out_channels };
+                    ResnetBlock2D::new(&vs / i.to_string(), in_channels, conv_cfg)
+                })
+                .collect()
+        };
+        let upsampler = if config.add_upsample {
+            let upsample = Upsample2D::new(&vs / "upsample", out_channels, out_channels);
+            Some(upsample)
+        } else {
+            None
+        };
+        Self { resnets, upsampler, config }
+    }
 }
 
 struct UNetMidBlock2D {
