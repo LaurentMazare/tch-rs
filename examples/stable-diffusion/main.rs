@@ -615,7 +615,6 @@ impl ClipTextTransformer {
     }
 }
 
-// https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
 struct AttentionBlock {
     group_norm: nn::GroupNorm,
     query: nn::Linear,
@@ -625,12 +624,39 @@ struct AttentionBlock {
 }
 
 struct Downsample2D {
-    conv: nn::Conv2D,
+    conv: Option<nn::Conv2D>,
+    padding: i64,
 }
 
 impl Downsample2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        use_conv: bool,
+        out_channels: i64,
+        padding: i64,
+    ) -> Self {
+        let conv = if use_conv {
+            let config = nn::ConvConfig { stride: 2, padding, ..Default::default() };
+            let conv = nn::conv2d(&vs / "conv", in_channels, out_channels, 3, config);
+            Some(conv)
+        } else {
+            None
+        };
+        Downsample2D { conv, padding }
+    }
+
     fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.pad(&[0, 1, 0, 1], "constant", Some(0.)).apply(&self.conv)
+        match &self.conv {
+            None => xs.avg_pool2d(&[2, 2], &[2, 2], &[0, 0], false, true, None),
+            Some(conv) => {
+                if self.padding == 0 {
+                    xs.pad(&[0, 1, 0, 1], "constant", Some(0.)).apply(conv)
+                } else {
+                    xs.apply(conv)
+                }
+            }
+        }
     }
 }
 
@@ -683,7 +709,10 @@ struct Decoder {
     conv_out: nn::Conv2D,
 }
 
-struct AutoEncoder {
+// https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
+// This implementation is specific to the config used in stable-diffusion-v1-4
+// https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
+struct AutoEncoderKL {
     encoder: Encoder,
     decoder: Decoder,
     quant_conv: nn::Conv2D,
