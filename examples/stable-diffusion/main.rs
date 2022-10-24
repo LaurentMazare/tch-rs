@@ -671,6 +671,7 @@ impl Upsample2D {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 struct ResnetBlock2DConfig {
     out_channels: Option<i64>,
     conv_shortcut: bool,
@@ -744,9 +745,73 @@ impl ResnetBlock2D {
     }
 }
 
+struct DownEncoderBlock2DConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    resnet_groups: i64,
+    resnet_pre_norm: bool,
+    output_scale_factor: f64,
+    add_downsample: bool,
+    downsample_padding: i64,
+}
+
+impl Default for DownEncoderBlock2DConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: 32,
+            resnet_pre_norm: true,
+            output_scale_factor: 1.,
+            add_downsample: true,
+            downsample_padding: 1,
+        }
+    }
+}
+
 struct DownEncoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     downsampler: Option<Downsample2D>,
+    config: DownEncoderBlock2DConfig,
+}
+
+impl DownEncoderBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        out_channels: i64,
+        config: DownEncoderBlock2DConfig,
+    ) -> Self {
+        let resnets: Vec<_> = {
+            let vs = &vs / "resnets";
+            let conv_cfg = ResnetBlock2DConfig {
+                eps: config.resnet_eps,
+                groups: config.resnet_groups,
+                output_scale_factor: config.output_scale_factor,
+                pre_norm: config.resnet_pre_norm,
+                ..Default::default()
+            };
+            (0..(config.num_layers))
+                .map(|i| {
+                    let in_channels = if i == 0 { in_channels } else { out_channels };
+                    ResnetBlock2D::new(&vs / i.to_string(), in_channels, conv_cfg)
+                })
+                .collect()
+        };
+        let downsampler = if config.add_downsample {
+            let downsample = Downsample2D::new(
+                &vs / "downsample",
+                in_channels,
+                true,
+                out_channels,
+                config.downsample_padding,
+            );
+            Some(downsample)
+        } else {
+            None
+        };
+        Self { resnets, downsampler, config }
+    }
 }
 
 struct UpDecoderBlock2D {
