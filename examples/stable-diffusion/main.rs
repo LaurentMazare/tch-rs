@@ -615,8 +615,81 @@ impl ClipTextTransformer {
     }
 }
 
-// TODO: AutoencoderKL
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
+struct AttentionBlock {
+    group_norm: nn::GroupNorm,
+    query: nn::Linear,
+    key: nn::Linear,
+    value: nn::Linear,
+    proj_attn: nn::Linear,
+}
+
+struct Downsample2D {
+    conv: nn::Conv2D,
+}
+
+impl Downsample2D {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.pad(&[0, 1, 0, 1], "constant", Some(0.)).apply(&self.conv)
+    }
+}
+
+struct Upsample2D {
+    conv: nn::Conv2D,
+}
+
+impl Upsample2D {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        // TODO: F.interpolate(hidden_states, scale_factor=2.0, mode="nearest")
+        xs.apply(&self.conv)
+    }
+}
+
+struct ResnetBlock2D {
+    norm1: nn::GroupNorm,
+    conv1: nn::Conv2D,
+    norm2: nn::GroupNorm,
+    conv2: nn::Conv2D,
+    conv_shortcut: Option<nn::Conv2D>,
+}
+
+struct DownEncoderBlock2D {
+    resnets: Vec<ResnetBlock2D>,
+    downsampler: Option<Downsample2D>,
+}
+
+struct UpDecoderBlock2D {
+    resnets: Vec<ResnetBlock2D>,
+    upsampler: Option<Upsample2D>,
+}
+
+struct UNetMidBlock2D {
+    resnet_in: ResnetBlock2D,
+    attn_resnet: Vec<(AttentionBlock, ResnetBlock2D)>,
+}
+
+struct Encoder {
+    conv_in: nn::Conv2D,
+    down_blocks: Vec<DownEncoderBlock2D>,
+    mid_block: UNetMidBlock2D,
+    conv_norm_out: nn::GroupNorm,
+    conv_out: nn::Conv2D,
+}
+
+struct Decoder {
+    conv_in: nn::Conv2D,
+    up_blocks: Vec<UpDecoderBlock2D>,
+    conv_norm_out: nn::GroupNorm,
+    conv_out: nn::Conv2D,
+}
+
+struct AutoEncoder {
+    encoder: Encoder,
+    decoder: Decoder,
+    quant_conv: nn::Conv2D,
+    post_quant_conv: nn::Conv2D,
+}
+
 // TODO: UNet2DConditionModel
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/unet_2d_condition.py#L37
 // TODO: LMSDiscreteScheduler
