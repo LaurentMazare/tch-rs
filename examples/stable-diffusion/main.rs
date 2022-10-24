@@ -433,6 +433,7 @@ impl Tokenizer {
 
 // CLIP Text Model
 // https://github.com/huggingface/transformers/blob/674f750a57431222fa2832503a108df3badf1564/src/transformers/models/clip/modeling_clip.py
+#[derive(Debug)]
 struct ClipTextEmbeddings {
     token_embedding: nn::Embedding,
     position_embedding: nn::Embedding,
@@ -453,7 +454,9 @@ impl ClipTextEmbeddings {
             .expand(&[1, -1], false);
         ClipTextEmbeddings { token_embedding, position_embedding, position_ids }
     }
+}
 
+impl Module for ClipTextEmbeddings {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let token_embedding = self.token_embedding.forward(&xs);
         let position_embedding = self.position_embedding.forward(&self.position_ids);
@@ -465,6 +468,7 @@ fn quick_gelu(xs: &Tensor) -> Tensor {
     xs * (xs * 1.702).sigmoid()
 }
 
+#[derive(Debug)]
 struct ClipAttention {
     k_proj: nn::Linear,
     v_proj: nn::Linear,
@@ -513,6 +517,7 @@ impl ClipAttention {
     }
 }
 
+#[derive(Debug)]
 struct ClipMlp {
     fc1: nn::Linear,
     fc2: nn::Linear,
@@ -524,13 +529,16 @@ impl ClipMlp {
         let fc2 = nn::linear(&vs / "fc2", INTERMEDIATE_SIZE, EMBED_DIM, Default::default());
         ClipMlp { fc1, fc2 }
     }
+}
 
+impl Module for ClipMlp {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let xs = xs.apply(&self.fc1);
         quick_gelu(&xs).apply(&self.fc2)
     }
 }
 
+#[derive(Debug)]
 struct ClipEncoderLayer {
     self_attn: ClipAttention,
     layer_norm1: nn::LayerNorm,
@@ -560,6 +568,7 @@ impl ClipEncoderLayer {
     }
 }
 
+#[derive(Debug)]
 struct ClipEncoder {
     layers: Vec<ClipEncoderLayer>,
 }
@@ -584,6 +593,7 @@ impl ClipEncoder {
     }
 }
 
+#[derive(Debug)]
 struct ClipTextTransformer {
     embeddings: ClipTextEmbeddings,
     encoder: ClipEncoder,
@@ -605,7 +615,9 @@ impl ClipTextTransformer {
         let mut mask = Tensor::ones(&[bsz, seq_len, seq_len], (Kind::Float, device));
         mask.fill_(f32::MIN as f64).triu_(1).unsqueeze(1)
     }
+}
 
+impl Module for ClipTextTransformer {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let (bsz, seq_len) = xs.size2().unwrap();
         let xs = self.embeddings.forward(xs);
@@ -615,6 +627,7 @@ impl ClipTextTransformer {
     }
 }
 
+#[derive(Debug)]
 struct AttentionBlock {
     group_norm: nn::GroupNorm,
     query: nn::Linear,
@@ -623,6 +636,7 @@ struct AttentionBlock {
     proj_attn: nn::Linear,
 }
 
+#[derive(Debug)]
 struct Downsample2D {
     conv: Option<nn::Conv2D>,
     padding: i64,
@@ -645,7 +659,9 @@ impl Downsample2D {
         };
         Downsample2D { conv, padding }
     }
+}
 
+impl Module for Downsample2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         match &self.conv {
             None => xs.avg_pool2d(&[2, 2], &[2, 2], &[0, 0], false, true, None),
@@ -661,6 +677,7 @@ impl Downsample2D {
 }
 
 // This does not support the conv-transpose mode.
+#[derive(Debug)]
 struct Upsample2D {
     conv: nn::Conv2D,
 }
@@ -671,7 +688,9 @@ impl Upsample2D {
         let conv = nn::conv2d(&vs / "conv", in_channels, out_channels, 3, config);
         Self { conv }
     }
+}
 
+impl Module for Upsample2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         xs.upsample_nearest2d(&[], Some(2.), Some(2.)).apply(&self.conv)
     }
@@ -705,6 +724,7 @@ impl Default for ResnetBlock2DConfig {
     }
 }
 
+#[derive(Debug)]
 struct ResnetBlock2D {
     norm1: nn::GroupNorm,
     conv1: nn::Conv2D,
@@ -734,7 +754,9 @@ impl ResnetBlock2D {
         };
         Self { norm1, conv1, norm2, conv2, config, conv_shortcut, use_in_shortcut }
     }
+}
 
+impl Module for ResnetBlock2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let shortcut_xs = match &self.conv_shortcut {
             Some(conv_shortcut) => xs.apply(conv_shortcut),
@@ -776,6 +798,7 @@ impl Default for DownEncoderBlock2DConfig {
     }
 }
 
+#[derive(Debug)]
 struct DownEncoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     downsampler: Option<Downsample2D>,
@@ -821,6 +844,19 @@ impl DownEncoderBlock2D {
     }
 }
 
+impl Module for DownEncoderBlock2D {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for resnet in self.resnets.iter() {
+            xs = xs.apply(resnet)
+        }
+        match &self.downsampler {
+            Some(downsampler) => xs.apply(downsampler),
+            None => xs,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct UpDecoderBlock2DConfig {
     num_layers: i64,
@@ -844,6 +880,7 @@ impl Default for UpDecoderBlock2DConfig {
     }
 }
 
+#[derive(Debug)]
 struct UpDecoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     upsampler: Option<Upsample2D>,
@@ -883,11 +920,26 @@ impl UpDecoderBlock2D {
     }
 }
 
+impl Module for UpDecoderBlock2D {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for resnet in self.resnets.iter() {
+            xs = xs.apply(resnet)
+        }
+        match &self.upsampler {
+            Some(upsampler) => xs.apply(upsampler),
+            None => xs,
+        }
+    }
+}
+
+#[derive(Debug)]
 struct UNetMidBlock2D {
     resnet_in: ResnetBlock2D,
     attn_resnet: Vec<(AttentionBlock, ResnetBlock2D)>,
 }
 
+#[derive(Debug)]
 struct Encoder {
     conv_in: nn::Conv2D,
     down_blocks: Vec<DownEncoderBlock2D>,
@@ -896,6 +948,7 @@ struct Encoder {
     conv_out: nn::Conv2D,
 }
 
+#[derive(Debug)]
 struct Decoder {
     conv_in: nn::Conv2D,
     up_blocks: Vec<UpDecoderBlock2D>,
@@ -906,6 +959,7 @@ struct Decoder {
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/vae.py#L485
 // This implementation is specific to the config used in stable-diffusion-v1-4
 // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
+#[derive(Debug)]
 struct AutoEncoderKL {
     encoder: Encoder,
     decoder: Decoder,
