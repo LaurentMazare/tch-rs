@@ -578,7 +578,7 @@ impl ClipEncoder {
         let vs = &vs / "layers";
         let mut layers: Vec<ClipEncoderLayer> = Vec::new();
         for index in 0..NUM_HIDDEN_LAYERS {
-            let layer = ClipEncoderLayer::new(&vs / index.to_string());
+            let layer = ClipEncoderLayer::new(&vs / index);
             layers.push(layer)
         }
         ClipEncoder { layers }
@@ -627,6 +627,20 @@ impl Module for ClipTextTransformer {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct AttentionBlockConfig {
+    num_head_channels: Option<i64>,
+    num_groups: i64,
+    rescale_output_factor: f64,
+    eps: f64,
+}
+
+impl Default for AttentionBlockConfig {
+    fn default() -> Self {
+        Self { num_head_channels: None, num_groups: 32, rescale_output_factor: 1., eps: 1e-5 }
+    }
+}
+
 #[derive(Debug)]
 struct AttentionBlock {
     group_norm: nn::GroupNorm,
@@ -634,6 +648,62 @@ struct AttentionBlock {
     key: nn::Linear,
     value: nn::Linear,
     proj_attn: nn::Linear,
+    channels: i64,
+    num_heads: i64,
+    config: AttentionBlockConfig,
+}
+
+impl AttentionBlock {
+    fn new(vs: nn::Path, channels: i64, config: AttentionBlockConfig) -> Self {
+        let num_head_channels = config.num_head_channels.unwrap_or(channels);
+        let num_heads = channels / num_head_channels;
+        let group_cfg = nn::GroupNormConfig { eps: config.eps, affine: true, ..Default::default() };
+        let group_norm = nn::group_norm(&vs / "group_norm", config.num_groups, channels, group_cfg);
+        let query = nn::linear(&vs / "linear", channels, channels, Default::default());
+        let key = nn::linear(&vs / "key", channels, channels, Default::default());
+        let value = nn::linear(&vs / "value", channels, channels, Default::default());
+        let proj_attn = nn::linear(&vs / "proj_attn", channels, channels, Default::default());
+        Self { group_norm, query, key, value, proj_attn, channels, num_heads, config }
+    }
+
+    fn transpose_for_scores(&self, xs: Tensor) -> Tensor {
+        let (batch, t, _h_times_d) = xs.size3().unwrap();
+        xs.view((batch, t, self.num_heads, -1)).permute(&[0, 2, 1, 3])
+    }
+}
+
+impl Module for AttentionBlock {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let residual = xs;
+        let (batch, channel, height, width) = xs.size4().unwrap();
+        let xs = xs.apply(&self.group_norm).view((batch, channel, height * width)).transpose(1, 2);
+
+        let query_proj = xs.apply(&self.query);
+        let key_proj = xs.apply(&self.key);
+        let value_proj = xs.apply(&self.value);
+
+        let query_states = self.transpose_for_scores(query_proj);
+        let key_states = self.transpose_for_scores(key_proj);
+        let value_states = self.transpose_for_scores(value_proj);
+
+        let scale = f64::powf((self.channels as f64) / (self.num_heads as f64), -0.25);
+        let attention_scores =
+            (query_states * scale).matmul(&(key_states.transpose(-1, -2) * scale));
+        let attention_probs = attention_scores.softmax(-1, Kind::Float);
+
+        let xs = attention_probs.matmul(&value_states);
+        let xs = xs.permute(&[0, 2, 1, 3]).contiguous();
+        let mut new_xs_shape = xs.size();
+        new_xs_shape.pop();
+        new_xs_shape.pop();
+        new_xs_shape.push(self.channels);
+
+        xs.view(new_xs_shape.as_slice())
+            .apply(&self.proj_attn)
+            .transpose(-1, -2)
+            .view((batch, channel, height, width))
+            / self.config.rescale_output_factor
+    }
 }
 
 #[derive(Debug)]
@@ -824,7 +894,7 @@ impl DownEncoderBlock2D {
             (0..(config.num_layers))
                 .map(|i| {
                     let in_channels = if i == 0 { in_channels } else { out_channels };
-                    ResnetBlock2D::new(&vs / i.to_string(), in_channels, conv_cfg)
+                    ResnetBlock2D::new(&vs / i, in_channels, conv_cfg)
                 })
                 .collect()
         };
@@ -906,7 +976,7 @@ impl UpDecoderBlock2D {
             (0..(config.num_layers))
                 .map(|i| {
                     let in_channels = if i == 0 { in_channels } else { out_channels };
-                    ResnetBlock2D::new(&vs / i.to_string(), in_channels, conv_cfg)
+                    ResnetBlock2D::new(&vs / i, in_channels, conv_cfg)
                 })
                 .collect()
         };
@@ -933,10 +1003,80 @@ impl Module for UpDecoderBlock2D {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct UNetMidBlock2DConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    resnet_groups: Option<i64>,
+    resnet_pre_norm: bool,
+    attn_num_head_channels: Option<i64>,
+    // attention_type "default"
+    output_scale_factor: f64,
+}
+
+impl Default for UNetMidBlock2DConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: Some(32),
+            resnet_pre_norm: true,
+            attn_num_head_channels: Some(1),
+            output_scale_factor: 1.,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct UNetMidBlock2D {
-    resnet_in: ResnetBlock2D,
-    attn_resnet: Vec<(AttentionBlock, ResnetBlock2D)>,
+    resnet: ResnetBlock2D,
+    attn_resnets: Vec<(AttentionBlock, ResnetBlock2D)>,
+    config: UNetMidBlock2DConfig,
+}
+
+impl UNetMidBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        temb_channels: i64,
+        config: UNetMidBlock2DConfig,
+    ) -> Self {
+        let vs_resnets = &vs / "resnets";
+        let vs_attns = &vs / "attentions";
+        let resnet_groups = config.resnet_groups.unwrap_or(i64::min(in_channels / 4, 32));
+        let resnet_cfg = ResnetBlock2DConfig {
+            // TODO: temb_channels
+            eps: config.resnet_eps,
+            groups: resnet_groups,
+            output_scale_factor: config.output_scale_factor,
+            pre_norm: config.resnet_pre_norm,
+            ..Default::default()
+        };
+        let resnet = ResnetBlock2D::new(&vs_resnets / "0", in_channels, resnet_cfg);
+        let attn_cfg = AttentionBlockConfig {
+            num_head_channels: config.attn_num_head_channels,
+            num_groups: resnet_groups,
+            rescale_output_factor: config.output_scale_factor,
+            eps: config.resnet_eps,
+        };
+        let mut attn_resnets = vec![];
+        for index in 0..config.num_layers {
+            let attn = AttentionBlock::new(&vs_attns / index, in_channels, attn_cfg);
+            let resnet = ResnetBlock2D::new(&vs_resnets / (index + 1), in_channels, resnet_cfg);
+            attn_resnets.push((attn, resnet))
+        }
+        Self { resnet, attn_resnets, config }
+    }
+}
+
+impl Module for UNetMidBlock2D {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let mut xs = xs.apply(&self.resnet);
+        for (attn, resnet) in self.attn_resnets.iter() {
+            xs = xs.apply(attn).apply(resnet)
+        }
+        xs
+    }
 }
 
 #[derive(Debug)]
