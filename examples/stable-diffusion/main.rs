@@ -627,6 +627,119 @@ impl Module for ClipTextTransformer {
     }
 }
 
+#[derive(Debug)]
+struct GeGlu {
+    proj: nn::Linear,
+}
+
+impl GeGlu {
+    fn new(vs: nn::Path, dim_in: i64, dim_out: i64) -> Self {
+        let proj = nn::linear(&vs / "proj", dim_in, dim_out * 2, Default::default());
+        Self { proj }
+    }
+}
+
+impl Module for GeGlu {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let hidden_states_and_gate = xs.apply(&self.proj).chunk(2, -1);
+        &hidden_states_and_gate[0] * hidden_states_and_gate[1].gelu("none")
+    }
+}
+
+#[derive(Debug)]
+struct FeedForward {
+    project_in: GeGlu,
+    linear: nn::Linear,
+}
+
+impl FeedForward {
+    // The glu parameter in the python code is unused?
+    // https://github.com/huggingface/diffusers/blob/d3d22ce5a894becb951eec03e663951b28d45135/src/diffusers/models/attention.py#L347
+    fn new(vs: nn::Path, dim: i64, dim_out: Option<i64>, mult: i64) -> Self {
+        let inner_dim = dim * mult;
+        let dim_out = dim_out.unwrap_or(dim);
+        let vs = &vs / "net";
+        let project_in = GeGlu::new(&vs / 0, dim, inner_dim);
+        let linear = nn::linear(&vs / 2, inner_dim, dim_out, Default::default());
+        Self { project_in, linear }
+    }
+}
+
+impl Module for FeedForward {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.apply(&self.project_in).apply(&self.linear)
+    }
+}
+
+#[derive(Debug)]
+struct CrossAttention {
+    to_q: nn::Linear,
+    to_k: nn::Linear,
+    to_v: nn::Linear,
+    to_out: nn::Linear,
+    heads: i64,
+    scale: f64,
+}
+
+impl CrossAttention {
+    // Defaults should be heads = 8, dim_head = 64, context_dim = None
+    fn new(
+        vs: nn::Path,
+        query_dim: i64,
+        context_dim: Option<i64>,
+        heads: i64,
+        dim_head: i64,
+    ) -> Self {
+        let no_bias = nn::LinearConfig { bias: false, ..Default::default() };
+        let inner_dim = dim_head * heads;
+        let context_dim = context_dim.unwrap_or(query_dim);
+        let scale = 1.0 / f64::sqrt(dim_head as f64);
+        let to_q = nn::linear(&vs / "to_q", query_dim, inner_dim, no_bias);
+        let to_k = nn::linear(&vs / "to_k", context_dim, inner_dim, no_bias);
+        let to_v = nn::linear(&vs / "to_v", context_dim, inner_dim, no_bias);
+        let to_out = nn::linear(&(&vs / "to_out") / 0, inner_dim, query_dim, Default::default());
+        Self { to_q, to_k, to_v, to_out, heads, scale }
+    }
+
+    fn reshape_heads_to_batch_dim(&self, xs: &Tensor) -> Tensor {
+        let (batch_size, seq_len, dim) = xs.size3().unwrap();
+        xs.view((batch_size, seq_len, self.heads, dim / self.heads)).permute(&[0, 2, 1, 3]).view((
+            batch_size * self.heads,
+            seq_len,
+            dim / self.heads,
+        ))
+    }
+
+    fn reshape_batch_dim_to_heads(&self, xs: &Tensor) -> Tensor {
+        let (batch_size, seq_len, dim) = xs.size3().unwrap();
+        xs.view((batch_size / self.heads, self.heads, seq_len, dim)).permute(&[0, 2, 1, 3]).view((
+            batch_size / self.heads,
+            seq_len,
+            dim * self.heads,
+        ))
+    }
+
+    fn attention(&self, query: &Tensor, key: &Tensor, value: &Tensor) -> Tensor {
+        let xs = query
+            .matmul(&(key.transpose(-1, -2) * self.scale))
+            .softmax(-1, Kind::Float)
+            .matmul(value);
+        self.reshape_batch_dim_to_heads(&xs)
+    }
+}
+
+impl Module for CrossAttention {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let query = xs.apply(&self.to_q);
+        let key = xs.apply(&self.to_k);
+        let value = xs.apply(&self.to_v);
+        let query = self.reshape_heads_to_batch_dim(&query);
+        let key = self.reshape_heads_to_batch_dim(&key);
+        let value = self.reshape_heads_to_batch_dim(&value);
+        self.attention(&query, &key, &value).apply(&self.to_out)
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct AttentionBlockConfig {
     num_head_channels: Option<i64>,
