@@ -1351,5 +1351,15 @@ fn main() -> anyhow::Result<()> {
     println!("Input tensor {:?}", tokens.size());
     let text_embeddings = text_model.forward(&tokens);
     println!("Embedding shape {:?}", text_embeddings.size());
+
+    let mut vs = nn::VarStore::new(Device::Cpu);
+    // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
+    let autoencoder_cfg = AutoEncoderKLConfig {
+        block_out_channels: vec![128, 256, 512, 512],
+        layers_per_block: 2,
+        latent_channels: 4,
+        norm_num_groups: 32,
+    };
+    let _autoencoder = AutoEncoderKL::new(vs.root(), 3, 3, autoencoder_cfg);
     Ok(())
 }
