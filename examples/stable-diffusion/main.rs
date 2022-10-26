@@ -740,6 +740,106 @@ impl Module for CrossAttention {
     }
 }
 
+#[derive(Debug)]
+struct BasicTransformerBlock {
+    attn1: CrossAttention,
+    ff: FeedForward,
+    attn2: CrossAttention,
+    norm1: nn::LayerNorm,
+    norm2: nn::LayerNorm,
+    norm3: nn::LayerNorm,
+}
+
+impl BasicTransformerBlock {
+    fn new(vs: nn::Path, dim: i64, n_heads: i64, d_head: i64, context_dim: Option<i64>) -> Self {
+        let attn1 = CrossAttention::new(&vs / "attn1", dim, None, n_heads, d_head);
+        let ff = FeedForward::new(&vs / "ff", dim, None, 4);
+        let attn2 = CrossAttention::new(&vs / "attn2", dim, context_dim, n_heads, d_head);
+        let norm1 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
+        let norm2 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
+        let norm3 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
+        Self { attn1, ff, attn2, norm1, norm2, norm3 }
+    }
+}
+
+impl Module for BasicTransformerBlock {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let xs = xs.apply(&self.norm1).apply(&self.attn1) + xs;
+        let xs = xs.apply(&self.norm2).apply(&self.attn2) + xs;
+        xs.apply(&self.norm3).apply(&self.ff) + xs
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SpatialTransformerConfig {
+    depth: i64,
+    num_groups: i64,
+    context_dim: Option<i64>,
+}
+
+impl Default for SpatialTransformerConfig {
+    fn default() -> Self {
+        Self { depth: 1, num_groups: 32, context_dim: None }
+    }
+}
+
+#[derive(Debug)]
+struct SpatialTransformer {
+    norm: nn::GroupNorm,
+    proj_in: nn::Conv2D,
+    transformer_blocks: Vec<BasicTransformerBlock>,
+    proj_out: nn::Conv2D,
+    config: SpatialTransformerConfig,
+}
+
+impl SpatialTransformer {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        n_heads: i64,
+        d_head: i64,
+        config: SpatialTransformerConfig,
+    ) -> Self {
+        let inner_dim = n_heads * d_head;
+        let group_cfg = nn::GroupNormConfig { eps: 1e-6, affine: true, ..Default::default() };
+        let norm = nn::group_norm(&vs / "norm", config.num_groups, in_channels, group_cfg);
+        let conv_cfg = nn::ConvConfig { stride: 1, padding: 0, ..Default::default() };
+        let proj_in = nn::conv2d(&vs / "proj_in", in_channels, inner_dim, 1, conv_cfg);
+        let mut transformer_blocks = vec![];
+        let vs_tb = &vs / "transformer_blocks";
+        for index in 0..config.depth {
+            let tb = BasicTransformerBlock::new(
+                &vs / index,
+                inner_dim,
+                n_heads,
+                d_head,
+                config.context_dim,
+            );
+            transformer_blocks.push(tb)
+        }
+        let proj_out = nn::conv2d(&vs / "proj_out", inner_dim, in_channels, 1, conv_cfg);
+        Self { norm, proj_in, transformer_blocks, proj_out, config }
+    }
+}
+
+impl Module for SpatialTransformer {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let (batch, channel, height, weight) = xs.size4().unwrap();
+        let residual = xs;
+        let xs = xs.apply(&self.norm).apply(&self.proj_in);
+        let inner_dim = xs.size()[1];
+        let mut xs = xs.permute(&[0, 2, 3, 1]).view((batch, height * weight, inner_dim));
+        for block in self.transformer_blocks.iter() {
+            xs = xs.apply(block)
+        }
+        let xs = xs
+            .view((batch, height, weight, inner_dim))
+            .permute(&[0, 3, 1, 2])
+            .apply(&self.proj_out);
+        xs + residual
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct AttentionBlockConfig {
     num_head_channels: Option<i64>,
