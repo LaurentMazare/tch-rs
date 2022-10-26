@@ -983,7 +983,7 @@ impl Module for Upsample2D {
 struct ResnetBlock2DConfig {
     out_channels: Option<i64>,
     conv_shortcut: bool,
-    // temb_channels: None
+    temb_channels: Option<i64>,
     groups: i64,
     groups_out: Option<i64>,
     pre_norm: bool,
@@ -998,6 +998,7 @@ impl Default for ResnetBlock2DConfig {
         Self {
             out_channels: None,
             conv_shortcut: false,
+            temb_channels: Some(512),
             groups: 32,
             groups_out: None,
             pre_norm: true,
@@ -1014,6 +1015,7 @@ struct ResnetBlock2D {
     conv1: nn::Conv2D,
     norm2: nn::GroupNorm,
     conv2: nn::Conv2D,
+    time_emb_proj: Option<nn::Linear>,
     conv_shortcut: Option<nn::Conv2D>,
     use_in_shortcut: bool,
     config: ResnetBlock2DConfig,
@@ -1036,23 +1038,24 @@ impl ResnetBlock2D {
         } else {
             None
         };
-        Self { norm1, conv1, norm2, conv2, config, conv_shortcut, use_in_shortcut }
+        let time_emb_proj = config.temb_channels.map(|temb_channels| {
+            nn::linear(&vs / "time_emb_proj", temb_channels, out_channels, Default::default())
+        });
+        Self { norm1, conv1, norm2, conv2, time_emb_proj, config, conv_shortcut, use_in_shortcut }
     }
-}
 
-impl Module for ResnetBlock2D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+        // TODO: Use time_emb_proj.
         let shortcut_xs = match &self.conv_shortcut {
             Some(conv_shortcut) => xs.apply(conv_shortcut),
             None => xs.shallow_clone(),
         };
-        let xs = xs
-            .apply(&self.norm1)
-            .silu()
-            .apply(&self.conv1)
-            .apply(&self.norm2)
-            .silu()
-            .apply(&self.conv2);
+        let xs = xs.apply(&self.norm1).silu().apply(&self.conv1);
+        let xs = match (temb, &self.time_emb_proj) {
+            (Some(temb), Some(time_emb_proj)) => temb.silu().apply(time_emb_proj) + xs,
+            _ => xs,
+        };
+        xs.apply(&self.norm2).silu().apply(&self.conv2);
         (shortcut_xs + xs) / self.config.output_scale_factor
     }
 }
@@ -1103,6 +1106,7 @@ impl DownEncoderBlock2D {
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
                 pre_norm: config.resnet_pre_norm,
+                temb_channels: None,
                 ..Default::default()
             };
             (0..(config.num_layers))
@@ -1132,7 +1136,7 @@ impl Module for DownEncoderBlock2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let mut xs = xs.shallow_clone();
         for resnet in self.resnets.iter() {
-            xs = xs.apply(resnet)
+            xs = resnet.forward(&xs, None)
         }
         match &self.downsampler {
             Some(downsampler) => xs.apply(downsampler),
@@ -1185,6 +1189,7 @@ impl UpDecoderBlock2D {
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
                 pre_norm: config.resnet_pre_norm,
+                temb_channels: None,
                 ..Default::default()
             };
             (0..(config.num_layers))
@@ -1208,7 +1213,7 @@ impl Module for UpDecoderBlock2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         let mut xs = xs.shallow_clone();
         for resnet in self.resnets.iter() {
-            xs = xs.apply(resnet)
+            xs = resnet.forward(&xs, None)
         }
         match &self.upsampler {
             Some(upsampler) => xs.apply(upsampler),
@@ -1252,7 +1257,7 @@ impl UNetMidBlock2D {
     fn new(
         vs: nn::Path,
         in_channels: i64,
-        // temb_channels: None
+        temb_channels: Option<i64>,
         config: UNetMidBlock2DConfig,
     ) -> Self {
         let vs_resnets = &vs / "resnets";
@@ -1263,6 +1268,7 @@ impl UNetMidBlock2D {
             groups: resnet_groups,
             output_scale_factor: config.output_scale_factor,
             pre_norm: config.resnet_pre_norm,
+            temb_channels,
             ..Default::default()
         };
         let resnet = ResnetBlock2D::new(&vs_resnets / "0", in_channels, resnet_cfg);
@@ -1280,13 +1286,11 @@ impl UNetMidBlock2D {
         }
         Self { resnet, attn_resnets, config }
     }
-}
 
-impl Module for UNetMidBlock2D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
-        let mut xs = xs.apply(&self.resnet);
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+        let mut xs = self.resnet.forward(xs, temb);
         for (attn, resnet) in self.attn_resnets.iter() {
-            xs = xs.apply(attn).apply(resnet)
+            xs = resnet.forward(&xs.apply(attn), temb)
         }
         xs
     }
@@ -1357,7 +1361,8 @@ impl Encoder {
             resnet_groups: Some(config.norm_num_groups),
             ..Default::default()
         };
-        let mid_block = UNetMidBlock2D::new(&vs / "mid_block", last_block_out_channels, mid_cfg);
+        let mid_block =
+            UNetMidBlock2D::new(&vs / "mid_block", last_block_out_channels, None, mid_cfg);
         let group_cfg = nn::GroupNormConfig { eps: 1e-6, ..Default::default() };
         let conv_norm_out = nn::group_norm(
             &vs / "conv_norm_out",
@@ -1379,7 +1384,7 @@ impl Module for Encoder {
         for down_block in self.down_blocks.iter() {
             xs = xs.apply(down_block)
         }
-        xs.apply(&self.mid_block).apply(&self.conv_norm_out).silu().apply(&self.conv_out)
+        self.mid_block.forward(&xs, None).apply(&self.conv_norm_out).silu().apply(&self.conv_out)
     }
 }
 
@@ -1421,7 +1426,8 @@ impl Decoder {
             resnet_groups: Some(config.norm_num_groups),
             ..Default::default()
         };
-        let mid_block = UNetMidBlock2D::new(&vs / "mid_block", last_block_out_channels, mid_cfg);
+        let mid_block =
+            UNetMidBlock2D::new(&vs / "mid_block", last_block_out_channels, None, mid_cfg);
         let mut up_blocks = vec![];
         let vs_up_blocks = &vs / "up_blocks";
         let reversed_block_out_channels: Vec<_> =
@@ -1461,7 +1467,7 @@ impl Decoder {
 
 impl Module for Decoder {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        let mut xs = xs.apply(&self.conv_in).apply(&self.mid_block);
+        let mut xs = self.mid_block.forward(&xs.apply(&self.conv_in), None);
         for up_block in self.up_blocks.iter() {
             xs = xs.apply(up_block)
         }
