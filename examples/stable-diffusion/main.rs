@@ -1541,6 +1541,164 @@ impl AutoEncoderKL {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct DownBlock2DConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    // resnet_time_scale_shift: "default"
+    // resnet_act_fn: "swish"
+    resnet_groups: i64,
+    resnet_pre_norm: bool,
+    output_scale_factor: f64,
+    add_downsample: bool,
+    downsample_padding: i64,
+}
+
+impl Default for DownBlock2DConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: 32,
+            resnet_pre_norm: true,
+            output_scale_factor: 1.,
+            add_downsample: true,
+            downsample_padding: 1,
+        }
+    }
+}
+
+struct DownBlock2D {
+    resnets: Vec<ResnetBlock2D>,
+    downsampler: Option<Downsample2D>,
+    config: DownBlock2DConfig,
+}
+
+impl DownBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        out_channels: i64,
+        temb_channels: Option<i64>,
+        config: DownBlock2DConfig,
+    ) -> Self {
+        let vs_resnets = &vs / "resnets";
+        let resnet_cfg = ResnetBlock2DConfig {
+            out_channels: Some(out_channels),
+            temb_channels,
+            ..Default::default()
+        };
+        let resnets = (0..config.num_layers)
+            .map(|i| {
+                let in_channels = if i == 0 { in_channels } else { out_channels };
+                ResnetBlock2D::new(&vs_resnets / i, in_channels, resnet_cfg)
+            })
+            .collect();
+        let downsampler = if config.add_downsample {
+            let downsampler = Downsample2D::new(
+                &(&vs / "downsampler") / 0,
+                in_channels,
+                true,
+                out_channels,
+                config.downsample_padding,
+            );
+            Some(downsampler)
+        } else {
+            None
+        };
+        Self { resnets, downsampler, config }
+    }
+
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for resnet in self.resnets.iter() {
+            xs = resnet.forward(&xs, temb);
+        }
+        match &self.downsampler {
+            Some(downsampler) => xs.apply(downsampler),
+            None => xs,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct UpBlock2DConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    // resnet_time_scale_shift: "default"
+    // resnet_act_fn: "swish"
+    resnet_groups: i64,
+    resnet_pre_norm: bool,
+    output_scale_factor: f64,
+    add_upsample: bool,
+}
+
+impl Default for UpBlock2DConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: 32,
+            resnet_pre_norm: true,
+            output_scale_factor: 1.,
+            add_upsample: true,
+        }
+    }
+}
+
+struct UpBlock2D {
+    resnets: Vec<ResnetBlock2D>,
+    upsampler: Option<Upsample2D>,
+    config: DownBlock2DConfig,
+}
+
+impl UpBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        prev_output_channels: i64,
+        out_channels: i64,
+        temb_channels: Option<i64>,
+        config: DownBlock2DConfig,
+    ) -> Self {
+        let vs_resnets = &vs / "resnets";
+        let resnet_cfg = ResnetBlock2DConfig {
+            out_channels: Some(out_channels),
+            temb_channels,
+            ..Default::default()
+        };
+        let resnets = (0..config.num_layers)
+            .map(|i| {
+                let res_skip_channels =
+                    if i == config.num_layers - 1 { in_channels } else { out_channels };
+                let resnet_in_channels = if i == 0 { prev_output_channels } else { out_channels };
+                let in_channels = resnet_in_channels + res_skip_channels;
+                ResnetBlock2D::new(&vs_resnets / i, in_channels, resnet_cfg)
+            })
+            .collect();
+        let upsampler = if config.add_downsample {
+            let upsampler = Upsample2D::new(&(&vs / "downsampler") / 0, in_channels, out_channels);
+            Some(upsampler)
+        } else {
+            None
+        };
+        Self { resnets, upsampler, config }
+    }
+
+    // upsample_size: None
+    fn forward(&self, xs: &Tensor, res_xs: &[Tensor], temb: Option<&Tensor>) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for (index, resnet) in self.resnets.iter().enumerate() {
+            xs = Tensor::cat(&[&xs, &res_xs[res_xs.len() - index - 1]], 1);
+            xs = resnet.forward(&xs, temb);
+        }
+        match &self.upsampler {
+            Some(upsampler) => xs.apply(upsampler),
+            None => xs,
+        }
+    }
+}
+
 // TODO: UNet2DConditionModel
 // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/unet_2d_condition.py#L37
