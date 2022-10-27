@@ -19,6 +19,7 @@
 // Then use tensor_tools to convert this to a .ot file that tch can use.
 //   cargo run --release --example tensor-tools ls ./data/pytorch_model.npz ./data/pytorch_model.ot
 // TODO: fix tensor_tools so that it works properly there.
+// TODO: Split this file, probably in a way similar to huggingface/diffusers.
 
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
@@ -1296,6 +1297,88 @@ impl UNetMidBlock2D {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct UNetMidBlock2DCrossAttnConfig {
+    num_layers: i64,
+    resnet_eps: f64,
+    resnet_groups: Option<i64>,
+    resnet_pre_norm: bool,
+    attn_num_head_channels: i64,
+    // attention_type "default"
+    output_scale_factor: f64,
+    cross_attn_dim: i64,
+}
+
+impl Default for UNetMidBlock2DCrossAttnConfig {
+    fn default() -> Self {
+        Self {
+            num_layers: 1,
+            resnet_eps: 1e-6,
+            resnet_groups: Some(32),
+            resnet_pre_norm: true,
+            attn_num_head_channels: 1,
+            output_scale_factor: 1.,
+            cross_attn_dim: 1280,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct UNetMidBlock2DCrossAttn {
+    resnet: ResnetBlock2D,
+    attn_resnets: Vec<(SpatialTransformer, ResnetBlock2D)>,
+    config: UNetMidBlock2DCrossAttnConfig,
+}
+
+impl UNetMidBlock2DCrossAttn {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        temb_channels: Option<i64>,
+        config: UNetMidBlock2DCrossAttnConfig,
+    ) -> Self {
+        let vs_resnets = &vs / "resnets";
+        let vs_attns = &vs / "attentions";
+        let resnet_groups = config.resnet_groups.unwrap_or(i64::min(in_channels / 4, 32));
+        let resnet_cfg = ResnetBlock2DConfig {
+            eps: config.resnet_eps,
+            groups: resnet_groups,
+            output_scale_factor: config.output_scale_factor,
+            pre_norm: config.resnet_pre_norm,
+            temb_channels,
+            ..Default::default()
+        };
+        let resnet = ResnetBlock2D::new(&vs_resnets / "0", in_channels, resnet_cfg);
+        let n_heads = config.attn_num_head_channels;
+        let attn_cfg = SpatialTransformerConfig {
+            depth: 1,
+            num_groups: resnet_groups,
+            context_dim: Some(config.cross_attn_dim),
+        };
+        let mut attn_resnets = vec![];
+        for index in 0..config.num_layers {
+            let attn = SpatialTransformer::new(
+                &vs_attns / index,
+                in_channels,
+                n_heads,
+                in_channels / n_heads,
+                attn_cfg,
+            );
+            let resnet = ResnetBlock2D::new(&vs_resnets / (index + 1), in_channels, resnet_cfg);
+            attn_resnets.push((attn, resnet))
+        }
+        Self { resnet, attn_resnets, config }
+    }
+
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+        let mut xs = self.resnet.forward(xs, temb);
+        for (attn, resnet) in self.attn_resnets.iter() {
+            xs = resnet.forward(&xs.apply(attn), temb)
+        }
+        xs
+    }
+}
+
 #[derive(Debug, Clone)]
 struct EncoderConfig {
     // down_block_types: DownEncoderBlock2D
@@ -1847,7 +1930,87 @@ impl CrossAttnUpBlock2D {
     }
 }
 
-// TODO: UNet2DConditionModel
+#[derive(Debug, Clone)]
+struct UNet2DConditionModelConfig {
+    center_input_sample: bool,
+    flip_sin_to_cos: bool,
+    freq_shift: i64,
+    // todo: down_block_types
+    // todo: up_block_types
+    block_out_channels: Vec<i64>,
+    layers_per_block: i64,
+    downsample_padding: i64,
+    mid_block_scale_factor: f64,
+    norm_num_groups: i64,
+    norm_eps: f64,
+    cross_attention_dim: i64,
+    attention_head_dim: i64,
+}
+
+impl Default for UNet2DConditionModelConfig {
+    fn default() -> Self {
+        Self {
+            center_input_sample: false,
+            flip_sin_to_cos: true,
+            freq_shift: 0,
+            block_out_channels: vec![320, 640, 1280, 1280],
+            layers_per_block: 2,
+            downsample_padding: 1,
+            mid_block_scale_factor: 1.,
+            norm_num_groups: 32,
+            norm_eps: 1e-5,
+            cross_attention_dim: 1280,
+            attention_head_dim: 8,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct UNet2DConditionModel {
+    conv_in: nn::Conv2D,
+    mid_block: UNetMidBlock2DCrossAttn,
+    conv_norm_out: nn::GroupNorm,
+    conv_out: nn::Conv2D,
+    config: UNet2DConditionModelConfig,
+}
+
+impl UNet2DConditionModel {
+    fn new(
+        vs: nn::Path,
+        sample_size: Option<i64>,
+        in_channels: i64,
+        out_channels: i64,
+        config: UNet2DConditionModelConfig,
+    ) -> Self {
+        let b_channels = config.block_out_channels[0];
+        let bl_channels = *config.block_out_channels.last().unwrap();
+        let time_embed_dim = b_channels * 4;
+        let conv_cfg = nn::ConvConfig { stride: 1, padding: 1, ..Default::default() };
+        let conv_in = nn::conv2d(&vs / "conv_in", in_channels, b_channels, 3, conv_cfg);
+
+        let mid_cfg = UNetMidBlock2DCrossAttnConfig {
+            resnet_eps: config.norm_eps,
+            output_scale_factor: config.mid_block_scale_factor,
+            cross_attn_dim: config.cross_attention_dim,
+            attn_num_head_channels: config.attention_head_dim,
+            resnet_groups: Some(config.norm_num_groups),
+            ..Default::default()
+        };
+        let mid_block = UNetMidBlock2DCrossAttn::new(
+            &vs / "mid_block",
+            bl_channels,
+            Some(time_embed_dim),
+            mid_cfg,
+        );
+
+        let group_cfg = nn::GroupNormConfig { eps: config.norm_eps, ..Default::default() };
+        let conv_norm_out =
+            nn::group_norm(&vs / "conv_norm_out", config.norm_num_groups, b_channels, group_cfg);
+        let conv_out = nn::conv2d(&vs / "conv_out", b_channels, out_channels, 3, conv_cfg);
+        Self { conv_in, mid_block, conv_norm_out, conv_out, config }
+    }
+}
+
 // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
 // https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/unet_2d_condition.py#L37
 // TODO: LMSDiscreteScheduler
