@@ -92,10 +92,21 @@ impl super::module::ModuleT for BatchNorm {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         let dim = xs.dim();
         if self.nd == 1 && dim != 2 && dim != 3 {
-            panic!("expected an input tensor with 2 or 3 dims, got {:?}", xs.size())
+            panic!(
+                "as nd={}, expected an input tensor with 2 or 3 dims, got {} ({:?})",
+                self.nd,
+                dim,
+                xs.size()
+            )
         }
         if self.nd > 1 && xs.dim() != self.nd + 2 {
-            panic!("expected an input tensor with {} dims, got {:?}", self.nd + 2, xs.size())
+            panic!(
+                "as nd={}, expected an input tensor with {} dims, got {} ({:?})",
+                self.nd,
+                self.nd + 2,
+                dim,
+                xs.size()
+            )
         };
         Tensor::batch_norm(
             xs,
