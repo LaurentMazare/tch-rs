@@ -36,7 +36,7 @@ pub struct VarStore {
 }
 
 /// A variable store with an associated path for variables naming.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Path<'a> {
     path: Vec<String>,
     group: usize,

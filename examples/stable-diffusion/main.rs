@@ -809,7 +809,7 @@ impl SpatialTransformer {
         let vs_tb = &vs / "transformer_blocks";
         for index in 0..config.depth {
             let tb = BasicTransformerBlock::new(
-                &vs / index,
+                &vs_tb / index,
                 inner_dim,
                 n_heads,
                 d_head,
@@ -1055,7 +1055,7 @@ impl ResnetBlock2D {
             (Some(temb), Some(time_emb_proj)) => temb.silu().apply(time_emb_proj) + xs,
             _ => xs,
         };
-        xs.apply(&self.norm2).silu().apply(&self.conv2);
+        let xs = xs.apply(&self.norm2).silu().apply(&self.conv2);
         (shortcut_xs + xs) / self.config.output_scale_factor
     }
 }
@@ -1568,6 +1568,7 @@ impl Default for DownBlock2DConfig {
     }
 }
 
+#[derive(Debug)]
 struct DownBlock2D {
     resnets: Vec<ResnetBlock2D>,
     downsampler: Option<Downsample2D>,
@@ -1622,6 +1623,77 @@ impl DownBlock2D {
 }
 
 #[derive(Debug, Clone, Copy)]
+struct CrossAttnDownBlock2DConfig {
+    downblock: DownBlock2DConfig,
+    attn_num_head_channels: i64,
+    cross_attention_dim: i64,
+    // attention_type: "default"
+}
+
+impl Default for CrossAttnDownBlock2DConfig {
+    fn default() -> Self {
+        Self { downblock: Default::default(), attn_num_head_channels: 1, cross_attention_dim: 1280 }
+    }
+}
+
+#[derive(Debug)]
+struct CrossAttnDownBlock2D {
+    downblock: DownBlock2D,
+    attentions: Vec<SpatialTransformer>,
+    config: CrossAttnDownBlock2DConfig,
+}
+
+impl CrossAttnDownBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        out_channels: i64,
+        temb_channels: Option<i64>,
+        config: CrossAttnDownBlock2DConfig,
+    ) -> Self {
+        let downblock = DownBlock2D::new(
+            vs.clone(),
+            in_channels,
+            out_channels,
+            temb_channels,
+            config.downblock,
+        );
+        let n_heads = config.attn_num_head_channels;
+        let cfg = SpatialTransformerConfig {
+            depth: 1,
+            context_dim: Some(config.cross_attention_dim),
+            num_groups: config.downblock.resnet_groups,
+        };
+        let vs_attn = &vs / "attentions";
+        let attentions = (0..config.downblock.num_layers)
+            .map(|i| {
+                SpatialTransformer::new(
+                    &vs_attn / i,
+                    out_channels,
+                    n_heads,
+                    out_channels / n_heads,
+                    cfg,
+                )
+            })
+            .collect();
+        Self { downblock, attentions, config }
+    }
+
+    // encoder_hidden_states: None
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for (resnet, attn) in self.downblock.resnets.iter().zip(self.attentions.iter()) {
+            xs = resnet.forward(&xs, temb);
+            xs = attn.forward(&xs);
+        }
+        match &self.downblock.downsampler {
+            Some(downsampler) => xs.apply(downsampler),
+            None => xs,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 struct UpBlock2DConfig {
     num_layers: i64,
     resnet_eps: f64,
@@ -1646,10 +1718,11 @@ impl Default for UpBlock2DConfig {
     }
 }
 
+#[derive(Debug)]
 struct UpBlock2D {
     resnets: Vec<ResnetBlock2D>,
     upsampler: Option<Upsample2D>,
-    config: DownBlock2DConfig,
+    config: UpBlock2DConfig,
 }
 
 impl UpBlock2D {
@@ -1659,7 +1732,7 @@ impl UpBlock2D {
         prev_output_channels: i64,
         out_channels: i64,
         temb_channels: Option<i64>,
-        config: DownBlock2DConfig,
+        config: UpBlock2DConfig,
     ) -> Self {
         let vs_resnets = &vs / "resnets";
         let resnet_cfg = ResnetBlock2DConfig {
@@ -1676,7 +1749,7 @@ impl UpBlock2D {
                 ResnetBlock2D::new(&vs_resnets / i, in_channels, resnet_cfg)
             })
             .collect();
-        let upsampler = if config.add_downsample {
+        let upsampler = if config.add_upsample {
             let upsampler = Upsample2D::new(&(&vs / "downsampler") / 0, in_channels, out_channels);
             Some(upsampler)
         } else {
@@ -1693,6 +1766,81 @@ impl UpBlock2D {
             xs = resnet.forward(&xs, temb);
         }
         match &self.upsampler {
+            Some(upsampler) => xs.apply(upsampler),
+            None => xs,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct CrossAttnUpBlock2DConfig {
+    upblock: UpBlock2DConfig,
+    attn_num_head_channels: i64,
+    cross_attention_dim: i64,
+    // attention_type: "default"
+}
+
+impl Default for CrossAttnUpBlock2DConfig {
+    fn default() -> Self {
+        Self { upblock: Default::default(), attn_num_head_channels: 1, cross_attention_dim: 1280 }
+    }
+}
+
+#[derive(Debug)]
+struct CrossAttnUpBlock2D {
+    upblock: UpBlock2D,
+    attentions: Vec<SpatialTransformer>,
+    config: CrossAttnUpBlock2DConfig,
+}
+
+impl CrossAttnUpBlock2D {
+    fn new(
+        vs: nn::Path,
+        in_channels: i64,
+        prev_output_channels: i64,
+        out_channels: i64,
+        temb_channels: Option<i64>,
+        config: CrossAttnUpBlock2DConfig,
+    ) -> Self {
+        let upblock = UpBlock2D::new(
+            vs.clone(),
+            in_channels,
+            prev_output_channels,
+            out_channels,
+            temb_channels,
+            config.upblock,
+        );
+        let n_heads = config.attn_num_head_channels;
+        let cfg = SpatialTransformerConfig {
+            depth: 1,
+            context_dim: Some(config.cross_attention_dim),
+            num_groups: config.upblock.resnet_groups,
+        };
+        let vs_attn = &vs / "attentions";
+        let attentions = (0..config.upblock.num_layers)
+            .map(|i| {
+                SpatialTransformer::new(
+                    &vs_attn / i,
+                    out_channels,
+                    n_heads,
+                    out_channels / n_heads,
+                    cfg,
+                )
+            })
+            .collect();
+        Self { upblock, attentions, config }
+    }
+
+    // encoder_hidden_states: None
+    // upsample_size: None
+    fn forward(&self, xs: &Tensor, res_xs: &[Tensor], temb: Option<&Tensor>) -> Tensor {
+        let mut xs = xs.shallow_clone();
+        for (index, resnet) in self.upblock.resnets.iter().enumerate() {
+            xs = Tensor::cat(&[&xs, &res_xs[res_xs.len() - index - 1]], 1);
+            xs = resnet.forward(&xs, temb);
+            xs = self.attentions[index].forward(&xs);
+        }
+        match &self.upblock.upsampler {
             Some(upsampler) => xs.apply(upsampler),
             None => xs,
         }
