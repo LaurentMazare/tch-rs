@@ -1930,11 +1930,73 @@ impl CrossAttnUpBlock2D {
     }
 }
 
+#[derive(Debug)]
+struct Timesteps {
+    num_channels: i64,
+    flip_sin_to_cos: bool,
+    downscale_freq_shift: f64,
+    device: Device,
+}
+
+impl Timesteps {
+    fn new(
+        num_channels: i64,
+        flip_sin_to_cos: bool,
+        downscale_freq_shift: f64,
+        device: Device,
+    ) -> Self {
+        Self { num_channels, flip_sin_to_cos, downscale_freq_shift, device }
+    }
+}
+
+impl Module for Timesteps {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        let half_dim = self.num_channels / 2;
+        let exponent = Tensor::arange(half_dim, (Kind::Float, self.device)) * -f64::ln(10000.);
+        let exponent = exponent / (half_dim as f64 - self.downscale_freq_shift);
+        let emb = exponent.exp();
+        // emb = timesteps[:, None].float() * emb[None, :]
+        let emb = xs.unsqueeze(-1) * emb.unsqueeze(0);
+        let emb = if self.flip_sin_to_cos {
+            Tensor::cat(&[emb.sin(), emb.cos()], -1)
+        } else {
+            Tensor::cat(&[emb.cos(), emb.sin()], -1)
+        };
+        if self.num_channels % 2 == 1 {
+            emb.pad(&[0, 1, 0, 0], "constant", None)
+        } else {
+            emb
+        }
+    }
+}
+
+#[derive(Debug)]
+struct TimestepEmbedding {
+    linear_1: nn::Linear,
+    linear_2: nn::Linear,
+}
+
+impl TimestepEmbedding {
+    // act_fn: "silu"
+    fn new(vs: nn::Path, channel: i64, time_embed_dim: i64) -> Self {
+        let linear_cfg = Default::default();
+        let linear_1 = nn::linear(&vs / "linear_1", channel, time_embed_dim, linear_cfg);
+        let linear_2 = nn::linear(&vs / "linear_2", time_embed_dim, time_embed_dim, linear_cfg);
+        Self { linear_1, linear_2 }
+    }
+}
+
+impl Module for TimestepEmbedding {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.apply(&self.linear_1).silu().apply(&self.linear_2)
+    }
+}
+
 #[derive(Debug, Clone)]
 struct UNet2DConditionModelConfig {
     center_input_sample: bool,
     flip_sin_to_cos: bool,
-    freq_shift: i64,
+    freq_shift: f64,
     // todo: down_block_types
     // todo: up_block_types
     block_out_channels: Vec<i64>,
@@ -1945,6 +2007,7 @@ struct UNet2DConditionModelConfig {
     norm_eps: f64,
     cross_attention_dim: i64,
     attention_head_dim: i64,
+    sample_size: Option<i64>,
 }
 
 impl Default for UNet2DConditionModelConfig {
@@ -1952,7 +2015,7 @@ impl Default for UNet2DConditionModelConfig {
         Self {
             center_input_sample: false,
             flip_sin_to_cos: true,
-            freq_shift: 0,
+            freq_shift: 0.,
             block_out_channels: vec![320, 640, 1280, 1280],
             layers_per_block: 2,
             downsample_padding: 1,
@@ -1961,6 +2024,7 @@ impl Default for UNet2DConditionModelConfig {
             norm_eps: 1e-5,
             cross_attention_dim: 1280,
             attention_head_dim: 8,
+            sample_size: None,
         }
     }
 }
@@ -1968,6 +2032,8 @@ impl Default for UNet2DConditionModelConfig {
 #[derive(Debug)]
 struct UNet2DConditionModel {
     conv_in: nn::Conv2D,
+    time_proj: Timesteps,
+    time_embedding: TimestepEmbedding,
     mid_block: UNetMidBlock2DCrossAttn,
     conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
@@ -1977,7 +2043,6 @@ struct UNet2DConditionModel {
 impl UNet2DConditionModel {
     fn new(
         vs: nn::Path,
-        sample_size: Option<i64>,
         in_channels: i64,
         out_channels: i64,
         config: UNet2DConditionModelConfig,
@@ -1987,6 +2052,11 @@ impl UNet2DConditionModel {
         let time_embed_dim = b_channels * 4;
         let conv_cfg = nn::ConvConfig { stride: 1, padding: 1, ..Default::default() };
         let conv_in = nn::conv2d(&vs / "conv_in", in_channels, b_channels, 3, conv_cfg);
+
+        let time_proj =
+            Timesteps::new(b_channels, config.flip_sin_to_cos, config.freq_shift, vs.device());
+        let time_embedding =
+            TimestepEmbedding::new(&vs / "time_embedding", b_channels, time_embed_dim);
 
         let mid_cfg = UNetMidBlock2DCrossAttnConfig {
             resnet_eps: config.norm_eps,
@@ -2007,7 +2077,7 @@ impl UNet2DConditionModel {
         let conv_norm_out =
             nn::group_norm(&vs / "conv_norm_out", config.norm_num_groups, b_channels, group_cfg);
         let conv_out = nn::conv2d(&vs / "conv_out", b_channels, out_channels, 3, conv_cfg);
-        Self { conv_in, mid_block, conv_norm_out, conv_out, config }
+        Self { conv_in, time_proj, time_embedding, mid_block, conv_norm_out, conv_out, config }
     }
 }
 
@@ -2040,7 +2110,7 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = text_model.forward(&tokens);
     println!("Embedding shape {:?}", text_embeddings.size());
 
-    let mut vs = nn::VarStore::new(Device::Cpu);
+    let vs_ae = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
     let autoencoder_cfg = AutoEncoderKLConfig {
         block_out_channels: vec![128, 256, 512, 512],
@@ -2048,6 +2118,24 @@ fn main() -> anyhow::Result<()> {
         latent_channels: 4,
         norm_num_groups: 32,
     };
-    let _autoencoder = AutoEncoderKL::new(vs.root(), 3, 3, autoencoder_cfg);
+    let _autoencoder = AutoEncoderKL::new(vs_ae.root(), 3, 3, autoencoder_cfg);
+
+    let vs_unet = nn::VarStore::new(Device::Cpu);
+    // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
+    let unet_cfg = UNet2DConditionModelConfig {
+        attention_head_dim: 8,
+        block_out_channels: vec![320, 640, 1280, 1280],
+        center_input_sample: false,
+        cross_attention_dim: 768,
+        downsample_padding: 1,
+        flip_sin_to_cos: true,
+        freq_shift: 0.,
+        layers_per_block: 2,
+        mid_block_scale_factor: 1.,
+        norm_eps: 1e-5,
+        norm_num_groups: 32,
+        sample_size: Some(64),
+    };
+    let _unet = UNet2DConditionModel::new(vs_unet.root(), 4, 4, unet_cfg);
     Ok(())
 }
