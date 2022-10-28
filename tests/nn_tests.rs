@@ -136,6 +136,18 @@ fn bn_test() {
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
     let x = Tensor::randn(&[10, 40], opts);
     let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 4);
+}
+
+#[test]
+fn bn_test_no_affine() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let bn_cfg = nn::BatchNormConfig { affine: false, ..Default::default() };
+    let bn = nn::batch_norm1d(vs.root(), 40, bn_cfg);
+    let x = Tensor::randn(&[10, 40], opts);
+    let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 2);
 }
 
 #[test]
