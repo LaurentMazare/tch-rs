@@ -1992,14 +1992,18 @@ impl Module for TimestepEmbedding {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct BlockConfig {
+    out_channels: i64,
+    use_cross_attn: bool,
+}
+
 #[derive(Debug, Clone)]
 struct UNet2DConditionModelConfig {
     center_input_sample: bool,
     flip_sin_to_cos: bool,
     freq_shift: f64,
-    // todo: down_block_types
-    // todo: up_block_types
-    block_out_channels: Vec<i64>,
+    blocks: Vec<BlockConfig>,
     layers_per_block: i64,
     downsample_padding: i64,
     mid_block_scale_factor: f64,
@@ -2016,7 +2020,12 @@ impl Default for UNet2DConditionModelConfig {
             center_input_sample: false,
             flip_sin_to_cos: true,
             freq_shift: 0.,
-            block_out_channels: vec![320, 640, 1280, 1280],
+            blocks: vec![
+                BlockConfig { out_channels: 320, use_cross_attn: false },
+                BlockConfig { out_channels: 640, use_cross_attn: false },
+                BlockConfig { out_channels: 1280, use_cross_attn: false },
+                BlockConfig { out_channels: 1280, use_cross_attn: true },
+            ],
             layers_per_block: 2,
             downsample_padding: 1,
             mid_block_scale_factor: 1.,
@@ -2030,11 +2039,25 @@ impl Default for UNet2DConditionModelConfig {
 }
 
 #[derive(Debug)]
+enum UNetDownBlock {
+    Basic(DownBlock2D),
+    CrossAttn(CrossAttnDownBlock2D),
+}
+
+#[derive(Debug)]
+enum UNetUpBlock {
+    Basic(UpBlock2D),
+    CrossAttn(CrossAttnUpBlock2D),
+}
+
+#[derive(Debug)]
 struct UNet2DConditionModel {
     conv_in: nn::Conv2D,
     time_proj: Timesteps,
     time_embedding: TimestepEmbedding,
+    down_blocks: Vec<UNetDownBlock>,
     mid_block: UNetMidBlock2DCrossAttn,
+    up_blocks: Vec<UNetUpBlock>,
     conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
     config: UNet2DConditionModelConfig,
@@ -2047,8 +2070,9 @@ impl UNet2DConditionModel {
         out_channels: i64,
         config: UNet2DConditionModelConfig,
     ) -> Self {
-        let b_channels = config.block_out_channels[0];
-        let bl_channels = *config.block_out_channels.last().unwrap();
+        let n_blocks = config.blocks.len();
+        let b_channels = config.blocks[0].out_channels;
+        let bl_channels = config.blocks.last().unwrap().out_channels;
         let time_embed_dim = b_channels * 4;
         let conv_cfg = nn::ConvConfig { stride: 1, padding: 1, ..Default::default() };
         let conv_in = nn::conv2d(&vs / "conv_in", in_channels, b_channels, 3, conv_cfg);
@@ -2057,6 +2081,48 @@ impl UNet2DConditionModel {
             Timesteps::new(b_channels, config.flip_sin_to_cos, config.freq_shift, vs.device());
         let time_embedding =
             TimestepEmbedding::new(&vs / "time_embedding", b_channels, time_embed_dim);
+
+        let vs_db = &vs / "down_blocks";
+        let down_blocks = (0..n_blocks)
+            .map(|i| {
+                let BlockConfig { out_channels, use_cross_attn } = config.blocks[i];
+                let in_channels =
+                    if i > 0 { config.blocks[i - 1].out_channels } else { b_channels };
+                let db_cfg = DownBlock2DConfig {
+                    num_layers: config.layers_per_block,
+                    resnet_eps: config.norm_eps,
+                    resnet_groups: config.norm_num_groups,
+                    add_downsample: i < n_blocks - 1,
+                    downsample_padding: config.downsample_padding,
+                    ..Default::default()
+                };
+                if use_cross_attn {
+                    let config = CrossAttnDownBlock2DConfig {
+                        downblock: db_cfg,
+                        attn_num_head_channels: config.attention_head_dim,
+                        cross_attention_dim: config.cross_attention_dim,
+                        ..Default::default()
+                    };
+                    let block = CrossAttnDownBlock2D::new(
+                        &vs_db / i,
+                        in_channels,
+                        out_channels,
+                        Some(time_embed_dim),
+                        config,
+                    );
+                    UNetDownBlock::CrossAttn(block)
+                } else {
+                    let block = DownBlock2D::new(
+                        &vs_db / i,
+                        in_channels,
+                        out_channels,
+                        Some(time_embed_dim),
+                        db_cfg,
+                    );
+                    UNetDownBlock::Basic(block)
+                }
+            })
+            .collect();
 
         let mid_cfg = UNetMidBlock2DCrossAttnConfig {
             resnet_eps: config.norm_eps,
@@ -2073,11 +2139,65 @@ impl UNet2DConditionModel {
             mid_cfg,
         );
 
+        let vs_ub = &vs / "up_blocks";
+        let up_blocks = (0..n_blocks)
+            .map(|i| {
+                let BlockConfig { out_channels, use_cross_attn } = config.blocks[n_blocks - 1 - i];
+                let prev_out_channels =
+                    if i > 0 { config.blocks[n_blocks - i].out_channels } else { bl_channels };
+                let in_channels = config.blocks[usize::min(n_blocks - 1, i + 1)].out_channels;
+                let ub_cfg = UpBlock2DConfig {
+                    num_layers: config.layers_per_block + 1,
+                    resnet_eps: config.norm_eps,
+                    resnet_groups: config.norm_num_groups,
+                    add_upsample: i < n_blocks - 1,
+                    ..Default::default()
+                };
+                if use_cross_attn {
+                    let config = CrossAttnUpBlock2DConfig {
+                        upblock: ub_cfg,
+                        attn_num_head_channels: config.attention_head_dim,
+                        cross_attention_dim: config.cross_attention_dim,
+                        ..Default::default()
+                    };
+                    let block = CrossAttnUpBlock2D::new(
+                        &vs_db / i,
+                        in_channels,
+                        prev_out_channels,
+                        out_channels,
+                        Some(time_embed_dim),
+                        config,
+                    );
+                    UNetUpBlock::CrossAttn(block)
+                } else {
+                    let block = UpBlock2D::new(
+                        &vs_db / i,
+                        in_channels,
+                        prev_out_channels,
+                        out_channels,
+                        Some(time_embed_dim),
+                        ub_cfg,
+                    );
+                    UNetUpBlock::Basic(block)
+                }
+            })
+            .collect();
+
         let group_cfg = nn::GroupNormConfig { eps: config.norm_eps, ..Default::default() };
         let conv_norm_out =
             nn::group_norm(&vs / "conv_norm_out", config.norm_num_groups, b_channels, group_cfg);
         let conv_out = nn::conv2d(&vs / "conv_out", b_channels, out_channels, 3, conv_cfg);
-        Self { conv_in, time_proj, time_embedding, mid_block, conv_norm_out, conv_out, config }
+        Self {
+            conv_in,
+            time_proj,
+            time_embedding,
+            down_blocks,
+            mid_block,
+            up_blocks,
+            conv_norm_out,
+            conv_out,
+            config,
+        }
     }
 }
 
@@ -2124,7 +2244,12 @@ fn main() -> anyhow::Result<()> {
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
     let unet_cfg = UNet2DConditionModelConfig {
         attention_head_dim: 8,
-        block_out_channels: vec![320, 640, 1280, 1280],
+        blocks: vec![
+            BlockConfig { out_channels: 320, use_cross_attn: false },
+            BlockConfig { out_channels: 640, use_cross_attn: false },
+            BlockConfig { out_channels: 1280, use_cross_attn: false },
+            BlockConfig { out_channels: 1280, use_cross_attn: true },
+        ],
         center_input_sample: false,
         cross_attention_dim: 768,
         downsample_padding: 1,
