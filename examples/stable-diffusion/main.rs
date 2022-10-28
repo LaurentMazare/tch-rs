@@ -974,9 +974,13 @@ impl Upsample2D {
     }
 }
 
-impl Module for Upsample2D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
-        xs.upsample_nearest2d(&[], Some(2.), Some(2.)).apply(&self.conv)
+impl Upsample2D {
+    fn forward(&self, xs: &Tensor, size: Option<(i64, i64)>) -> Tensor {
+        let xs = match size {
+            None => xs.upsample_nearest2d(&[], Some(2.), Some(2.)),
+            Some((h, w)) => xs.upsample_nearest2d(&[h, w], None, None),
+        };
+        xs.apply(&self.conv)
     }
 }
 
@@ -1046,7 +1050,6 @@ impl ResnetBlock2D {
     }
 
     fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
-        // TODO: Use time_emb_proj.
         let shortcut_xs = match &self.conv_shortcut {
             Some(conv_shortcut) => xs.apply(conv_shortcut),
             None => xs.shallow_clone(),
@@ -1217,7 +1220,7 @@ impl Module for UpDecoderBlock2D {
             xs = resnet.forward(&xs, None)
         }
         match &self.upsampler {
-            Some(upsampler) => xs.apply(upsampler),
+            Some(upsampler) => upsampler.forward(&xs, None),
             None => xs,
         }
     }
@@ -1841,15 +1844,20 @@ impl UpBlock2D {
         Self { resnets, upsampler, config }
     }
 
-    // upsample_size: None
-    fn forward(&self, xs: &Tensor, res_xs: &[Tensor], temb: Option<&Tensor>) -> Tensor {
+    fn forward(
+        &self,
+        xs: &Tensor,
+        res_xs: &[Tensor],
+        temb: Option<&Tensor>,
+        upsample_size: Option<(i64, i64)>,
+    ) -> Tensor {
         let mut xs = xs.shallow_clone();
         for (index, resnet) in self.resnets.iter().enumerate() {
             xs = Tensor::cat(&[&xs, &res_xs[res_xs.len() - index - 1]], 1);
             xs = resnet.forward(&xs, temb);
         }
         match &self.upsampler {
-            Some(upsampler) => xs.apply(upsampler),
+            Some(upsampler) => upsampler.forward(&xs, upsample_size),
             None => xs,
         }
     }
@@ -1915,8 +1923,13 @@ impl CrossAttnUpBlock2D {
     }
 
     // encoder_hidden_states: None
-    // upsample_size: None
-    fn forward(&self, xs: &Tensor, res_xs: &[Tensor], temb: Option<&Tensor>) -> Tensor {
+    fn forward(
+        &self,
+        xs: &Tensor,
+        res_xs: &[Tensor],
+        temb: Option<&Tensor>,
+        upsample_size: Option<(i64, i64)>,
+    ) -> Tensor {
         let mut xs = xs.shallow_clone();
         for (index, resnet) in self.upblock.resnets.iter().enumerate() {
             xs = Tensor::cat(&[&xs, &res_xs[res_xs.len() - index - 1]], 1);
@@ -1924,7 +1937,7 @@ impl CrossAttnUpBlock2D {
             xs = self.attentions[index].forward(&xs);
         }
         match &self.upblock.upsampler {
-            Some(upsampler) => xs.apply(upsampler),
+            Some(upsampler) => upsampler.forward(&xs, upsample_size),
             None => xs,
         }
     }
@@ -2198,6 +2211,64 @@ impl UNet2DConditionModel {
             conv_out,
             config,
         }
+    }
+}
+
+impl UNet2DConditionModel {
+    fn forward(&self, xs: &Tensor, timestep: f64, encoder_hidden_states: &Tensor) -> Tensor {
+        let (bsize, channels, height, width) = xs.size4().unwrap();
+        let device = xs.device();
+        let n_blocks = self.config.blocks.len();
+        let num_upsamplers = n_blocks - 1;
+        let default_overall_up_factor = 2i64.pow(num_upsamplers as u32);
+        let forward_upsample_size =
+            height % default_overall_up_factor != 0 || width % default_overall_up_factor != 0;
+        // 0. center input if necessary
+        let xs = if self.config.center_input_sample { xs * 2.0 - 1.0 } else { xs.shallow_clone() };
+        // 1. time
+        let emb = (Tensor::ones(&[bsize], (Kind::Float, device)) * timestep)
+            .apply(&self.time_proj)
+            .apply(&self.time_embedding);
+        // 2. pre-process
+        let xs = xs.apply(&self.conv_in);
+        // 3. down
+        let mut xs = xs;
+        let mut down_block_res_xs = vec![xs.shallow_clone()];
+        for down_block in self.down_blocks.iter() {
+            // TODO: Add to down_block_res_xs
+            xs = match down_block {
+                UNetDownBlock::Basic(b) => b.forward(&xs, Some(&emb)),
+                UNetDownBlock::CrossAttn(b) => {
+                    b.forward(&xs, Some(&emb) /* TODO: encoder_hidden_states */)
+                }
+            }
+        }
+        // 4. mid
+        let xs = self.mid_block.forward(&xs, Some(&emb) /* TODO: encoder_hidden_states */);
+        // 5. up
+        // TODO
+        let mut xs = xs;
+        let res_xs = vec![]; // TODO: use down_block_res_xs
+        let mut upsample_size = None;
+        for (i, up_block) in self.up_blocks.iter().enumerate() {
+            if i < n_blocks - 1 && forward_upsample_size {
+                // upsample_size = down_block_res_samples[-1].shape[2:]
+                upsample_size = todo!()
+            }
+            xs = match up_block {
+                UNetUpBlock::Basic(b) => b.forward(&xs, &res_xs, Some(&emb), upsample_size),
+                UNetUpBlock::CrossAttn(b) => {
+                    b.forward(
+                        &xs,
+                        &res_xs,
+                        Some(&emb), /* TODO: encoder_hidden_states */
+                        upsample_size,
+                    )
+                }
+            }
+        }
+        // 6. post-process
+        xs.apply(&self.conv_norm_out).silu().apply(&self.conv_out)
     }
 }
 
