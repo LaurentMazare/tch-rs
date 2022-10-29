@@ -723,20 +723,16 @@ impl CrossAttention {
 
     fn reshape_heads_to_batch_dim(&self, xs: &Tensor) -> Tensor {
         let (batch_size, seq_len, dim) = xs.size3().unwrap();
-        xs.view((batch_size, seq_len, self.heads, dim / self.heads)).permute(&[0, 2, 1, 3]).view((
-            batch_size * self.heads,
-            seq_len,
-            dim / self.heads,
-        ))
+        xs.reshape(&[batch_size, seq_len, self.heads, dim / self.heads])
+            .permute(&[0, 2, 1, 3])
+            .reshape(&[batch_size * self.heads, seq_len, dim / self.heads])
     }
 
     fn reshape_batch_dim_to_heads(&self, xs: &Tensor) -> Tensor {
         let (batch_size, seq_len, dim) = xs.size3().unwrap();
-        xs.view((batch_size / self.heads, self.heads, seq_len, dim)).permute(&[0, 2, 1, 3]).view((
-            batch_size / self.heads,
-            seq_len,
-            dim * self.heads,
-        ))
+        xs.reshape(&[batch_size / self.heads, self.heads, seq_len, dim])
+            .permute(&[0, 2, 1, 3])
+            .reshape(&[batch_size / self.heads, seq_len, dim * self.heads])
     }
 
     fn attention(&self, query: &Tensor, key: &Tensor, value: &Tensor) -> Tensor {
@@ -998,7 +994,13 @@ impl Upsample2D {
 impl Upsample2D {
     fn forward(&self, xs: &Tensor, size: Option<(i64, i64)>) -> Tensor {
         let xs = match size {
-            None => xs.upsample_nearest2d(&[], Some(2.), Some(2.)),
+            None => {
+                // The following does not work and it's tricky to pass no fixed
+                // dimensions so hack our way around this.
+                // xs.upsample_nearest2d(&[], Some(2.), Some(2.)
+                let (_bsize, _channels, h, w) = xs.size4().unwrap();
+                xs.upsample_nearest2d(&[h, w], Some(2.), Some(2.))
+            }
             Some((h, w)) => xs.upsample_nearest2d(&[h, w], None, None),
         };
         xs.apply(&self.conv)
@@ -1073,7 +1075,9 @@ impl ResnetBlock2D {
         };
         let xs = xs.apply(&self.norm1).silu().apply(&self.conv1);
         let xs = match (temb, &self.time_emb_proj) {
-            (Some(temb), Some(time_emb_proj)) => temb.silu().apply(time_emb_proj) + xs,
+            (Some(temb), Some(time_emb_proj)) => {
+                temb.silu().apply(time_emb_proj).unsqueeze(-1).unsqueeze(-1) + xs
+            }
             _ => xs,
         };
         let xs = xs.apply(&self.norm2).silu().apply(&self.conv2);
@@ -2371,6 +2375,7 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = text_model.forward(&tokens);
     let uncond_embeddings = text_model.forward(&uncond_tokens);
     let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
+    println!("Text embeddings: {:?}", text_embeddings);
 
     println!("Building the autoencoder.");
     let vae = build_vae()?;
