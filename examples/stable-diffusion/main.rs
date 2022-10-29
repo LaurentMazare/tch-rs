@@ -744,11 +744,12 @@ impl CrossAttention {
     }
 }
 
-impl Module for CrossAttention {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+impl CrossAttention {
+    fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
         let query = xs.apply(&self.to_q);
-        let key = xs.apply(&self.to_k);
-        let value = xs.apply(&self.to_v);
+        let context = context.unwrap_or(xs);
+        let key = context.apply(&self.to_k);
+        let value = context.apply(&self.to_v);
         let query = self.reshape_heads_to_batch_dim(&query);
         let key = self.reshape_heads_to_batch_dim(&key);
         let value = self.reshape_heads_to_batch_dim(&value);
@@ -778,10 +779,10 @@ impl BasicTransformerBlock {
     }
 }
 
-impl Module for BasicTransformerBlock {
-    fn forward(&self, xs: &Tensor) -> Tensor {
-        let xs = xs.apply(&self.norm1).apply(&self.attn1) + xs;
-        let xs = xs.apply(&self.norm2).apply(&self.attn2) + xs;
+impl BasicTransformerBlock {
+    fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
+        let xs = self.attn1.forward(&xs.apply(&self.norm1), None) + xs;
+        let xs = self.attn2.forward(&xs.apply(&self.norm2), context) + xs;
         xs.apply(&self.norm3).apply(&self.ff) + xs
     }
 }
@@ -838,15 +839,15 @@ impl SpatialTransformer {
     }
 }
 
-impl Module for SpatialTransformer {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+impl SpatialTransformer {
+    fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
         let (batch, channel, height, weight) = xs.size4().unwrap();
         let residual = xs;
         let xs = xs.apply(&self.norm).apply(&self.proj_in);
         let inner_dim = xs.size()[1];
         let mut xs = xs.permute(&[0, 2, 3, 1]).view((batch, height * weight, inner_dim));
         for block in self.transformer_blocks.iter() {
-            xs = xs.apply(block)
+            xs = block.forward(&xs, context)
         }
         let xs = xs
             .view((batch, height, weight, inner_dim))
@@ -1389,10 +1390,15 @@ impl UNetMidBlock2DCrossAttn {
         Self { resnet, attn_resnets, config }
     }
 
-    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+    fn forward(
+        &self,
+        xs: &Tensor,
+        temb: Option<&Tensor>,
+        encoder_hidden_states: Option<&Tensor>,
+    ) -> Tensor {
         let mut xs = self.resnet.forward(xs, temb);
         for (attn, resnet) in self.attn_resnets.iter() {
-            xs = resnet.forward(&xs.apply(attn), temb)
+            xs = resnet.forward(&attn.forward(&xs, encoder_hidden_states), temb)
         }
         xs
     }
@@ -1781,12 +1787,16 @@ impl CrossAttnDownBlock2D {
         Self { downblock, attentions, config }
     }
 
-    // encoder_hidden_states: None
-    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+    fn forward(
+        &self,
+        xs: &Tensor,
+        temb: Option<&Tensor>,
+        encoder_hidden_states: Option<&Tensor>,
+    ) -> Tensor {
         let mut xs = xs.shallow_clone();
         for (resnet, attn) in self.downblock.resnets.iter().zip(self.attentions.iter()) {
             xs = resnet.forward(&xs, temb);
-            xs = attn.forward(&xs);
+            xs = attn.forward(&xs, encoder_hidden_states.clone());
         }
         match &self.downblock.downsampler {
             Some(downsampler) => xs.apply(downsampler),
@@ -1938,19 +1948,19 @@ impl CrossAttnUpBlock2D {
         Self { upblock, attentions, config }
     }
 
-    // encoder_hidden_states: None
     fn forward(
         &self,
         xs: &Tensor,
         res_xs: &[Tensor],
         temb: Option<&Tensor>,
         upsample_size: Option<(i64, i64)>,
+        encoder_hidden_states: Option<&Tensor>,
     ) -> Tensor {
         let mut xs = xs.shallow_clone();
         for (index, resnet) in self.upblock.resnets.iter().enumerate() {
             xs = Tensor::cat(&[&xs, &res_xs[res_xs.len() - index - 1]], 1);
             xs = resnet.forward(&xs, temb);
-            xs = self.attentions[index].forward(&xs);
+            xs = self.attentions[index].forward(&xs, encoder_hidden_states);
         }
         match &self.upblock.upsampler {
             Some(upsampler) => upsampler.forward(&xs, upsample_size),
@@ -2257,12 +2267,12 @@ impl UNet2DConditionModel {
             xs = match down_block {
                 UNetDownBlock::Basic(b) => b.forward(&xs, Some(&emb)),
                 UNetDownBlock::CrossAttn(b) => {
-                    b.forward(&xs, Some(&emb) /* TODO: encoder_hidden_states */)
+                    b.forward(&xs, Some(&emb), Some(&encoder_hidden_states))
                 }
             }
         }
         // 4. mid
-        let xs = self.mid_block.forward(&xs, Some(&emb) /* TODO: encoder_hidden_states */);
+        let xs = self.mid_block.forward(&xs, Some(&emb), Some(&encoder_hidden_states));
         // 5. up
         // TODO
         let mut xs = xs;
@@ -2276,12 +2286,7 @@ impl UNet2DConditionModel {
             xs = match up_block {
                 UNetUpBlock::Basic(b) => b.forward(&xs, &res_xs, Some(&emb), upsample_size),
                 UNetUpBlock::CrossAttn(b) => {
-                    b.forward(
-                        &xs,
-                        &res_xs,
-                        Some(&emb), /* TODO: encoder_hidden_states */
-                        upsample_size,
-                    )
+                    b.forward(&xs, &res_xs, Some(&emb), upsample_size, Some(&encoder_hidden_states))
                 }
             }
         }
