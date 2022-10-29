@@ -1699,7 +1699,7 @@ impl DownBlock2D {
             .collect();
         let downsampler = if config.add_downsample {
             let downsampler = Downsample2D::new(
-                &(&vs / "downsampler") / 0,
+                &(&vs / "downsamplers") / 0,
                 out_channels,
                 true,
                 out_channels,
@@ -1852,7 +1852,7 @@ impl UpBlock2D {
             })
             .collect();
         let upsampler = if config.add_upsample {
-            let upsampler = Upsample2D::new(&(&vs / "downsampler") / 0, in_channels, out_channels);
+            let upsampler = Upsample2D::new(&(&vs / "upsamplers") / 0, out_channels, out_channels);
             Some(upsampler)
         } else {
             None
@@ -2173,7 +2173,10 @@ impl UNet2DConditionModel {
                 let BlockConfig { out_channels, use_cross_attn } = config.blocks[n_blocks - 1 - i];
                 let prev_out_channels =
                     if i > 0 { config.blocks[n_blocks - i].out_channels } else { bl_channels };
-                let in_channels = config.blocks[usize::min(n_blocks - 1, i + 1)].out_channels;
+                let in_channels = {
+                    let index = if i == n_blocks - 1 { 0 } else { n_blocks - i - 2 };
+                    config.blocks[index].out_channels
+                };
                 let ub_cfg = UpBlock2DConfig {
                     num_layers: config.layers_per_block + 1,
                     resnet_eps: config.norm_eps,
@@ -2189,7 +2192,7 @@ impl UNet2DConditionModel {
                         ..Default::default()
                     };
                     let block = CrossAttnUpBlock2D::new(
-                        &vs_db / i,
+                        &vs_ub / i,
                         in_channels,
                         prev_out_channels,
                         out_channels,
@@ -2199,7 +2202,7 @@ impl UNet2DConditionModel {
                     UNetUpBlock::CrossAttn(block)
                 } else {
                     let block = UpBlock2D::new(
-                        &vs_db / i,
+                        &vs_ub / i,
                         in_channels,
                         prev_out_channels,
                         out_channels,
@@ -2332,10 +2335,10 @@ fn main() -> anyhow::Result<()> {
     let unet_cfg = UNet2DConditionModelConfig {
         attention_head_dim: 8,
         blocks: vec![
-            BlockConfig { out_channels: 320, use_cross_attn: false },
-            BlockConfig { out_channels: 640, use_cross_attn: false },
-            BlockConfig { out_channels: 1280, use_cross_attn: false },
+            BlockConfig { out_channels: 320, use_cross_attn: true },
+            BlockConfig { out_channels: 640, use_cross_attn: true },
             BlockConfig { out_channels: 1280, use_cross_attn: true },
+            BlockConfig { out_channels: 1280, use_cross_attn: false },
         ],
         center_input_sample: false,
         cross_attention_dim: 768,
