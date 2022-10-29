@@ -1718,15 +1718,22 @@ impl DownBlock2D {
         Self { resnets, downsampler, config }
     }
 
-    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
+    fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> (Tensor, Vec<Tensor>) {
         let mut xs = xs.shallow_clone();
+        let mut output_states = vec![];
         for resnet in self.resnets.iter() {
             xs = resnet.forward(&xs, temb);
+            output_states.push(xs.shallow_clone());
         }
-        match &self.downsampler {
-            Some(downsampler) => xs.apply(downsampler),
+        let xs = match &self.downsampler {
+            Some(downsampler) => {
+                let xs = xs.apply(downsampler);
+                output_states.push(xs.shallow_clone());
+                xs
+            }
             None => xs,
-        }
+        };
+        (xs, output_states)
     }
 }
 
@@ -1792,16 +1799,23 @@ impl CrossAttnDownBlock2D {
         xs: &Tensor,
         temb: Option<&Tensor>,
         encoder_hidden_states: Option<&Tensor>,
-    ) -> Tensor {
+    ) -> (Tensor, Vec<Tensor>) {
+        let mut output_states = vec![];
         let mut xs = xs.shallow_clone();
         for (resnet, attn) in self.downblock.resnets.iter().zip(self.attentions.iter()) {
             xs = resnet.forward(&xs, temb);
             xs = attn.forward(&xs, encoder_hidden_states.clone());
+            output_states.push(xs.shallow_clone());
         }
-        match &self.downblock.downsampler {
-            Some(downsampler) => xs.apply(downsampler),
+        let xs = match &self.downblock.downsampler {
+            Some(downsampler) => {
+                let xs = xs.apply(downsampler);
+                output_states.push(xs.shallow_clone());
+                xs
+            }
             None => xs,
-        }
+        };
+        (xs, output_states)
     }
 }
 
@@ -2260,28 +2274,32 @@ impl UNet2DConditionModel {
         // 2. pre-process
         let xs = xs.apply(&self.conv_in);
         // 3. down
-        let mut xs = xs;
         let mut down_block_res_xs = vec![xs.shallow_clone()];
+        let mut xs = xs;
         for down_block in self.down_blocks.iter() {
-            // TODO: Add to down_block_res_xs
-            xs = match down_block {
+            let (_xs, res_xs) = match down_block {
                 UNetDownBlock::Basic(b) => b.forward(&xs, Some(&emb)),
                 UNetDownBlock::CrossAttn(b) => {
                     b.forward(&xs, Some(&emb), Some(&encoder_hidden_states))
                 }
-            }
+            };
+            down_block_res_xs.extend(res_xs);
+            xs = _xs;
         }
         // 4. mid
         let xs = self.mid_block.forward(&xs, Some(&emb), Some(&encoder_hidden_states));
         // 5. up
-        // TODO
         let mut xs = xs;
-        let res_xs = vec![]; // TODO: use down_block_res_xs
         let mut upsample_size = None;
         for (i, up_block) in self.up_blocks.iter().enumerate() {
+            let n_resnets = match up_block {
+                UNetUpBlock::Basic(b) => b.resnets.len(),
+                UNetUpBlock::CrossAttn(b) => b.upblock.resnets.len(),
+            };
+            let res_xs = down_block_res_xs.split_off(down_block_res_xs.len() - 1 - n_resnets);
             if i < n_blocks - 1 && forward_upsample_size {
-                // upsample_size = down_block_res_samples[-1].shape[2:]
-                upsample_size = todo!()
+                let (_, _, h, w) = down_block_res_xs.last().unwrap().size4().unwrap();
+                upsample_size = Some((h, w))
             }
             xs = match up_block {
                 UNetUpBlock::Basic(b) => b.forward(&xs, &res_xs, Some(&emb), upsample_size),
