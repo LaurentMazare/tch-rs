@@ -999,7 +999,7 @@ impl Upsample2D {
                 // dimensions so hack our way around this.
                 // xs.upsample_nearest2d(&[], Some(2.), Some(2.)
                 let (_bsize, _channels, h, w) = xs.size4().unwrap();
-                xs.upsample_nearest2d(&[h, w], Some(2.), Some(2.))
+                xs.upsample_nearest2d(&[2 * h, 2 * w], Some(2.), Some(2.))
             }
             Some((h, w)) => xs.upsample_nearest2d(&[h, w], None, None),
         };
@@ -2064,10 +2064,10 @@ impl Default for UNet2DConditionModelConfig {
             flip_sin_to_cos: true,
             freq_shift: 0.,
             blocks: vec![
-                BlockConfig { out_channels: 320, use_cross_attn: false },
-                BlockConfig { out_channels: 640, use_cross_attn: false },
-                BlockConfig { out_channels: 1280, use_cross_attn: false },
+                BlockConfig { out_channels: 320, use_cross_attn: true },
+                BlockConfig { out_channels: 640, use_cross_attn: true },
                 BlockConfig { out_channels: 1280, use_cross_attn: true },
+                BlockConfig { out_channels: 1280, use_cross_attn: false },
             ],
             layers_per_block: 2,
             downsample_padding: 1,
@@ -2285,7 +2285,7 @@ impl UNet2DConditionModel {
                 UNetUpBlock::Basic(b) => b.resnets.len(),
                 UNetUpBlock::CrossAttn(b) => b.upblock.resnets.len(),
             };
-            let res_xs = down_block_res_xs.split_off(down_block_res_xs.len() - 1 - n_resnets);
+            let res_xs = down_block_res_xs.split_off(down_block_res_xs.len() - n_resnets);
             if i < n_blocks - 1 && forward_upsample_size {
                 let (_, _, h, w) = down_block_res_xs.last().unwrap().size4().unwrap();
                 upsample_size = Some((h, w))
@@ -2295,7 +2295,7 @@ impl UNet2DConditionModel {
                 UNetUpBlock::CrossAttn(b) => {
                     b.forward(&xs, &res_xs, Some(&emb), upsample_size, Some(&encoder_hidden_states))
                 }
-            }
+            };
         }
         // 6. post-process
         xs.apply(&self.conv_norm_out).silu().apply(&self.conv_out)
@@ -2387,7 +2387,8 @@ fn main() -> anyhow::Result<()> {
     let sigma0 = 1.; // TODO
     let mut latents = latents * sigma0;
 
-    for _timestep in 0..30 {
+    for timestep_index in 0..30 {
+        println!("Timestep {}", timestep_index + 1);
         let timestep = 500.;
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
         let sigma = 1.; // TODO
