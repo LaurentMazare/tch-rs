@@ -51,6 +51,10 @@ const MAX_POSITION_EMBEDDINGS: i64 = 77;
 const NUM_HIDDEN_LAYERS: i64 = 12;
 const NUM_ATTENTION_HEADS: i64 = 12;
 
+const HEIGHT: i64 = 512;
+const WIDTH: i64 = 512;
+const GUIDANCE_SCALE: f64 = 7.5;
+
 const BYTES_TO_UNICODE: [(u8, char); 256] = [
     (33, '!'),
     (34, '"'),
@@ -841,7 +845,7 @@ impl SpatialTransformer {
 
 impl SpatialTransformer {
     fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
-        let (batch, channel, height, weight) = xs.size4().unwrap();
+        let (batch, _channel, height, weight) = xs.size4().unwrap();
         let residual = xs;
         let xs = xs.apply(&self.norm).apply(&self.proj_in);
         let inner_dim = xs.size()[1];
@@ -928,11 +932,12 @@ impl Module for AttentionBlock {
         new_xs_shape.pop();
         new_xs_shape.push(self.channels);
 
-        xs.view(new_xs_shape.as_slice())
+        let xs = xs
+            .view(new_xs_shape.as_slice())
             .apply(&self.proj_attn)
             .transpose(-1, -2)
-            .view((batch, channel, height, width))
-            / self.config.rescale_output_factor
+            .view((batch, channel, height, width));
+        (xs + residual) / self.config.rescale_output_factor
     }
 }
 
@@ -1006,7 +1011,6 @@ struct ResnetBlock2DConfig {
     temb_channels: Option<i64>,
     groups: i64,
     groups_out: Option<i64>,
-    pre_norm: bool,
     eps: f64,
     use_in_shortcut: Option<bool>,
     // non_linearity: silu
@@ -1020,7 +1024,6 @@ impl Default for ResnetBlock2DConfig {
             temb_channels: Some(512),
             groups: 32,
             groups_out: None,
-            pre_norm: true,
             eps: 1e-6,
             use_in_shortcut: None,
             output_scale_factor: 1.,
@@ -1083,7 +1086,6 @@ struct DownEncoderBlock2DConfig {
     num_layers: i64,
     resnet_eps: f64,
     resnet_groups: i64,
-    resnet_pre_norm: bool,
     output_scale_factor: f64,
     add_downsample: bool,
     downsample_padding: i64,
@@ -1095,7 +1097,6 @@ impl Default for DownEncoderBlock2DConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: 32,
-            resnet_pre_norm: true,
             output_scale_factor: 1.,
             add_downsample: true,
             downsample_padding: 1,
@@ -1124,7 +1125,6 @@ impl DownEncoderBlock2D {
                 out_channels: Some(out_channels),
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
-                pre_norm: config.resnet_pre_norm,
                 temb_channels: None,
                 ..Default::default()
             };
@@ -1169,7 +1169,6 @@ struct UpDecoderBlock2DConfig {
     num_layers: i64,
     resnet_eps: f64,
     resnet_groups: i64,
-    resnet_pre_norm: bool,
     output_scale_factor: f64,
     add_upsample: bool,
 }
@@ -1180,7 +1179,6 @@ impl Default for UpDecoderBlock2DConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: 32,
-            resnet_pre_norm: true,
             output_scale_factor: 1.,
             add_upsample: true,
         }
@@ -1208,7 +1206,6 @@ impl UpDecoderBlock2D {
                 eps: config.resnet_eps,
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
-                pre_norm: config.resnet_pre_norm,
                 temb_channels: None,
                 ..Default::default()
             };
@@ -1248,7 +1245,6 @@ struct UNetMidBlock2DConfig {
     num_layers: i64,
     resnet_eps: f64,
     resnet_groups: Option<i64>,
-    resnet_pre_norm: bool,
     attn_num_head_channels: Option<i64>,
     // attention_type "default"
     output_scale_factor: f64,
@@ -1260,7 +1256,6 @@ impl Default for UNetMidBlock2DConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: Some(32),
-            resnet_pre_norm: true,
             attn_num_head_channels: Some(1),
             output_scale_factor: 1.,
         }
@@ -1288,7 +1283,6 @@ impl UNetMidBlock2D {
             eps: config.resnet_eps,
             groups: resnet_groups,
             output_scale_factor: config.output_scale_factor,
-            pre_norm: config.resnet_pre_norm,
             temb_channels,
             ..Default::default()
         };
@@ -1322,7 +1316,6 @@ struct UNetMidBlock2DCrossAttnConfig {
     num_layers: i64,
     resnet_eps: f64,
     resnet_groups: Option<i64>,
-    resnet_pre_norm: bool,
     attn_num_head_channels: i64,
     // attention_type "default"
     output_scale_factor: f64,
@@ -1335,7 +1328,6 @@ impl Default for UNetMidBlock2DCrossAttnConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: Some(32),
-            resnet_pre_norm: true,
             attn_num_head_channels: 1,
             output_scale_factor: 1.,
             cross_attn_dim: 1280,
@@ -1364,7 +1356,6 @@ impl UNetMidBlock2DCrossAttn {
             eps: config.resnet_eps,
             groups: resnet_groups,
             output_scale_factor: config.output_scale_factor,
-            pre_norm: config.resnet_pre_norm,
             temb_channels,
             ..Default::default()
         };
@@ -1639,7 +1630,7 @@ impl AutoEncoderKL {
     }
 
     // Returns the parameters of the latent distribution.
-    fn encode(&self, xs: &Tensor) -> Tensor {
+    fn _encode(&self, xs: &Tensor) -> Tensor {
         xs.apply(&self.encoder).apply(&self.quant_conv)
     }
 
@@ -1656,7 +1647,6 @@ struct DownBlock2DConfig {
     // resnet_time_scale_shift: "default"
     // resnet_act_fn: "swish"
     resnet_groups: i64,
-    resnet_pre_norm: bool,
     output_scale_factor: f64,
     add_downsample: bool,
     downsample_padding: i64,
@@ -1668,7 +1658,6 @@ impl Default for DownBlock2DConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: 32,
-            resnet_pre_norm: true,
             output_scale_factor: 1.,
             add_downsample: true,
             downsample_padding: 1,
@@ -1826,7 +1815,6 @@ struct UpBlock2DConfig {
     // resnet_time_scale_shift: "default"
     // resnet_act_fn: "swish"
     resnet_groups: i64,
-    resnet_pre_norm: bool,
     output_scale_factor: f64,
     add_upsample: bool,
 }
@@ -1837,7 +1825,6 @@ impl Default for UpBlock2DConfig {
             num_layers: 1,
             resnet_eps: 1e-6,
             resnet_groups: 32,
-            resnet_pre_norm: true,
             output_scale_factor: 1.,
             add_upsample: true,
         }
@@ -2064,7 +2051,6 @@ struct UNet2DConditionModelConfig {
     norm_eps: f64,
     cross_attention_dim: i64,
     attention_head_dim: i64,
-    sample_size: Option<i64>,
 }
 
 impl Default for UNet2DConditionModelConfig {
@@ -2086,7 +2072,6 @@ impl Default for UNet2DConditionModelConfig {
             norm_eps: 1e-5,
             cross_attention_dim: 1280,
             attention_head_dim: 8,
-            sample_size: None,
         }
     }
 }
@@ -2258,7 +2243,7 @@ impl UNet2DConditionModel {
 
 impl UNet2DConditionModel {
     fn forward(&self, xs: &Tensor, timestep: f64, encoder_hidden_states: &Tensor) -> Tensor {
-        let (bsize, channels, height, width) = xs.size4().unwrap();
+        let (bsize, _channels, height, width) = xs.size4().unwrap();
         let device = xs.device();
         let n_blocks = self.config.blocks.len();
         let num_upsamplers = n_blocks - 1;
@@ -2318,30 +2303,14 @@ impl UNet2DConditionModel {
 // TODO: LMSDiscreteScheduler
 // https://github.com/huggingface/diffusers/blob/32bf4fdc4386809c870528cb261028baae012d27/src/diffusers/schedulers/scheduling_lms_discrete.py#L47
 
-fn main() -> anyhow::Result<()> {
-    tch::maybe_init_cuda();
-    println!("Cuda available: {}", tch::Cuda::is_available());
-    println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
-    let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
-    let tokens = tokenizer.encode("This is some sample text to be tokenized.", Some(77))?;
-    println!("Tokens: {:?}", tokens);
-    let str = tokenizer.decode(&tokens);
-    println!("Str: {}", str);
-    let tokens = tokenizer.encode("Cave painting of a bird, flooble", Some(77))?;
-    println!("Tokens: {:?}", tokens);
-    let str = tokenizer.decode(&tokens);
-    println!("Str: {}", str);
-
-    let _no_grad_guard = tch::no_grad_guard();
+fn build_clip_transformer() -> anyhow::Result<ClipTextTransformer> {
     let mut vs = nn::VarStore::new(Device::Cpu);
     let text_model = ClipTextTransformer::new(vs.root());
     vs.load("data/pytorch_model.ot")?;
-    let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
-    let tokens = Tensor::of_slice(&tokens).view((1, -1));
-    println!("Input tensor {:?}", tokens.size());
-    let text_embeddings = text_model.forward(&tokens);
-    println!("Embedding shape {:?}", text_embeddings.size());
+    Ok(text_model)
+}
 
+fn build_vae() -> anyhow::Result<AutoEncoderKL> {
     let mut vs_ae = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
     let autoencoder_cfg = AutoEncoderKLConfig {
@@ -2350,9 +2319,12 @@ fn main() -> anyhow::Result<()> {
         latent_channels: 4,
         norm_num_groups: 32,
     };
-    let _autoencoder = AutoEncoderKL::new(vs_ae.root(), 3, 3, autoencoder_cfg);
+    let autoencoder = AutoEncoderKL::new(vs_ae.root(), 3, 3, autoencoder_cfg);
     vs_ae.load("data/vae.ot")?;
+    Ok(autoencoder)
+}
 
+fn build_unet() -> anyhow::Result<UNet2DConditionModel> {
     let mut vs_unet = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
     let unet_cfg = UNet2DConditionModelConfig {
@@ -2372,9 +2344,61 @@ fn main() -> anyhow::Result<()> {
         mid_block_scale_factor: 1.,
         norm_eps: 1e-5,
         norm_num_groups: 32,
-        sample_size: Some(64),
     };
-    let _unet = UNet2DConditionModel::new(vs_unet.root(), 4, 4, unet_cfg);
+    let unet = UNet2DConditionModel::new(vs_unet.root(), 4, 4, unet_cfg);
     vs_unet.load("data/unet.ot")?;
+    Ok(unet)
+}
+
+fn main() -> anyhow::Result<()> {
+    tch::maybe_init_cuda();
+    println!("Cuda available: {}", tch::Cuda::is_available());
+    println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
+    let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
+    let tokens = tokenizer.encode("Cave painting of a bird, flooble", Some(77))?;
+    let str = tokenizer.decode(&tokens);
+    println!("Str: {}", str);
+    let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
+    let tokens = Tensor::of_slice(&tokens).view((1, -1));
+    let uncond_tokens = tokenizer.encode("", Some(77))?;
+    let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
+    let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1));
+    println!("Tokens: {:?}", tokens);
+
+    let no_grad_guard = tch::no_grad_guard();
+    println!("Building the Clip transformer.");
+    let text_model = build_clip_transformer()?;
+    let text_embeddings = text_model.forward(&tokens);
+    let uncond_embeddings = text_model.forward(&uncond_tokens);
+    let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
+
+    println!("Building the autoencoder.");
+    let vae = build_vae()?;
+    println!("Building the unet.");
+    let unet = build_unet()?;
+
+    let bsize = 1;
+    let latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, Device::Cpu));
+    let sigma0 = 1.; // TODO
+    let mut latents = latents * sigma0;
+
+    for _timestep in 0..30 {
+        let timestep = 500.;
+        let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
+        let sigma = 1.; // TODO
+        let latent_model_input = latent_model_input / f64::sqrt(sigma * sigma + 1.);
+        let noise_pred = unet.forward(&latent_model_input, timestep, &text_embeddings);
+        let noise_pred = noise_pred.chunk(2, 0);
+        let (noise_pred_uncond, noise_pred_text) = (&noise_pred[0], &noise_pred[1]);
+        let noise_pred = noise_pred_uncond + (noise_pred_text - noise_pred_uncond) * GUIDANCE_SCALE;
+        // latents = scheduler.step(noise_pred, i, latents)["prev_sample"]
+        latents = noise_pred
+    }
+    let latents = latents / 0.18215;
+
+    let image = vae.decode(&latents);
+    println!("image shape: {:?}", image.size());
+
+    drop(no_grad_guard);
     Ok(())
 }
