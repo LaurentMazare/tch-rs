@@ -9,6 +9,8 @@
 // gunzip bpe_simple_vocab_16e6.txt.gz
 //
 // Download and convert the weights:
+//
+// 1. Clip Encoding Weights
 // wget https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/pytorch_model.bin
 // From python, extract the weights and save them as a .npz file.
 //   import numpy as np
@@ -17,10 +19,24 @@
 //   np.savez("./pytorch_model.npz", **{k: v.numpy() for k, v in model.items() if "text_model" in k})
 //
 // Then use tensor_tools to convert this to a .ot file that tch can use.
-//   cargo run --release --example tensor-tools ls ./data/pytorch_model.npz ./data/pytorch_model.ot
+//   cargo run --release --example tensor-tools cp ./data/pytorch_model.npz ./data/pytorch_model.ot
+//
+// 2. VAE and Unet Weights
+// https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/diffusion_pytorch_model.bin
+// https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/diffusion_pytorch_model.bin
+//
+//   import numpy as np
+//   import torch
+//   model = torch.load("./vae.bin")
+//   np.savez("./vae.npz", **{k: v.numpy() for k, v in model.items()})
+//   model = torch.load("./unet.bin")
+//   np.savez("./unet.npz", **{k: v.numpy() for k, v in model.items()})
+//
+//   cargo run --release --example tensor-tools cp ./data/vae.npz ./data/vae.ot
+//   cargo run --release --example tensor-tools cp ./data/unet.npz ./data/unet.ot
+///
 // TODO: fix tensor_tools so that it works properly there.
 // TODO: Split this file, probably in a way similar to huggingface/diffusers.
-
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use tch::{nn, nn::Module, Device, Kind, Tensor};
@@ -757,8 +773,8 @@ impl BasicTransformerBlock {
         let ff = FeedForward::new(&vs / "ff", dim, None, 4);
         let attn2 = CrossAttention::new(&vs / "attn2", dim, context_dim, n_heads, d_head);
         let norm1 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
-        let norm2 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
-        let norm3 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
+        let norm2 = nn::layer_norm(&vs / "norm2", vec![dim], Default::default());
+        let norm3 = nn::layer_norm(&vs / "norm3", vec![dim], Default::default());
         Self { attn1, ff, attn2, norm1, norm2, norm3 }
     }
 }
@@ -1107,6 +1123,7 @@ impl DownEncoderBlock2D {
             let vs = &vs / "resnets";
             let conv_cfg = ResnetBlock2DConfig {
                 eps: config.resnet_eps,
+                out_channels: Some(out_channels),
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
                 pre_norm: config.resnet_pre_norm,
@@ -1122,7 +1139,7 @@ impl DownEncoderBlock2D {
         };
         let downsampler = if config.add_downsample {
             let downsample = Downsample2D::new(
-                &vs / "downsample",
+                &(&vs / "downsamplers") / 0,
                 in_channels,
                 true,
                 out_channels,
@@ -1189,6 +1206,7 @@ impl UpDecoderBlock2D {
         let resnets: Vec<_> = {
             let vs = &vs / "resnets";
             let conv_cfg = ResnetBlock2DConfig {
+                out_channels: Some(out_channels),
                 eps: config.resnet_eps,
                 groups: config.resnet_groups,
                 output_scale_factor: config.output_scale_factor,
@@ -1204,7 +1222,8 @@ impl UpDecoderBlock2D {
                 .collect()
         };
         let upsampler = if config.add_upsample {
-            let upsample = Upsample2D::new(&vs / "upsample", out_channels, out_channels);
+            let vs = &vs / "upsamplers";
+            let upsample = Upsample2D::new(&vs / 0, out_channels, out_channels);
             Some(upsample)
         } else {
             None
@@ -2301,7 +2320,7 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = text_model.forward(&tokens);
     println!("Embedding shape {:?}", text_embeddings.size());
 
-    let vs_ae = nn::VarStore::new(Device::Cpu);
+    let mut vs_ae = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
     let autoencoder_cfg = AutoEncoderKLConfig {
         block_out_channels: vec![128, 256, 512, 512],
@@ -2310,6 +2329,7 @@ fn main() -> anyhow::Result<()> {
         norm_num_groups: 32,
     };
     let _autoencoder = AutoEncoderKL::new(vs_ae.root(), 3, 3, autoencoder_cfg);
+    vs_ae.load("data/vae.ot")?;
 
     let vs_unet = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
