@@ -889,7 +889,7 @@ impl AttentionBlock {
         let num_heads = channels / num_head_channels;
         let group_cfg = nn::GroupNormConfig { eps: config.eps, affine: true, ..Default::default() };
         let group_norm = nn::group_norm(&vs / "group_norm", config.num_groups, channels, group_cfg);
-        let query = nn::linear(&vs / "linear", channels, channels, Default::default());
+        let query = nn::linear(&vs / "query", channels, channels, Default::default());
         let key = nn::linear(&vs / "key", channels, channels, Default::default());
         let value = nn::linear(&vs / "value", channels, channels, Default::default());
         let proj_attn = nn::linear(&vs / "proj_attn", channels, channels, Default::default());
@@ -1140,7 +1140,7 @@ impl DownEncoderBlock2D {
         let downsampler = if config.add_downsample {
             let downsample = Downsample2D::new(
                 &(&vs / "downsamplers") / 0,
-                in_channels,
+                out_channels,
                 true,
                 out_channels,
                 config.downsample_padding,
@@ -1703,7 +1703,7 @@ impl DownBlock2D {
         let downsampler = if config.add_downsample {
             let downsampler = Downsample2D::new(
                 &(&vs / "downsampler") / 0,
-                in_channels,
+                out_channels,
                 true,
                 out_channels,
                 config.downsample_padding,
