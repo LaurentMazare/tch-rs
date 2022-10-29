@@ -2302,8 +2302,6 @@ impl UNet2DConditionModel {
     }
 }
 
-// https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
-// https://github.com/huggingface/diffusers/blob/970e30606c2944e3286f56e8eb6d3dc6d1eb85f7/src/diffusers/models/unet_2d_condition.py#L37
 // TODO: LMSDiscreteScheduler
 // https://github.com/huggingface/diffusers/blob/32bf4fdc4386809c870528cb261028baae012d27/src/diffusers/schedulers/scheduling_lms_discrete.py#L47
 
@@ -2314,8 +2312,8 @@ fn build_clip_transformer() -> anyhow::Result<ClipTextTransformer> {
     Ok(text_model)
 }
 
-fn build_vae() -> anyhow::Result<AutoEncoderKL> {
-    let mut vs_ae = nn::VarStore::new(Device::Cpu);
+fn build_vae(device: Device) -> anyhow::Result<AutoEncoderKL> {
+    let mut vs_ae = nn::VarStore::new(device);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/config.json
     let autoencoder_cfg = AutoEncoderKLConfig {
         block_out_channels: vec![128, 256, 512, 512],
@@ -2328,8 +2326,8 @@ fn build_vae() -> anyhow::Result<AutoEncoderKL> {
     Ok(autoencoder)
 }
 
-fn build_unet() -> anyhow::Result<UNet2DConditionModel> {
-    let mut vs_unet = nn::VarStore::new(Device::Cpu);
+fn build_unet(device: Device) -> anyhow::Result<UNet2DConditionModel> {
+    let mut vs_unet = nn::VarStore::new(device);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
     let unet_cfg = UNet2DConditionModelConfig {
         attention_head_dim: 8,
@@ -2354,10 +2352,55 @@ fn build_unet() -> anyhow::Result<UNet2DConditionModel> {
     Ok(unet)
 }
 
+#[derive(Debug, Clone)]
+struct Schedule {
+    alphas: Vec<f64>,
+    alpha_cumprods: Vec<f64>,
+    sigmas: Vec<f64>,
+}
+
+impl Schedule {
+    fn new(steps: usize) -> Self {
+        let mut alphas = vec![];
+        let mut alpha_cumprods = vec![];
+        let mut sigmas = vec![];
+        let mut prod = 1.;
+        for index in 0..steps {
+            let coef = index as f64 / (steps as f64 - 1.);
+            let beta = 0.02 * coef + 0.0001 * (1. - coef);
+            let alpha = 1. - beta;
+            let posterior_variance = (1. - alpha) * (1. - prod) / (1. - prod * alpha);
+            prod *= alpha;
+            alphas.push(alpha);
+            alpha_cumprods.push(prod);
+            sigmas.push(posterior_variance.sqrt());
+        }
+        Self { alphas, alpha_cumprods, sigmas }
+    }
+}
+
+// https://huggingface.co/blog/annotated-diffusion
+fn scheduler_step(model_output: &Tensor, xt: &Tensor, index: usize, schedule: &Schedule) -> Tensor {
+    let alpha = schedule.alphas[index];
+    let alpha_cumprod = schedule.alpha_cumprods[index];
+    let pred_xt = xt - model_output * ((1. - alpha) / f64::sqrt(1. - alpha_cumprod));
+    let pred_xt = pred_xt / f64::sqrt(alpha);
+    if index > 0 {
+        let alpha_cumprod_prev = if index == 0 { 1. } else { schedule.alpha_cumprods[index - 1] };
+        pred_xt + Tensor::randn_like(xt) * schedule.sigmas[index]
+    } else {
+        pred_xt
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
+    let n_steps = 50;
+    let schedule = Schedule::new(n_steps);
+    println!("{:?}", schedule);
+
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
     let tokens = tokenizer.encode("Cave painting of a bird, flooble", Some(77))?;
     let str = tokenizer.decode(&tokens);
@@ -2377,33 +2420,34 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
     println!("Text embeddings: {:?}", text_embeddings);
 
+    let _device = Device::cuda_if_available();
+    // An 8GB GPU does not seem to be enough here, so falling back to CPU mode :(
+    let device = Device::Cpu;
     println!("Building the autoencoder.");
-    let vae = build_vae()?;
+    let vae = build_vae(device)?;
     println!("Building the unet.");
-    let unet = build_unet()?;
+    let unet = build_unet(device)?;
 
     let bsize = 1;
-    let latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, Device::Cpu));
-    let sigma0 = 1.; // TODO
-    let mut latents = latents * sigma0;
+    let latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
+    let mut latents = latents * schedule.sigmas[0];
 
-    for timestep_index in 0..30 {
-        println!("Timestep {}", timestep_index + 1);
-        let timestep = 500.;
+    for timestep_index in (0..n_steps).rev() {
+        println!("Timestep {} {:?}", timestep_index, latents);
+        let timestep = 1000. * timestep_index as f64 / (n_steps as f64 - 1.);
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
-        let sigma = 1.; // TODO
-        let latent_model_input = latent_model_input / f64::sqrt(sigma * sigma + 1.);
         let noise_pred = unet.forward(&latent_model_input, timestep, &text_embeddings);
         let noise_pred = noise_pred.chunk(2, 0);
         let (noise_pred_uncond, noise_pred_text) = (&noise_pred[0], &noise_pred[1]);
         let noise_pred = noise_pred_uncond + (noise_pred_text - noise_pred_uncond) * GUIDANCE_SCALE;
-        // latents = scheduler.step(noise_pred, i, latents)["prev_sample"]
-        latents = noise_pred
-    }
-    let latents = latents / 0.18215;
+        latents = scheduler_step(&noise_pred, &latents, timestep_index, &schedule);
 
-    let image = vae.decode(&latents);
-    println!("image shape: {:?}", image.size());
+        let image = vae.decode(&(&latents / 0.18215));
+        let image = (image / 2 + 0.5).clamp(0., 1.).to_device(Device::Cpu);
+        let image = (image * 255.).to_kind(Kind::Uint8);
+        println!("image: {:?}", image);
+        tch::vision::image::save(&image, format!("sd_{}.png", timestep_index))?
+    }
 
     drop(no_grad_guard);
     Ok(())
