@@ -826,3 +826,14 @@ where
         self.sub(rhs.to_string())
     }
 }
+
+impl<'a, T> Div<T> for Path<'a>
+where
+    T: std::string::ToString,
+{
+    type Output = Path<'a>;
+
+    fn div(self, rhs: T) -> Self::Output {
+        self.sub(rhs.to_string())
+    }
+}
