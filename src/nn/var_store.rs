@@ -354,7 +354,7 @@ impl<'a> Path<'a> {
         self.var_store.device
     }
 
-    fn path(&self, name: &str) -> String {
+    pub fn path(&self, name: &str) -> String {
         if name.chars().any(|x| x == SEP) {
             panic!("variable name cannot contain {} {}", SEP, name);
         }

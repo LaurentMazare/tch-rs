@@ -424,7 +424,6 @@ impl Tokenizer {
         let mut bpe_tokens: Vec<usize> = vec![self.start_of_text_token];
         for token in self.re.captures_iter(&s) {
             let token = token.get(0).unwrap().as_str();
-            println!(">>> {:?}", token);
             bpe_tokens.extend(self.bpe(token))
         }
         match pad_size_to {
@@ -1003,7 +1002,6 @@ impl Upsample2D {
 #[derive(Debug, Clone, Copy)]
 struct ResnetBlock2DConfig {
     out_channels: Option<i64>,
-    conv_shortcut: bool,
     temb_channels: Option<i64>,
     groups: i64,
     groups_out: Option<i64>,
@@ -1018,7 +1016,6 @@ impl Default for ResnetBlock2DConfig {
     fn default() -> Self {
         Self {
             out_channels: None,
-            conv_shortcut: false,
             temb_channels: Some(512),
             groups: 32,
             groups_out: None,
@@ -2133,7 +2130,6 @@ impl UNet2DConditionModel {
                         downblock: db_cfg,
                         attn_num_head_channels: config.attention_head_dim,
                         cross_attention_dim: config.cross_attention_dim,
-                        ..Default::default()
                     };
                     let block = CrossAttnDownBlock2D::new(
                         &vs_db / i,
@@ -2331,7 +2327,7 @@ fn main() -> anyhow::Result<()> {
     let _autoencoder = AutoEncoderKL::new(vs_ae.root(), 3, 3, autoencoder_cfg);
     vs_ae.load("data/vae.ot")?;
 
-    let vs_unet = nn::VarStore::new(Device::Cpu);
+    let mut vs_unet = nn::VarStore::new(Device::Cpu);
     // https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/config.json
     let unet_cfg = UNet2DConditionModelConfig {
         attention_head_dim: 8,
@@ -2353,5 +2349,6 @@ fn main() -> anyhow::Result<()> {
         sample_size: Some(64),
     };
     let _unet = UNet2DConditionModel::new(vs_unet.root(), 4, 4, unet_cfg);
+    vs_unet.load("data/unet.ot")?;
     Ok(())
 }
