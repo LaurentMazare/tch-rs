@@ -1,4 +1,4 @@
-use tch::nn::layer_norm;
+use tch::nn::{group_norm, layer_norm};
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
@@ -136,6 +136,18 @@ fn bn_test() {
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
     let x = Tensor::randn(&[10, 40], opts);
     let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 4);
+}
+
+#[test]
+fn bn_test_no_affine() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let bn_cfg = nn::BatchNormConfig { affine: false, ..Default::default() };
+    let bn = nn::batch_norm1d(vs.root(), 40, bn_cfg);
+    let x = Tensor::randn(&[10, 40], opts);
+    let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 2);
 }
 
 #[test]
@@ -144,6 +156,15 @@ fn layer_norm_test() {
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let ln = layer_norm(vs.root(), vec![5, 10, 10], Default::default());
     let x = Tensor::randn(&[20, 5, 10, 10], opts);
+    let _y = x.apply(&ln);
+}
+
+#[test]
+fn group_norm_test() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let ln = group_norm(vs.root(), 2, 10, Default::default());
+    let x = Tensor::randn(&[1, 10, 7], opts);
     let _y = x.apply(&ln);
 }
 

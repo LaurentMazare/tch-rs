@@ -23,6 +23,9 @@ pub use conv_transpose::*;
 mod batch_norm;
 pub use batch_norm::*;
 
+mod group_norm;
+pub use group_norm::*;
+
 mod layer_norm;
 pub use layer_norm::*;
 
