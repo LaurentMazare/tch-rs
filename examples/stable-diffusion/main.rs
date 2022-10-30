@@ -1,5 +1,7 @@
-// Stable Diffusion implementation inspired by Jonathan Whitaker
-// "Grokking Stable Diffusion" notebook.
+// Stable Diffusion implementation inspired:
+// - Huggingface's amazing diffuser Python api: https://huggingface.co/blog/annotated-diffusion
+// - Huggingface's (also amazing) blog post: https://huggingface.co/blog/annotated-diffusion
+// - The "Grokking Stable Diffusion" notebook by Jonathan Whitaker.
 // https://colab.research.google.com/drive/1dlgggNa5Mz8sEAGU0wFCHhGLFooW_pf1?usp=sharing
 //
 // In order to run this, first download the following and extract the file in data/
@@ -47,7 +49,7 @@ use tch::{kind, nn, nn::Module, Device, Kind, Tensor};
 const VOCAB_SIZE: i64 = 49408;
 const EMBED_DIM: i64 = 768; // a.k.a. config.hidden_size
 const INTERMEDIATE_SIZE: i64 = 3072;
-const MAX_POSITION_EMBEDDINGS: i64 = 77;
+const MAX_POSITION_EMBEDDINGS: usize = 77;
 const NUM_HIDDEN_LAYERS: i64 = 12;
 const NUM_ATTENTION_HEADS: i64 = 12;
 
@@ -334,7 +336,7 @@ impl Tokenizer {
         let bpe_lines: Result<Vec<String>, _> = std::io::BufReader::new(bpe_file).lines().collect();
         let bpe_lines = bpe_lines?;
         let bpe_lines: Result<Vec<_>, _> = bpe_lines[1..49152 - 256 - 2 + 1]
-            .into_iter()
+            .iter()
             .map(|line| {
                 let vs: Vec<_> = line.split_whitespace().collect();
                 if vs.len() != 2 {
@@ -389,7 +391,7 @@ impl Tokenizer {
             let mut current_min = None;
             let pairs = Self::get_pairs(&word);
             for p in pairs.iter() {
-                match self.bpe_ranks.get(&p) {
+                match self.bpe_ranks.get(p) {
                     None => {}
                     Some(v) => {
                         let should_replace = match current_min {
@@ -466,19 +468,20 @@ impl ClipTextEmbeddings {
             nn::embedding(&vs / "token_embedding", VOCAB_SIZE, EMBED_DIM, Default::default());
         let position_embedding = nn::embedding(
             &vs / "position_embedding",
-            MAX_POSITION_EMBEDDINGS,
+            MAX_POSITION_EMBEDDINGS as i64,
             EMBED_DIM,
             Default::default(),
         );
-        let position_ids = Tensor::arange(MAX_POSITION_EMBEDDINGS, (Kind::Int64, vs.device()))
-            .expand(&[1, -1], false);
+        let position_ids =
+            Tensor::arange(MAX_POSITION_EMBEDDINGS as i64, (Kind::Int64, vs.device()))
+                .expand(&[1, -1], false);
         ClipTextEmbeddings { token_embedding, position_embedding, position_ids }
     }
 }
 
 impl Module for ClipTextEmbeddings {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        let token_embedding = self.token_embedding.forward(&xs);
+        let token_embedding = self.token_embedding.forward(xs);
         let position_embedding = self.position_embedding.forward(&self.position_ids);
         token_embedding + position_embedding
     }
@@ -517,9 +520,9 @@ impl ClipAttention {
         let (bsz, tgt_len, embed_dim) = xs.size3().unwrap();
         let query_states = xs.apply(&self.q_proj) * self.scale;
         let proj_shape = (bsz * NUM_ATTENTION_HEADS, -1, self.head_dim);
-        let query_states = self.shape(&query_states, tgt_len, bsz).view(proj_shape.clone());
-        let key_states = self.shape(&xs.apply(&self.k_proj), -1, bsz).view(proj_shape.clone());
-        let value_states = self.shape(&xs.apply(&self.v_proj), -1, bsz).view(proj_shape.clone());
+        let query_states = self.shape(&query_states, tgt_len, bsz).view(proj_shape);
+        let key_states = self.shape(&xs.apply(&self.k_proj), -1, bsz).view(proj_shape);
+        let value_states = self.shape(&xs.apply(&self.v_proj), -1, bsz).view(proj_shape);
         let attn_weights = query_states.bmm(&key_states.transpose(1, 2));
 
         let src_len = key_states.size()[1];
@@ -578,7 +581,7 @@ impl ClipEncoderLayer {
     fn forward(&self, xs: &Tensor, causal_attention_mask: &Tensor) -> Tensor {
         let residual = xs;
         let xs = self.layer_norm1.forward(xs);
-        let xs = self.self_attn.forward(&xs, &causal_attention_mask);
+        let xs = self.self_attn.forward(&xs, causal_attention_mask);
         let xs = xs + residual;
 
         let residual = &xs;
@@ -806,6 +809,7 @@ struct SpatialTransformer {
     proj_in: nn::Conv2D,
     transformer_blocks: Vec<BasicTransformerBlock>,
     proj_out: nn::Conv2D,
+    #[allow(dead_code)]
     config: SpatialTransformerConfig,
 }
 
@@ -1111,6 +1115,7 @@ impl Default for DownEncoderBlock2DConfig {
 struct DownEncoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     downsampler: Option<Downsample2D>,
+    #[allow(dead_code)]
     config: DownEncoderBlock2DConfig,
 }
 
@@ -1192,6 +1197,7 @@ impl Default for UpDecoderBlock2DConfig {
 struct UpDecoderBlock2D {
     resnets: Vec<ResnetBlock2D>,
     upsampler: Option<Upsample2D>,
+    #[allow(dead_code)]
     config: UpDecoderBlock2DConfig,
 }
 
@@ -1269,6 +1275,7 @@ impl Default for UNetMidBlock2DConfig {
 struct UNetMidBlock2D {
     resnet: ResnetBlock2D,
     attn_resnets: Vec<(AttentionBlock, ResnetBlock2D)>,
+    #[allow(dead_code)]
     config: UNetMidBlock2DConfig,
 }
 
@@ -1281,7 +1288,7 @@ impl UNetMidBlock2D {
     ) -> Self {
         let vs_resnets = &vs / "resnets";
         let vs_attns = &vs / "attentions";
-        let resnet_groups = config.resnet_groups.unwrap_or(i64::min(in_channels / 4, 32));
+        let resnet_groups = config.resnet_groups.unwrap_or_else(|| i64::min(in_channels / 4, 32));
         let resnet_cfg = ResnetBlock2DConfig {
             eps: config.resnet_eps,
             groups: resnet_groups,
@@ -1342,6 +1349,7 @@ impl Default for UNetMidBlock2DCrossAttnConfig {
 struct UNetMidBlock2DCrossAttn {
     resnet: ResnetBlock2D,
     attn_resnets: Vec<(SpatialTransformer, ResnetBlock2D)>,
+    #[allow(dead_code)]
     config: UNetMidBlock2DCrossAttnConfig,
 }
 
@@ -1354,7 +1362,7 @@ impl UNetMidBlock2DCrossAttn {
     ) -> Self {
         let vs_resnets = &vs / "resnets";
         let vs_attns = &vs / "attentions";
-        let resnet_groups = config.resnet_groups.unwrap_or(i64::min(in_channels / 4, 32));
+        let resnet_groups = config.resnet_groups.unwrap_or_else(|| i64::min(in_channels / 4, 32));
         let resnet_cfg = ResnetBlock2DConfig {
             eps: config.resnet_eps,
             groups: resnet_groups,
@@ -1425,6 +1433,7 @@ struct Encoder {
     mid_block: UNetMidBlock2D,
     conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
+    #[allow(dead_code)]
     config: EncoderConfig,
 }
 
@@ -1511,6 +1520,7 @@ struct Decoder {
     mid_block: UNetMidBlock2D,
     conv_norm_out: nn::GroupNorm,
     conv_out: nn::Conv2D,
+    #[allow(dead_code)]
     config: DecoderConfig,
 }
 
@@ -1533,7 +1543,7 @@ impl Decoder {
         let mut up_blocks = vec![];
         let vs_up_blocks = &vs / "up_blocks";
         let reversed_block_out_channels: Vec<_> =
-            config.block_out_channels.iter().map(|x| *x).rev().collect();
+            config.block_out_channels.iter().copied().rev().collect();
         for index in 0..n_block_out_channels {
             let out_channels = reversed_block_out_channels[index];
             let in_channels = if index > 0 {
@@ -1605,6 +1615,7 @@ struct AutoEncoderKL {
     decoder: Decoder,
     quant_conv: nn::Conv2D,
     post_quant_conv: nn::Conv2D,
+    #[allow(dead_code)]
     config: AutoEncoderKLConfig,
 }
 
@@ -1633,7 +1644,8 @@ impl AutoEncoderKL {
     }
 
     // Returns the parameters of the latent distribution.
-    fn _encode(&self, xs: &Tensor) -> Tensor {
+    #[allow(dead_code)]
+    fn encode(&self, xs: &Tensor) -> Tensor {
         xs.apply(&self.encoder).apply(&self.quant_conv)
     }
 
@@ -1672,6 +1684,7 @@ impl Default for DownBlock2DConfig {
 struct DownBlock2D {
     resnets: Vec<ResnetBlock2D>,
     downsampler: Option<Downsample2D>,
+    #[allow(dead_code)]
     config: DownBlock2DConfig,
 }
 
@@ -1686,6 +1699,8 @@ impl DownBlock2D {
         let vs_resnets = &vs / "resnets";
         let resnet_cfg = ResnetBlock2DConfig {
             out_channels: Some(out_channels),
+            eps: config.resnet_eps,
+            output_scale_factor: config.output_scale_factor,
             temb_channels,
             ..Default::default()
         };
@@ -1747,6 +1762,7 @@ impl Default for CrossAttnDownBlock2DConfig {
 struct CrossAttnDownBlock2D {
     downblock: DownBlock2D,
     attentions: Vec<SpatialTransformer>,
+    #[allow(dead_code)]
     config: CrossAttnDownBlock2DConfig,
 }
 
@@ -1796,7 +1812,7 @@ impl CrossAttnDownBlock2D {
         let mut xs = xs.shallow_clone();
         for (resnet, attn) in self.downblock.resnets.iter().zip(self.attentions.iter()) {
             xs = resnet.forward(&xs, temb);
-            xs = attn.forward(&xs, encoder_hidden_states.clone());
+            xs = attn.forward(&xs, encoder_hidden_states);
             output_states.push(xs.shallow_clone());
         }
         let xs = match &self.downblock.downsampler {
@@ -1838,6 +1854,7 @@ impl Default for UpBlock2DConfig {
 struct UpBlock2D {
     resnets: Vec<ResnetBlock2D>,
     upsampler: Option<Upsample2D>,
+    #[allow(dead_code)]
     config: UpBlock2DConfig,
 }
 
@@ -1854,6 +1871,8 @@ impl UpBlock2D {
         let resnet_cfg = ResnetBlock2DConfig {
             out_channels: Some(out_channels),
             temb_channels,
+            eps: config.resnet_eps,
+            output_scale_factor: config.output_scale_factor,
             ..Default::default()
         };
         let resnets = (0..config.num_layers)
@@ -1911,6 +1930,7 @@ impl Default for CrossAttnUpBlock2DConfig {
 struct CrossAttnUpBlock2D {
     upblock: UpBlock2D,
     attentions: Vec<SpatialTransformer>,
+    #[allow(dead_code)]
     config: CrossAttnUpBlock2DConfig,
 }
 
@@ -2201,7 +2221,6 @@ impl UNet2DConditionModel {
                         upblock: ub_cfg,
                         attn_num_head_channels: config.attention_head_dim,
                         cross_attention_dim: config.cross_attention_dim,
-                        ..Default::default()
                     };
                     let block = CrossAttnUpBlock2D::new(
                         &vs_ub / i,
@@ -2268,14 +2287,14 @@ impl UNet2DConditionModel {
             let (_xs, res_xs) = match down_block {
                 UNetDownBlock::Basic(b) => b.forward(&xs, Some(&emb)),
                 UNetDownBlock::CrossAttn(b) => {
-                    b.forward(&xs, Some(&emb), Some(&encoder_hidden_states))
+                    b.forward(&xs, Some(&emb), Some(encoder_hidden_states))
                 }
             };
             down_block_res_xs.extend(res_xs);
             xs = _xs;
         }
         // 4. mid
-        let xs = self.mid_block.forward(&xs, Some(&emb), Some(&encoder_hidden_states));
+        let xs = self.mid_block.forward(&xs, Some(&emb), Some(encoder_hidden_states));
         // 5. up
         let mut xs = xs;
         let mut upsample_size = None;
@@ -2292,7 +2311,7 @@ impl UNet2DConditionModel {
             xs = match up_block {
                 UNetUpBlock::Basic(b) => b.forward(&xs, &res_xs, Some(&emb), upsample_size),
                 UNetUpBlock::CrossAttn(b) => {
-                    b.forward(&xs, &res_xs, Some(&emb), upsample_size, Some(&encoder_hidden_states))
+                    b.forward(&xs, &res_xs, Some(&emb), upsample_size, Some(encoder_hidden_states))
                 }
             };
         }
@@ -2396,10 +2415,8 @@ impl DDIMScheduler {
 
         let pred_sample_direction =
             (1. - alpha_prod_t_prev - std_dev_t * std_dev_t).sqrt() * model_output;
-        let prev_sample = alpha_prod_t_prev.sqrt() * pred_original_sample + pred_sample_direction;
-
+        alpha_prod_t_prev.sqrt() * pred_original_sample + pred_sample_direction
         // TODO: eta > 0
-        prev_sample
     }
 }
 
@@ -2407,16 +2424,26 @@ fn main() -> anyhow::Result<()> {
     tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
+    // TODO: Switch to using claps to allow more flags?
+    let mut prompt = "A rusty crab chasing a python on a sandy beach".to_string();
+    let mut device = Device::cuda_if_available();
+    for arg in std::env::args() {
+        if arg.as_str() == "cpu" {
+            device = Device::Cpu;
+        } else {
+            prompt = arg;
+        }
+    }
     let n_steps = 30;
     let scheduler = DDIMScheduler::new(n_steps, 1000);
 
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
-    let tokens = tokenizer.encode("A watercolor painting of a macaw", Some(77))?;
+    let tokens = tokenizer.encode(&prompt, Some(MAX_POSITION_EMBEDDINGS))?;
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
     let tokens = Tensor::of_slice(&tokens).view((1, -1));
-    let uncond_tokens = tokenizer.encode("", Some(77))?;
+    let uncond_tokens = tokenizer.encode("", Some(MAX_POSITION_EMBEDDINGS))?;
     let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
     let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1));
     println!("Tokens: {:?}", tokens);
@@ -2430,8 +2457,6 @@ fn main() -> anyhow::Result<()> {
     println!("Text embeddings: {:?}", text_embeddings);
 
     let _device = Device::cuda_if_available();
-    // An 8GB GPU does not seem to be enough here, so falling back to CPU mode :(
-    let device = Device::Cpu;
     println!("Building the autoencoder.");
     let vae = build_vae(device)?;
     println!("Building the unet.");
