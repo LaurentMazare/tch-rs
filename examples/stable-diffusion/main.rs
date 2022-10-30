@@ -1041,7 +1041,6 @@ struct ResnetBlock2D {
     conv2: nn::Conv2D,
     time_emb_proj: Option<nn::Linear>,
     conv_shortcut: Option<nn::Conv2D>,
-    use_in_shortcut: bool,
     config: ResnetBlock2DConfig,
 }
 
@@ -1065,7 +1064,7 @@ impl ResnetBlock2D {
         let time_emb_proj = config.temb_channels.map(|temb_channels| {
             nn::linear(&vs / "time_emb_proj", temb_channels, out_channels, Default::default())
         });
-        Self { norm1, conv1, norm2, conv2, time_emb_proj, config, conv_shortcut, use_in_shortcut }
+        Self { norm1, conv1, norm2, conv2, time_emb_proj, config, conv_shortcut }
     }
 
     fn forward(&self, xs: &Tensor, temb: Option<&Tensor>) -> Tensor {
@@ -2002,9 +2001,9 @@ impl Module for Timesteps {
         // emb = timesteps[:, None].float() * emb[None, :]
         let emb = xs.unsqueeze(-1) * emb.unsqueeze(0);
         let emb = if self.flip_sin_to_cos {
-            Tensor::cat(&[emb.sin(), emb.cos()], -1)
-        } else {
             Tensor::cat(&[emb.cos(), emb.sin()], -1)
+        } else {
+            Tensor::cat(&[emb.sin(), emb.cos()], -1)
         };
         if self.num_channels % 2 == 1 {
             emb.pad(&[0, 1, 0, 0], "constant", None)
@@ -2363,7 +2362,8 @@ struct DDIMScheduler {
 impl DDIMScheduler {
     fn new(inference_steps: usize, train_timesteps: usize) -> Self {
         let step_ratio = train_timesteps / inference_steps;
-        let timesteps = (0..inference_steps).map(|s| s * step_ratio).rev().collect();
+        // TODO: Remove this hack which aimed at matching the behavior of diffusers==0.2.4
+        let timesteps = (0..(inference_steps + 1)).map(|s| s * step_ratio).rev().collect();
         // TODO: Make this configurable?
         let (beta_start, beta_end) = (0.00085f64, 0.012f64);
         let betas = Tensor::linspace(
