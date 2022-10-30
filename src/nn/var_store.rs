@@ -36,7 +36,7 @@ pub struct VarStore {
 }
 
 /// A variable store with an associated path for variables naming.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Path<'a> {
     path: Vec<String>,
     group: usize,
@@ -354,7 +354,7 @@ impl<'a> Path<'a> {
         self.var_store.device
     }
 
-    fn path(&self, name: &str) -> String {
+    pub fn path(&self, name: &str) -> String {
         if name.chars().any(|x| x == SEP) {
             panic!("variable name cannot contain {} {}", SEP, name);
         }
