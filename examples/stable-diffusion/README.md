@@ -16,8 +16,9 @@ Other interesting resources:
 - As an introduction to diffusion models, an (also amazing) [blog post from Huggingface](https://huggingface.co/blog/annotated-diffusion).
 - The "Grokking Stable Diffusion" [notebook](https://colab.research.google.com/drive/1dlgggNa5Mz8sEAGU0wFCHhGLFooW_pf1?usp=sharing) by Jonathan Whitaker.
 
-In order to run the models, one has to get the weights, see the example below and can then run
-the following.
+In order to run the models, one has to get the weights, see the details below and can then run
+the following command. At each step, some `sd_*.png` image is generated, the last one `sd_30.png`
+should be the least noisy one.
 
 ```bash
 cargo run --example stable-diffusion --features regex -- "A rusty robot holding a fire torch."
@@ -29,6 +30,20 @@ but is slower.
 ```bash
 cargo run --example stable-diffusion --features regex -- "A rusty robot holding a fire torch." cpu
 ```
+
+The only supported scheduler is the Denoising Diffusion Implicit Model scheduler (DDIM). The
+original paper and some code can be found in the [associated repo](https://github.com/ermongroup/ddim).
+
+## Examples
+
+A bunch of rusty robots holding some torches!
+
+![rusty robot holding a torch](media/robot3.jpg)
+![rusty robot holding a torch](media/robot4.jpg)
+![rusty robot holding a torch](media/robot7.jpg)
+![rusty robot holding a torch](media/robot8.jpg)
+![rusty robot holding a torch](media/robot11.jpg)
+![rusty robot holding a torch](media/robot13.jpg)
 
 ## Getting the Weights and Vocab File
 
@@ -93,14 +108,3 @@ And again convert this to a `.ot` file via `tensor-tools`.
 cargo run --release --example tensor-tools cp ./data/vae.npz ./data/vae.ot
 cargo run --release --example tensor-tools cp ./data/unet.npz ./data/unet.ot
 ```
-
-## Examples
-
-A bunch of rusty robots holding some torches!
-
-![rusty robot holding a torch](media/robot3.jpg)
-![rusty robot holding a torch](media/robot4.jpg)
-![rusty robot holding a torch](media/robot7.jpg)
-![rusty robot holding a torch](media/robot8.jpg)
-![rusty robot holding a torch](media/robot11.jpg)
-![rusty robot holding a torch](media/robot13.jpg)
