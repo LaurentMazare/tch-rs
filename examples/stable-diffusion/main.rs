@@ -39,7 +39,7 @@
 // TODO: Split this file, probably in a way similar to huggingface/diffusers.
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
-use tch::{nn, nn::Module, Device, Kind, Tensor};
+use tch::{kind, nn, nn::Module, Device, Kind, Tensor};
 
 // The config details can be found in the "text_config" section of this json file:
 // https://huggingface.co/openai/clip-vit-large-patch14/blob/main/config.json
@@ -2353,43 +2353,53 @@ fn build_unet(device: Device) -> anyhow::Result<UNet2DConditionModel> {
 }
 
 #[derive(Debug, Clone)]
-struct Schedule {
-    alphas: Vec<f64>,
-    alpha_cumprods: Vec<f64>,
-    sigmas: Vec<f64>,
+struct DDIMScheduler {
+    timesteps: Vec<usize>,
+    alphas_cumprod: Vec<f64>,
+    step_ratio: usize,
 }
 
-impl Schedule {
-    fn new(steps: usize) -> Self {
-        let mut alphas = vec![];
-        let mut alpha_cumprods = vec![];
-        let mut sigmas = vec![];
-        let mut prod = 1.;
-        for index in 0..steps {
-            let coef = index as f64 / (steps as f64 - 1.);
-            let beta = 0.02 * coef + 0.0001 * (1. - coef);
-            let alpha = 1. - beta;
-            let posterior_variance = (1. - alpha) * (1. - prod) / (1. - prod * alpha);
-            prod *= alpha;
-            alphas.push(alpha);
-            alpha_cumprods.push(prod);
-            sigmas.push(posterior_variance.sqrt());
-        }
-        Self { alphas, alpha_cumprods, sigmas }
+// clip_sample: False, set_alpha_to_one: False
+impl DDIMScheduler {
+    fn new(inference_steps: usize, train_timesteps: usize) -> Self {
+        let step_ratio = train_timesteps / inference_steps;
+        let timesteps = (0..inference_steps).map(|s| s * step_ratio).rev().collect();
+        // TODO: Make this configurable?
+        let (beta_start, beta_end) = (0.00085f64, 0.012f64);
+        let betas = Tensor::linspace(
+            beta_start.sqrt(),
+            beta_end.sqrt(),
+            train_timesteps as i64,
+            kind::FLOAT_CPU,
+        )
+        .square();
+        let alphas: Tensor = 1.0 - betas;
+        let alphas_cumprod = Vec::<f64>::from(alphas.cumprod(0, Kind::Double));
+        Self { alphas_cumprod, timesteps, step_ratio }
     }
-}
 
-// https://huggingface.co/blog/annotated-diffusion
-fn scheduler_step(model_output: &Tensor, xt: &Tensor, index: usize, schedule: &Schedule) -> Tensor {
-    let alpha = schedule.alphas[index];
-    let alpha_cumprod = schedule.alpha_cumprods[index];
-    let pred_xt = xt - model_output * ((1. - alpha) / f64::sqrt(1. - alpha_cumprod));
-    let pred_xt = pred_xt / f64::sqrt(alpha);
-    if index > 0 {
-        let alpha_cumprod_prev = if index == 0 { 1. } else { schedule.alpha_cumprods[index - 1] };
-        pred_xt + Tensor::randn_like(xt) * schedule.sigmas[index]
-    } else {
-        pred_xt
+    // https://github.com/huggingface/diffusers/blob/6e099e2c8ce4c4f5c7318e970a8c093dc5c7046e/src/diffusers/schedulers/scheduling_ddim.py#L195
+    fn step(&self, model_output: &Tensor, timestep: usize, sample: &Tensor) -> Tensor {
+        let prev_timestep = if timestep > self.step_ratio { timestep - self.step_ratio } else { 0 };
+
+        let alpha_prod_t = self.alphas_cumprod[timestep];
+        let alpha_prod_t_prev = self.alphas_cumprod[prev_timestep];
+        let beta_prod_t = 1. - alpha_prod_t;
+
+        let pred_original_sample =
+            (sample - beta_prod_t.sqrt() * model_output) / alpha_prod_t.sqrt();
+
+        // Use eta=0 for now.
+        // let variance = self.get_variance(timestep, prev_timestep);
+        // let std_dev_t = eta * variance.sqrt();
+        let std_dev_t = 0.0;
+
+        let pred_sample_direction =
+            (1. - alpha_prod_t_prev - std_dev_t * std_dev_t).sqrt() * model_output;
+        let prev_sample = alpha_prod_t_prev.sqrt() * pred_original_sample + pred_sample_direction;
+
+        // TODO: eta > 0
+        prev_sample
     }
 }
 
@@ -2397,9 +2407,8 @@ fn main() -> anyhow::Result<()> {
     tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
-    let n_steps = 50;
-    let schedule = Schedule::new(n_steps);
-    println!("{:?}", schedule);
+    let n_steps = 30;
+    let scheduler = DDIMScheduler::new(n_steps, 1000);
 
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
     let tokens = tokenizer.encode("A watercolor painting of a macaw", Some(77))?;
@@ -2429,18 +2438,18 @@ fn main() -> anyhow::Result<()> {
     let unet = build_unet(device)?;
 
     let bsize = 1;
+    // DETERMINISTIC SEEDING
     tch::manual_seed(32);
     let mut latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
 
-    for timestep_index in (0..n_steps).rev() {
-        let timestep = 1000. * timestep_index as f64 / (n_steps as f64 - 1.);
+    for (timestep_index, &timestep) in scheduler.timesteps.iter().enumerate() {
         println!("Timestep {} {} {:?}", timestep_index, timestep, latents);
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
-        let noise_pred = unet.forward(&latent_model_input, timestep, &text_embeddings);
+        let noise_pred = unet.forward(&latent_model_input, timestep as f64, &text_embeddings);
         let noise_pred = noise_pred.chunk(2, 0);
         let (noise_pred_uncond, noise_pred_text) = (&noise_pred[0], &noise_pred[1]);
         let noise_pred = noise_pred_uncond + (noise_pred_text - noise_pred_uncond) * GUIDANCE_SCALE;
-        latents = scheduler_step(&noise_pred, &latents, n_steps - 1 - timestep_index, &schedule);
+        latents = scheduler.step(&noise_pred, timestep, &latents);
 
         let image = vae.decode(&(&latents / 0.18215));
         let image = (image / 2 + 0.5).clamp(0., 1.).to_device(Device::Cpu);
