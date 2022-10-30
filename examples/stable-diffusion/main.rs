@@ -2402,7 +2402,7 @@ fn main() -> anyhow::Result<()> {
     println!("{:?}", schedule);
 
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
-    let tokens = tokenizer.encode("Cave painting of a bird, flooble", Some(77))?;
+    let tokens = tokenizer.encode("A watercolor painting of a macaw", Some(77))?;
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
@@ -2429,23 +2429,22 @@ fn main() -> anyhow::Result<()> {
     let unet = build_unet(device)?;
 
     let bsize = 1;
-    let latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
-    let mut latents = latents * schedule.sigmas[0];
+    tch::manual_seed(32);
+    let mut latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
 
     for timestep_index in (0..n_steps).rev() {
-        println!("Timestep {} {:?}", timestep_index, latents);
         let timestep = 1000. * timestep_index as f64 / (n_steps as f64 - 1.);
+        println!("Timestep {} {} {:?}", timestep_index, timestep, latents);
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
         let noise_pred = unet.forward(&latent_model_input, timestep, &text_embeddings);
         let noise_pred = noise_pred.chunk(2, 0);
         let (noise_pred_uncond, noise_pred_text) = (&noise_pred[0], &noise_pred[1]);
         let noise_pred = noise_pred_uncond + (noise_pred_text - noise_pred_uncond) * GUIDANCE_SCALE;
-        latents = scheduler_step(&noise_pred, &latents, timestep_index, &schedule);
+        latents = scheduler_step(&noise_pred, &latents, n_steps - 1 - timestep_index, &schedule);
 
         let image = vae.decode(&(&latents / 0.18215));
         let image = (image / 2 + 0.5).clamp(0., 1.).to_device(Device::Cpu);
         let image = (image * 255.).to_kind(Kind::Uint8);
-        println!("image: {:?}", image);
         tch::vision::image::save(&image, format!("sd_{}.png", timestep_index))?
     }
 
