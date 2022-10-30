@@ -2425,9 +2425,9 @@ fn main() -> anyhow::Result<()> {
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     // TODO: Switch to using claps to allow more flags?
-    let mut prompt = "A rusty crab chasing a python on a sandy beach".to_string();
+    let mut prompt = "A rusty torch lamp".to_string();
     let mut device = Device::cuda_if_available();
-    for arg in std::env::args() {
+    for arg in std::env::args().skip(1) {
         if arg.as_str() == "cpu" {
             device = Device::Cpu;
         } else {
