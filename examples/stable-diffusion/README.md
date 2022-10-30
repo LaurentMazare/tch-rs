@@ -10,7 +10,7 @@ conditioned by some text prompt.
 
 This repo contains a simple implementation of stable diffusion v1.4 using Rust and the
 `tch` crate. The implementation is based on Huggingface's amazing
-[diffuser](https://huggingface.co/blog/annotated-diffusion).
+[diffuser](https://huggingface.co/blog/annotated-diffusion) Python library.
 
 Other interesting resources:
 - As an introduction to diffusion models, an (also amazing) [blog post from Huggingface](https://huggingface.co/blog/annotated-diffusion).
