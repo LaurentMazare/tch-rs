@@ -11,7 +11,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-const TORCH_VERSION: &str = "1.12.0";
+const TORCH_VERSION: &str = "1.13.0";
 
 #[cfg(feature = "curl")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
@@ -117,6 +117,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
                         "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
                         _ => panic!("unsupported device {}, TORCH_CUDA_VERSION may be set incorrectly?", device),
                     }
                 ),
@@ -131,6 +132,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
                         "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
                         _ => ""
                     }),
                 _ => panic!("Unsupported OS"),
