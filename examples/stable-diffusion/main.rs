@@ -720,7 +720,7 @@ impl CrossAttention {
         let to_q = nn::linear(&vs / "to_q", query_dim, inner_dim, no_bias);
         let to_k = nn::linear(&vs / "to_k", context_dim, inner_dim, no_bias);
         let to_v = nn::linear(&vs / "to_v", context_dim, inner_dim, no_bias);
-        let to_out = nn::linear(&(&vs / "to_out") / 0, inner_dim, query_dim, Default::default());
+        let to_out = nn::linear(&vs / "to_out" / 0, inner_dim, query_dim, Default::default());
         Self { to_q, to_k, to_v, to_out, heads, scale }
     }
 
@@ -1226,8 +1226,7 @@ impl UpDecoderBlock2D {
                 .collect()
         };
         let upsampler = if config.add_upsample {
-            let vs = &vs / "upsamplers";
-            let upsample = Upsample2D::new(&vs / 0, out_channels, out_channels);
+            let upsample = Upsample2D::new(&vs / "upsamplers" / 0, out_channels, out_channels);
             Some(upsample)
         } else {
             None
@@ -1712,7 +1711,7 @@ impl DownBlock2D {
             .collect();
         let downsampler = if config.add_downsample {
             let downsampler = Downsample2D::new(
-                &(&vs / "downsamplers") / 0,
+                &vs / "downsamplers" / 0,
                 out_channels,
                 true,
                 out_channels,
@@ -1885,7 +1884,7 @@ impl UpBlock2D {
             })
             .collect();
         let upsampler = if config.add_upsample {
-            let upsampler = Upsample2D::new(&(&vs / "upsamplers") / 0, out_channels, out_channels);
+            let upsampler = Upsample2D::new(&vs / "upsamplers" / 0, out_channels, out_channels);
             Some(upsampler)
         } else {
             None

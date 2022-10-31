@@ -233,6 +233,10 @@ Further examples include:
   example as well as an A2C implementation that can run on Atari games.
 * A [Transfer Learning Tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
   shows how to finetune a pre-trained ResNet model on a very small dataset.
+* A [simplified version of GPT](https://github.com/LaurentMazare/tch-rs/blob/master/examples/min-gpt)
+  similar to minGPT.
+* A [Stable Diffusion](https://github.com/LaurentMazare/tch-rs/blob/master/examples/stable-diffusion)
+  implementation following the lines of hugginface's diffusers library.
 
 External material:
 * A [tutorial](http://vegapit.com/article/how-to-use-torch-in-rust-with-tch-rs) showing how to use Torch to compute option prices and greeks.
