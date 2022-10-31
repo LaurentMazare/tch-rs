@@ -243,6 +243,16 @@ External material:
 * [tchrs-opencv-webcam-inference](https://github.com/metobom/tchrs-opencv-webcam-inference) uses `tch-rs` and `opencv` to run inference
   on a webcam feed for some Python trained model based on mobilenet v3.
 
+## FAQ
+
+### What are the best practices for Python to Rust model translations?
+
+See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues/549#issuecomment-1296840898).
+
+### How to get this to work on a M1/M2 mac?
+
+Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.
