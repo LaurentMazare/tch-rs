@@ -289,5 +289,47 @@ impl Tensor {
     }
 }
 
+#[macro_export]
+macro_rules! assert_tensor_eq {
+    ($generic:ty, $a:expr, $b:expr, $eps:expr) => {{
+        fn unravel_index(index: usize, shape: &[i64]) -> Vec<i64> {
+            let mut result = Vec::with_capacity(shape.len());
+            let mut index = index as i64;
+            for dim in shape.iter().rev() {
+                result.push(index % dim);
+                index /= dim;
+            }
+            result.reverse();
+            result
+        }
+
+        let (a, b): (&Tensor, &Tensor) = (&$a, &$b);
+        let eps = $eps;
+        assert_eq!(a.size(), b.size(), "Tensor size mismatch");
+        let shape = a.size();
+
+        for (i, (&a, &b)) in
+            Vec::<$generic>::from(a).iter().zip(Vec::<$generic>::from(b).iter()).enumerate()
+        {
+            assert!(
+                (a - b).abs() < eps,
+                "Tensor mismatch at index {:?}: {} != {}",
+                unravel_index(i, &shape),
+                a,
+                b
+            );
+        }
+    }};
+    (f64, $a:expr, $b:expr) => {{
+        assert_tensor_eq!(f64, $a, $b, 1e-5);
+    }};
+    (f32, $a:expr, $b:expr) => {{
+        assert_tensor_eq!(f32, $a, $b, 1e-5);
+    }};
+    ($generic:ty, $a:expr, $b:expr) => {{
+        assert_tensor_eq!($generic, $a, $b, <$generic>::default());
+    }};
+}
+
 #[used]
 static INIT_ARRAY: [unsafe extern "C" fn(); 1] = [dummy_cuda_dependency];
