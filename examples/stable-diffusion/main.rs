@@ -2369,31 +2369,65 @@ fn build_unet(device: Device) -> anyhow::Result<UNet2DConditionModel> {
     Ok(unet)
 }
 
+#[derive(Debug, Clone, Copy)]
+enum BetaSchedule {
+    #[allow(dead_code)]
+    Linear,
+    ScaledLinear,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct DDIMSchedulerConfig {
+    beta_start: f64,
+    beta_end: f64,
+    beta_schedule: BetaSchedule,
+    eta: f64,
+}
+
+impl Default for DDIMSchedulerConfig {
+    fn default() -> Self {
+        Self {
+            beta_start: 0.00085f64,
+            beta_end: 0.012f64,
+            beta_schedule: BetaSchedule::ScaledLinear,
+            eta: 0.,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct DDIMScheduler {
     timesteps: Vec<usize>,
     alphas_cumprod: Vec<f64>,
     step_ratio: usize,
+    #[allow(dead_code)]
+    config: DDIMSchedulerConfig,
 }
 
 // clip_sample: False, set_alpha_to_one: False
 impl DDIMScheduler {
-    fn new(inference_steps: usize, train_timesteps: usize) -> Self {
+    fn new(inference_steps: usize, train_timesteps: usize, config: DDIMSchedulerConfig) -> Self {
         let step_ratio = train_timesteps / inference_steps;
         // TODO: Remove this hack which aimed at matching the behavior of diffusers==0.2.4
         let timesteps = (0..(inference_steps + 1)).map(|s| s * step_ratio).rev().collect();
-        // TODO: Make this configurable?
-        let (beta_start, beta_end) = (0.00085f64, 0.012f64);
-        let betas = Tensor::linspace(
-            beta_start.sqrt(),
-            beta_end.sqrt(),
-            train_timesteps as i64,
-            kind::FLOAT_CPU,
-        )
-        .square();
+        let betas = match config.beta_schedule {
+            BetaSchedule::ScaledLinear => Tensor::linspace(
+                config.beta_start.sqrt(),
+                config.beta_end.sqrt(),
+                train_timesteps as i64,
+                kind::FLOAT_CPU,
+            )
+            .square(),
+            BetaSchedule::Linear => Tensor::linspace(
+                config.beta_start,
+                config.beta_end,
+                train_timesteps as i64,
+                kind::FLOAT_CPU,
+            ),
+        };
         let alphas: Tensor = 1.0 - betas;
         let alphas_cumprod = Vec::<f64>::from(alphas.cumprod(0, Kind::Double));
-        Self { alphas_cumprod, timesteps, step_ratio }
+        Self { alphas_cumprod, timesteps, step_ratio, config }
     }
 
     // https://github.com/huggingface/diffusers/blob/6e099e2c8ce4c4f5c7318e970a8c093dc5c7046e/src/diffusers/schedulers/scheduling_ddim.py#L195
@@ -2403,19 +2437,22 @@ impl DDIMScheduler {
         let alpha_prod_t = self.alphas_cumprod[timestep];
         let alpha_prod_t_prev = self.alphas_cumprod[prev_timestep];
         let beta_prod_t = 1. - alpha_prod_t;
+        let beta_prod_t_prev = 1. - alpha_prod_t_prev;
 
         let pred_original_sample =
             (sample - beta_prod_t.sqrt() * model_output) / alpha_prod_t.sqrt();
 
-        // Use eta=0 for now.
-        // let variance = self.get_variance(timestep, prev_timestep);
-        // let std_dev_t = eta * variance.sqrt();
-        let std_dev_t = 0.0;
+        let variance = (beta_prod_t_prev / beta_prod_t) * (1. - alpha_prod_t / alpha_prod_t_prev);
+        let std_dev_t = self.config.eta * variance.sqrt();
 
         let pred_sample_direction =
             (1. - alpha_prod_t_prev - std_dev_t * std_dev_t).sqrt() * model_output;
-        alpha_prod_t_prev.sqrt() * pred_original_sample + pred_sample_direction
-        // TODO: eta > 0
+        let prev_sample = alpha_prod_t_prev.sqrt() * pred_original_sample + pred_sample_direction;
+        if self.config.eta > 0. {
+            &prev_sample + Tensor::randn_like(&prev_sample) * std_dev_t
+        } else {
+            prev_sample
+        }
     }
 }
 
@@ -2434,7 +2471,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
     let n_steps = 30;
-    let scheduler = DDIMScheduler::new(n_steps, 1000);
+    let scheduler = DDIMScheduler::new(n_steps, 1000, Default::default());
 
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
     let tokens = tokenizer.encode(&prompt, Some(MAX_POSITION_EMBEDDINGS))?;
