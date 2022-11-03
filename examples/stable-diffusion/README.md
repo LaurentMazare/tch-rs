@@ -89,7 +89,7 @@ cargo run --release --example tensor-tools cp ./data/pytorch_model.npz ./data/py
 ### VAE and Unet Weights
 
 The weight files can be downloaded from huggingface's hub but requires you to be logged in.
-[https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/diffusion_pytorch_model.bin](VAE weights), [https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/diffusion_pytorch_model.bin](Unet weights).
+[VAE weights](https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/diffusion_pytorch_model.bin), [Unet weights](https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/diffusion_pytorch_model.bin).
 
 After downloading the files, use Python to convert them to `npz` files.
 
