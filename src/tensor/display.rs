@@ -149,13 +149,15 @@ impl std::fmt::Write for FmtSize {
 }
 
 impl FloatFormatter {
-    fn new(t: &Tensor) -> Self {
+    fn new(t: &Tensor, print_opts: &PrinterOptions) -> Self {
         let mut int_mode = true;
         let mut sci_mode = false;
 
         let _guard = crate::no_grad_guard();
         let t = t.to_device(crate::Device::Cpu);
 
+        // Rather than containing all values, this should only include
+        // values that end up being displayed according to [threshold].
         let nonzero_finite_vals = {
             let t = t.reshape(&[-1]);
             t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
@@ -179,7 +181,6 @@ impl FloatFormatter {
                 || nonzero_finite_min < 1e-4
         }
 
-        let print_opts = PRINT_OPTS.lock().unwrap();
         match print_opts.sci_mode {
             None => {}
             Some(v) => sci_mode = v,
@@ -208,10 +209,37 @@ impl FloatFormatter {
     }
 }
 
+fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
+    let size = t.size();
+    if size.is_empty() {
+        t.shallow_clone()
+    } else if size.len() == 1 {
+        if size[0] > 2 * edge_items as i64 {
+            Tensor::cat(
+                &[t.slice(0, None, Some(edge_items), 1), t.slice(0, Some(-edge_items), None, 1)],
+                0,
+            )
+        } else {
+            t.shallow_clone()
+        }
+    } else if size[0] > 2 * edge_items as i64 {
+        todo!()
+    } else {
+        todo!()
+    }
+}
+
 impl std::fmt::Display for Tensor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.defined() {
+            let print_opts = PRINT_OPTS.lock().unwrap();
+            let summarize = self.numel() > print_opts.threshold;
             let basic_kind = BasicKind::for_tensor(self);
+            let to_display = if summarize {
+                get_summarized_data(self, print_opts.edge_items as i64)
+            } else {
+                self.shallow_clone()
+            };
             match self.dim() {
                 0 => match basic_kind {
                     BasicKind::Int => {
@@ -219,7 +247,7 @@ impl std::fmt::Display for Tensor {
                         write!(f, "{}", value)
                     }
                     BasicKind::Float => {
-                        let formatter = FloatFormatter::new(self);
+                        let formatter = FloatFormatter::new(&to_display, &print_opts);
                         let value = self.double_value(&[]);
                         formatter.fmt(value, f)
                     }
