@@ -127,6 +127,27 @@ struct FloatFormatter {
     precision: usize,
 }
 
+struct FmtSize {
+    current_size: usize,
+}
+
+impl FmtSize {
+    fn new() -> Self {
+        Self { current_size: 0 }
+    }
+
+    fn final_size(self) -> usize {
+        self.current_size
+    }
+}
+
+impl std::fmt::Write for FmtSize {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        self.current_size += s.len();
+        Ok(())
+    }
+}
+
 impl FloatFormatter {
     fn new(t: &Tensor) -> Self {
         let mut int_mode = true;
@@ -140,13 +161,13 @@ impl FloatFormatter {
             t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
         };
 
+        let values = Vec::<f64>::from(&nonzero_finite_vals);
         if nonzero_finite_vals.numel() > 0 {
             let nonzero_finite_abs = nonzero_finite_vals.abs();
             let nonzero_finite_min = nonzero_finite_abs.min().double_value(&[]);
             let nonzero_finite_max = nonzero_finite_abs.max().double_value(&[]);
 
-            let values = Vec::<f64>::from(nonzero_finite_vals);
-            for value in values {
+            for &value in values.iter() {
                 if value.ceil() != value {
                     int_mode = false;
                     break;
@@ -163,10 +184,16 @@ impl FloatFormatter {
             None => {}
             Some(v) => sci_mode = v,
         }
-        Self { int_mode, sci_mode, max_width: 1, precision: print_opts.precision }
+        let mut ff = Self { int_mode, sci_mode, max_width: 1, precision: print_opts.precision };
+        for &v in values.iter() {
+            let mut fmt_size = FmtSize::new();
+            let _res = ff.fmt(v, &mut fmt_size);
+            ff.max_width = usize::max(ff.max_width, fmt_size.final_size())
+        }
+        ff
     }
 
-    fn fmt(&self, v: f64, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt<T: std::fmt::Write>(&self, v: f64, f: &mut T) -> std::fmt::Result {
         if self.sci_mode {
             write!(f, "{v:width$.prec$e}", v = v, width = self.max_width, prec = self.precision)
         } else if self.int_mode {
