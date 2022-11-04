@@ -87,7 +87,7 @@ probabilities.
 Alternatively, one can write the following instead as `tch::CModule` can be
 used as any other module via apply when there is only a single input.
 ```rust
-    let output = image.unsqueeze(0)].apply(&model).softmax(-1);
+    let output = image.unsqueeze(0).apply(&model).softmax(-1);
 ```
 
 And finally we print the 5 classes with the highest probabilities.
