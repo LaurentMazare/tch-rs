@@ -1,3 +1,6 @@
+/// Pretty printing of tensors
+/// This implementation should be in line with the PyTorch version.
+/// https://github.com/pytorch/pytorch/blob/7b419e8513a024e172eae767e24ec1b849976b13/torch/_tensor_str.py
 use crate::{Kind, Tensor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -120,10 +123,103 @@ impl Default for PrinterOptions {
     }
 }
 
+trait TensorFormatter {
+    type Elem;
+
+    fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result;
+
+    fn value(tensor: &Tensor) -> Self::Elem;
+
+    fn values(tensor: &Tensor) -> Vec<Self::Elem>;
+
+    fn max_width(&self, to_display: &Tensor) -> usize {
+        let mut max_width = 1;
+        for v in Self::values(to_display) {
+            let mut fmt_size = FmtSize::new();
+            let _res = self.fmt(v, 1, &mut fmt_size);
+            max_width = usize::max(max_width, fmt_size.final_size())
+        }
+        max_width
+    }
+
+    fn write_newline_indent(i: usize, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "\n")?;
+        for _ in 0..i {
+            write!(f, " ")?
+        }
+        Ok(())
+    }
+
+    fn fmt_tensor(
+        &self,
+        t: &Tensor,
+        indent: usize,
+        max_w: usize,
+        summarize: bool,
+        po: &PrinterOptions,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result {
+        let size = t.size();
+        let edge_items = po.edge_items as i64;
+        write!(f, "[")?;
+        match size.as_slice() {
+            [] => self.fmt(Self::value(t), max_w, f)?,
+            [v] if summarize && *v > 2 * edge_items => {
+                for v in Self::values(&t.slice(0, None, Some(edge_items), 1)).into_iter() {
+                    self.fmt(v, max_w, f)?;
+                    write!(f, ", ")?;
+                }
+                write!(f, "...")?;
+                for v in Self::values(&t.slice(0, Some(-edge_items), None, 1)).into_iter() {
+                    write!(f, ", ")?;
+                    self.fmt(v, max_w, f)?
+                }
+            }
+            [_] => {
+                let elements_per_line = usize::max(1, po.line_width / (max_w + 2));
+                for (i, v) in Self::values(t).into_iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                        if i % elements_per_line == 0 {
+                            Self::write_newline_indent(indent, f)?
+                        }
+                    }
+                    self.fmt(v, max_w, f)?
+                }
+            }
+            _ => {
+                if summarize && size[0] > 2 * edge_items {
+                    for i in 0..edge_items {
+                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        write!(f, ",")?;
+                        Self::write_newline_indent(indent, f)?
+                    }
+                    write!(f, "...")?;
+                    Self::write_newline_indent(indent, f)?;
+                    for i in size[0] - edge_items..size[0] {
+                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        if i + 1 != size[0] {
+                            write!(f, ",")?;
+                            Self::write_newline_indent(indent, f)?
+                        }
+                    }
+                } else {
+                    for i in 0..size[0] {
+                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        write!(f, ",")?;
+                        Self::write_newline_indent(indent, f)?
+                    }
+                }
+            }
+        }
+        write!(f, "]")?;
+        Ok(())
+    }
+}
+
 struct FloatFormatter {
     int_mode: bool,
     sci_mode: bool,
-    max_width: usize,
     precision: usize,
 }
 
@@ -149,7 +245,7 @@ impl std::fmt::Write for FmtSize {
 }
 
 impl FloatFormatter {
-    fn new(t: &Tensor, print_opts: &PrinterOptions) -> Self {
+    fn new(t: &Tensor, po: &PrinterOptions) -> Self {
         let mut int_mode = true;
         let mut sci_mode = false;
 
@@ -181,31 +277,74 @@ impl FloatFormatter {
                 || nonzero_finite_min < 1e-4
         }
 
-        match print_opts.sci_mode {
+        match po.sci_mode {
             None => {}
             Some(v) => sci_mode = v,
         }
-        let mut ff = Self { int_mode, sci_mode, max_width: 1, precision: print_opts.precision };
-        for &v in values.iter() {
-            let mut fmt_size = FmtSize::new();
-            let _res = ff.fmt(v, &mut fmt_size);
-            ff.max_width = usize::max(ff.max_width, fmt_size.final_size())
-        }
-        ff
+        Self { int_mode, sci_mode, precision: po.precision }
     }
+}
 
-    fn fmt<T: std::fmt::Write>(&self, v: f64, f: &mut T) -> std::fmt::Result {
+impl TensorFormatter for FloatFormatter {
+    type Elem = f64;
+
+    fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
         if self.sci_mode {
-            write!(f, "{v:width$.prec$e}", v = v, width = self.max_width, prec = self.precision)
+            write!(f, "{v:width$.prec$e}", v = v, width = max_w, prec = self.precision)
         } else if self.int_mode {
             if v.is_finite() {
-                write!(f, "{v:width$.0}.", v = v, width = self.max_width)
+                write!(f, "{v:width$.0}.", v = v, width = max_w)
             } else {
-                write!(f, "{v:width$.0}", v = v, width = self.max_width)
+                write!(f, "{v:width$.0}", v = v, width = max_w)
             }
         } else {
-            write!(f, "{v:width$.prec$}", v = v, width = self.max_width, prec = self.precision)
+            write!(f, "{v:width$.prec$}", v = v, width = max_w, prec = self.precision)
         }
+    }
+
+    fn value(tensor: &Tensor) -> Self::Elem {
+        tensor.double_value(&[])
+    }
+
+    fn values(tensor: &Tensor) -> Vec<Self::Elem> {
+        Vec::<Self::Elem>::from(tensor)
+    }
+}
+
+struct IntFormatter;
+
+impl TensorFormatter for IntFormatter {
+    type Elem = i64;
+
+    fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
+        write!(f, "{v:width$}", width = max_w)
+    }
+
+    fn value(tensor: &Tensor) -> Self::Elem {
+        tensor.int64_value(&[])
+    }
+
+    fn values(tensor: &Tensor) -> Vec<Self::Elem> {
+        Vec::<Self::Elem>::from(tensor)
+    }
+}
+
+struct BoolFormatter;
+
+impl TensorFormatter for BoolFormatter {
+    type Elem = bool;
+
+    fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
+        let v = if v { "true" } else { "false" };
+        write!(f, "{v:width$}", width = max_w)
+    }
+
+    fn value(tensor: &Tensor) -> Self::Elem {
+        tensor.int64_value(&[]) != 0
+    }
+
+    fn values(tensor: &Tensor) -> Vec<Self::Elem> {
+        Vec::<Self::Elem>::from(tensor)
     }
 }
 
@@ -223,42 +362,48 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
             t.shallow_clone()
         }
     } else if size[0] > 2 * edge_items as i64 {
-        todo!()
+        let mut vs: Vec<_> =
+            (0..edge_items).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
+        for i in (size[0] - edge_items)..size[0] {
+            vs.push(get_summarized_data(&t.get(i), edge_items))
+        }
+        Tensor::stack(&vs, 0)
     } else {
-        todo!()
+        let vs: Vec<_> = (0..size[0]).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
+        Tensor::stack(&vs, 0)
     }
 }
 
 impl std::fmt::Display for Tensor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.defined() {
-            let print_opts = PRINT_OPTS.lock().unwrap();
-            let summarize = self.numel() > print_opts.threshold;
+            let po = PRINT_OPTS.lock().unwrap();
+            let summarize = self.numel() > po.threshold;
             let basic_kind = BasicKind::for_tensor(self);
             let to_display = if summarize {
-                get_summarized_data(self, print_opts.edge_items as i64)
+                get_summarized_data(self, po.edge_items as i64)
             } else {
                 self.shallow_clone()
             };
-            match self.dim() {
-                0 => match basic_kind {
-                    BasicKind::Int => {
-                        let value = self.int64_value(&[]);
-                        write!(f, "{}", value)
-                    }
-                    BasicKind::Float => {
-                        let formatter = FloatFormatter::new(&to_display, &print_opts);
-                        let value = self.double_value(&[]);
-                        formatter.fmt(value, f)
-                    }
-                    BasicKind::Bool => {
-                        let value = if self.int64_value(&[]) != 0 { "true" } else { "false" };
-                        write!(f, "{}", value)
-                    }
-                    BasicKind::Complex => write!(f, "Tensor[{:?}, Complex]", self.size()),
-                },
-                _ => write!(f, "Tensor[TODO]"),
-            }
+            match basic_kind {
+                BasicKind::Int => {
+                    let tf = IntFormatter;
+                    let max_w = tf.max_width(&to_display);
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                }
+                BasicKind::Float => {
+                    let tf = FloatFormatter::new(&to_display, &po);
+                    let max_w = tf.max_width(&to_display);
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                }
+                BasicKind::Bool => {
+                    let tf = BoolFormatter;
+                    let max_w = tf.max_width(&to_display);
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                }
+                BasicKind::Complex => {}
+            };
+            write!(f, "\nTensor[{:?}, {:?}]", self.size(), self.f_kind())
         } else {
             write!(f, "Tensor[Undefined]")
         }
