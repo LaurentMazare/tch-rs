@@ -731,7 +731,7 @@ fn autocast_is_enabled() -> bool {
 }
 
 fn autocast_set_enabled(b: bool) -> bool {
-    unsafe_torch!(at_autocast_set_enabled(if b { 1 } else { 0 }) != 0)
+    unsafe_torch!(at_autocast_set_enabled(i32::from(b)) != 0)
 }
 
 /// Runs a closure in mixed precision.
@@ -759,7 +759,7 @@ where
 }
 
 fn grad_set_enabled(b: bool) -> bool {
-    unsafe_torch!(at_grad_set_enabled(if b { 1 } else { 0 }) != 0)
+    unsafe_torch!(at_grad_set_enabled(i32::from(b)) != 0)
 }
 
 /// Runs a closure without keeping track of gradients.

@@ -92,11 +92,11 @@ impl Shape for (i64, i64, i64, i64) {
 
 impl Tensor {
     pub fn f_view<T: Shape>(&self, s: T) -> Result<Tensor, TchError> {
-        self.f_view_(&*s.to_shape())
+        self.f_view_(&s.to_shape())
     }
 
     pub fn view<T: Shape>(&self, s: T) -> Tensor {
-        self.view_(&*s.to_shape())
+        self.view_(&s.to_shape())
     }
 
     pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Result<Tensor, TchError> {

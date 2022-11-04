@@ -246,7 +246,7 @@ impl IValue {
             IValue::Int(i) => ati_int(*i),
             IValue::None => ati_none(),
             IValue::Double(f) => ati_double(*f),
-            IValue::Bool(b) => ati_bool(if *b { 1 } else { 0 }),
+            IValue::Bool(b) => ati_bool(i32::from(*b)),
             IValue::Tuple(v) => {
                 let v = v.iter().map(Self::to_c).collect::<Result<Vec<_>, TchError>>()?;
                 let tuple = ati_tuple(v.as_ptr(), v.len() as c_int);
@@ -267,7 +267,7 @@ impl IValue {
             IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
             IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
             IValue::BoolList(v) => {
-                let v: Vec<libc::c_char> = v.iter().map(|&b| if b { 1 } else { 0 }).collect();
+                let v: Vec<libc::c_char> = v.iter().map(|&b| i8::from(b)).collect();
                 ati_bool_list(v.as_ptr(), v.len() as c_int)
             }
             IValue::TensorList(v) => {

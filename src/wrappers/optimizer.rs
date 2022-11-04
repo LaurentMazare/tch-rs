@@ -33,7 +33,7 @@ impl COptimizer {
         momentum: f64,
         centered: bool,
     ) -> Result<COptimizer, TchError> {
-        let centered = if centered { 1 } else { 0 };
+        let centered = i32::from(centered);
         let c_optimizer =
             unsafe_torch_err!(torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered));
         Ok(COptimizer { c_optimizer })
@@ -46,7 +46,7 @@ impl COptimizer {
         wd: f64,
         nesterov: bool,
     ) -> Result<COptimizer, TchError> {
-        let nesterov = if nesterov { 1 } else { 0 };
+        let nesterov = i32::from(nesterov);
         let c_optimizer =
             unsafe_torch_err!(torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov));
         Ok(COptimizer { c_optimizer })
