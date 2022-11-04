@@ -143,7 +143,7 @@ trait TensorFormatter {
     }
 
     fn write_newline_indent(i: usize, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "\n")?;
+        writeln!(f)?;
         for _ in 0..i {
             write!(f, " ")?
         }
