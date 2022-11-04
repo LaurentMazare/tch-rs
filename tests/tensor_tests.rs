@@ -458,3 +458,20 @@ fn set_data() {
     t.set_data(&t.to_kind(tch::Kind::BFloat16));
     assert_eq!(t.kind(), tch::Kind::BFloat16);
 }
+
+#[test]
+fn display() {
+    let t = Tensor::of_slice(&[0.1234567, 1.0, -1.2, 4.1, f64::NAN]);
+    let t = format!("{}", t);
+    assert_eq!(&t, "[ 0.1235,  1.0000, -1.2000,  4.1000,     NaN]\nTensor[[5], Ok(Double)]");
+    let t = Tensor::ones(&[50], tch::kind::FLOAT_CPU) * 42;
+    let t = format!("{}", t);
+    assert_eq!(&t, 
+        "[ 42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42., \n  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42., \n  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42.,  42., \n  42.,  42.]\nTensor[[50], Ok(Float)]");
+    let t = Tensor::ones(&[11000], tch::kind::FLOAT_CPU) * 42;
+    let t = format!("{}", t);
+    assert_eq!(&t, "[ 42.,  42.,  42., ...,  42.,  42.,  42.]\nTensor[[11000], Ok(Float)]");
+    let t = Tensor::ones(&[200, 100], tch::kind::FLOAT_CPU) * 42;
+    let t = format!("{}", t);
+    assert_eq!(&t, "[[ 42.,  42.,  42., ...,  42.,  42.,  42.],\n [ 42.,  42.,  42., ...,  42.,  42.,  42.],\n [ 42.,  42.,  42., ...,  42.,  42.,  42.],\n ...\n [ 42.,  42.,  42., ...,  42.,  42.,  42.],\n [ 42.,  42.,  42., ...,  42.,  42.,  42.],\n [ 42.,  42.,  42., ...,  42.,  42.,  42.]]\nTensor[[200, 100], Ok(Float)]");
+}
