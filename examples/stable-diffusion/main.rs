@@ -745,9 +745,7 @@ impl CrossAttention {
             .matmul(value);
         self.reshape_batch_dim_to_heads(&xs)
     }
-}
 
-impl CrossAttention {
     fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
         let query = xs.apply(&self.to_q);
         let context = context.unwrap_or(xs);
@@ -780,9 +778,7 @@ impl BasicTransformerBlock {
         let norm3 = nn::layer_norm(&vs / "norm3", vec![dim], Default::default());
         Self { attn1, ff, attn2, norm1, norm2, norm3 }
     }
-}
 
-impl BasicTransformerBlock {
     fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
         let xs = self.attn1.forward(&xs.apply(&self.norm1), None) + xs;
         let xs = self.attn2.forward(&xs.apply(&self.norm2), context) + xs;
@@ -841,9 +837,7 @@ impl SpatialTransformer {
         let proj_out = nn::conv2d(&vs / "proj_out", inner_dim, in_channels, 1, conv_cfg);
         Self { norm, proj_in, transformer_blocks, proj_out, config }
     }
-}
 
-impl SpatialTransformer {
     fn forward(&self, xs: &Tensor, context: Option<&Tensor>) -> Tensor {
         let (batch, _channel, height, weight) = xs.size4().unwrap();
         let residual = xs;
@@ -2322,8 +2316,8 @@ impl UNet2DConditionModel {
 // TODO: LMSDiscreteScheduler
 // https://github.com/huggingface/diffusers/blob/32bf4fdc4386809c870528cb261028baae012d27/src/diffusers/schedulers/scheduling_lms_discrete.py#L47
 
-fn build_clip_transformer() -> anyhow::Result<ClipTextTransformer> {
-    let mut vs = nn::VarStore::new(Device::Cpu);
+fn build_clip_transformer(device: Device) -> anyhow::Result<ClipTextTransformer> {
+    let mut vs = nn::VarStore::new(device);
     let text_model = ClipTextTransformer::new(vs.root());
     vs.load("data/pytorch_model.ot")?;
     Ok(text_model)
@@ -2461,7 +2455,7 @@ fn main() -> anyhow::Result<()> {
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     // TODO: Switch to using claps to allow more flags?
-    let mut prompt = "A rusty torch lamp".to_string();
+    let mut prompt = "A rusty robot holding a fire torch in its hand".to_string();
     let mut device = Device::cuda_if_available();
     for arg in std::env::args().skip(1) {
         if arg.as_str() == "cpu" {
@@ -2478,21 +2472,20 @@ fn main() -> anyhow::Result<()> {
     let str = tokenizer.decode(&tokens);
     println!("Str: {}", str);
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
-    let tokens = Tensor::of_slice(&tokens).view((1, -1));
+    let tokens = Tensor::of_slice(&tokens).view((1, -1)).to(device);
     let uncond_tokens = tokenizer.encode("", Some(MAX_POSITION_EMBEDDINGS))?;
     let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
-    let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1));
+    let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1)).to(device);
     println!("Tokens: {:?}", tokens);
 
     let no_grad_guard = tch::no_grad_guard();
     println!("Building the Clip transformer.");
-    let text_model = build_clip_transformer()?;
+    let text_model = build_clip_transformer(device)?;
     let text_embeddings = text_model.forward(&tokens);
     let uncond_embeddings = text_model.forward(&uncond_tokens);
     let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
     println!("Text embeddings: {:?}", text_embeddings);
 
-    let _device = Device::cuda_if_available();
     println!("Building the autoencoder.");
     let vae = build_vae(device)?;
     println!("Building the unet.");
