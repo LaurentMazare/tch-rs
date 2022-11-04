@@ -48,7 +48,7 @@ A bunch of rusty robots holding some torches!
 ## Getting the Weights and Vocab File
 
 In order to run this, the weights have to be downloaded, converted to the appropriate
-format and copied in the top level `data` director. There are three set of weights to
+format and copied in the top level `data` directory. There are three set of weights to
 download as well as some vocabulary file for the text model.
 
 If there is some interest in having the final weight files available, open an issue and
@@ -88,8 +88,7 @@ cargo run --release --example tensor-tools cp ./data/pytorch_model.npz ./data/py
 
 ### VAE and Unet Weights
 
-The weight files can be downloaded from huggingface's hub but requires you to be logged in.
-[https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/diffusion_pytorch_model.bin](VAE weights), [https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/diffusion_pytorch_model.bin](Unet weights).
+The weight files can be downloaded from huggingface's hub but it first requires you to log in (and to [accept the terms of use](https://huggingface.co/CompVis/stable-diffusion-v1-4) the first time). Then you can download the [VAE weights](https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/vae/diffusion_pytorch_model.bin) and [Unet weights](https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/main/unet/diffusion_pytorch_model.bin).
 
 After downloading the files, use Python to convert them to `npz` files.
 
