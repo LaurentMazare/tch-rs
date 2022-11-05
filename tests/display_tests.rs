@@ -77,10 +77,3 @@ Tensor[[200, 100], Float]"#;
 Tensor[[2, 1, 1, 100, 100], Float]"#;
     assert_eq!(&t, expected);
 }
-
-#[test]
-fn display_special() {
-    let t = Tensor::empty(&[], kind::INT64_CPU);
-    let s = format!("{}", t);
-    assert_eq!(&s, "[0]\nTensor[[], Int64]");
-}
