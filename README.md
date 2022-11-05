@@ -235,7 +235,7 @@ Further examples include:
   shows how to finetune a pre-trained ResNet model on a very small dataset.
 * A [simplified version of GPT](https://github.com/LaurentMazare/tch-rs/blob/master/examples/min-gpt)
   similar to minGPT.
-* A [Stable Diffusion](https://github.com/LaurentMazare/tch-rs/blob/master/examples/stable-diffusion)
+* A [Stable Diffusion](https://github.com/LaurentMazare/diffusers-rs)
   implementation following the lines of hugginface's diffusers library.
 
 External material:
