@@ -179,9 +179,11 @@ trait TensorFormatter {
                 let elements_per_line = usize::max(1, po.line_width / (max_w + 2));
                 for (i, v) in Self::values(t).into_iter().enumerate() {
                     if i > 0 {
-                        write!(f, ", ")?;
                         if i % elements_per_line == 0 {
+                            write!(f, ",")?;
                             Self::write_newline_indent(indent, f)?
+                        } else {
+                            write!(f, ", ")?;
                         }
                     }
                     self.fmt(v, max_w, f)?
