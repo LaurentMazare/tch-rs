@@ -208,8 +208,10 @@ trait TensorFormatter {
                 } else {
                     for i in 0..size[0] {
                         self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
-                        write!(f, ",")?;
-                        Self::write_newline_indent(indent, f)?
+                        if i + 1 != size[0] {
+                            write!(f, ",")?;
+                            Self::write_newline_indent(indent, f)?
+                        }
                     }
                 }
             }
