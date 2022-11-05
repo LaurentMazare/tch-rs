@@ -65,7 +65,7 @@ impl std::fmt::Debug for Tensor {
                         ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
                         ([], false, true) => write!(f, "[{}]", f64::from(self)),
                         ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
-                        _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), self.f_kind()),
+                        _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), kind),
                     }
                 }
             }
@@ -393,21 +393,28 @@ impl std::fmt::Display for Tensor {
                 BasicKind::Int => {
                     let tf = IntFormatter;
                     let max_w = tf.max_width(&to_display);
-                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?;
+                    writeln!(f)?;
                 }
                 BasicKind::Float => {
                     let tf = FloatFormatter::new(&to_display, &po);
                     let max_w = tf.max_width(&to_display);
-                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?;
+                    writeln!(f)?;
                 }
                 BasicKind::Bool => {
                     let tf = BoolFormatter;
                     let max_w = tf.max_width(&to_display);
-                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?
+                    tf.fmt_tensor(self, 1, max_w, summarize, &po, f)?;
+                    writeln!(f)?;
                 }
                 BasicKind::Complex => {}
             };
-            write!(f, "\nTensor[{:?}, {:?}]", self.size(), self.f_kind())
+            let kind = match self.f_kind() {
+                Ok(kind) => format!("{:?}", kind),
+                Err(err) => format!("{:?}", err),
+            };
+            write!(f, "Tensor[{:?}, {}]", self.size(), kind)
         } else {
             write!(f, "Tensor[Undefined]")
         }
