@@ -295,7 +295,7 @@ impl TensorFormatter for FloatFormatter {
             write!(f, "{v:width$.prec$e}", v = v, width = max_w, prec = self.precision)
         } else if self.int_mode {
             if v.is_finite() {
-                write!(f, "{v:width$.0}.", v = v, width = max_w)
+                write!(f, "{v:width$.0}.", v = v, width = max_w - 1)
             } else {
                 write!(f, "{v:width$.0}", v = v, width = max_w)
             }
