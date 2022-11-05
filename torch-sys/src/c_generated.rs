@@ -3692,6 +3692,7 @@ extern "C" {
         out__: *mut *mut C_tensor,
         start_: *mut C_scalar,
         end_: *mut C_scalar,
+        step_: *mut C_scalar,
         options_kind: c_int,
         options_device: c_int,
     );
@@ -4009,6 +4010,8 @@ extern "C" {
         self_: *mut C_tensor,
         batch1_: *mut C_tensor,
         batch2_: *mut C_tensor,
+        beta_: *mut C_scalar,
+        alpha_: *mut C_scalar,
     );
     pub fn atg_baddbmm_(
         out__: *mut *mut C_tensor,
@@ -4022,14 +4025,6 @@ extern "C" {
         self_: *mut C_tensor,
         batch1_: *mut C_tensor,
         batch2_: *mut C_tensor,
-    );
-    pub fn atg_baddbmm_s(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        batch1_: *mut C_tensor,
-        batch2_: *mut C_tensor,
-        beta_: *mut C_scalar,
-        alpha_: *mut C_scalar,
     );
     pub fn atg_bartlett_window(
         out__: *mut *mut C_tensor,

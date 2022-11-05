@@ -4923,8 +4923,13 @@ impl Tensor {
         Tensor::f_arange_start(start, end, options).unwrap()
     }
 
-    pub fn arange_start_step<S: Into<Scalar>>(start: S, end: S, options: (Kind, Device)) -> Tensor {
-        Tensor::f_arange_start_step(start, end, options).unwrap()
+    pub fn arange_start_step<S: Into<Scalar>>(
+        start: S,
+        end: S,
+        step: S,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_arange_start_step(start, end, step, options).unwrap()
     }
 
     pub fn arccos(&self) -> Tensor {
@@ -5378,8 +5383,14 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn baddbmm(&self, batch1: &Tensor, batch2: &Tensor) -> Tensor {
-        self.f_baddbmm(batch1, batch2).unwrap()
+    pub fn baddbmm<S: Into<Scalar>>(
+        &self,
+        batch1: &Tensor,
+        batch2: &Tensor,
+        beta: S,
+        alpha: S,
+    ) -> Tensor {
+        self.f_baddbmm(batch1, batch2, beta, alpha).unwrap()
     }
 
     pub fn baddbmm_(&mut self, batch1: &Tensor, batch2: &Tensor) -> Tensor {
@@ -5388,16 +5399,6 @@ impl Tensor {
 
     pub fn baddbmm_out(&self, out: &Tensor, batch1: &Tensor, batch2: &Tensor) -> Tensor {
         self.f_baddbmm_out(out, batch1, batch2).unwrap()
-    }
-
-    pub fn baddbmm_s<S: Into<Scalar>>(
-        &self,
-        batch1: &Tensor,
-        batch2: &Tensor,
-        beta: S,
-        alpha: S,
-    ) -> Tensor {
-        self.f_baddbmm_s(batch1, batch2, beta, alpha).unwrap()
     }
 
     pub fn bartlett_window(window_length: i64, options: (Kind, Device)) -> Tensor {

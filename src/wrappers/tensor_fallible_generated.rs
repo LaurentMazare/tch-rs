@@ -8780,6 +8780,7 @@ impl Tensor {
     pub fn f_arange_start_step<S: Into<Scalar>>(
         start: S,
         end: S,
+        step: S,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -8787,6 +8788,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             start.into().c_scalar,
             end.into().c_scalar,
+            step.into().c_scalar,
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -9615,13 +9617,21 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_baddbmm(&self, batch1: &Tensor, batch2: &Tensor) -> Result<Tensor, TchError> {
+    pub fn f_baddbmm<S: Into<Scalar>>(
+        &self,
+        batch1: &Tensor,
+        batch2: &Tensor,
+        beta: S,
+        alpha: S,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_baddbmm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             batch1.c_tensor,
-            batch2.c_tensor
+            batch2.c_tensor,
+            beta.into().c_scalar,
+            alpha.into().c_scalar
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -9650,25 +9660,6 @@ impl Tensor {
             self.c_tensor,
             batch1.c_tensor,
             batch2.c_tensor
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_baddbmm_s<S: Into<Scalar>>(
-        &self,
-        batch1: &Tensor,
-        batch2: &Tensor,
-        beta: S,
-        alpha: S,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_baddbmm_s(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            batch1.c_tensor,
-            batch2.c_tensor,
-            beta.into().c_scalar,
-            alpha.into().c_scalar
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

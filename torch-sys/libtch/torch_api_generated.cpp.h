@@ -3726,9 +3726,9 @@ void atg_arange_start(tensor *out__, scalar start, scalar end, int options_kind,
   )
 }
 
-void atg_arange_start_step(tensor *out__, scalar start, scalar end, int options_kind, int options_device) {
+void atg_arange_start_step(tensor *out__, scalar start, scalar end, scalar step, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::arange(*start, *end, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
+    auto outputs__ = torch::arange(*start, *end, *step, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4206,9 +4206,9 @@ void atg_avg_pool3d_out(tensor *out__, tensor out, tensor self, int64_t *kernel_
   )
 }
 
-void atg_baddbmm(tensor *out__, tensor self, tensor batch1, tensor batch2) {
+void atg_baddbmm(tensor *out__, tensor self, tensor batch1, tensor batch2, scalar beta, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::baddbmm(*self, *batch1, *batch2);
+    auto outputs__ = torch::baddbmm(*self, *batch1, *batch2, *beta, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4223,13 +4223,6 @@ void atg_baddbmm_(tensor *out__, tensor self, tensor batch1, tensor batch2) {
 void atg_baddbmm_out(tensor *out__, tensor out, tensor self, tensor batch1, tensor batch2) {
   PROTECT(
     auto outputs__ = torch::baddbmm_out(*out, *self, *batch1, *batch2);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_baddbmm_s(tensor *out__, tensor self, tensor batch1, tensor batch2, scalar beta, scalar alpha) {
-  PROTECT(
-    auto outputs__ = torch::baddbmm(*self, *batch1, *batch2, *beta, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }

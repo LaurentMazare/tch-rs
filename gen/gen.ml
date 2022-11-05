@@ -79,11 +79,21 @@ let prefixed_functions =
 (* By default, scalar argument that have a default value are not available on
    the Rust side, this is to preserve the Rust api simplicity assuming that
    these scalars arguments are not often overriden.
-   Adding function name [foo] in [with_optional_scalar_args] results in [foo_s]
-   being generated that will have explicit scalar arguments even if a default
-   value is present.  *)
-let with_optional_scalar_args = Set.of_list (module String) [ "baddbmm" ]
-let excluded_prefixes = [ "_thnn_"; "_th_"; "thnn_"; "th_"; "_foreach"; "_amp_foreach"; "_nested_tensor"; "_fused_adam" ]
+   Adding function name [foo] in [with_optional_scalar_args] results in having
+   explicit scalar arguments even if a default is present. *)
+let with_optional_scalar_args = Set.of_list (module String) [ "arange"; "baddbmm" ]
+
+let excluded_prefixes =
+  [ "_thnn_"
+  ; "_th_"
+  ; "thnn_"
+  ; "th_"
+  ; "_foreach"
+  ; "_amp_foreach"
+  ; "_nested_tensor"
+  ; "_fused_adam"
+  ]
+
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
 let yaml_error yaml ~msg = Printf.failwithf "%s, %s" msg (Yaml.to_string_exn yaml) ()
 
@@ -154,8 +164,7 @@ module Func = struct
     | "at::intarrayref" -> Some (if is_nullable then IntListOption else IntList)
     | "at::arrayref<double>" -> Some DoubleList
     | "const c10::list<c10::optional<at::tensor>> &" -> Some TensorOptList
-    | "const at::itensorlistref &"
-    | "at::tensorlist" -> Some TensorList
+    | "const at::itensorlistref &" | "at::tensorlist" -> Some TensorList
     | "at::device" -> Some Device
     | "const at::scalar &" | "at::scalar" -> Some Scalar
     | "at::scalartype" -> Some ScalarType
@@ -552,24 +561,11 @@ let read_yaml filename =
                          then None
                          else raise Not_a_simple_arg)
                  in
-                 if Set.mem with_optional_scalar_args name
-                 then (
-                   let args_opt = args ~with_optional_scalar_args:true in
-                   let args = args ~with_optional_scalar_args:false in
-                   Some
-                     [ { Func.name; operator_name; overload_name; args; returns; kind }
-                     ; { Func.name
-                       ; operator_name
-                       ; overload_name = "s"
-                       ; args = args_opt
-                       ; returns
-                       ; kind
-                       }
-                     ])
-                 else (
-                   let args = args ~with_optional_scalar_args:false in
-                   Some
-                     [ { Func.name; operator_name; overload_name; args; returns; kind } ])
+                 let args =
+                   args
+                     ~with_optional_scalar_args:(Set.mem with_optional_scalar_args name)
+                 in
+                 Some [ { Func.name; operator_name; overload_name; args; returns; kind } ]
                with
                | Not_a_simple_arg -> None)
       else None)
