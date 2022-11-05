@@ -3,7 +3,7 @@ use crate::{Device, Kind, TchError};
 use torch_sys::*;
 
 mod convert;
-mod display;
+pub mod display;
 pub mod index;
 mod iter;
 mod npy;
