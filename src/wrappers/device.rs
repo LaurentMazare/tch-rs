@@ -7,6 +7,8 @@ pub enum Device {
     Cpu,
     /// The main GPU device.
     Cuda(usize),
+    /// The main MPS device.
+    Mps,
 }
 
 /// Cuda related helper functions.
@@ -56,12 +58,14 @@ impl Device {
         match self {
             Device::Cpu => -1,
             Device::Cuda(device_index) => device_index as libc::c_int,
+            Device::Mps => -2,
         }
     }
 
     pub(super) fn of_c_int(v: libc::c_int) -> Self {
         match v {
             -1 => Device::Cpu,
+            -2 => Device::Mps,
             index if index >= 0 => Device::Cuda(index as usize),
             _ => panic!("unexpected device {}", v),
         }
@@ -80,6 +84,7 @@ impl Device {
         match self {
             Device::Cuda(_) => true,
             Device::Cpu => false,
+            Device::Mps => false,
         }
     }
 }
