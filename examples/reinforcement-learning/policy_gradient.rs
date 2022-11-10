@@ -10,7 +10,7 @@ use super::gym_env::{GymEnv, Step};
 use tch::{nn, nn::OptimizerConfig, Kind::Float, Tensor};
 
 fn model(p: &nn::Path, input_shape: &[i64], nact: i64) -> impl nn::Module {
-    let nin = input_shape.iter().fold(1, |acc, x| acc * x);
+    let nin = input_shape.iter().product::<i64>();
     nn::seq()
         .add(nn::linear(p / "lin1", nin, 32, Default::default()))
         .add_fn(|xs| xs.tanh())
@@ -75,8 +75,11 @@ pub fn run() -> cpython::PyResult<()> {
             Tensor::zeros(&[batch_size, 2], tch::kind::FLOAT_CPU).scatter_value(1, &actions, 1.0);
         let obs: Vec<Tensor> = steps.into_iter().map(|s| s.obs).collect();
         let logits = Tensor::stack(&obs, 0).apply(&model);
-        let log_probs =
-            (action_mask * logits.log_softmax(1, Float)).sum_dim_intlist(&[1], false, Float);
+        let log_probs = (action_mask * logits.log_softmax(1, Float)).sum_dim_intlist(
+            Some([1].as_slice()),
+            false,
+            Float,
+        );
         let loss = -(rewards * log_probs).mean(Float);
         opt.backward_step(&loss)
     }

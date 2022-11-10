@@ -792,6 +792,10 @@ pub struct NoGradGuard {
 
 /// Disables gradient tracking, this will be enabled back when the
 /// returned value gets deallocated.
+/// Note that it is important to bind this to a name like "_guard"
+/// and not to "_" as these two would have different semantics.
+/// See https://internals.rust-lang.org/t/pre-rfc-must-bind/12658/46
+/// for more details.
 pub fn no_grad_guard() -> NoGradGuard {
     NoGradGuard { enabled: grad_set_enabled(false) }
 }
