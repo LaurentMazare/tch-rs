@@ -267,7 +267,7 @@ impl IValue {
             IValue::IntList(v) => ati_int_list(v.as_ptr(), v.len() as c_int),
             IValue::DoubleList(v) => ati_double_list(v.as_ptr(), v.len() as c_int),
             IValue::BoolList(v) => {
-                let v: Vec<libc::c_char> = v.iter().map(|&b| i8::from(b)).collect();
+                let v: Vec<libc::c_char> = v.iter().map(|&b| libc::c_char::from(b)).collect();
                 ati_bool_list(v.as_ptr(), v.len() as c_int)
             }
             IValue::TensorList(v) => {
