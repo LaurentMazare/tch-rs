@@ -573,7 +573,18 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// uniform distribution which bounds follow Kaiming initialization.
     pub fn f_kaiming_uniform(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
-        self.f_var(name, dims, Init::KaimingUniform)
+        self.f_var(name, dims, super::init::DEFAULT_KAIMING_UNIFORM)
+    }
+
+    /// Creates a new variable initialized randomly with kaiming normal.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution which stdev follow Kaiming initialization.
+    pub fn f_kaiming_normal(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, super::init::DEFAULT_KAIMING_NORMAL)
     }
 
     /// Creates a new variable initialized randomly with an orthogonal matrix
@@ -698,6 +709,17 @@ impl<'a> Path<'a> {
         self.f_kaiming_uniform(name, dims).unwrap()
     }
 
+    /// Creates a new variable initialized randomly with kaiming normal.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution which stdev follow Kaiming initialization.
+    pub fn kaiming_normal(&self, name: &str, dims: &[i64]) -> Tensor {
+        self.f_kaiming_normal(name, dims).unwrap()
+    }
+
     /// Creates a new variable initialized randomly with an orthogonal matrix
     ///
     /// The new variable is named according to the name parameter and
@@ -758,7 +780,12 @@ impl<'a> Entry<'a> {
 
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
-        self.or_var(dims, Init::KaimingUniform)
+        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
+    }
+
+    /// Returns the existing entry if, otherwise create a new variable.
+    pub fn or_kaiming_normal(self, dims: &[i64]) -> Tensor {
+        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.

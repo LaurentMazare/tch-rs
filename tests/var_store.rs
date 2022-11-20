@@ -1,6 +1,6 @@
 use std::fs;
 use tch::nn::OptimizerConfig;
-use tch::{nn::linear, nn::Init, nn::VarStore, Device, Kind, TchError, Tensor};
+use tch::{nn, nn::linear, nn::Init, nn::VarStore, Device, Kind, TchError, Tensor};
 
 #[test]
 fn path_components() {
@@ -218,6 +218,7 @@ fn save_and_load_partial_var_store_incomplete_file() {
 
 #[test]
 fn init_test() {
+    tch::manual_seed(42);
     let vs = VarStore::new(Device::Cpu);
     let zeros = vs.root().zeros("t1", &[3]);
     assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
@@ -249,6 +250,13 @@ fn init_test() {
     assert!(f64::abs(ortho_norm - 20.) < 1e-5, "ortho_norm initialization failed {}", ortho_norm);
     let ortho_shape_fail = tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu);
     assert!(ortho_shape_fail.is_err());
+    let kaiming_u = vs.root().var("kaiming_u", &[20, 100], nn::init::DEFAULT_KAIMING_UNIFORM);
+    assert!(f64::abs(f64::from(kaiming_u.mean(Kind::Float))) < 5e-3);
+    // The expected stdev is sqrt(2 / 100)
+    assert!(f64::abs(f64::from(kaiming_u.std(true)) - (0.02f64).sqrt()) < 2e-3);
+    let kaiming_n = vs.root().var("kaiming_n", &[20, 100], nn::init::DEFAULT_KAIMING_NORMAL);
+    assert!(f64::abs(f64::from(kaiming_n.mean(Kind::Float))) < 5e-3);
+    assert!(f64::abs(f64::from(kaiming_n.std(true)) - (0.02f64).sqrt()) < 3e-3);
 }
 
 fn check_param_group(mut opt: tch::nn::Optimizer, foo: Tensor, bar: Tensor) {
