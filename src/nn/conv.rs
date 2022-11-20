@@ -64,7 +64,7 @@ impl Default for ConvConfig {
             dilation: 1,
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
             padding_mode: PaddingMode::Zeros,
         }
@@ -79,7 +79,7 @@ impl Default for ConvConfigND<[i64; 2]> {
             dilation: [1, 1],
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
             padding_mode: PaddingMode::Zeros,
         }
