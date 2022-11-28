@@ -12,7 +12,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const TORCH_VERSION: &str = "1.11.0";
+const TORCH_VERSION: &str = "1.13.0";
 
 #[cfg(feature = "curl")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
@@ -46,7 +46,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
         let mut file = archive.by_index(i)?;
         #[allow(deprecated)]
         let outpath = outpath.as_ref().join(file.sanitized_name());
-        if !(&*file.name()).ends_with('/') {
+        if !file.name().ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
                 i,
@@ -55,7 +55,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p)?;
+                    fs::create_dir_all(p)?;
                 }
             }
             let mut outfile = fs::File::create(&outpath)?;
@@ -158,7 +158,9 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cpu" => "%2Bcpu",
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
-                        _ => ""
+                        "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
+                        _ => panic!("unsupported device {}, TORCH_CUDA_VERSION may be set incorrectly?", device),
                     }
                 ),
                 "macos" => format!(
@@ -171,6 +173,8 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cpu" => "%2Bcpu",
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
+                        "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
                         _ => ""
                     }),
                 _ => panic!("Unsupported OS"),
@@ -187,6 +191,12 @@ fn prepare_libtorch_dir() -> PathBuf {
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
+    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
     let python_includes = if use_python {
         let python_include_dir = find_python_include_dir();
@@ -216,10 +226,10 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: 
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(includes.join("include"))
+                .include(includes.join("include/torch/csrc/api/include"))
                 .includes(python_includes)
-                .flag(&format!("-Wl,-rpath={}", libtorch.as_ref().join("lib").display()))
+                .flag(&format!("-Wl,-rpath={}", lib.join("lib").display()))
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
                 .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
@@ -235,8 +245,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: 
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(includes.join("include"))
+                .include(includes.join("include/torch/csrc/api/include"))
                 .includes(python_includes)
                 .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
                 .file("libtch/torch_api.cpp")

@@ -29,7 +29,7 @@ impl Default for ConvTransposeConfig {
             dilation: 1,
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
         }
     }

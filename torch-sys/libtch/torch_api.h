@@ -171,6 +171,10 @@ ivalue atm_method_(module,
                    char *method_name,
                    ivalue *ivalues,
                    int nivalues);
+ivalue atm_create_class_(module,
+                   char *clz_name, 
+                   ivalue *ivalues, 
+                   int nivalues);
 void atm_eval(module);
 void atm_train(module);
 void atm_free(module);
@@ -217,6 +221,7 @@ void ati_to_tensor_list(ivalue, tensor *, int);
 int ati_tag(ivalue);
 
 ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
+ivalue ati_object_getattr_(ivalue i, char *attr_name);
 
 ivalue ati_clone(ivalue);
 void ati_free(ivalue);

@@ -10,7 +10,7 @@ use super::vec_gym_env::VecGymEnv;
 use tch::kind::{FLOAT_CPU, INT64_CPU};
 use tch::{nn, nn::OptimizerConfig, Kind, Tensor};
 
-const ENV_NAME: &'static str = "SpaceInvadersNoFrameskip-v4";
+const ENV_NAME: &str = "SpaceInvadersNoFrameskip-v4";
 const NPROCS: i64 = 8;
 const NSTEPS: i64 = 256;
 const NSTACK: i64 = 4;
@@ -18,7 +18,9 @@ const UPDATES: i64 = 1000000;
 const OPTIM_BATCHSIZE: i64 = 64;
 const OPTIM_EPOCHS: i64 = 4;
 
-fn model(p: &nn::Path, nact: i64) -> Box<dyn Fn(&Tensor) -> (Tensor, Tensor)> {
+type Model = Box<dyn Fn(&Tensor) -> (Tensor, Tensor)>;
+
+fn model(p: &nn::Path, nact: i64) -> Model {
     let stride = |s| nn::ConvConfig { stride: s, ..Default::default() };
     let seq = nn::seq()
         .add(nn::conv2d(p / "c1", NSTACK, 32, 8, stride(4)))
@@ -103,7 +105,7 @@ pub fn train() -> cpython::PyResult<()> {
             let obs = frame_stack.update(&step.obs, Some(&masks));
             s_actions.get(s).copy_(&actions);
             s_values.get(s).copy_(&critic.squeeze_dim(-1));
-            s_states.get(s + 1).copy_(&obs);
+            s_states.get(s + 1).copy_(obs);
             s_rewards.get(s).copy_(&step.reward);
             s_masks.get(s).copy_(&masks);
         }
@@ -131,8 +133,9 @@ pub fn train() -> cpython::PyResult<()> {
                 let index = actions.unsqueeze(-1).to_device(device);
                 log_probs.gather(-1, &index, false).squeeze_dim(-1)
             };
-            let dist_entropy =
-                (-log_probs * probs).sum_dim_intlist(&[-1], false, Kind::Float).mean(Kind::Float);
+            let dist_entropy = (-log_probs * probs)
+                .sum_dim_intlist(Some([-1].as_slice()), false, Kind::Float)
+                .mean(Kind::Float);
             let advantages = returns.to_device(device) - critic;
             let value_loss = (&advantages * &advantages).mean(Kind::Float);
             let action_loss = (-advantages.detach() * action_log_probs).mean(Kind::Float);
@@ -166,7 +169,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
     let mut obs = frame_stack.update(&env.reset()?, None);
 
     for _index in 0..5000 {
-        let (_critic, actor) = tch::no_grad(|| model(&obs));
+        let (_critic, actor) = tch::no_grad(|| model(obs));
         let probs = actor.softmax(-1, Kind::Float);
         let actions = probs.multinomial(1, true).squeeze_dim(-1);
         let step = env.step(Vec::<i64>::from(&actions))?;

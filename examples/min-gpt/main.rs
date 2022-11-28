@@ -95,12 +95,13 @@ fn block(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let lin2 = linear(p / "lin2", 4 * cfg.n_embd, cfg.n_embd);
     nn::func_t(move |xs, train| {
         let xs = xs + xs.apply(&ln1).apply_t(&attn, train);
-        let ys = xs.apply(&ln2).apply(&lin1).gelu().apply(&lin2).dropout(cfg.resid_pdrop, train);
+        let ys =
+            xs.apply(&ln2).apply(&lin1).gelu("none").apply(&lin2).dropout(cfg.resid_pdrop, train);
         xs + ys
     })
 }
 
-fn gpt(p: &nn::Path, cfg: Config) -> impl ModuleT {
+fn gpt(p: nn::Path, cfg: Config) -> impl ModuleT {
     let p = &p.set_group(NO_WEIGHT_DECAY_GROUP);
     let tok_emb = nn::embedding(p / "tok_emb", cfg.vocab_size, cfg.n_embd, Default::default());
     let pos_emb = p.zeros("pos_emb", &[1, cfg.block_size, cfg.n_embd]);
@@ -152,7 +153,7 @@ pub fn main() -> Result<()> {
         resid_pdrop: 0.1,
         embd_pdrop: 0.1,
     };
-    let gpt = gpt(&(&vs.root() / "gpt"), cfg);
+    let gpt = gpt(vs.root() / "gpt", cfg);
     let args: Vec<_> = std::env::args().collect();
     if args.len() < 2 {
         bail!("usage: main (train|predict weights.ot seqstart)")

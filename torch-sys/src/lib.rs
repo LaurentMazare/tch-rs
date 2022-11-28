@@ -248,6 +248,8 @@ extern "C" {
         n: c_int,
     ) -> *mut CIValue;
 
+    pub fn ati_object_getattr_(arg: *mut CIValue, attr_name: *const c_char) -> *mut CIValue;
+
     pub fn atm_load(filename: *const c_char) -> *mut CModule_;
     pub fn atm_load_on_device(filename: *const c_char, device: c_int) -> *mut CModule_;
     pub fn atm_load_str(data: *const c_char, sz: size_t) -> *mut CModule_;
@@ -263,6 +265,12 @@ extern "C" {
     pub fn atm_method_(
         m: *mut CModule_,
         method_name: *const c_char,
+        args: *const *mut CIValue,
+        n: c_int,
+    ) -> *mut CIValue;
+    pub fn atm_create_class_(
+        m: *mut CModule_,
+        clz_name: *const c_char,
         args: *const *mut CIValue,
         n: c_int,
     ) -> *mut CIValue;

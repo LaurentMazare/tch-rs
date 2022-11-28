@@ -8,7 +8,7 @@ impl<T: Element> From<&Tensor> for Vec<T> {
     fn from(tensor: &Tensor) -> Vec<T> {
         let numel = tensor.numel();
         let mut vec = vec![T::ZERO; numel as usize];
-        tensor.to_kind(T::KIND).copy_data(&mut vec, numel);
+        tensor.to_device(crate::Device::Cpu).to_kind(T::KIND).copy_data(&mut vec, numel);
         vec
     }
 }

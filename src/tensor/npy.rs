@@ -11,14 +11,14 @@ use std::path::Path;
 const NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
 const NPY_SUFFIX: &str = ".npy";
 
-fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String, TchError> {
+fn read_header<R: Read>(reader: &mut R) -> Result<String, TchError> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];
-    buf_reader.read_exact(&mut magic_string)?;
+    reader.read_exact(&mut magic_string)?;
     if magic_string != NPY_MAGIC_STRING {
         return Err(TchError::FileFormat("magic string mismatch".to_string()));
     }
     let mut version = [0u8; 2];
-    buf_reader.read_exact(&mut version)?;
+    reader.read_exact(&mut version)?;
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
@@ -27,10 +27,10 @@ fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String, TchErro
         }
     };
     let mut header_len = vec![0u8; header_len_len];
-    buf_reader.read_exact(&mut header_len)?;
+    reader.read_exact(&mut header_len)?;
     let header_len = header_len.iter().rev().fold(0_usize, |acc, &v| 256 * acc + v as usize);
     let mut header = vec![0u8; header_len];
-    buf_reader.read_exact(&mut header)?;
+    reader.read_exact(&mut header)?;
     Ok(String::from_utf8_lossy(&header).to_string())
 }
 
@@ -173,14 +173,14 @@ impl Header {
 impl crate::Tensor {
     /// Reads a npy file and return the stored tensor.
     pub fn read_npy<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
-        let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
-        let header = read_header(&mut buf_reader)?;
+        let mut reader = File::open(path.as_ref())?;
+        let header = read_header(&mut reader)?;
         let header = Header::parse(&header)?;
         if header.fortran_order {
             return Err(TchError::FileFormat("fortran order not supported".to_string()));
         }
         let mut data: Vec<u8> = vec![];
-        buf_reader.read_to_end(&mut data)?;
+        reader.read_to_end(&mut data)?;
         Tensor::f_of_data_size(&data, &header.shape, header.descr)
     }
 
@@ -190,19 +190,18 @@ impl crate::Tensor {
         let mut zip = zip::ZipArchive::new(zip_reader)?;
         let mut result = vec![];
         for i in 0..zip.len() {
-            let file = zip.by_index(i).unwrap();
+            let mut reader = zip.by_index(i).unwrap();
             let name = {
-                let name = file.name();
+                let name = reader.name();
                 name.strip_suffix(NPY_SUFFIX).unwrap_or(name).to_owned()
             };
-            let mut buf_reader = BufReader::new(file);
-            let header = read_header(&mut buf_reader)?;
+            let header = read_header(&mut reader)?;
             let header = Header::parse(&header)?;
             if header.fortran_order {
                 return Err(TchError::FileFormat("fortran order not supported".to_string()));
             }
             let mut data: Vec<u8> = vec![];
-            buf_reader.read_to_end(&mut data)?;
+            reader.read_to_end(&mut data)?;
             let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
             result.push((name, tensor))
         }

@@ -50,6 +50,7 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
 }
 
 at::Device device_of_int(int d) {
+    if (d == -2) return at::Device(at::kMPS);
     if (d < 0) return at::Device(at::kCPU);
     return at::Device(at::kCUDA, /*index=*/d);
 }
@@ -1021,6 +1022,19 @@ ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
   return nullptr;
 }
 
+ivalue atm_create_class_(module m, char *clz_name, ivalue *ivalues, int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < nivalues; ++i)
+      inputs.push_back(*(ivalues[i]));
+
+    c10::QualifiedName base(clz_name);
+    torch::jit::IValue obj = m->create_class(c10::QualifiedName(clz_name), std::move(inputs));
+    return new torch::jit::IValue(obj);
+  )
+  return nullptr;
+}
+
 void atm_eval(module m) {
   PROTECT(
     m->eval();
@@ -1406,6 +1420,14 @@ ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int niva
     for (int j = 0; j < nivalues; ++j)
       inputs.push_back(*(ivalues[j]));
     torch::jit::IValue output = i->toObjectRef().type()->getMethod(method_name)(std::move(inputs));
+    return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
+
+ivalue ati_object_getattr_(ivalue i, char *attr_name) {
+  PROTECT(
+    torch::jit::IValue output  = i->toObjectRef().getAttr(attr_name);
     return new torch::jit::IValue(output);
   )
   return nullptr;
