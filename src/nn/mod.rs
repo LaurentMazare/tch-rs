@@ -2,7 +2,7 @@
 //!
 //! This library tries to stay as close as possible to the original
 //! Python and C++ implementations.
-mod init;
+pub mod init;
 pub use init::{f_init, init, Init};
 
 mod var_store;
@@ -22,6 +22,9 @@ pub use conv_transpose::*;
 
 mod batch_norm;
 pub use batch_norm::*;
+
+mod group_norm;
+pub use group_norm::*;
 
 mod layer_norm;
 pub use layer_norm::*;

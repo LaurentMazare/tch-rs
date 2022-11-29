@@ -26,6 +26,7 @@ impl<'a> super::module::Module for Func<'a> {
 }
 
 /// A layer defined by a closure with an additional training parameter.
+#[allow(clippy::type_complexity)]
 pub struct FuncT<'a> {
     f: Box<dyn 'a + Fn(&Tensor, bool) -> Tensor + Send>,
 }

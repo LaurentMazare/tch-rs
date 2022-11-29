@@ -1,6 +1,6 @@
 [package]
 name = "torch-sys"
-version = "0.7.2"
+version = "0.10.0"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2018"
 build = "build.rs"
@@ -18,8 +18,8 @@ libc = "0.2.0"
 [build-dependencies]
 anyhow = "1.0"
 cc = "1.0"
-curl = { version = "0.4.9", optional = true }
-zip = "0.5"
+curl = { version = "0.4.43", optional = true }
+zip = "0.6"
 
 [features]
 download-libtorch = ["curl"]

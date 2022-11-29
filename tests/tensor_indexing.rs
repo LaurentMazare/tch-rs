@@ -139,6 +139,23 @@ fn tensor_index() {
 }
 
 #[test]
+fn tensor_index2() {
+    let t = Tensor::arange(400, (Kind::Int64, Device::Cpu)).view((2, 2, 10, 10));
+
+    let selected = t.index(&[
+        Some(Tensor::from(0i64)),
+        Some(Tensor::from(1i64)),
+        Some(Tensor::of_slice(&[1i64, 2, 3])),
+        Some(Tensor::of_slice(&[5i64, 6, 7])),
+    ]);
+    assert_eq!(selected.size(), &[3]);
+    // 115 = 0 * 200 + 1 * 100 + 1 * 10 + 5
+    // 126 = 0 * 200 + 1 * 100 + 2 * 10 + 6
+    // 137 = 0 * 200 + 1 * 100 + 3 * 10 + 7
+    assert_eq!(Vec::<i64>::from(selected), &[115, 126, 137]);
+}
+
+#[test]
 fn tensor_multi_index() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
 

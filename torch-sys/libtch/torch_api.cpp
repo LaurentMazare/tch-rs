@@ -47,6 +47,7 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
 }
 
 at::Device device_of_int(int d) {
+    if (d == -2) return at::Device(at::kMPS);
     if (d < 0) return at::Device(at::kCPU);
     return at::Device(at::kCUDA, /*index=*/d);
 }
@@ -1026,6 +1027,19 @@ ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
       inputs.push_back(*(ivalues[i]));
     torch::jit::IValue output = m->get_method(method_name)(std::move(inputs));
     return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
+
+ivalue atm_create_class_(module m, char *clz_name, ivalue *ivalues, int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < nivalues; ++i)
+      inputs.push_back(*(ivalues[i]));
+
+    c10::QualifiedName base(clz_name);
+    torch::jit::IValue obj = m->create_class(c10::QualifiedName(clz_name), std::move(inputs));
+    return new torch::jit::IValue(obj);
   )
   return nullptr;
 }

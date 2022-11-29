@@ -74,8 +74,8 @@ impl Default for RNNConfig {
             train: true,
             bidirectional: false,
             batch_first: true,
-            w_ih_init: super::Init::KaimingUniform,
-            w_hh_init: super::Init::KaimingUniform,
+            w_ih_init: super::init::DEFAULT_KAIMING_UNIFORM,
+            w_hh_init: super::init::DEFAULT_KAIMING_UNIFORM,
             b_ih_init: Some(super::Init::Const(0.)),
             b_hh_init: Some(super::Init::Const(0.)),
         }
