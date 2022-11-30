@@ -14,18 +14,18 @@ pub enum Device {
 /// Cuda related helper functions.
 pub enum Cuda {}
 impl Cuda {
-    /// Returns the number of CUDA enabled GPUs available.
+    /// Returns the number of CUDA devices available.
     pub fn device_count() -> i64 {
         let res = unsafe_torch!(torch_sys::cuda::atc_cuda_device_count());
         i64::from(res)
     }
 
-    /// Returns a bool indicating if CUDA is currently available.
+    /// Returns true if at least one CUDA device is available.
     pub fn is_available() -> bool {
         unsafe_torch!(torch_sys::cuda::atc_cuda_is_available()) != 0
     }
 
-    /// Returns a bool indicating if CUDNN is currently available.
+    /// Returns true if CUDA is available, and CuDNN is available.
     pub fn cudnn_is_available() -> bool {
         unsafe_torch!(torch_sys::cuda::atc_cudnn_is_available()) != 0
     }

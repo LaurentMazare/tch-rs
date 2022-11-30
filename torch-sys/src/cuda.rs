@@ -4,10 +4,10 @@ extern "C" {
     /// Returns the number of CUDA devices available.
     pub fn atc_cuda_device_count() -> c_int;
 
-    /// Returns a bool indicating if CUDA is currently available.
+    /// Returns true if at least one CUDA device is available.
     pub fn atc_cuda_is_available() -> c_int;
 
-    /// Returns a bool indicating if CUDNN is currently available.
+    /// Returns true if CUDA is available, and CuDNN is available.
     pub fn atc_cudnn_is_available() -> c_int;
 
     /// Sets the seed for the current GPU.
