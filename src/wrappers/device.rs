@@ -66,7 +66,7 @@ impl Cuda {
 
     /// Enable or disable cudnn.
     pub fn set_user_enabled_cudnn(b: bool) {
-        unsafe_torch!(torch_sys::atc_set_user_enabled_cudnn(i32::from(b)))
+        unsafe_torch!(torch_sys::cuda::atc_set_user_enabled_cudnn(i32::from(b)))
     }
 
     /// Sets cudnn benchmark mode.
@@ -76,7 +76,7 @@ impl Cuda {
     /// in the following runs. This can result in significant performance
     /// improvements.
     pub fn cudnn_set_benchmark(b: bool) {
-        unsafe_torch!(torch_sys::atc_set_benchmark_cudnn(i32::from(b)))
+        unsafe_torch!(torch_sys::cuda::atc_set_benchmark_cudnn(i32::from(b)))
     }
 }
 
