@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## v0.10.0 - not released yet
+### Added
+- Expose functions for setting manual seeds for CUDA devices, [#500](https://github.com/LaurentMazare/tch-rs/pull/500).
+- Expose functions for triggering manual sync, [#500](https://github.com/LaurentMazare/tch-rs/pull/500).
+
 ### Changed
 - Extending the Kaiming initialization, [#573](https://github.com/LaurentMazare/tch-rs/pull/573).
 
