@@ -253,6 +253,9 @@ See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues
 
 Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
 
+## Changelog
+See the changelog [here](https://github.com/LaurentMazare/tch-rs/blob/main/CHANGELOG.md).
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.
