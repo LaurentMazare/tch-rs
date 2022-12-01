@@ -725,11 +725,25 @@ pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
 
+/// Enables or disables the graph executor optimizer for the current thread.
+///
+/// # Arguments
+///
+/// * `b` - A boolean that if true enables the graph executor optimizer for the current thread.
+///
+/// This function returns an error if it is not possible to enable or disable the graph executor optimizer.
 pub fn f_set_graph_executor_optimize(b: bool) -> Result<(), TchError> {
     unsafe_torch_err!(at_set_graph_executor_optimize(b));
     Ok(())
 }
 
+/// Enables or disables the graph executor optimizer for the current thread.
+///
+/// # Arguments
+///
+/// * `b` - A boolean that if true enables the graph executor optimizer for the current thread.
+///
+/// This panics if it is not possible to enable or disable the graph executor optimizer.
 pub fn set_graph_executor_optimize(b: bool) {
     f_set_graph_executor_optimize(b).unwrap();
 }

@@ -926,6 +926,18 @@ int atc_cudnn_is_available() {
   return -1;
 }
 
+void atc_manual_seed(uint64_t seed) {
+  PROTECT(return torch::cuda::manual_seed(seed);)
+}
+
+void atc_manual_seed_all(uint64_t seed) {
+  PROTECT(return torch::cuda::manual_seed_all(seed);)
+}
+
+void atc_synchronize(int64_t device_index) {
+  PROTECT(return torch::cuda::synchronize(device_index);)
+}
+
 int atc_user_enabled_cudnn() {
   PROTECT(return at::globalContext().userEnabledCuDNN();)
   return -1;

@@ -145,9 +145,26 @@ double ats_to_float(scalar);
 char *ats_to_string(scalar);
 void ats_free(scalar);
 
+
+/// Returns the number of CUDA devices available.
 int atc_cuda_device_count();
+
+/// Returns true if at least one CUDA device is available.
 int atc_cuda_is_available();
+
+/// Returns true if CUDA is available, and CuDNN is available.
 int atc_cudnn_is_available();
+
+/// Sets the seed for the current GPU.
+void atc_manual_seed(uint64_t seed);
+
+/// Sets the seed for all available GPUs.
+void atc_manual_seed_all(uint64_t seed);
+
+/// Waits for all kernels in all streams on a CUDA device to complete.
+void atc_synchronize(int64_t device_index);
+
+
 int atc_user_enabled_cudnn();
 void atc_set_user_enabled_cudnn(int b);
 void atc_set_benchmark_cudnn(int b);
@@ -223,6 +240,7 @@ ivalue ati_object_getattr_(ivalue i, char *attr_name);
 ivalue ati_clone(ivalue);
 void ati_free(ivalue);
 
+/// Enables or disables the graph executor optimizer for the current thread.
 void at_set_graph_executor_optimize(bool);
 
 // for internal use
