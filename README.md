@@ -9,6 +9,7 @@ rust bindings could then be developed on top of this. The
 [![Latest version](https://img.shields.io/crates/v/tch.svg)](https://crates.io/crates/tch)
 [![Documentation](https://docs.rs/tch/badge.svg)](https://docs.rs/tch)
 ![License](https://img.shields.io/crates/l/tch.svg)
+[changelog](https://github.com/LaurentMazare/tch-rs/blob/main/CHANGELOG.md)
 
 
 The code generation part for the C api on top of libtorch comes from
@@ -252,9 +253,6 @@ See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues
 ### How to get this to work on a M1/M2 mac?
 
 Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
-
-## Changelog
-See the changelog [here](https://github.com/LaurentMazare/tch-rs/blob/main/CHANGELOG.md).
 
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
