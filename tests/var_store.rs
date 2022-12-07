@@ -259,44 +259,44 @@ fn init_test() {
     assert!(f64::abs(f64::from(kaiming_n.std(true)) - (0.02f64).sqrt()) < 3e-3);
 }
 
-fn check_param_group(mut opt: tch::nn::Optimizer, foo: Tensor, bar: Tensor) {
+fn check_param_group(mut opt: tch::nn::Optimizer, var_foo: Tensor, var_bar: Tensor) {
     opt.set_lr(0.1);
     opt.set_lr_group(0, 0.);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.00");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.42");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.00");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.42");
     opt.set_lr_group(0, 0.1);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(0f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "-0.21");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "-0.21");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
     opt.set_lr_group(7, 0.);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.22f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.22f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
     // The following sets the learning rate for both groups.
     opt.set_lr(0.);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.01");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
     opt.set_lr(0.1);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.11");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.31");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.11");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.31");
 }
 
 #[test]
@@ -305,9 +305,9 @@ fn param_group() {
     let vs = VarStore::new(Device::Cpu);
     let opt = tch::nn::Sgd::default().build(&vs, 1.0).unwrap();
     let root = vs.root();
-    let foo = root.set_group(0).zeros("foo", &[]);
-    let bar = root.set_group(7).zeros("bar", &[]);
-    check_param_group(opt, foo, bar);
+    let var_foo = root.set_group(0).zeros("var_foo", &[]);
+    let var_bar = root.set_group(7).zeros("var_bar", &[]);
+    check_param_group(opt, var_foo, var_bar);
 }
 
 #[test]
@@ -347,28 +347,28 @@ fn param_group_weight_decay() {
     let mut opt = tch::nn::Sgd::default().build(&vs, 0.0).unwrap();
     opt.set_lr(0.1);
     let root = vs.root();
-    let foo = root.set_group(0).zeros("foo", &[]);
-    let bar = root.set_group(7).zeros("bar", &[]);
+    let var_foo = root.set_group(0).zeros("var_foo", &[]);
+    let var_bar = root.set_group(7).zeros("var_bar", &[]);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.50");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.50");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.50");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.50");
     opt.set_weight_decay(0.1);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.49");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.49");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.49");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.49");
     opt.set_weight_decay_group(7, 0.);
     for _idx in 1..100 {
-        let loss = (&foo + &bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
+        let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&foo)), "0.30");
-    assert_eq!(format!("{:.2}", f64::from(&bar)), "0.69");
+    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.30");
+    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.69");
 }
 
 #[test]

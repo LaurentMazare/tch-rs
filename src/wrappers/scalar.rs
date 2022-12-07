@@ -100,9 +100,9 @@ mod tests {
     use super::Scalar;
     #[test]
     fn scalar() {
-        let pi = Scalar::float(3.14159265358979);
+        let pi = Scalar::float(std::f64::consts::PI);
         assert_eq!(i64::from(&pi), 3);
-        assert_eq!(f64::from(&pi), 3.14159265358979);
+        assert_eq!(f64::from(&pi), std::f64::consts::PI);
         let leet = Scalar::int(1337);
         assert_eq!(i64::from(&leet), 1337);
         assert_eq!(f64::from(&leet), 1337.);

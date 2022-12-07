@@ -290,7 +290,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let input = Tensor::of_slice(&[padding_idx]);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [1, output_dim]);
     assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
@@ -373,7 +373,7 @@ fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
     tch::no_grad(|| {
         _ = conv.ws.fill_(1.);
     });
-    conv.forward(&xs)
+    conv.forward(xs)
 }
 
 #[test]
