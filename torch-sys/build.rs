@@ -169,7 +169,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
-        "linux" | "macos" => {
+        "linux" | "macos" | "android" => {
             let libtorch_cxx11_abi =
                 env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned());
             cc::Build::new()
@@ -199,7 +199,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .file(cuda_dependency)
                 .compile("tch");
         }
-        _ => panic!("Unsupported OS"),
+        os => panic!("Unsupported OS: {}", os),
     };
 }
 
