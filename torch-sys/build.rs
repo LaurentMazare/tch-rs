@@ -244,29 +244,40 @@ fn main() {
         make(&libtorch, use_cuda, use_hip);
 
         println!("cargo:rustc-link-lib=static=tch");
-        if use_cuda {
-            println!("cargo:rustc-link-lib=torch_cuda");
-        }
-        if use_cuda_cu {
-            println!("cargo:rustc-link-lib=torch_cuda_cu");
-        }
-        if use_cuda_cpp {
-            println!("cargo:rustc-link-lib=torch_cuda_cpp");
-        }
-        if use_hip {
-            println!("cargo:rustc-link-lib=torch_hip");
-        }
-        println!("cargo:rustc-link-lib=torch_cpu");
-        println!("cargo:rustc-link-lib=torch");
-        println!("cargo:rustc-link-lib=c10");
-        if use_hip {
-            println!("cargo:rustc-link-lib=c10_hip");
-        }
 
-        let target = env::var("TARGET").unwrap();
+        let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
 
-        if !target.contains("msvc") && !target.contains("apple") {
-            println!("cargo:rustc-link-lib=gomp");
+        match os.as_str() {
+            "windows" | "linux" | "macos" => {
+                if use_cuda {
+                    println!("cargo:rustc-link-lib=torch_cuda");
+                }
+                if use_cuda_cu {
+                    println!("cargo:rustc-link-lib=torch_cuda_cu");
+                }
+                if use_cuda_cpp {
+                    println!("cargo:rustc-link-lib=torch_cuda_cpp");
+                }
+                if use_hip {
+                    println!("cargo:rustc-link-lib=torch_hip");
+                }
+                println!("cargo:rustc-link-lib=torch_cpu");
+                println!("cargo:rustc-link-lib=torch");
+                println!("cargo:rustc-link-lib=c10");
+                if use_hip {
+                    println!("cargo:rustc-link-lib=c10_hip");
+                }
+
+                let target = env::var("TARGET").unwrap();
+
+                if !target.contains("msvc") && !target.contains("apple") {
+                    println!("cargo:rustc-link-lib=gomp");
+                }
+            }
+            "android" => {
+                println!("cargo:rustc-link-lib=pytorch_jni_lite");
+            }
+            other => panic!("unsupported OS: {}", other),
         }
     }
 }
