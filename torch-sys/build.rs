@@ -64,6 +64,17 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn env_var_target_specific(name: &str) -> Result<String, env::VarError> {
+    let target = env::var("TARGET").expect("Unable to get TARGET");
+
+    let name_with_target_hyphenated = name.to_owned() + "_" + &target;
+    let name_with_target_underscored = name.to_owned() + "_" + &target.replace("-", "_");
+
+    env_var_rerun(&name_with_target_hyphenated)
+        .or_else(|_| env_var_rerun(&name_with_target_underscored))
+        .or_else(|_| env_var_rerun(name))
+}
+
 fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
     println!("cargo:rerun-if-env-changed={}", name);
     env::var(name)
@@ -101,7 +112,7 @@ fn prepare_libtorch_dir() -> PathBuf {
         Err(_) => "cpu".to_owned(),
     };
 
-    if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
+    if let Ok(libtorch) = env_var_target_specific("LIBTORCH") {
         PathBuf::from(libtorch)
     } else if let Some(pathbuf) = check_system_location() {
         pathbuf
@@ -149,10 +160,10 @@ fn prepare_libtorch_dir() -> PathBuf {
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
-    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE")
+    let includes: PathBuf = env_var_target_specific("LIBTORCH_INCLUDE")
         .map(Into::into)
         .unwrap_or_else(|_| libtorch.as_ref().to_owned());
-    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB")
+    let lib: PathBuf = env_var_target_specific("LIBTORCH_LIB")
         .map(Into::into)
         .unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
