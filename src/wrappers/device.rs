@@ -9,6 +9,10 @@ pub enum Device {
     Cuda(usize),
     /// The main MPS device.
     Mps,
+    /// The main Vulkan device. 
+    Vulkan,
+    /// The main Metal device. 
+    Metal,
 }
 
 /// Cuda related helper functions.
@@ -86,6 +90,8 @@ impl Device {
             Device::Cpu => -1,
             Device::Cuda(device_index) => device_index as libc::c_int,
             Device::Mps => -2,
+            Device::Vulkan => -3,
+            Device::Metal => -4,
         }
     }
 
@@ -110,8 +116,21 @@ impl Device {
     pub fn is_cuda(self) -> bool {
         match self {
             Device::Cuda(_) => true,
-            Device::Cpu => false,
-            Device::Mps => false,
+            _ => false,
+        }
+    }
+
+    pub fn is_vulkan(self) -> bool {
+        match self {
+            Device::Vulkan => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_metal(self) -> bool {
+        match self {
+            Device::Metal => true,
+            _ => false,
         }
     }
 }
