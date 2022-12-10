@@ -10,7 +10,6 @@ use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 const TORCH_VERSION: &str = "1.13.0";
 

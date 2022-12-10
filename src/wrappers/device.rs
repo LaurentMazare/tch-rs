@@ -20,18 +20,32 @@ pub enum Cuda {}
 impl Cuda {
     /// Returns the number of CUDA devices available.
     pub fn device_count() -> i64 {
-        let res = unsafe_torch!(torch_sys::cuda::atc_cuda_device_count());
-        i64::from(res)
+        #[cfg(not(target_os = "android"))]
+        {
+            let res = unsafe_torch!(torch_sys::cuda::atc_cuda_device_count());
+            i64::from(res)
+        }
+
+        #[cfg(target_os = "android")]
+        0
     }
 
     /// Returns true if at least one CUDA device is available.
     pub fn is_available() -> bool {
-        unsafe_torch!(torch_sys::cuda::atc_cuda_is_available()) != 0
+        #[cfg(not(target_os = "android"))]
+        return unsafe_torch!(torch_sys::cuda::atc_cuda_is_available()) != 0;
+
+        #[cfg(target_os = "android")]
+        return false;
     }
 
     /// Returns true if CUDA is available, and CuDNN is available.
     pub fn cudnn_is_available() -> bool {
-        unsafe_torch!(torch_sys::cuda::atc_cudnn_is_available()) != 0
+        #[cfg(not(target_os = "android"))]
+        return unsafe_torch!(torch_sys::cuda::atc_cudnn_is_available()) != 0;
+
+        #[cfg(target_os = "android")]
+        return false;
     }
 
     /// Sets the seed for the current GPU.
@@ -40,6 +54,7 @@ impl Cuda {
     ///
     /// * `seed` - An unsigned 64bit int to be used as seed.
     pub fn manual_seed(seed: u64) {
+        #[cfg(not(target_os = "android"))]
         unsafe_torch!(torch_sys::cuda::atc_manual_seed(seed));
     }
 
@@ -49,6 +64,7 @@ impl Cuda {
     ///
     /// * `seed` - An unsigned 64bit int to be used as seed.
     pub fn manual_seed_all(seed: u64) {
+        #[cfg(not(target_os = "android"))]
         unsafe_torch!(torch_sys::cuda::atc_manual_seed_all(seed));
     }
 
@@ -58,6 +74,7 @@ impl Cuda {
     ///
     /// * `device_index` - A signed 64bit int to indice which device to wait for.
     pub fn synchronize(device_index: i64) {
+        #[cfg(not(target_os = "android"))]
         unsafe_torch!(torch_sys::cuda::atc_synchronize(device_index));
     }
 
@@ -65,11 +82,16 @@ impl Cuda {
     ///
     /// This does not indicate whether cudnn is actually usable.
     pub fn user_enabled_cudnn() -> bool {
-        unsafe_torch!(torch_sys::cuda::atc_user_enabled_cudnn()) != 0
+        #[cfg(not(target_os = "android"))]
+        return unsafe_torch!(torch_sys::cuda::atc_user_enabled_cudnn()) != 0;
+
+        #[cfg(target_os = "android")]
+        return false;
     }
 
     /// Enable or disable cudnn.
     pub fn set_user_enabled_cudnn(b: bool) {
+        #[cfg(not(target_os = "android"))]
         unsafe_torch!(torch_sys::cuda::atc_set_user_enabled_cudnn(i32::from(b)))
     }
 
@@ -80,6 +102,7 @@ impl Cuda {
     /// in the following runs. This can result in significant performance
     /// improvements.
     pub fn cudnn_set_benchmark(b: bool) {
+        #[cfg(not(target_os = "android"))]
         unsafe_torch!(torch_sys::cuda::atc_set_benchmark_cudnn(i32::from(b)))
     }
 }
