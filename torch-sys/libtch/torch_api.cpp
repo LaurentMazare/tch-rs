@@ -928,6 +928,11 @@ int atc_cudnn_is_available() {
   return -1;
 }
 
+int atc_vulkan_is_available() {
+  PROTECT(return torch::is_vulkan_available();)
+  return -1;
+}
+
 void atc_manual_seed(uint64_t seed) {
   PROTECT(return torch::cuda::manual_seed(seed);)
 }

@@ -1,5 +1,6 @@
 pub mod cuda;
 pub mod io;
+pub mod vulkan;
 
 use libc::{c_char, c_int, c_uchar, c_void, size_t};
 

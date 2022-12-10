@@ -155,6 +155,9 @@ int atc_cuda_is_available();
 /// Returns true if CUDA is available, and CuDNN is available.
 int atc_cudnn_is_available();
 
+/// Returns true if at least one CUDA device is available.
+int atc_vulkan_is_available();
+
 /// Sets the seed for the current GPU.
 void atc_manual_seed(uint64_t seed);
 

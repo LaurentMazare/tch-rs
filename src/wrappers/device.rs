@@ -9,9 +9,9 @@ pub enum Device {
     Cuda(usize),
     /// The main MPS device.
     Mps,
-    /// The main Vulkan device. 
+    /// The main Vulkan device.
     Vulkan,
-    /// The main Metal device. 
+    /// The main Metal device.
     Metal,
 }
 
@@ -84,6 +84,15 @@ impl Cuda {
     }
 }
 
+/// Vulkan related helper functions.
+pub enum Vulkan {}
+impl Vulkan {
+    /// Returns true if Vulkan is available.
+    pub fn is_available() -> bool {
+        unsafe_torch!(torch_sys::vulkan::atc_vulkan_is_available()) != 0
+    }
+}
+
 impl Device {
     pub(super) fn c_int(self) -> libc::c_int {
         match self {
@@ -104,10 +113,29 @@ impl Device {
         }
     }
 
-    /// Returns a GPU device if available, else default to CPU.
+    /// Returns a CUDA device if available, else default to CPU.
     pub fn cuda_if_available() -> Device {
         if Cuda::is_available() {
             Device::Cuda(0)
+        } else {
+            Device::Cpu
+        }
+    }
+
+    /// Returns a GPU device if available, else default to CPU.
+    pub fn vulkan_if_available() -> Device {
+        if Vulkan::is_available() {
+            Device::Vulkan
+        } else {
+            Device::Cpu
+        }
+    }
+
+    pub fn gpu_if_available() -> Device {
+        if Cuda::is_available() {
+            Device::Cuda(0)
+        } else if Vulkan::is_available() {
+            Device::Vulkan
         } else {
             Device::Cpu
         }
