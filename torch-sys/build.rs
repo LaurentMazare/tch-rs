@@ -10,6 +10,7 @@ use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 const TORCH_VERSION: &str = "1.13.0";
 
@@ -227,6 +228,9 @@ fn main() {
         let libtorch_lib: PathBuf = env_var_target_specific("LIBTORCH_LIB")
             .map(Into::into)
             .unwrap_or_else(|_| libtorch.join("lib"));
+        let libtorch_lite: bool = env_var_target_specific("LIBTORCH_LITE")
+            .map(|s| s.parse().unwrap_or(true))
+            .unwrap_or(true);
 
         // use_cuda is a hacky way to detect whether cuda is available and
         // if it's the case link to it by explicitly depending on a symbol
@@ -285,7 +289,11 @@ fn main() {
                 }
             }
             "android" => {
-                println!("cargo:rustc-link-lib=pytorch_jni_lite");
+                if libtorch_lite {
+                    println!("cargo:rustc-link-lib=pytorch_jni_lite");
+                } else {
+                    println!("cargo:rustc-link-lib=pytorch_jni");
+                }
             }
             other => panic!("unsupported OS: {}", other),
         }
