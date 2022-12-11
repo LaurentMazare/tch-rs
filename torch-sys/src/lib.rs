@@ -106,6 +106,17 @@ extern "C" {
         n: c_int,
         stream_ptr: *mut c_void,
     );
+    pub fn at_loadz_callback(
+        filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+    );
+    pub fn at_loadz_callback_with_device(
+        filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+        device_id: c_int,
+    );
     pub fn at_load_callback(
         filename: *const c_char,
         data: *mut c_void,

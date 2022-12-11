@@ -29,6 +29,11 @@ pub fn main() -> Result<()> {
                     for (name, tensor) in tensors.iter() {
                         println!("{}: {} {:?}", filename, name, tensor)
                     }
+                } else if filename.ends_with(".bin") || filename.ends_with(".zip") {
+                    let tensors = tch::Tensor::loadz_multi(filename)?;
+                    for (name, tensor) in tensors.iter() {
+                        println!("{}: {} {:?}", filename, name, tensor)
+                    }
                 } else {
                     bail!("unhandled file {}", filename);
                 }
@@ -42,6 +47,8 @@ pub fn main() -> Result<()> {
                 tch::Tensor::read_npz(src_filename)?
             } else if src_filename.ends_with(".ot") {
                 tch::Tensor::load_multi(src_filename)?
+            } else if src_filename.ends_with(".bin") || src_filename.ends_with(".zip") {
+                tch::Tensor::loadz_multi(src_filename)?
             } else {
                 bail!("unhandled file {}", src_filename)
             };
