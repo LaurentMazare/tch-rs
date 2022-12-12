@@ -167,6 +167,17 @@ impl VarStore {
         Tensor::save_multi_to_stream(named_tensors.as_slice(), stream)
     }
 
+    fn named_tensors<T: AsRef<std::path::Path>>(
+        &self,
+        path: T,
+    ) -> Result<HashMap<String, Tensor>, TchError> {
+        let named_tensors = match path.as_ref().extension().and_then(|x| x.to_str()) {
+            Some("bin") | Some("pt") => Tensor::loadz_multi_with_device(&path, self.device),
+            Some(_) | None => Tensor::load_multi_with_device(&path, self.device),
+        };
+        Ok(named_tensors?.into_iter().collect())
+    }
+
     /// Loads the var-store variable values from a file.
     ///
     /// Weight values for all the tensors currently stored in the
@@ -174,8 +185,7 @@ impl VarStore {
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
-        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
-        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        let named_tensors = self.named_tensors(&path)?;
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
@@ -230,8 +240,7 @@ impl VarStore {
         &mut self,
         path: T,
     ) -> Result<Vec<String>, TchError> {
-        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
-        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        let named_tensors = self.named_tensors(&path)?;
         let mut variables = self.variables_.lock().unwrap();
         let mut missing_variables = Vec::new();
         for (name, var) in variables.named_variables.iter_mut() {
