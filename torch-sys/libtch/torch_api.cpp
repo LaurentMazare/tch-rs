@@ -1,8 +1,9 @@
 #include<torch/csrc/autograd/engine.h>
 #include<torch/csrc/jit/frontend/tracer.h>
 #include<torch/csrc/jit/runtime/graph_executor.h>
-#include <torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
-#include <torch/csrc/jit/passes/normalize_ops.h>
+#include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
+#include<torch/csrc/jit/passes/normalize_ops.h>
+#include<torch/csrc/jit/mobile/import_data.h>
 #include <torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
@@ -402,6 +403,24 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
     // [read], no memory has to be freed.
     for (int i = 0; i < ntensors; ++i)
       tensors[i] = new torch::Tensor(ts[i]);
+  )
+}
+
+void at_loadz_callback(char *filename, void *data, void (*f)(void *, char *, tensor)) {
+  PROTECT(
+    auto params = torch::jit::_load_parameters(filename);
+    for (const auto &p : params) {
+      f(data, (char*)p.first.c_str(), new torch::Tensor(p.second));
+    }
+  )
+}
+
+void at_loadz_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id) {
+  PROTECT(
+    auto params = torch::jit::_load_parameters(filename, device_of_int(device_id));
+    for (const auto &p : params) {
+      f(data, (char*)p.first.c_str(), new torch::Tensor(p.second));
+    }
   )
 }
 
