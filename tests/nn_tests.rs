@@ -213,7 +213,7 @@ fn gru_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let gru = nn::gru(&vs.root(), input_dim, output_dim, rnn_config);
+    let gru = nn::gru(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
@@ -245,7 +245,7 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let lstm = nn::lstm(&vs.root(), input_dim, output_dim, rnn_config);
+    let lstm = nn::lstm(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
@@ -277,7 +277,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let embeddings = nn::embedding(&vs.root(), input_dim, output_dim, embedding_config);
+    let embeddings = nn::embedding(vs.root(), input_dim, output_dim, embedding_config);
 
     // forward test
     let input = Tensor::randint(10, &[batch_dim, seq_len], kind::INT64_CPU);
@@ -316,7 +316,7 @@ fn linear_test(linear_config: nn::LinearConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let linear = nn::linear(&vs.root(), input_dim, output_dim, linear_config);
+    let linear = nn::linear(vs.root(), input_dim, output_dim, linear_config);
 
     // forward test
     let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
@@ -369,7 +369,7 @@ fn pad() {
 fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
     let vs = nn::VarStore::new(Device::Cpu);
     let conv_cfg = nn::ConvConfig { padding: 1, bias: false, padding_mode, ..Default::default() };
-    let mut conv = nn::conv2d(&vs.root(), 1, 1, 3, conv_cfg);
+    let mut conv = nn::conv2d(vs.root(), 1, 1, 3, conv_cfg);
     tch::no_grad(|| {
         _ = conv.ws.fill_(1.);
     });

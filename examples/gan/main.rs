@@ -13,12 +13,12 @@ const BATCHES: i64 = 100000000;
 
 fn tr2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::ConvTranspose2D {
     let cfg = nn::ConvTransposeConfig { stride, padding, bias: false, ..Default::default() };
-    nn::conv_transpose2d(&p, c_in, c_out, 4, cfg)
+    nn::conv_transpose2d(p, c_in, c_out, 4, cfg)
 }
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, padding: i64, stride: i64) -> nn::Conv2D {
     let cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
-    nn::conv2d(&p, c_in, c_out, 4, cfg)
+    nn::conv2d(p, c_in, c_out, 4, cfg)
 }
 
 fn generator(p: nn::Path) -> impl nn::ModuleT {

@@ -357,7 +357,7 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
     if size.is_empty() {
         t.shallow_clone()
     } else if size.len() == 1 {
-        if size[0] > 2 * edge_items as i64 {
+        if size[0] > 2 * edge_items {
             Tensor::cat(
                 &[t.slice(0, None, Some(edge_items), 1), t.slice(0, Some(-edge_items), None, 1)],
                 0,
@@ -365,7 +365,7 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
         } else {
             t.shallow_clone()
         }
-    } else if size[0] > 2 * edge_items as i64 {
+    } else if size[0] > 2 * edge_items {
         let mut vs: Vec<_> =
             (0..edge_items).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
         for i in (size[0] - edge_items)..size[0] {

@@ -118,7 +118,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
     let (bn, bias) = match b.parameters.get("batch_normalize") {
         Some(p) if p.parse::<i64>()? != 0 => {
             let vs = &vs / format!("batch_norm_{}", index);
-            let bn = nn::batch_norm2d(&vs, filters, Default::default());
+            let bn = nn::batch_norm2d(vs, filters, Default::default());
             (Some(bn), false)
         }
         Some(_) | None => (None, true),
