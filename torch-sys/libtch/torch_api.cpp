@@ -1075,6 +1075,13 @@ void atm_train(module m) {
   )
 }
 
+bool atm_is_training(module m) {
+  PROTECT(
+    return m->is_training();
+  )
+  return 0;
+}
+
 void atm_free(module m) {
   delete(m);
 }

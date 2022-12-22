@@ -566,6 +566,18 @@ impl CModule {
         self.f_set_train().unwrap();
     }
 
+    /// True if the module is in training mode.
+    pub fn f_is_training(& self) -> Result<bool, TchError> {
+        let result = unsafe_torch_err!(atm_is_training(self.c_module));
+        Ok(result)
+    }
+
+    /// True if the module is in training mode.
+    pub fn is_training(& self) -> Result<bool, TchError> {
+        let result = self.f_is_training().unwrap();
+        Ok(result)
+    }
+
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
         unsafe_torch!(atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking));
     }

@@ -24,6 +24,21 @@ fn jit_data() {
 }
 
 #[test]
+fn jit_train_eval() {
+    let mut mod_ = tch::CModule::load("tests/foo2.pt").unwrap();
+    let result = mod_.is_training().unwrap();
+    assert!(result);
+
+    mod_.set_eval();
+    let result = mod_.is_training().unwrap();
+    assert!(!result);
+
+    mod_.set_train();
+    let result = mod_.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
 fn jit1() {
     let mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
     let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
