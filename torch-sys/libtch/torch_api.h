@@ -208,6 +208,9 @@ void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor))
 module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
 void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
 
+/// Clones both the underlying `ClassType` and the module instance(data).
+module atm_clone(module m, bool in_place);
+
 ivalue ati_none();
 ivalue ati_tensor(tensor);
 ivalue ati_int(int64_t);

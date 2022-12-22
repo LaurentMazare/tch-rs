@@ -39,6 +39,48 @@ fn jit_train_eval() {
 }
 
 #[test]
+fn jit_clone_module() {
+    let mut original = tch::CModule::load("tests/foo2.pt").unwrap();
+    let cloned = original.clone_module().unwrap();
+
+    // Check that they are both trainable.
+    let result = original.is_training().unwrap();
+    assert!(result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+
+    // Make the original non trainable.
+    original.set_eval();
+
+    // Check that the original is non trainable, while the lcone is still trainable.
+    let result = original.is_training().unwrap();
+    assert!(!result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
+fn jit_clone_module_in_place() {
+    let mut original = tch::CModule::load("tests/foo2.pt").unwrap();
+    let cloned = original.clone_module_in_place().unwrap();
+
+    // Check that they are both trainable.
+    let result = original.is_training().unwrap();
+    assert!(result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+
+    // Make the original non trainable.
+    original.set_eval();
+
+    // Check that the original is non trainable, while the lcone is still trainable.
+    let result = original.is_training().unwrap();
+    assert!(!result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
 fn jit1() {
     let mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
     let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();

@@ -1158,6 +1158,13 @@ void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor
   )
 }
 
+module atm_clone(module m, bool in_place) {
+  PROTECT(
+    return new torch::jit::script::Module(m->clone(in_place));
+  )
+  return nullptr;
+}
+
 ivalue ati_tensor(tensor t) {
   PROTECT(
     return new torch::jit::IValue(*t);

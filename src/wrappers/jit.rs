@@ -635,6 +635,18 @@ impl CModule {
         ));
         Ok(CModule { c_module })
     }
+
+    /// Clones both the underlying `ClassType` and the module instance(data).
+    pub fn clone_module(&self) -> Result<CModule, TchError> {
+        let c_module = unsafe_torch_err!(atm_clone(self.c_module, false));
+        Ok(CModule { c_module })
+    }
+
+    /// Clones in place both the underlying `ClassType` and the module instance(data).
+    pub fn clone_module_in_place(&self) -> Result<CModule, TchError> {
+        let c_module = unsafe_torch_err!(atm_clone(self.c_module, true));
+        Ok(CModule { c_module })
+    }
 }
 
 /// The trainable version of a jit PyTorch module.

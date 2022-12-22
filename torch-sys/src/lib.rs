@@ -304,6 +304,10 @@ extern "C" {
         outputs: *const *mut C_tensor,
         noutputs: c_int,
     );
+
+    /// Clones both the underlying `ClassType` and the module instance(data).
+    pub fn atm_clone(m: *mut CModule_, in_place: bool) -> *mut CModule_;
+
 }
 
 extern "C" {
