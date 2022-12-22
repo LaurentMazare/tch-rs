@@ -211,6 +211,9 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
 /// Clones both the underlying `ClassType` and the module instance(data).
 module atm_clone(module m, bool in_place);
 
+/// Performs a set of optimization passes to optimize a model for the purposes of inference.
+module atm_optimize_for_inference(module m);
+
 ivalue ati_none();
 ivalue ati_tensor(tensor);
 ivalue ati_int(int64_t);

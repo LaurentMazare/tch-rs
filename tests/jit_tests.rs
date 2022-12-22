@@ -217,3 +217,19 @@ fn jit_double_free() {
     };
     assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
 }
+
+#[test]
+fn jit_optimize_for_inference() {
+    let mut mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
+    let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+    let result = mod_.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+
+    mod_.set_eval();
+    let optimized = mod_.optimize_for_inference().unwrap();
+    let result = optimized.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+    let result = optimized.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+}

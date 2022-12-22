@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## Unreleased
 ### Added
+- Expose `optimize_for_inference` for `jit` modules.
 - Expose `clone` for `jit` modules.
 - Expose `is_training` for `jit` modules.
 

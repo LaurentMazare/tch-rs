@@ -1,4 +1,5 @@
 #include<torch/csrc/autograd/engine.h>
+#include <torch/csrc/jit/api/module.h>
 #include<torch/csrc/jit/frontend/tracer.h>
 #include<torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
@@ -1161,6 +1162,13 @@ void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor
 module atm_clone(module m, bool in_place) {
   PROTECT(
     return new torch::jit::script::Module(m->clone(in_place));
+  )
+  return nullptr;
+}
+
+module atm_optimize_for_inference(module m) {
+  PROTECT(
+    return new torch::jit::script::Module(torch::jit::optimize_for_inference(*m));
   )
   return nullptr;
 }

@@ -308,6 +308,8 @@ extern "C" {
     /// Clones both the underlying `ClassType` and the module instance(data).
     pub fn atm_clone(m: *mut CModule_, in_place: bool) -> *mut CModule_;
 
+    /// Performs a set of optimization passes to optimize a model for the purposes of inference.
+    pub fn atm_optimize_for_inference(m: *mut CModule_) -> *mut CModule_;
 }
 
 extern "C" {
