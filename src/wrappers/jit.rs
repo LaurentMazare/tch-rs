@@ -697,6 +697,16 @@ impl TrainableCModule {
         self.inner.set_eval()
     }
 
+    /// True if the module is in training mode.
+    pub fn f_is_training(& self) -> Result<bool, TchError> {
+        self.inner.f_is_training()
+    }
+
+    /// True if the module is in training mode.
+    pub fn is_training(& self) -> Result<bool, TchError> {
+        self.inner.is_training()
+    }
+
     /// Performs the forward pass for a model on some specified tensor inputs.
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
         self.inner.forward_ts(ts)
