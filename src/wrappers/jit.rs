@@ -578,6 +578,12 @@ impl CModule {
         Ok(result)
     }
 
+    /// Recursively casts all parameters to the given `kind`(`dtype`) and `device`.
+    ///
+    /// If `non_blocking` is true and the source is in pinned memory and
+    /// destination is on the GPU or vice versa, the copy is performed
+    /// asynchronously with respect to the host. Otherwise, the argument has no
+    /// effect.
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
         unsafe_torch!(atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking));
     }
