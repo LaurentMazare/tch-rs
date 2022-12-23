@@ -47,7 +47,6 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
 }
 
 at::Device device_of_int(int d) {
-    if (d == -4) return at::Device(at::kMetal);
     if (d == -3) return at::Device(at::kVulkan);
     if (d == -2) return at::Device(at::kMPS);
     if (d < 0) return at::Device(at::kCPU);
