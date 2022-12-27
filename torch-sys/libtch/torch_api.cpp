@@ -1212,11 +1212,27 @@ ivalue ati_generic_list(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+using generic_dict = c10::Dict<torch::jit::IValue, torch::jit::IValue>;
+
 ivalue ati_generic_dict(ivalue *is, int nvalues) {
-  c10::Dict<torch::jit::IValue, torch::jit::IValue> dict(c10::AnyType::get(), c10::AnyType::get());
   PROTECT(
-    for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
-    return new torch::jit::IValue(dict);
+    bool all_keys_are_str = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i]->isString()) all_keys_are_str = false;
+    }
+    bool all_values_are_tensor = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i+1]->isTensor()) all_values_are_tensor = false;
+    }
+    if (all_keys_are_str && all_values_are_tensor) {
+      generic_dict dict(c10::StringType::get(), c10::TensorType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), is[2*i+1]->toTensor());
+      return new torch::jit::IValue(dict);
+    } else {
+      generic_dict dict(c10::AnyType::get(), c10::AnyType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
+      return new torch::jit::IValue(dict);
+    }
   )
   return nullptr;
 }
