@@ -166,13 +166,10 @@ fn jit_double_free() {
 fn specialized_dict() {
     let mod_ = tch::CModule::load("tests/foo8.pt").unwrap();
     let input = IValue::GenericDict(vec![
-        (
-            IValue::String("bar".to_owned()),
-            IValue::Tensor(Tensor::of_slice(&[1_f32, 7_f32]).into()),
-        ),
+        (IValue::String("bar".to_owned()), IValue::Tensor(Tensor::of_slice(&[1_f32, 7_f32]))),
         (
             IValue::String("foo".to_owned()),
-            IValue::Tensor(Tensor::of_slice(&[1_f32, 2_f32, 3_f32]).into()),
+            IValue::Tensor(Tensor::of_slice(&[1_f32, 2_f32, 3_f32])),
         ),
     ]);
     let result = mod_.method_is("generate", &[input]).unwrap();
