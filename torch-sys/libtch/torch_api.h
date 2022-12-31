@@ -113,11 +113,15 @@ void at_run_backward(tensor *tensors,
 optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay);
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad);
 optimizer ato_adamw(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay);
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad);
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,

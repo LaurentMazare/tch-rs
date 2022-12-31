@@ -155,8 +155,22 @@ pub struct C_optimizer {
 }
 
 extern "C" {
-    pub fn ato_adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> *mut C_optimizer;
-    pub fn ato_adamw(lr: f64, beta1: f64, beta2: f64, wd: f64) -> *mut C_optimizer;
+    pub fn ato_adam(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> *mut C_optimizer;
+    pub fn ato_adamw(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> *mut C_optimizer;
     pub fn ato_rms_prop(
         lr: f64,
         alpha: f64,
