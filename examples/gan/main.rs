@@ -96,11 +96,11 @@ pub fn main() -> Result<()> {
 
     let mut generator_vs = nn::VarStore::new(device);
     let generator = generator(generator_vs.root());
-    let mut opt_g = nn::adam(0.5, 0.999, 0., 1e-8, false).build(&generator_vs, LEARNING_RATE)?;
+    let mut opt_g = nn::adam(0.5, 0.999, 0.).build(&generator_vs, LEARNING_RATE)?;
 
     let mut discriminator_vs = nn::VarStore::new(device);
     let discriminator = discriminator(discriminator_vs.root());
-    let mut opt_d = nn::adam(0.5, 0.999, 0., 1e-8, false).build(&discriminator_vs, LEARNING_RATE)?;
+    let mut opt_d = nn::adam(0.5, 0.999, 0.).build(&discriminator_vs, LEARNING_RATE)?;
 
     let fixed_noise = rand_latent();
 

@@ -77,8 +77,35 @@ impl Default for Adam {
 }
 
 /// Creates the configuration for the Adam optimizer.
-pub fn adam(beta1: f64, beta2: f64, wd: f64, eps: f64, amsgrad: bool) -> Adam {
-    Adam { beta1, beta2, wd, eps, amsgrad }
+pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
+    Adam { beta1, beta2, wd, eps: 1e-8, amsgrad: false }
+}
+
+impl Adam {
+    pub fn beta1(mut self, b: f64) -> Self {
+        self.beta1 = b;
+        self
+    }
+
+    pub fn beta2(mut self, b: f64) -> Self {
+        self.beta2 = b;
+        self
+    }
+
+    pub fn wd(mut self, w: f64) -> Self {
+        self.wd = w;
+        self
+    }
+
+    pub fn eps(mut self, e: f64) -> Self {
+        self.eps = e;
+        self
+    }
+
+    pub fn amsgrad(mut self, a: bool) -> Self {
+        self.amsgrad = a;
+        self
+    }
 }
 
 impl OptimizerConfig for Adam {
@@ -104,8 +131,35 @@ impl Default for AdamW {
 }
 
 /// Creates the configuration for the AdamW optimizer.
-pub fn adamw(beta1: f64, beta2: f64, wd: f64, eps: f64, amsgrad: bool) -> AdamW {
-    AdamW { beta1, beta2, wd, eps, amsgrad }
+pub fn adamw(beta1: f64, beta2: f64, wd: f64) -> AdamW {
+    AdamW { beta1, beta2, wd, eps: 1e-8, amsgrad: false }
+}
+
+impl AdamW {
+    pub fn beta1(mut self, b: f64) -> Self {
+        self.beta1 = b;
+        self
+    }
+
+    pub fn beta2(mut self, b: f64) -> Self {
+        self.beta2 = b;
+        self
+    }
+
+    pub fn wd(mut self, w: f64) -> Self {
+        self.wd = w;
+        self
+    }
+
+    pub fn eps(mut self, e: f64) -> Self {
+        self.eps = e;
+        self
+    }
+
+    pub fn amsgrad(mut self, a: bool) -> Self {
+        self.amsgrad = a;
+        self
+    }
 }
 
 impl OptimizerConfig for AdamW {
