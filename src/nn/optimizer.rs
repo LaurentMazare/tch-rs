@@ -66,22 +66,24 @@ pub struct Adam {
     pub beta1: f64,
     pub beta2: f64,
     pub wd: f64,
+    pub eps: f64,
+    pub amsgrad: bool,
 }
 
 impl Default for Adam {
     fn default() -> Self {
-        Adam { beta1: 0.9, beta2: 0.999, wd: 0. }
+        Adam { beta1: 0.9, beta2: 0.999, wd: 0., eps: 1e-8, amsgrad: false }
     }
 }
 
 /// Creates the configuration for the Adam optimizer.
-pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
-    Adam { beta1, beta2, wd }
+pub fn adam(beta1: f64, beta2: f64, wd: f64, eps: f64, amsgrad: bool) -> Adam {
+    Adam { beta1, beta2, wd, eps, amsgrad }
 }
 
 impl OptimizerConfig for Adam {
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
-        COptimizer::adam(lr, self.beta1, self.beta2, self.wd)
+        COptimizer::adam(lr, self.beta1, self.beta2, self.wd, self.eps, self.amsgrad)
     }
 }
 
@@ -91,22 +93,24 @@ pub struct AdamW {
     pub beta1: f64,
     pub beta2: f64,
     pub wd: f64,
+    pub eps: f64,
+    pub amsgrad: bool,
 }
 
 impl Default for AdamW {
     fn default() -> Self {
-        AdamW { beta1: 0.9, beta2: 0.999, wd: 0.01 }
+        AdamW { beta1: 0.9, beta2: 0.999, wd: 0.01, eps: 1e-8, amsgrad: false }
     }
 }
 
 /// Creates the configuration for the AdamW optimizer.
-pub fn adamw(beta1: f64, beta2: f64, wd: f64) -> AdamW {
-    AdamW { beta1, beta2, wd }
+pub fn adamw(beta1: f64, beta2: f64, wd: f64, eps: f64, amsgrad: bool) -> AdamW {
+    AdamW { beta1, beta2, wd, eps, amsgrad }
 }
 
 impl OptimizerConfig for AdamW {
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
-        COptimizer::adamw(lr, self.beta1, self.beta2, self.wd)
+        COptimizer::adamw(lr, self.beta1, self.beta2, self.wd, self.eps, self.amsgrad)
     }
 }
 
