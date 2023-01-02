@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use tch::{IValue, Kind, Tensor};
 
 #[test]
@@ -232,4 +232,21 @@ fn jit_optimize_for_inference() {
     assert_eq!(i64::from(&result), 1421);
     let result = optimized.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
     assert_eq!(i64::from(&result), 1421);
+
+// https://github.com/LaurentMazare/tch-rs/issues/597
+#[test]
+fn specialized_dict() {
+    let mod_ = tch::CModule::load("tests/foo8.pt").unwrap();
+    let input = IValue::GenericDict(vec![
+        (IValue::String("bar".to_owned()), IValue::Tensor(Tensor::of_slice(&[1_f32, 7_f32]))),
+        (
+            IValue::String("foo".to_owned()),
+            IValue::Tensor(Tensor::of_slice(&[1_f32, 2_f32, 3_f32])),
+        ),
+    ]);
+    let result = mod_.method_is("generate", &[input]).unwrap();
+    let result: (Tensor, Tensor) = result.try_into().unwrap();
+    assert_eq!(Vec::<f64>::from(&result.0), [1.0, 2.0, 3.0]);
+    assert_eq!(Vec::<f64>::from(&result.1), [1.0, 7.0])
+
 }

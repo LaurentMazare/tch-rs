@@ -656,12 +656,16 @@ void at_run_backward(tensor *tensors,
 optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay) {
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad) {
   PROTECT(
     auto options =
       torch::optim::AdamOptions(learning_rate)
         .betas(std::tuple<double, double>(beta1, beta2))
-        .weight_decay(weight_decay);
+        .weight_decay(weight_decay)
+        .eps(eps)
+        .amsgrad(amsgrad);
     return new torch::optim::Adam(vector<torch::Tensor>(), options);
   )
   return nullptr;
@@ -670,12 +674,16 @@ optimizer ato_adam(double learning_rate,
 optimizer ato_adamw(double learning_rate,
                     double beta1,
                     double beta2,
-                    double weight_decay) {
+                    double weight_decay,
+                    double eps,
+                    bool amsgrad) {
   PROTECT(
     auto options =
       torch::optim::AdamWOptions(learning_rate)
         .betas(std::tuple<double, double>(beta1, beta2))
-        .weight_decay(weight_decay);
+        .weight_decay(weight_decay)
+        .eps(eps)
+        .amsgrad(amsgrad);
     return new torch::optim::AdamW(vector<torch::Tensor>(), options);
   )
   return nullptr;
@@ -1234,11 +1242,27 @@ ivalue ati_generic_list(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+using generic_dict = c10::Dict<torch::jit::IValue, torch::jit::IValue>;
+
 ivalue ati_generic_dict(ivalue *is, int nvalues) {
-  c10::Dict<torch::jit::IValue, torch::jit::IValue> dict(c10::AnyType::get(), c10::AnyType::get());
   PROTECT(
-    for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
-    return new torch::jit::IValue(dict);
+    bool all_keys_are_str = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i]->isString()) all_keys_are_str = false;
+    }
+    bool all_values_are_tensor = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i+1]->isTensor()) all_values_are_tensor = false;
+    }
+    if (all_keys_are_str && all_values_are_tensor) {
+      generic_dict dict(c10::StringType::get(), c10::TensorType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), is[2*i+1]->toTensor());
+      return new torch::jit::IValue(dict);
+    } else {
+      generic_dict dict(c10::AnyType::get(), c10::AnyType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
+      return new torch::jit::IValue(dict);
+    }
   )
   return nullptr;
 }
