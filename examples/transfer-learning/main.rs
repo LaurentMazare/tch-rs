@@ -4,6 +4,7 @@
 // The pre-trained weight files containing the pre-trained weights can be found here:
 // https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
 use anyhow::{bail, Result};
+use std::convert::TryFrom;
 use tch::nn::{self, OptimizerConfig};
 use tch::vision::{imagenet, resnet};
 
@@ -36,7 +37,7 @@ pub fn main() -> Result<()> {
         sgd.backward_step(&loss);
 
         let test_accuracy = test_images.apply(&linear).accuracy_for_logits(&dataset.test_labels);
-        println!("{} {:.2}%", epoch_idx, 100. * f64::from(test_accuracy));
+        println!("{} {:.2}%", epoch_idx, 100. * f64::try_from(test_accuracy)?);
     }
     Ok(())
 }

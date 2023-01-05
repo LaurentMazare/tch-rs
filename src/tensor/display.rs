@@ -2,6 +2,7 @@
 /// This implementation should be in line with the PyTorch version.
 /// https://github.com/pytorch/pytorch/blob/7b419e8513a024e172eae767e24ec1b849976b13/torch/_tensor_str.py
 use crate::{Kind, Tensor};
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BasicKind {
@@ -61,9 +62,9 @@ impl std::fmt::Debug for Tensor {
                         | Kind::ComplexDouble => (false, false),
                     };
                     match (self.size().as_slice(), is_int, is_float) {
-                        ([], true, false) => write!(f, "[{}]", i64::from(self)),
+                        ([], true, false) => write!(f, "[{}]", i64::try_from(self).unwrap()),
                         ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
-                        ([], false, true) => write!(f, "[{}]", f64::from(self)),
+                        ([], false, true) => write!(f, "[{}]", f64::try_from(self).unwrap()),
                         ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
                         _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), kind),
                     }

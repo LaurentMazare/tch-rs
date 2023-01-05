@@ -45,31 +45,12 @@ impl<T: Element> From<Tensor> for Vec<Vec<Vec<T>>> {
     }
 }
 
-pub struct ScalarT<T>(pub T);
-
 macro_rules! from_tensor {
     ($typ:ident) => {
-        impl From<&Tensor> for $typ {
-            fn from(tensor: &Tensor) -> $typ {
-                let numel = tensor.numel();
-                if numel != 1 {
-                    panic!("expected exactly one element, got {}", numel)
-                }
-                Vec::from(tensor)[0]
-            }
-        }
-
-        impl From<Tensor> for $typ {
-            fn from(tensor: Tensor) -> $typ {
-                $typ::from(&tensor)
-            }
-        }
-
-        impl TryFrom<ScalarT<&Tensor>> for $typ {
+        impl TryFrom<&Tensor> for $typ {
             type Error = TchError;
 
-            fn try_from(tensor: ScalarT<&Tensor>) -> Result<Self, Self::Error> {
-                let tensor = tensor.0;
+            fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
                 let numel = tensor.numel();
                 if numel != 1 {
                     return Err(TchError::Convert(format!(
@@ -86,11 +67,11 @@ macro_rules! from_tensor {
             }
         }
 
-        impl TryFrom<ScalarT<Tensor>> for $typ {
+        impl TryFrom<Tensor> for $typ {
             type Error = TchError;
 
-            fn try_from(tensor: ScalarT<Tensor>) -> Result<Self, Self::Error> {
-                $typ::try_from(ScalarT(&tensor.0))
+            fn try_from(tensor: Tensor) -> Result<Self, Self::Error> {
+                $typ::try_from(&tensor)
             }
         }
     };

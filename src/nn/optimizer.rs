@@ -2,6 +2,7 @@
 use super::var_store::{VarStore, Variables};
 use crate::wrappers::optimizer::COptimizer;
 use crate::{TchError, Tensor};
+use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 
 /// An optimizer to run gradient descent.
@@ -231,7 +232,7 @@ impl Optimizer {
             for var in v.trainable_variables.iter() {
                 norms.push(var.tensor.grad().norm());
             }
-            let total_norm = f64::from(Tensor::stack(&norms, 0).norm());
+            let total_norm = f64::try_from(Tensor::stack(&norms, 0).norm()).unwrap();
             let clip_coef = max / (total_norm + 1e-6);
             if clip_coef < 1.0 {
                 for var in v.trainable_variables.iter() {

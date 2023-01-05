@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use tch::nn::{group_norm, layer_norm};
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
@@ -20,7 +21,7 @@ fn optimizer_test() {
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss = f64::try_from(&loss).unwrap();
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     opt.set_lr(1e-2);
@@ -30,7 +31,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f64::try_from(loss).unwrap();
     assert!(final_loss < 0.25, "final loss {}", final_loss);
 
     // Reset the weights to their initial values.
@@ -38,7 +39,7 @@ fn optimizer_test() {
         linear.ws.init(nn::Init::Const(0.));
         linear.bs.as_mut().unwrap().init(nn::Init::Const(0.));
     });
-    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2 = f64::try_from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean)).unwrap();
     assert_eq!(initial_loss, initial_loss2);
 
     // Set the learning-rate to be very small and check that the loss does not change
@@ -49,7 +50,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f64::try_from(loss).unwrap();
     assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
 }
 
@@ -181,7 +182,7 @@ fn layer_norm_parameters_test() {
     let mut ln = layer_norm(vs.root(), vec![2], Default::default());
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss = f64::try_from(&loss).unwrap();
     assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
 
     // Optimization loop.
@@ -190,7 +191,7 @@ fn layer_norm_parameters_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss = f64::try_from(loss).unwrap();
     assert!(final_loss < 0.25, "final loss {:?}", final_loss);
 
     //     Reset the weights to their initial values.
@@ -202,7 +203,7 @@ fn layer_norm_parameters_test() {
             bs.init(nn::Init::Const(0.));
         }
     });
-    let initial_loss2 = f64::from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2 = f64::try_from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean)).unwrap();
     assert_eq!(initial_loss, initial_loss2)
 }
 

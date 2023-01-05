@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use tch::{Kind, Tensor};
 
 struct TmpFile(std::path::PathBuf);
@@ -67,7 +68,7 @@ fn save_and_load_multi() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(i64::try_from(&named_tensors[1].1.sum(tch::Kind::Float)).unwrap(), 57);
 }
 
 #[test]
@@ -84,7 +85,7 @@ fn save_to_stream_and_load_multi() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(i64::try_from(&named_tensors[1].1.sum(tch::Kind::Float)).unwrap(), 57);
 }
 
 #[test]
@@ -98,7 +99,7 @@ fn save_and_load_multi_from_stream() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(i64::try_from(&named_tensors[1].1.sum(tch::Kind::Float)).unwrap(), 57);
 }
 
 #[test]
@@ -111,7 +112,7 @@ fn save_and_load_npz() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(i64::try_from(&named_tensors[1].1.sum(tch::Kind::Float)).unwrap(), 57);
 }
 
 #[test]
@@ -125,7 +126,7 @@ fn save_and_load_npz_half() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(i64::try_from(&named_tensors[1].1.sum(tch::Kind::Float)).unwrap(), 57);
 }
 
 #[test]
@@ -139,7 +140,7 @@ fn save_and_load_npz_byte() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i8::from(&named_tensors[1].1.sum(tch::Kind::Int8)), 57);
+    assert_eq!(i8::try_from(&named_tensors[1].1.sum(tch::Kind::Int8)).unwrap(), 57);
 }
 
 #[test]

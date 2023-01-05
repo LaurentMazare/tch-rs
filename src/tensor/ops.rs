@@ -1,6 +1,7 @@
 //! Implement various ops traits for tensors
 use super::Tensor;
 use crate::Scalar;
+use std::convert::TryFrom;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 fn id<T>(v: T) -> T {
@@ -297,7 +298,7 @@ impl PartialEq for Tensor {
             Err(_) => false,
             Ok(v) => match v.f_all() {
                 Err(_) => false,
-                Ok(v) => i64::from(v) > 0,
+                Ok(v) => i64::try_from(v).unwrap() > 0,
             },
         }
     }

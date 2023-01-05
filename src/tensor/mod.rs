@@ -12,7 +12,6 @@ mod ops;
 pub use super::wrappers::tensor::{
     autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
 };
-pub use convert::ScalarT;
 pub use index::{IndexOp, NewAxis, TensorIndexer};
 
 pub trait Shape {

@@ -11,6 +11,7 @@
 */
 use anyhow::Result;
 use rand::prelude::*;
+use std::convert::TryFrom;
 use tch::nn::{GRUState, Module, OptimizerConfig, RNN};
 use tch::{nn, Device, Kind, Tensor};
 
@@ -132,7 +133,7 @@ impl Model {
             let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
             loss = loss + output.nll_loss(&target_tensor);
             let (_, output) = output.topk(1, -1, true, true);
-            if self.decoder_eos == i64::from(&output) as usize {
+            if self.decoder_eos == i64::try_from(&output).unwrap() as usize {
                 break;
             }
             prev = if use_teacher_forcing { target_tensor } else { output };
@@ -155,7 +156,7 @@ impl Model {
         for _i in 0..MAX_LENGTH {
             let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
             let (_, output) = output.topk(1, -1, true, true);
-            let output_ = i64::from(&output) as usize;
+            let output_ = i64::try_from(&output).unwrap() as usize;
             output_seq.push(output_);
             if self.decoder_eos == output_ {
                 break;
@@ -208,7 +209,7 @@ pub fn main() -> Result<()> {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
         let loss = model.train_loss(input_, target, &mut rng);
         opt.backward_step(&loss);
-        loss_stats.update(f64::from(loss) / target.len() as f64);
+        loss_stats.update(f64::try_from(loss).unwrap() / target.len() as f64);
         if idx % 1000 == 0 {
             println!("{} {}", idx, loss_stats.avg_and_reset());
             for _pred_index in 1..5 {

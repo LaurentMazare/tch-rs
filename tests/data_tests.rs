@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::io::Write;
 use tch::{data, IndexOp, Tensor};
 
@@ -49,9 +50,9 @@ fn text() {
     for xs in text_data.iter_shuffle(2, 5) {
         let first_column_plus_one = (xs.i((.., ..1)) + 1).fmod(10);
         let second_column = xs.i((.., 1..=1));
-        let err = i64::from(
+        let err = i64::try_from(
             (first_column_plus_one - second_column).pow_tensor_scalar(2).sum(tch::Kind::Float),
         );
-        assert_eq!(err, 0)
+        assert_eq!(err.unwrap(), 0)
     }
 }

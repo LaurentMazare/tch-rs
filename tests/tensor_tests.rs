@@ -98,7 +98,7 @@ fn grad_grad() {
     let dy_over_dx = &dy_over_dx[0];
     dy_over_dx.backward();
     let dy_over_dx2 = x.grad();
-    assert_eq!(f64::from(&dy_over_dx2), 254.0);
+    assert_eq!(f64::try_from(&dy_over_dx2).unwrap(), 254.0);
 }
 
 #[test]
@@ -317,10 +317,10 @@ fn bool_tensor() {
     let t2_any = t2.any();
     let t1_all = t1.all();
     let t2_all = t2.all();
-    assert!(bool::from(&t1_any));
-    assert!(!bool::from(&t1_all));
-    assert!(bool::from(&t2_any));
-    assert!(bool::from(&t2_all));
+    assert!(bool::try_from(&t1_any).unwrap());
+    assert!(!bool::try_from(&t1_all).unwrap());
+    assert!(bool::try_from(&t2_any).unwrap());
+    assert!(bool::try_from(&t2_all).unwrap());
 }
 
 #[test]
@@ -462,8 +462,8 @@ fn set_data() {
 #[test]
 fn convert_to_scalar() {
     let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
-    assert!(f32::try_from(tch::ScalarT(t)).is_err());
+    assert!(f32::try_from(t).is_err());
     let t = Tensor::of_slice(&[0.42f32]);
-    assert_eq!(f32::try_from(tch::ScalarT(&t)).unwrap(), 0.42);
-    assert_eq!(i64::try_from(tch::ScalarT(t)).unwrap(), 0);
+    assert_eq!(f32::try_from(&t).unwrap(), 0.42);
+    assert_eq!(i64::try_from(t).unwrap(), 0);
 }
