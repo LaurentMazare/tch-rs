@@ -458,3 +458,12 @@ fn set_data() {
     t.set_data(&t.to_kind(tch::Kind::BFloat16));
     assert_eq!(t.kind(), tch::Kind::BFloat16);
 }
+
+#[test]
+fn convert_to_scalar() {
+    let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
+    assert!(f32::try_from(tch::ScalarT(t)).is_err());
+    let t = Tensor::of_slice(&[0.42f32]);
+    assert_eq!(f32::try_from(tch::ScalarT(&t)).unwrap(), 0.42);
+    assert_eq!(i64::try_from(tch::ScalarT(t)).unwrap(), 0);
+}
