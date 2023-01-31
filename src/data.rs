@@ -36,8 +36,7 @@ impl Iter2 {
         let total_size = xs.size()[0];
         if ys.size()[0] != total_size {
             return Err(TchError::Shape(format!(
-                "different dimension for the two inputs {:?} {:?}",
-                xs, ys
+                "different dimension for the two inputs {xs:?} {ys:?}"
             )));
         }
         Ok(Iter2 {
@@ -163,7 +162,7 @@ impl TextData {
 
     pub fn char_to_label(&self, c: char) -> Result<u8, TchError> {
         match self.label_for_char.get(&(c as u8)) {
-            None => Err(TchError::Convert(format!("cannot find char {}", c))),
+            None => Err(TchError::Convert(format!("cannot find char {c}"))),
             Some(v) => Ok(*v),
         }
     }

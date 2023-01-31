@@ -23,7 +23,7 @@ fn read_header<R: Read>(reader: &mut R) -> Result<String, TchError> {
         1 => 2,
         2 => 4,
         otherwise => {
-            return Err(TchError::FileFormat(format!("unsupported version {}", otherwise)))
+            return Err(TchError::FileFormat(format!("unsupported version {otherwise}")))
         }
     };
     let mut header_len = vec![0u8; header_len_len];
@@ -54,14 +54,13 @@ impl Header {
             Kind::Int16 => "i2",
             Kind::Int8 => "i1",
             Kind::Uint8 => "u1",
-            descr => return Err(TchError::FileFormat(format!("unsupported kind {:?}", descr))),
+            descr => return Err(TchError::FileFormat(format!("unsupported kind {descr:?}"))),
         };
         if !shape.is_empty() {
             shape.push(',')
         }
         Ok(format!(
-            "{{'descr': '<{}', 'fortran_order': {}, 'shape': ({}), }}",
-            descr, fortran_order, shape
+            "{{'descr': '<{descr}', 'fortran_order': {fortran_order}, 'shape': ({shape}), }}"
         ))
     }
 
@@ -100,8 +99,7 @@ impl Header {
                     }
                     _ => {
                         return Err(TchError::FileFormat(format!(
-                            "unable to parse header {}",
-                            header
+                            "unable to parse header {header}"
                         )))
                     }
                 }
@@ -114,8 +112,7 @@ impl Header {
                 "True" => true,
                 _ => {
                     return Err(TchError::FileFormat(format!(
-                        "unknown fortran_order {}",
-                        fortran_order
+                        "unknown fortran_order {fortran_order}"
                     )))
                 }
             },
@@ -127,7 +124,7 @@ impl Header {
                     return Err(TchError::FileFormat("empty descr".to_string()));
                 }
                 if descr.starts_with('>') {
-                    return Err(TchError::FileFormat(format!("little-endian descr {}", descr)));
+                    return Err(TchError::FileFormat(format!("little-endian descr {descr}")));
                 }
                 // the only supported types in tensor are:
                 //     float64, float32, float16,
@@ -147,7 +144,7 @@ impl Header {
                     "F" | "F4" => Kind::ComplexFloat,
                     "D" | "F8" => Kind::ComplexDouble,
                     descr => {
-                        return Err(TchError::FileFormat(format!("unrecognized descr {}", descr)))
+                        return Err(TchError::FileFormat(format!("unrecognized descr {descr}")))
                     }
                 }
             }

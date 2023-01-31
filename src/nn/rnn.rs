@@ -97,12 +97,12 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
             let in_dim = if layer_idx == 0 { in_dim } else { hidden_dim * num_directions };
             let suffix = if direction_idx == 1 { "_reverse" } else { "" };
             let w_ih = vs.var(
-                &format!("weight_ih_l{}{}", layer_idx, suffix),
+                &format!("weight_ih_l{layer_idx}{suffix}"),
                 &[gate_dim, in_dim],
                 c.w_ih_init,
             );
             let w_hh = vs.var(
-                &format!("weight_hh_l{}{}", layer_idx, suffix),
+                &format!("weight_hh_l{layer_idx}{suffix}"),
                 &[gate_dim, hidden_dim],
                 c.w_hh_init,
             );
@@ -110,12 +110,12 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
             flat_weights.push(w_hh);
             if c.has_biases {
                 let b_ih = vs.var(
-                    &format!("bias_ih_l{}{}", layer_idx, suffix),
+                    &format!("bias_ih_l{layer_idx}{suffix}"),
                     &[gate_dim],
                     c.b_ih_init.unwrap(),
                 );
                 let b_hh = vs.var(
-                    &format!("bias_hh_l{}{}", layer_idx, suffix),
+                    &format!("bias_hh_l{layer_idx}{suffix}"),
                     &[gate_dim],
                     c.b_hh_init.unwrap(),
                 );

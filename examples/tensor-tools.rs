@@ -18,21 +18,21 @@ pub fn main() -> Result<()> {
             for filename in args.iter().skip(2) {
                 if filename.ends_with(".npy") {
                     let tensor = tch::Tensor::read_npy(filename)?;
-                    println!("{}: {:?}", filename, tensor);
+                    println!("{filename}: {tensor:?}");
                 } else if filename.ends_with(".npz") {
                     let tensors = tch::Tensor::read_npz(filename)?;
                     for (name, tensor) in tensors.iter() {
-                        println!("{}: {} {:?}", filename, name, tensor)
+                        println!("{filename}: {name} {tensor:?}")
                     }
                 } else if filename.ends_with(".ot") {
                     let tensors = tch::Tensor::load_multi(filename)?;
                     for (name, tensor) in tensors.iter() {
-                        println!("{}: {} {:?}", filename, name, tensor)
+                        println!("{filename}: {name} {tensor:?}")
                     }
                 } else if filename.ends_with(".bin") || filename.ends_with(".zip") {
                     let tensors = tch::Tensor::loadz_multi(filename)?;
                     for (name, tensor) in tensors.iter() {
-                        println!("{}: {} {:?}", filename, name, tensor)
+                        println!("{filename}: {name} {tensor:?}")
                     }
                 } else {
                     bail!("unhandled file {}", filename);
@@ -53,7 +53,7 @@ pub fn main() -> Result<()> {
                 bail!("unhandled file {}", src_filename)
             };
             for (name, tensor) in tensors.iter() {
-                println!("{}: {} {:?}", src_filename, name, tensor)
+                println!("{src_filename}: {name} {tensor:?}")
             }
             if dst_filename.ends_with(".npz") {
                 tch::Tensor::write_npz(&tensors, dst_filename)?

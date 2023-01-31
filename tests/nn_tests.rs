@@ -21,7 +21,7 @@ fn optimizer_test() {
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    assert!(initial_loss > 1.0, "initial loss {initial_loss}");
 
     opt.set_lr(1e-2);
     // Optimization loop.
@@ -31,7 +31,7 @@ fn optimizer_test() {
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {}", final_loss);
+    assert!(final_loss < 0.25, "final loss {final_loss}");
 
     // Reset the weights to their initial values.
     tch::no_grad(|| {
@@ -50,7 +50,7 @@ fn optimizer_test() {
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
+    assert!((final_loss - initial_loss) < 1e-5, "final loss {final_loss}")
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
@@ -182,7 +182,7 @@ fn layer_norm_parameters_test() {
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    assert!(initial_loss > 1.0, "initial loss {initial_loss}");
 
     // Optimization loop.
     for _idx in 1..50 {
@@ -191,7 +191,7 @@ fn layer_norm_parameters_test() {
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {:?}", final_loss);
+    assert!(final_loss < 0.25, "final loss {final_loss:?}");
 
     //     Reset the weights to their initial values.
     tch::no_grad(|| {
