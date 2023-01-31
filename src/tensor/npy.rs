@@ -22,9 +22,7 @@ fn read_header<R: Read>(reader: &mut R) -> Result<String, TchError> {
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
-        otherwise => {
-            return Err(TchError::FileFormat(format!("unsupported version {otherwise}")))
-        }
+        otherwise => return Err(TchError::FileFormat(format!("unsupported version {otherwise}"))),
     };
     let mut header_len = vec![0u8; header_len_len];
     reader.read_exact(&mut header_len)?;

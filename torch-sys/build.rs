@@ -65,7 +65,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
 }
 
 fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
-    println!("cargo:rerun-if-env-changed={}", name);
+    println!("cargo:rerun-if-env-changed={name}");
     env::var(name)
 }
 
@@ -122,8 +122,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                     }
                 ),
                 "macos" => format!(
-                    "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
-                    TORCH_VERSION
+                    "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip"
                 ),
                 "windows" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
@@ -138,7 +137,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                 _ => panic!("Unsupported OS"),
             };
 
-            let filename = libtorch_dir.join(format!("v{}.zip", TORCH_VERSION));
+            let filename = libtorch_dir.join(format!("v{TORCH_VERSION}.zip"));
             download(&libtorch_url, &filename).unwrap();
             extract(&filename, &libtorch_dir).unwrap();
         }
@@ -180,7 +179,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .include(includes.join("include/torch/csrc/api/include"))
                 .flag(&format!("-Wl,-rpath={}", lib.join("lib").display()))
                 .flag("-std=c++14")
-                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
+                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={libtorch_cxx11_abi}"))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
                 .compile("tch");
