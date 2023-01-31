@@ -332,7 +332,7 @@ pub fn run() -> cpython::PyResult<()> {
             obs = step.obs;
         }
 
-        println!("episode {} with total reward of {}", episode, total_reward);
+        println!("episode {episode} with total reward of {total_reward}");
 
         for _ in 0..TRAINING_ITERATIONS {
             agent.train(TRAINING_BATCH_SIZE);
