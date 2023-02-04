@@ -13,28 +13,23 @@ use std::path::{Path, PathBuf};
 
 const TORCH_VERSION: &str = "1.13.0";
 
-#[cfg(feature = "curl")]
+#[cfg(feature = "ureq")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
-    use curl::easy::Easy;
-    use std::io::Write;
-
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
-    let mut easy = Easy::new();
-    easy.url(source_url)?;
-    easy.write_function(move |data| Ok(writer.write(data).unwrap()))?;
-    easy.perform()?;
-    let response_code = easy.response_code()?;
-    if response_code == 200 {
-        Ok(())
-    } else {
-        Err(anyhow::anyhow!("Unexpected response code {} for {}", response_code, source_url))
+    let response = ureq::get(source_url).call()?;
+    let response_code = response.status();
+    if response_code != 200 {
+        anyhow::bail!("Unexpected response code {} for {}", response_code, source_url)
     }
+    let mut reader = response.into_reader();
+    std::io::copy(&mut reader, &mut writer)?;
+    Ok(())
 }
 
-#[cfg(not(feature = "curl"))]
+#[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
-    anyhow::bail!("cannot use download without the curl feature")
+    anyhow::bail!("cannot use download without the ureq feature")
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
