@@ -847,10 +847,8 @@ impl SpatialTransformer {
         for block in self.transformer_blocks.iter() {
             xs = block.forward(&xs, context)
         }
-        let xs = xs
-            .view((batch, height, weight, inner_dim))
-            .permute([0, 3, 1, 2])
-            .apply(&self.proj_out);
+        let xs =
+            xs.view((batch, height, weight, inner_dim)).permute([0, 3, 1, 2]).apply(&self.proj_out);
         xs + residual
     }
 }
