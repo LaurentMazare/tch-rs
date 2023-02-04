@@ -48,13 +48,13 @@ struct OuNoise {
 
 impl OuNoise {
     fn new(mu: f64, theta: f64, sigma: f64, num_actions: usize) -> Self {
-        let state = Tensor::ones(&[num_actions as _], FLOAT_CPU);
+        let state = Tensor::ones([num_actions as _], FLOAT_CPU);
         Self { mu, theta, sigma, state }
     }
 
     fn sample(&mut self) -> &Tensor {
         let dx = self.theta * (self.mu - &self.state)
-            + self.sigma * Tensor::randn(&self.state.size(), FLOAT_CPU);
+            + self.sigma * Tensor::randn(self.state.size(), FLOAT_CPU);
         self.state += dx;
         &self.state
     }
@@ -73,10 +73,10 @@ struct ReplayBuffer {
 impl ReplayBuffer {
     fn new(capacity: usize, num_obs: usize, num_actions: usize) -> Self {
         Self {
-            obs: Tensor::zeros(&[capacity as _, num_obs as _], FLOAT_CPU),
-            next_obs: Tensor::zeros(&[capacity as _, num_obs as _], FLOAT_CPU),
-            rewards: Tensor::zeros(&[capacity as _, 1], FLOAT_CPU),
-            actions: Tensor::zeros(&[capacity as _, num_actions as _], FLOAT_CPU),
+            obs: Tensor::zeros([capacity as _, num_obs as _], FLOAT_CPU),
+            next_obs: Tensor::zeros([capacity as _, num_obs as _], FLOAT_CPU),
+            rewards: Tensor::zeros([capacity as _, 1], FLOAT_CPU),
+            actions: Tensor::zeros([capacity as _, num_actions as _], FLOAT_CPU),
             capacity,
             len: 0,
             i: 0,
@@ -101,7 +101,7 @@ impl ReplayBuffer {
         }
 
         let batch_size = batch_size.min(self.len - 1);
-        let batch_indexes = Tensor::randint((self.len - 2) as _, &[batch_size as _], INT64_CPU);
+        let batch_indexes = Tensor::randint((self.len - 2) as _, [batch_size as _], INT64_CPU);
 
         let states = self.obs.index_select(0, &batch_indexes);
         let next_states = self.next_obs.index_select(0, &batch_indexes);

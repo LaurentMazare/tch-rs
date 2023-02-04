@@ -351,7 +351,7 @@ impl Tokenizer {
             vocab.push(elem.into())
         }
         for (_index, elem) in BYTES_TO_UNICODE {
-            vocab.push(format!("{}</w>", elem));
+            vocab.push(format!("{elem}</w>"));
         }
         for elem in bpe_lines.iter() {
             vocab.push(format!("{}{}", elem.0, elem.1))
@@ -413,7 +413,7 @@ impl Tokenizer {
             while index < word.len() {
                 let w = &word[index];
                 if index + 1 < word.len() && w == first && &word[index + 1] == second {
-                    new_word.push(format!("{}{}", first, second));
+                    new_word.push(format!("{first}{second}"));
                     index += 2
                 } else {
                     new_word.push(w.clone());
@@ -474,7 +474,7 @@ impl ClipTextEmbeddings {
         );
         let position_ids =
             Tensor::arange(MAX_POSITION_EMBEDDINGS as i64, (Kind::Int64, vs.device()))
-                .expand(&[1, -1], false);
+                .expand([1, -1], false);
         ClipTextEmbeddings { token_embedding, position_embedding, position_ids }
     }
 }
@@ -535,7 +535,7 @@ impl ClipAttention {
         attn_output
             .view((bsz, NUM_ATTENTION_HEADS, tgt_len, self.head_dim))
             .transpose(1, 2)
-            .reshape(&[bsz, tgt_len, embed_dim])
+            .reshape([bsz, tgt_len, embed_dim])
             .apply(&self.out_proj)
     }
 }
@@ -635,7 +635,7 @@ impl ClipTextTransformer {
 
     // https://github.com/huggingface/transformers/blob/674f750a57431222fa2832503a108df3badf1564/src/transformers/models/clip/modeling_clip.py#L678
     fn build_causal_attention_mask(bsz: i64, seq_len: i64, device: Device) -> Tensor {
-        let mut mask = Tensor::ones(&[bsz, seq_len, seq_len], (Kind::Float, device));
+        let mut mask = Tensor::ones([bsz, seq_len, seq_len], (Kind::Float, device));
         mask.fill_(f32::MIN as f64).triu_(1).unsqueeze(1)
     }
 }
@@ -726,16 +726,16 @@ impl CrossAttention {
 
     fn reshape_heads_to_batch_dim(&self, xs: &Tensor) -> Tensor {
         let (batch_size, seq_len, dim) = xs.size3().unwrap();
-        xs.reshape(&[batch_size, seq_len, self.heads, dim / self.heads])
-            .permute(&[0, 2, 1, 3])
-            .reshape(&[batch_size * self.heads, seq_len, dim / self.heads])
+        xs.reshape([batch_size, seq_len, self.heads, dim / self.heads])
+            .permute([0, 2, 1, 3])
+            .reshape([batch_size * self.heads, seq_len, dim / self.heads])
     }
 
     fn reshape_batch_dim_to_heads(&self, xs: &Tensor) -> Tensor {
         let (batch_size, seq_len, dim) = xs.size3().unwrap();
-        xs.reshape(&[batch_size / self.heads, self.heads, seq_len, dim])
-            .permute(&[0, 2, 1, 3])
-            .reshape(&[batch_size / self.heads, seq_len, dim * self.heads])
+        xs.reshape([batch_size / self.heads, self.heads, seq_len, dim])
+            .permute([0, 2, 1, 3])
+            .reshape([batch_size / self.heads, seq_len, dim * self.heads])
     }
 
     fn attention(&self, query: &Tensor, key: &Tensor, value: &Tensor) -> Tensor {
@@ -843,13 +843,13 @@ impl SpatialTransformer {
         let residual = xs;
         let xs = xs.apply(&self.norm).apply(&self.proj_in);
         let inner_dim = xs.size()[1];
-        let mut xs = xs.permute(&[0, 2, 3, 1]).view((batch, height * weight, inner_dim));
+        let mut xs = xs.permute([0, 2, 3, 1]).view((batch, height * weight, inner_dim));
         for block in self.transformer_blocks.iter() {
             xs = block.forward(&xs, context)
         }
         let xs = xs
             .view((batch, height, weight, inner_dim))
-            .permute(&[0, 3, 1, 2])
+            .permute([0, 3, 1, 2])
             .apply(&self.proj_out);
         xs + residual
     }
@@ -896,7 +896,7 @@ impl AttentionBlock {
 
     fn transpose_for_scores(&self, xs: Tensor) -> Tensor {
         let (batch, t, _h_times_d) = xs.size3().unwrap();
-        xs.view((batch, t, self.num_heads, -1)).permute(&[0, 2, 1, 3])
+        xs.view((batch, t, self.num_heads, -1)).permute([0, 2, 1, 3])
     }
 }
 
@@ -920,7 +920,7 @@ impl Module for AttentionBlock {
         let attention_probs = attention_scores.softmax(-1, Kind::Float);
 
         let xs = attention_probs.matmul(&value_states);
-        let xs = xs.permute(&[0, 2, 1, 3]).contiguous();
+        let xs = xs.permute([0, 2, 1, 3]).contiguous();
         let mut new_xs_shape = xs.size();
         new_xs_shape.pop();
         new_xs_shape.pop();
@@ -963,10 +963,10 @@ impl Downsample2D {
 impl Module for Downsample2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
         match &self.conv {
-            None => xs.avg_pool2d(&[2, 2], &[2, 2], &[0, 0], false, true, None),
+            None => xs.avg_pool2d([2, 2], [2, 2], [0, 0], false, true, None),
             Some(conv) => {
                 if self.padding == 0 {
-                    xs.pad(&[0, 1, 0, 1], "constant", Some(0.)).apply(conv)
+                    xs.pad([0, 1, 0, 1], "constant", Some(0.)).apply(conv)
                 } else {
                     xs.apply(conv)
                 }
@@ -997,9 +997,9 @@ impl Upsample2D {
                 // dimensions so hack our way around this.
                 // xs.upsample_nearest2d(&[], Some(2.), Some(2.)
                 let (_bsize, _channels, h, w) = xs.size4().unwrap();
-                xs.upsample_nearest2d(&[2 * h, 2 * w], Some(2.), Some(2.))
+                xs.upsample_nearest2d([2 * h, 2 * w], Some(2.), Some(2.))
             }
-            Some((h, w)) => xs.upsample_nearest2d(&[h, w], None, None),
+            Some((h, w)) => xs.upsample_nearest2d([h, w], None, None),
         };
         xs.apply(&self.conv)
     }
@@ -2019,7 +2019,7 @@ impl Module for Timesteps {
             Tensor::cat(&[emb.sin(), emb.cos()], -1)
         };
         if self.num_channels % 2 == 1 {
-            emb.pad(&[0, 1, 0, 0], "constant", None)
+            emb.pad([0, 1, 0, 0], "constant", None)
         } else {
             emb
         }
@@ -2268,7 +2268,7 @@ impl UNet2DConditionModel {
         // 0. center input if necessary
         let xs = if self.config.center_input_sample { xs * 2.0 - 1.0 } else { xs.shallow_clone() };
         // 1. time
-        let emb = (Tensor::ones(&[bsize], (Kind::Float, device)) * timestep)
+        let emb = (Tensor::ones([bsize], (Kind::Float, device)) * timestep)
             .apply(&self.time_proj)
             .apply(&self.time_embedding);
         // 2. pre-process
@@ -2470,13 +2470,13 @@ fn main() -> anyhow::Result<()> {
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
     let tokens = tokenizer.encode(&prompt, Some(MAX_POSITION_EMBEDDINGS))?;
     let str = tokenizer.decode(&tokens);
-    println!("Str: {}", str);
+    println!("Str: {str}");
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
     let tokens = Tensor::of_slice(&tokens).view((1, -1)).to(device);
     let uncond_tokens = tokenizer.encode("", Some(MAX_POSITION_EMBEDDINGS))?;
     let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
     let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1)).to(device);
-    println!("Tokens: {:?}", tokens);
+    println!("Tokens: {tokens:?}");
 
     let no_grad_guard = tch::no_grad_guard();
     println!("Building the Clip transformer.");
@@ -2484,7 +2484,7 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = text_model.forward(&tokens);
     let uncond_embeddings = text_model.forward(&uncond_tokens);
     let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
-    println!("Text embeddings: {:?}", text_embeddings);
+    println!("Text embeddings: {text_embeddings:?}");
 
     println!("Building the autoencoder.");
     let vae = build_vae(device)?;
@@ -2494,10 +2494,10 @@ fn main() -> anyhow::Result<()> {
     let bsize = 1;
     // DETERMINISTIC SEEDING
     tch::manual_seed(32);
-    let mut latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
+    let mut latents = Tensor::randn([bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
 
     for (timestep_index, &timestep) in scheduler.timesteps.iter().enumerate() {
-        println!("Timestep {} {} {:?}", timestep_index, timestep, latents);
+        println!("Timestep {timestep_index} {timestep} {latents:?}");
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
         let noise_pred = unet.forward(&latent_model_input, timestep as f64, &text_embeddings);
         let noise_pred = noise_pred.chunk(2, 0);
@@ -2508,7 +2508,7 @@ fn main() -> anyhow::Result<()> {
         let image = vae.decode(&(&latents / 0.18215));
         let image = (image / 2 + 0.5).clamp(0., 1.).to_device(Device::Cpu);
         let image = (image * 255.).to_kind(Kind::Uint8);
-        tch::vision::image::save(&image, format!("sd_{}.png", timestep_index))?
+        tch::vision::image::save(&image, format!("sd_{timestep_index}.png"))?
     }
 
     drop(no_grad_guard);
