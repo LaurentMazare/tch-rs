@@ -161,7 +161,7 @@ fn block(p: nn::Path, args: BlockArgs) -> impl ModuleT {
         let ys = ys.apply(&depthwise_conv).apply_t(&depthwise_bn, train).swish();
         let ys = match &se {
             None => ys,
-            Some(seq) => ys.adaptive_avg_pool2d(&[1, 1]).apply_t(seq, train).sigmoid() * ys,
+            Some(seq) => ys.adaptive_avg_pool2d([1, 1]).apply_t(seq, train).sigmoid() * ys,
         };
         let ys = ys.apply(&project_conv).apply_t(&project_bn, train);
         if args.stride == 1 && inp == final_oup {
@@ -220,7 +220,7 @@ fn efficientnet(p: &nn::Path, params: Params, nclasses: i64) -> impl ModuleT {
             .apply(&conv_head)
             .apply_t(&bn1, train)
             .swish()
-            .adaptive_avg_pool2d(&[1, 1])
+            .adaptive_avg_pool2d([1, 1])
             .squeeze_dim(-1)
             .squeeze_dim(-1)
             .apply_t(&classifier, train)

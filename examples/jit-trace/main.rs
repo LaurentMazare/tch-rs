@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     let model = CModule::create_by_tracing(
         "MyModule",
         "forward",
-        &[Tensor::zeros(&[784], FLOAT_CUDA)],
+        &[Tensor::zeros([784], FLOAT_CUDA)],
         &mut closure,
     )?;
     model.save("model.pt")?;

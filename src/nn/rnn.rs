@@ -174,7 +174,7 @@ impl RNN for LSTM {
         let num_directions = if self.config.bidirectional { 2 } else { 1 };
         let layer_dim = self.config.num_layers * num_directions;
         let shape = [layer_dim, batch_dim, self.hidden_dim];
-        let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+        let zeros = Tensor::zeros(shape, (Kind::Float, self.device));
         LSTMState((zeros.shallow_clone(), zeros.shallow_clone()))
     }
 
@@ -259,7 +259,7 @@ impl RNN for GRU {
         let num_directions = if self.config.bidirectional { 2 } else { 1 };
         let layer_dim = self.config.num_layers * num_directions;
         let shape = [layer_dim, batch_dim, self.hidden_dim];
-        GRUState(Tensor::zeros(&shape, (Kind::Float, self.device)))
+        GRUState(Tensor::zeros(shape, (Kind::Float, self.device)))
     }
 
     fn step(&self, input: &Tensor, in_state: &GRUState) -> GRUState {

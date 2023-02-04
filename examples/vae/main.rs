@@ -87,7 +87,7 @@ pub fn main() -> Result<()> {
             samples += bimages.size()[0] as f64;
         }
         println!("Epoch: {}, loss: {}", epoch, train_loss / samples);
-        let s = Tensor::randn(&[64, 20], tch::kind::FLOAT_CPU).to(device);
+        let s = Tensor::randn([64, 20], tch::kind::FLOAT_CPU).to(device);
         let s = vae.decode(&s).to(tch::Device::Cpu).view([64, 1, 28, 28]);
         tch::vision::image::save(&image_matrix(&s, 8)?, format!("s_{epoch}.png"))?
     }

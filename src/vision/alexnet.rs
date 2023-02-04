@@ -8,7 +8,7 @@ fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: 
 }
 
 fn max_pool2d(xs: Tensor, ksize: i64, stride: i64) -> Tensor {
-    xs.max_pool2d(&[ksize, ksize], &[stride, stride], &[0, 0], &[1, 1], false)
+    xs.max_pool2d([ksize, ksize], [stride, stride], [0, 0], [1, 1], false)
 }
 
 fn features(p: nn::Path) -> impl ModuleT {
@@ -39,6 +39,6 @@ fn classifier(p: nn::Path, nclasses: i64) -> impl ModuleT {
 pub fn alexnet(p: &nn::Path, nclasses: i64) -> impl ModuleT {
     nn::seq_t()
         .add(features(p / "features"))
-        .add_fn(|xs| xs.adaptive_avg_pool2d(&[6, 6]).flat_view())
+        .add_fn(|xs| xs.adaptive_avg_pool2d([6, 6]).flat_view())
         .add(classifier(p / "classifier", nclasses))
 }

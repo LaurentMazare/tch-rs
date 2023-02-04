@@ -5,11 +5,11 @@ use std::io;
 use std::path::Path;
 
 fn hwc_to_chw(tensor: &Tensor) -> Tensor {
-    tensor.permute(&[2, 0, 1])
+    tensor.permute([2, 0, 1])
 }
 
 fn chw_to_hwc(tensor: &Tensor) -> Tensor {
-    tensor.permute(&[1, 2, 0])
+    tensor.permute([1, 2, 0])
 }
 
 /// Loads an image from a file.

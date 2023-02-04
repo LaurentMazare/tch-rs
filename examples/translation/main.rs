@@ -83,7 +83,7 @@ impl Decoder {
             enc_outputs.shallow_clone()
         } else {
             let shape = [sz1, MAX_LENGTH as i64 - sz2, sz3];
-            let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+            let zeros = Tensor::zeros(shape, (Kind::Float, self.device));
             Tensor::cat(&[enc_outputs, &zeros], 1)
         };
         let attn_applied = attn_weights.bmm(&enc_outputs).squeeze_dim(1);

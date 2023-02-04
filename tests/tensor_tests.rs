@@ -181,7 +181,7 @@ fn eq() {
     assert!(t != u);
     assert!(t.size() != u.size());
 
-    let u = u.reshape(&[1]);
+    let u = u.reshape([1]);
     assert_eq!(t, u);
     assert!(t == u);
     assert!(t != u - 1)
@@ -198,14 +198,14 @@ fn values_at_index() {
 
 #[test]
 fn into_ndarray_f64() {
-    let tensor = Tensor::of_slice(&[1., 2., 3., 4.]).reshape(&[2, 2]);
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4.]).reshape([2, 2]);
     let nd: ndarray::ArrayD<f64> = (&tensor).try_into().unwrap();
     assert_eq!(Vec::<f64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
 
 #[test]
 fn into_ndarray_i64() {
-    let tensor = Tensor::of_slice(&[1, 2, 3, 4]).reshape(&[2, 2]);
+    let tensor = Tensor::of_slice(&[1, 2, 3, 4]).reshape([2, 2]);
     let nd: ndarray::ArrayD<i64> = (&tensor).try_into().unwrap();
     assert_eq!(Vec::<i64>::from(tensor).as_slice(), nd.as_slice().unwrap());
 }
@@ -326,17 +326,17 @@ fn bool_tensor() {
 #[test]
 fn copy_overflow() {
     let mut s = [f32::consts::PI];
-    let r = Tensor::zeros(&[1], (tch::Kind::Int64, Device::Cpu)).f_copy_data(&mut s, 1);
+    let r = Tensor::zeros([1], (tch::Kind::Int64, Device::Cpu)).f_copy_data(&mut s, 1);
     assert!(r.is_err());
 
     let mut s: [i8; 0] = [];
-    let r = Tensor::zeros(&[10000], (tch::Kind::Int8, Device::Cpu)).f_copy_data(&mut s, 10000);
+    let r = Tensor::zeros([10000], (tch::Kind::Int8, Device::Cpu)).f_copy_data(&mut s, 10000);
     assert!(r.is_err());
 }
 
 #[test]
 fn mkldnn() {
-    let t = Tensor::randn(&[5, 5, 5], (tch::Kind::Float, Device::Cpu));
+    let t = Tensor::randn([5, 5, 5], (tch::Kind::Float, Device::Cpu));
     assert!(!t.is_mkldnn());
     assert!(t.to_mkldnn().is_mkldnn());
 }
@@ -351,39 +351,39 @@ fn sparse() {
 fn einsum() {
     // Element-wise squaring of a vector.
     let t = Tensor::of_slice(&[1.0, 2.0, 3.0]);
-    let t = Tensor::einsum("i, i -> i", &[&t, &t], None);
+    let t = Tensor::einsum("i, i -> i", &[&t, &t], None::<i64>);
     assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 9.0]);
     // Matrix transpose
-    let t = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape(&[2, 3]);
-    let t = Tensor::einsum("ij -> ji", &[t], None);
+    let t = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).reshape([2, 3]);
+    let t = Tensor::einsum("ij -> ji", &[t], None::<i64>);
     assert_eq!(Vec::<f64>::from(&t), [1.0, 4.0, 2.0, 5.0, 3.0, 6.0]);
     // Sum all elements
-    let t = Tensor::einsum("ij -> ", &[t], None);
+    let t = Tensor::einsum("ij -> ", &[t], None::<i64>);
     assert_eq!(Vec::<f64>::from(&t), [21.0]);
 }
 
 #[test]
 fn vec2() {
-    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape([2, 3]);
     assert_eq!(Vec::<Vec::<f64>>::from(tensor), [[1., 2., 3.], [4., 5., 6.]])
 }
 
 #[test]
 fn upsample1d() {
-    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape(&[2, 3, 1]);
-    let up1 = tensor.upsample_linear1d(&[2], false, 1.);
+    let tensor = Tensor::of_slice(&[1., 2., 3., 4., 5., 6.]).reshape([2, 3, 1]);
+    let up1 = tensor.upsample_linear1d(2, false, 1.);
     assert_eq!(
         // Exclude the last element because of some numerical instability.
         Vec::<f64>::from(up1)[0..11],
         [1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0]
     );
-    let up1 = tensor.upsample_linear1d(&[2], false, None);
+    let up1 = tensor.upsample_linear1d(2, false, None);
     assert_eq!(Vec::<f64>::from(up1), [1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0]);
 }
 
 #[test]
 fn argmax() {
-    let tensor = Tensor::of_slice(&[7., 2., 3., 4., 5., 6.]).reshape(&[2, 3]);
+    let tensor = Tensor::of_slice(&[7., 2., 3., 4., 5., 6.]).reshape([2, 3]);
     let argmax = tensor.argmax(None, false);
     assert_eq!(Vec::<i64>::from(argmax), [0],);
     let argmax = tensor.argmax(0, false);
@@ -408,10 +408,10 @@ fn strides() {
         assert_eq!(t.stride(), strides);
     }
 
-    let tensor = Tensor::zeros(&[2, 3, 4], tch::kind::FLOAT_CPU);
+    let tensor = Tensor::zeros([2, 3, 4], tch::kind::FLOAT_CPU);
     check_stride(&tensor);
 
-    let tensor: Tensor = Tensor::ones(&[3, 4, 5, 6, 7, 8], tch::kind::FLOAT_CPU);
+    let tensor: Tensor = Tensor::ones([3, 4, 5, 6, 7, 8], tch::kind::FLOAT_CPU);
     check_stride(&tensor);
 }
 
@@ -433,7 +433,7 @@ fn quantized() {
 
 #[test]
 fn nll_loss() {
-    let input = Tensor::randn(&[3, 5], (tch::Kind::Float, Device::Cpu)).set_requires_grad(true);
+    let input = Tensor::randn([3, 5], (tch::Kind::Float, Device::Cpu)).set_requires_grad(true);
     let target = Tensor::of_slice(&[1i64, 0, 4]);
     let output = input.nll_loss(&target);
     output.backward();

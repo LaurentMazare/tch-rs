@@ -149,7 +149,7 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
 fn upsample(prev_channels: i64) -> Result<(i64, Bl)> {
     let layer = nn::func_t(|xs, _is_training| {
         let (_n, _c, h, w) = xs.size4().unwrap();
-        xs.upsample_nearest2d(&[2 * h, 2 * w], 2.0, 2.0)
+        xs.upsample_nearest2d([2 * h, 2 * w], 2.0, 2.0)
     });
     Ok((prev_channels, Bl::Layer(Box::new(layer))))
 }
@@ -211,18 +211,18 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
         .contiguous()
         .view((bsize, grid_size * grid_size * nanchors, bbox_attrs));
     let grid = Tensor::arange(grid_size, tch::kind::FLOAT_CPU);
-    let a = grid.repeat(&[grid_size, 1]);
+    let a = grid.repeat([grid_size, 1]);
     let b = a.tr().contiguous();
     let x_offset = a.view((-1, 1));
     let y_offset = b.view((-1, 1));
     let xy_offset =
-        Tensor::cat(&[x_offset, y_offset], 1).repeat(&[1, nanchors]).view((-1, 2)).unsqueeze(0);
+        Tensor::cat(&[x_offset, y_offset], 1).repeat([1, nanchors]).view((-1, 2)).unsqueeze(0);
     let anchors: Vec<f32> = anchors
         .iter()
         .flat_map(|&(x, y)| vec![x as f32 / stride as f32, y as f32 / stride as f32].into_iter())
         .collect();
     let anchors =
-        Tensor::of_slice(&anchors).view((-1, 2)).repeat(&[grid_size * grid_size, 1]).unsqueeze(0);
+        Tensor::of_slice(&anchors).view((-1, 2)).repeat([grid_size * grid_size, 1]).unsqueeze(0);
     slice_apply_and_set(&mut xs, 0, 2, |xs| xs.sigmoid() + xy_offset);
     slice_apply_and_set(&mut xs, 4, 1 + classes, Tensor::sigmoid);
     slice_apply_and_set(&mut xs, 2, 2, |xs| xs.exp() * anchors);
