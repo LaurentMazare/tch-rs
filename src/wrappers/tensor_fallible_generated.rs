@@ -267,13 +267,16 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_adaptive_avg_pool2d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_adaptive_avg_pool2d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__adaptive_avg_pool2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -309,7 +312,7 @@ impl Tensor {
     pub fn f_internal_adaptive_avg_pool2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__adaptive_avg_pool2d_out(
@@ -317,18 +320,21 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_adaptive_avg_pool3d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_adaptive_avg_pool3d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__adaptive_avg_pool3d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -364,7 +370,7 @@ impl Tensor {
     pub fn f_internal_adaptive_avg_pool3d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__adaptive_avg_pool3d_out(
@@ -372,7 +378,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -612,20 +618,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_assert_tensor_metadata<'a>(
+    pub fn f_internal_assert_tensor_metadata(
         a: &Tensor,
-        size: impl Into<Option<&'a [i64]>>,
-        stride: impl Into<Option<&'a [i64]>>,
+        size: impl IntListOption,
+        stride: impl IntListOption,
         dtype: Kind,
     ) -> Result<(), TchError> {
-        let size = size.into();
-        let stride = stride.into();
         unsafe_torch_err!(atg__assert_tensor_metadata(
             a.c_tensor,
-            size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            size.as_ref().map_or(-1, |t| t.len() as i32),
-            stride.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            stride.as_ref().map_or(-1, |t| t.len() as i32),
+            size.as_ptr(),
+            size.len_i32(),
+            stride.as_ptr(),
+            stride.len_i32(),
             dtype.c_int()
         ));
         Ok(())
@@ -929,11 +933,11 @@ impl Tensor {
     pub fn f_internal_conv_depthwise2d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__conv_depthwise2d(
@@ -941,14 +945,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -957,11 +961,11 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__conv_depthwise2d_out(
@@ -970,14 +974,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -1054,11 +1058,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -1072,14 +1076,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -1093,11 +1097,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -1110,14 +1114,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -1130,9 +1134,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
+        stride: impl IntList,
         padding: &str,
-        dilation: &[i64],
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -1142,11 +1146,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
             padding.len() as i32,
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -1157,11 +1161,11 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -1176,14 +1180,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -1253,8 +1257,8 @@ impl Tensor {
     pub fn f_internal_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
         zero_infinity: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
@@ -1264,9 +1268,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             blank,
             if zero_infinity { 1 } else { 0 }
         ));
@@ -1277,8 +1281,8 @@ impl Tensor {
         grad: &Tensor,
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         neg_log_likelihood: &Tensor,
         log_alpha: &Tensor,
         blank: i64,
@@ -1291,9 +1295,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             neg_log_likelihood.c_tensor,
             log_alpha.c_tensor,
             blank,
@@ -1307,8 +1311,8 @@ impl Tensor {
         grad: &Tensor,
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         neg_log_likelihood: &Tensor,
         log_alpha: &Tensor,
         blank: i64,
@@ -1322,9 +1326,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             neg_log_likelihood.c_tensor,
             log_alpha.c_tensor,
             blank,
@@ -1365,8 +1369,8 @@ impl Tensor {
         out1: &Tensor,
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
         zero_infinity: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
@@ -1378,9 +1382,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             blank,
             if zero_infinity { 1 } else { 0 }
         ));
@@ -1411,8 +1415,8 @@ impl Tensor {
     pub fn f_internal_cudnn_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
         deterministic: bool,
         zero_infinity: bool,
@@ -1423,9 +1427,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             blank,
             if deterministic { 1 } else { 0 },
             if zero_infinity { 1 } else { 0 }
@@ -1438,8 +1442,8 @@ impl Tensor {
         out1: &Tensor,
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
         deterministic: bool,
         zero_infinity: bool,
@@ -1452,9 +1456,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             blank,
             if deterministic { 1 } else { 0 },
             if zero_infinity { 1 } else { 0 }
@@ -1535,7 +1539,7 @@ impl Tensor {
         dropout: f64,
         train: bool,
         bidirectional: bool,
-        batch_sizes: &[i64],
+        batch_sizes: impl IntList,
         dropout_state: Option<T>,
     ) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 5];
@@ -1557,7 +1561,7 @@ impl Tensor {
             if train { 1 } else { 0 },
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
-            batch_sizes.len() as i32,
+            batch_sizes.len_i32(),
             dropout_state.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
@@ -1647,7 +1651,7 @@ impl Tensor {
         dropout: f64,
         train: bool,
         bidirectional: bool,
-        batch_sizes: &[i64],
+        batch_sizes: impl IntList,
         dropout_state: Option<T>,
     ) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 5];
@@ -1674,7 +1678,7 @@ impl Tensor {
             if train { 1 } else { 0 },
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
-            batch_sizes.len() as i32,
+            batch_sizes.len_i32(),
             dropout_state.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
@@ -1755,14 +1759,14 @@ impl Tensor {
     }
 
     pub fn f_internal_efficientzerotensor(
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__efficientzerotensor(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -1771,14 +1775,14 @@ impl Tensor {
 
     pub fn f_internal_efficientzerotensor_out(
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__efficientzerotensor_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -2098,7 +2102,7 @@ impl Tensor {
     }
 
     pub fn f_internal_empty_affine_quantized(
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
         scale: f64,
         zero_point: i64,
@@ -2107,7 +2111,7 @@ impl Tensor {
         unsafe_torch_err!(atg__empty_affine_quantized(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int(),
             scale,
@@ -2118,7 +2122,7 @@ impl Tensor {
 
     pub fn f_internal_empty_affine_quantized_out(
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         scale: f64,
         zero_point: i64,
     ) -> Result<Tensor, TchError> {
@@ -2127,7 +2131,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             scale,
             zero_point
         ));
@@ -2135,7 +2139,7 @@ impl Tensor {
     }
 
     pub fn f_internal_empty_per_channel_affine_quantized(
-        size: &[i64],
+        size: impl IntList,
         scales: &Tensor,
         zero_points: &Tensor,
         axis: i64,
@@ -2145,7 +2149,7 @@ impl Tensor {
         unsafe_torch_err!(atg__empty_per_channel_affine_quantized(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             scales.c_tensor,
             zero_points.c_tensor,
             axis,
@@ -2157,7 +2161,7 @@ impl Tensor {
 
     pub fn f_internal_empty_per_channel_affine_quantized_out(
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         scales: &Tensor,
         zero_points: &Tensor,
         axis: i64,
@@ -2167,7 +2171,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             scales.c_tensor,
             zero_points.c_tensor,
             axis
@@ -2392,7 +2396,7 @@ impl Tensor {
 
     pub fn f_internal_fft_c2c(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         forward: bool,
     ) -> Result<Tensor, TchError> {
@@ -2401,7 +2405,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             if forward { 1 } else { 0 }
         ));
@@ -2411,7 +2415,7 @@ impl Tensor {
     pub fn f_internal_fft_c2c_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         forward: bool,
     ) -> Result<Tensor, TchError> {
@@ -2421,7 +2425,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             if forward { 1 } else { 0 }
         ));
@@ -2430,7 +2434,7 @@ impl Tensor {
 
     pub fn f_internal_fft_c2r(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         last_dim_size: i64,
     ) -> Result<Tensor, TchError> {
@@ -2439,7 +2443,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             last_dim_size
         ));
@@ -2449,7 +2453,7 @@ impl Tensor {
     pub fn f_internal_fft_c2r_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         last_dim_size: i64,
     ) -> Result<Tensor, TchError> {
@@ -2459,7 +2463,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             last_dim_size
         ));
@@ -2468,7 +2472,7 @@ impl Tensor {
 
     pub fn f_internal_fft_r2c(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         onesided: bool,
     ) -> Result<Tensor, TchError> {
@@ -2477,7 +2481,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             if onesided { 1 } else { 0 }
         ));
@@ -2487,7 +2491,7 @@ impl Tensor {
     pub fn f_internal_fft_r2c_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         normalization: i64,
         onesided: bool,
     ) -> Result<Tensor, TchError> {
@@ -2497,7 +2501,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             normalization,
             if onesided { 1 } else { 0 }
         ));
@@ -2830,17 +2834,17 @@ impl Tensor {
 
     pub fn f_internal_histogramdd_bin_edges<T: Borrow<Tensor>>(
         &self,
-        bins: &[i64],
-        range: &[f64],
+        bins: impl IntList,
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg__histogramdd_bin_edges(
             self.c_tensor,
             bins.as_ptr(),
-            bins.len() as i32,
+            bins.len_i32(),
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -2861,8 +2865,8 @@ impl Tensor {
     pub fn f_internal_histogramdd_bin_edges_out<T: Borrow<Tensor>>(
         &self,
         out: &[T],
-        bins: &[i64],
-        range: &[f64],
+        bins: impl IntList,
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<(), TchError> {
@@ -2871,9 +2875,9 @@ impl Tensor {
             out.len() as i32,
             self.c_tensor,
             bins.as_ptr(),
-            bins.len() as i32,
+            bins.len_i32(),
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -2882,8 +2886,8 @@ impl Tensor {
 
     pub fn f_internal_histogramdd_from_bin_cts<T: Borrow<Tensor>>(
         &self,
-        bins: &[i64],
-        range: &[f64],
+        bins: impl IntList,
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<Tensor, TchError> {
@@ -2892,9 +2896,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             bins.as_ptr(),
-            bins.len() as i32,
+            bins.len_i32(),
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -2904,8 +2908,8 @@ impl Tensor {
     pub fn f_internal_histogramdd_from_bin_cts_out<T: Borrow<Tensor>>(
         &self,
         out: &Tensor,
-        bins: &[i64],
-        range: &[f64],
+        bins: impl IntList,
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<Tensor, TchError> {
@@ -2915,9 +2919,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             bins.as_ptr(),
-            bins.len() as i32,
+            bins.len_i32(),
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -3683,13 +3687,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_mkldnn_reshape(&self, shape: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_mkldnn_reshape(&self, shape: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__mkldnn_reshape(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             shape.as_ptr(),
-            shape.len() as i32
+            shape.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -3697,7 +3701,7 @@ impl Tensor {
     pub fn f_internal_mkldnn_reshape_out(
         &self,
         out: &Tensor,
-        shape: &[i64],
+        shape: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__mkldnn_reshape_out(
@@ -3705,7 +3709,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             shape.as_ptr(),
-            shape.len() as i32
+            shape.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -3752,9 +3756,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3764,11 +3768,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -3779,9 +3783,9 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3792,11 +3796,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -3805,10 +3809,10 @@ impl Tensor {
     pub fn f_internal_mps_convolution_transpose(
         &self,
         weight: &Tensor,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3817,13 +3821,13 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -3833,10 +3837,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3846,13 +3850,13 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -3860,10 +3864,10 @@ impl Tensor {
 
     pub fn f_internal_mps_max_pool2d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3871,13 +3875,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -3886,10 +3890,10 @@ impl Tensor {
     pub fn f_internal_mps_max_pool2d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -3898,13 +3902,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4179,20 +4183,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_nested_sum_backward<'a>(
+    pub fn f_internal_nested_sum_backward(
         &self,
         grad: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nested_sum_backward(
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4202,7 +4205,7 @@ impl Tensor {
         &self,
         nested_size: &Tensor,
         nested_strides: &Tensor,
-        offsets: &[i64],
+        offsets: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nested_view_from_buffer(
@@ -4211,7 +4214,7 @@ impl Tensor {
             nested_size.c_tensor,
             nested_strides.c_tensor,
             offsets.as_ptr(),
-            offsets.len() as i32
+            offsets.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4220,7 +4223,7 @@ impl Tensor {
         &self,
         nested_size: &Tensor,
         nested_strides: &Tensor,
-        offsets: &[i64],
+        offsets: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nested_view_from_buffer_copy(
@@ -4229,7 +4232,7 @@ impl Tensor {
             nested_size.c_tensor,
             nested_strides.c_tensor,
             offsets.as_ptr(),
-            offsets.len() as i32
+            offsets.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4239,7 +4242,7 @@ impl Tensor {
         out: &Tensor,
         nested_size: &Tensor,
         nested_strides: &Tensor,
-        offsets: &[i64],
+        offsets: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nested_view_from_buffer_copy_out(
@@ -4249,7 +4252,7 @@ impl Tensor {
             nested_size.c_tensor,
             nested_strides.c_tensor,
             offsets.as_ptr(),
-            offsets.len() as i32
+            offsets.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4296,8 +4299,8 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nnpack_spatial_convolution(
@@ -4306,9 +4309,9 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4318,8 +4321,8 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__nnpack_spatial_convolution_out(
@@ -4329,9 +4332,9 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4359,7 +4362,7 @@ impl Tensor {
 
     pub fn f_internal_pack_padded_sequence_backward(
         grad: &Tensor,
-        input_size: &[i64],
+        input_size: impl IntList,
         batch_sizes: &Tensor,
         batch_first: bool,
     ) -> Result<Tensor, TchError> {
@@ -4368,7 +4371,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             batch_sizes.c_tensor,
             if batch_first { 1 } else { 0 }
         ));
@@ -4394,20 +4397,20 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_internal_pad_circular(&self, pad: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_pad_circular(&self, pad: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__pad_circular(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             pad.as_ptr(),
-            pad.len() as i32
+            pad.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_pad_enum(
         &self,
-        pad: &[i64],
+        pad: impl IntList,
         mode: i64,
         value: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -4417,7 +4420,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             pad.as_ptr(),
-            pad.len() as i32,
+            pad.len_i32(),
             mode,
             value.unwrap_or(std::f64::NAN),
             value.is_none() as i8
@@ -4520,34 +4523,34 @@ impl Tensor {
 
     pub fn f_internal_reshape_alias(
         &self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__reshape_alias(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_reshape_alias_copy(
         &self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__reshape_alias_copy(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4555,8 +4558,8 @@ impl Tensor {
     pub fn f_internal_reshape_alias_copy_out(
         &self,
         out: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__reshape_alias_copy_out(
@@ -4564,9 +4567,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4583,7 +4586,7 @@ impl Tensor {
 
     pub fn f_internal_resize_output(
         &self,
-        size: &[i64],
+        size: impl IntList,
         device: Device,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -4591,7 +4594,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             device.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4599,7 +4602,7 @@ impl Tensor {
 
     pub fn f_internal_resize_output_(
         &mut self,
-        size: &[i64],
+        size: impl IntList,
         device: Device,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -4607,7 +4610,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             device.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4616,7 +4619,7 @@ impl Tensor {
     pub fn f_internal_resize_output_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         device: Device,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -4625,7 +4628,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             device.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -4849,9 +4852,9 @@ impl Tensor {
         grad_bias: &Tensor,
         grad_output: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
     ) -> Result<(Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 3];
         unsafe_torch_err!(atg__slow_conv2d_backward(
@@ -4863,11 +4866,11 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok((
             Tensor { c_tensor: c_tensors[0] },
@@ -5040,24 +5043,27 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_sparse_broadcast_to(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_sparse_broadcast_to(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_broadcast_to(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_sparse_broadcast_to_copy(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_sparse_broadcast_to_copy(
+        &self,
+        size: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_broadcast_to_copy(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5065,7 +5071,7 @@ impl Tensor {
     pub fn f_internal_sparse_broadcast_to_copy_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_broadcast_to_copy_out(
@@ -5073,7 +5079,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5082,7 +5088,7 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5092,7 +5098,7 @@ impl Tensor {
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5103,7 +5109,7 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5113,7 +5119,7 @@ impl Tensor {
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5124,7 +5130,7 @@ impl Tensor {
         compressed_indices: &Tensor,
         plain_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5134,7 +5140,7 @@ impl Tensor {
             plain_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5144,7 +5150,7 @@ impl Tensor {
     pub fn f_internal_sparse_coo_tensor_unsafe(
         indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5153,7 +5159,7 @@ impl Tensor {
             indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5163,7 +5169,7 @@ impl Tensor {
     pub fn f_internal_sparse_coo_tensor_with_dims(
         sparse_dim: i64,
         dense_dim: i64,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5172,7 +5178,7 @@ impl Tensor {
             sparse_dim,
             dense_dim,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5182,7 +5188,7 @@ impl Tensor {
     pub fn f_internal_sparse_coo_tensor_with_dims_and_tensors(
         sparse_dim: i64,
         dense_dim: i64,
-        size: &[i64],
+        size: impl IntList,
         indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
@@ -5193,7 +5199,7 @@ impl Tensor {
             sparse_dim,
             dense_dim,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             indices.c_tensor,
             values.c_tensor,
             options.0.c_int(),
@@ -5206,7 +5212,7 @@ impl Tensor {
         out: &Tensor,
         sparse_dim: i64,
         dense_dim: i64,
-        size: &[i64],
+        size: impl IntList,
         indices: &Tensor,
         values: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -5217,7 +5223,7 @@ impl Tensor {
             sparse_dim,
             dense_dim,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             indices.c_tensor,
             values.c_tensor
         ));
@@ -5228,7 +5234,7 @@ impl Tensor {
         out: &Tensor,
         sparse_dim: i64,
         dense_dim: i64,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_coo_tensor_with_dims_out(
@@ -5237,7 +5243,7 @@ impl Tensor {
             sparse_dim,
             dense_dim,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5246,7 +5252,7 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5256,7 +5262,7 @@ impl Tensor {
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5265,7 +5271,7 @@ impl Tensor {
 
     pub fn f_internal_sparse_csr_prod(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -5274,7 +5280,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -5284,7 +5290,7 @@ impl Tensor {
     pub fn f_internal_sparse_csr_prod_dim_dtype_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -5294,7 +5300,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -5303,7 +5309,7 @@ impl Tensor {
 
     pub fn f_internal_sparse_csr_sum(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -5312,7 +5318,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -5322,7 +5328,7 @@ impl Tensor {
     pub fn f_internal_sparse_csr_sum_dim_dtype_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -5332,7 +5338,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -5343,7 +5349,7 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5353,7 +5359,7 @@ impl Tensor {
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -5590,7 +5596,7 @@ impl Tensor {
     pub fn f_internal_sparse_sum_backward(
         &self,
         grad: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_sum_backward(
@@ -5598,7 +5604,7 @@ impl Tensor {
             grad.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5607,7 +5613,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         grad: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_sum_backward_out(
@@ -5616,25 +5622,25 @@ impl Tensor {
             grad.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_sparse_sum_dim(&self, dim: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_sparse_sum_dim(&self, dim: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_sum_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_sparse_sum_dim_dtype(
         &self,
-        dim: &[i64],
+        dim: impl IntList,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -5642,7 +5648,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -5651,7 +5657,7 @@ impl Tensor {
     pub fn f_internal_sparse_sum_dim_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_sum_dim_out(
@@ -5659,7 +5665,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5677,7 +5683,7 @@ impl Tensor {
     pub fn f_internal_spdiags(
         diagonals: &Tensor,
         offsets: &Tensor,
-        shape: &[i64],
+        shape: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__spdiags(
@@ -5685,7 +5691,7 @@ impl Tensor {
             diagonals.c_tensor,
             offsets.c_tensor,
             shape.as_ptr(),
-            shape.len() as i32
+            shape.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5694,7 +5700,7 @@ impl Tensor {
         out: &Tensor,
         diagonals: &Tensor,
         offsets: &Tensor,
-        shape: &[i64],
+        shape: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__spdiags_out(
@@ -5703,7 +5709,7 @@ impl Tensor {
             diagonals.c_tensor,
             offsets.c_tensor,
             shape.as_ptr(),
-            shape.len() as i32
+            shape.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5910,48 +5916,46 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_test_optional_filled_intlist<'a>(
+    pub fn f_internal_test_optional_filled_intlist(
         values: &Tensor,
-        addends: impl Into<Option<&'a [i64]>>,
+        addends: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let addends = addends.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_filled_intlist(
             c_tensors.as_mut_ptr(),
             values.c_tensor,
-            addends.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            addends.as_ref().map_or(-1, |t| t.len() as i32)
+            addends.as_ptr(),
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_test_optional_filled_intlist_out<'a>(
+    pub fn f_internal_test_optional_filled_intlist_out(
         out: &Tensor,
         values: &Tensor,
-        addends: impl Into<Option<&'a [i64]>>,
+        addends: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let addends = addends.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_filled_intlist_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             values.c_tensor,
-            addends.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            addends.as_ref().map_or(-1, |t| t.len() as i32)
+            addends.as_ptr(),
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_test_optional_floatlist(
         values: &Tensor,
-        addends: &[f64],
+        addends: impl DoubleList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_floatlist(
             c_tensors.as_mut_ptr(),
             values.c_tensor,
             addends.as_ptr(),
-            addends.len() as i32
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5959,7 +5963,7 @@ impl Tensor {
     pub fn f_internal_test_optional_floatlist_out(
         out: &Tensor,
         values: &Tensor,
-        addends: &[f64],
+        addends: impl DoubleList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_floatlist_out(
@@ -5967,39 +5971,37 @@ impl Tensor {
             out.c_tensor,
             values.c_tensor,
             addends.as_ptr(),
-            addends.len() as i32
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_test_optional_intlist<'a>(
+    pub fn f_internal_test_optional_intlist(
         values: &Tensor,
-        addends: impl Into<Option<&'a [i64]>>,
+        addends: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let addends = addends.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_intlist(
             c_tensors.as_mut_ptr(),
             values.c_tensor,
-            addends.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            addends.as_ref().map_or(-1, |t| t.len() as i32)
+            addends.as_ptr(),
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_test_optional_intlist_out<'a>(
+    pub fn f_internal_test_optional_intlist_out(
         out: &Tensor,
         values: &Tensor,
-        addends: impl Into<Option<&'a [i64]>>,
+        addends: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let addends = addends.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__test_optional_intlist_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             values.c_tensor,
-            addends.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            addends.as_ref().map_or(-1, |t| t.len() as i32)
+            addends.as_ptr(),
+            addends.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6405,10 +6407,10 @@ impl Tensor {
         i1: &Tensor,
         i2: &Tensor,
         i3: &Tensor,
-        expand1: &[i64],
-        expand2: &[i64],
-        expand3: &[i64],
-        sumdim: &[i64],
+        expand1: impl IntList,
+        expand2: impl IntList,
+        expand3: impl IntList,
+        sumdim: impl IntList,
         unroll_dim: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -6418,13 +6420,13 @@ impl Tensor {
             i2.c_tensor,
             i3.c_tensor,
             expand1.as_ptr(),
-            expand1.len() as i32,
+            expand1.len_i32(),
             expand2.as_ptr(),
-            expand2.len() as i32,
+            expand2.len_i32(),
             expand3.as_ptr(),
-            expand3.len() as i32,
+            expand3.len_i32(),
             sumdim.as_ptr(),
-            sumdim.len() as i32,
+            sumdim.len_i32(),
             unroll_dim
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -6435,10 +6437,10 @@ impl Tensor {
         i1: &Tensor,
         i2: &Tensor,
         i3: &Tensor,
-        expand1: &[i64],
-        expand2: &[i64],
-        expand3: &[i64],
-        sumdim: &[i64],
+        expand1: impl IntList,
+        expand2: impl IntList,
+        expand3: impl IntList,
+        sumdim: impl IntList,
         unroll_dim: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -6449,13 +6451,13 @@ impl Tensor {
             i2.c_tensor,
             i3.c_tensor,
             expand1.as_ptr(),
-            expand1.len() as i32,
+            expand1.len_i32(),
             expand2.as_ptr(),
-            expand2.len() as i32,
+            expand2.len_i32(),
             expand3.as_ptr(),
-            expand3.len() as i32,
+            expand3.len_i32(),
             sumdim.as_ptr(),
-            sumdim.len() as i32,
+            sumdim.len_i32(),
             unroll_dim
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -6645,13 +6647,13 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_internal_unsafe_view(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_internal_unsafe_view(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__unsafe_view(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6659,7 +6661,7 @@ impl Tensor {
     pub fn f_internal_unsafe_view_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__unsafe_view_out(
@@ -6667,14 +6669,14 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_upsample_bicubic2d_aa(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6686,7 +6688,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6698,8 +6700,8 @@ impl Tensor {
 
     pub fn f_internal_upsample_bicubic2d_aa_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6711,9 +6713,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6726,8 +6728,8 @@ impl Tensor {
     pub fn f_internal_upsample_bicubic2d_aa_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6740,9 +6742,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6752,50 +6754,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bicubic2d_aa_backward_vec<'a>(
+    pub fn f_internal_upsample_bicubic2d_aa_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bicubic2d_aa_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bicubic2d_aa_backward_vec_out<'a>(
+    pub fn f_internal_upsample_bicubic2d_aa_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bicubic2d_aa_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6803,7 +6803,7 @@ impl Tensor {
     pub fn f_internal_upsample_bicubic2d_aa_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6816,7 +6816,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6826,51 +6826,49 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bicubic2d_aa_vec<'a>(
+    pub fn f_internal_upsample_bicubic2d_aa_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bicubic2d_aa_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bicubic2d_aa_vec_out<'a>(
+    pub fn f_internal_upsample_bicubic2d_aa_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bicubic2d_aa_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_upsample_bilinear2d_aa(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6882,7 +6880,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6894,8 +6892,8 @@ impl Tensor {
 
     pub fn f_internal_upsample_bilinear2d_aa_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6907,9 +6905,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6922,8 +6920,8 @@ impl Tensor {
     pub fn f_internal_upsample_bilinear2d_aa_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -6936,9 +6934,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -6948,50 +6946,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bilinear2d_aa_backward_vec<'a>(
+    pub fn f_internal_upsample_bilinear2d_aa_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bilinear2d_aa_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bilinear2d_aa_backward_vec_out<'a>(
+    pub fn f_internal_upsample_bilinear2d_aa_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bilinear2d_aa_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6999,7 +6995,7 @@ impl Tensor {
     pub fn f_internal_upsample_bilinear2d_aa_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -7012,7 +7008,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -7022,51 +7018,49 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bilinear2d_aa_vec<'a>(
+    pub fn f_internal_upsample_bilinear2d_aa_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bilinear2d_aa_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_bilinear2d_aa_vec_out<'a>(
+    pub fn f_internal_upsample_bilinear2d_aa_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_bilinear2d_aa_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_upsample_nearest_exact1d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -7075,7 +7069,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
@@ -7084,8 +7078,8 @@ impl Tensor {
 
     pub fn f_internal_upsample_nearest_exact1d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -7094,9 +7088,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
@@ -7106,8 +7100,8 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact1d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -7117,55 +7111,53 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact1d_backward_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact1d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact1d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact1d_backward_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact1d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact1d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7173,7 +7165,7 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact1d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -7183,54 +7175,52 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact1d_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact1d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact1d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact1d_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact1d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact1d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_upsample_nearest_exact2d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -7241,7 +7231,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -7252,8 +7242,8 @@ impl Tensor {
 
     pub fn f_internal_upsample_nearest_exact2d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -7264,9 +7254,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -7278,8 +7268,8 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -7291,9 +7281,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -7302,46 +7292,44 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact2d_backward_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact2d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact2d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact2d_backward_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact2d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact2d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7349,7 +7337,7 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -7361,7 +7349,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -7370,47 +7358,45 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact2d_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact2d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact2d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact2d_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact2d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact2d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_upsample_nearest_exact3d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -7423,7 +7409,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -7436,8 +7422,8 @@ impl Tensor {
 
     pub fn f_internal_upsample_nearest_exact3d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -7450,9 +7436,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -7466,8 +7452,8 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact3d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -7481,9 +7467,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -7494,46 +7480,44 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact3d_backward_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact3d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact3d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact3d_backward_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact3d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact3d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7541,7 +7525,7 @@ impl Tensor {
     pub fn f_internal_upsample_nearest_exact3d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -7555,7 +7539,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -7566,40 +7550,38 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact3d_vec<'a>(
+    pub fn f_internal_upsample_nearest_exact3d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact3d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_upsample_nearest_exact3d_vec_out<'a>(
+    pub fn f_internal_upsample_nearest_exact3d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__upsample_nearest_exact3d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7607,8 +7589,8 @@ impl Tensor {
     pub fn f_internal_use_cudnn_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
     ) -> Result<bool, TchError> {
         let return_;
@@ -7617,9 +7599,9 @@ impl Tensor {
                 log_probs.c_tensor,
                 targets.c_tensor,
                 input_lengths.as_ptr(),
-                input_lengths.len() as i32,
+                input_lengths.len_i32(),
                 target_lengths.as_ptr(),
-                target_lengths.len() as i32,
+                target_lengths.len_i32(),
                 blank
             )
         );
@@ -7675,14 +7657,14 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg__validate_sparse_bsc_tensor_args(
             ccol_indices.c_tensor,
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(())
     }
@@ -7691,14 +7673,14 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg__validate_sparse_bsr_tensor_args(
             crow_indices.c_tensor,
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(())
     }
@@ -7707,14 +7689,14 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg__validate_sparse_csc_tensor_args(
             ccol_indices.c_tensor,
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(())
     }
@@ -7723,14 +7705,14 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg__validate_sparse_csr_tensor_args(
             crow_indices.c_tensor,
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(())
     }
@@ -7936,24 +7918,24 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_adaptive_avg_pool1d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_adaptive_avg_pool1d(&self, output_size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool1d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_adaptive_avg_pool2d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_adaptive_avg_pool2d(&self, output_size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7961,7 +7943,7 @@ impl Tensor {
     pub fn f_adaptive_avg_pool2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool2d_out(
@@ -7969,18 +7951,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_adaptive_avg_pool3d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_adaptive_avg_pool3d(&self, output_size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool3d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8003,7 +7985,7 @@ impl Tensor {
     pub fn f_adaptive_avg_pool3d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool3d_out(
@@ -8011,29 +7993,35 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_adaptive_max_pool1d(&self, output_size: &[i64]) -> Result<(Tensor, Tensor), TchError> {
+    pub fn f_adaptive_max_pool1d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_adaptive_max_pool1d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_adaptive_max_pool2d(&self, output_size: &[i64]) -> Result<(Tensor, Tensor), TchError> {
+    pub fn f_adaptive_max_pool2d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_adaptive_max_pool2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -8074,7 +8062,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_adaptive_max_pool2d_out(
@@ -8083,18 +8071,21 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_adaptive_max_pool3d(&self, output_size: &[i64]) -> Result<(Tensor, Tensor), TchError> {
+    pub fn f_adaptive_max_pool3d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_adaptive_max_pool3d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -8135,7 +8126,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_adaptive_max_pool3d_out(
@@ -8144,7 +8135,7 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -8449,7 +8440,7 @@ impl Tensor {
 
     pub fn f_affine_grid_generator(
         theta: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         align_corners: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -8457,7 +8448,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             theta.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if align_corners { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8465,7 +8456,7 @@ impl Tensor {
 
     pub fn f_affine_grid_generator_backward(
         grad: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         align_corners: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -8473,7 +8464,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if align_corners { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8482,7 +8473,7 @@ impl Tensor {
     pub fn f_affine_grid_generator_out(
         out: &Tensor,
         theta: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         align_corners: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -8491,7 +8482,7 @@ impl Tensor {
             out.c_tensor,
             theta.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if align_corners { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8615,51 +8606,61 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_amax(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_amax(&self, dim: impl IntList, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_amax(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_amax_out(&self, out: &Tensor, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_amax_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntList,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_amax_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_amin(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_amin(&self, dim: impl IntList, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_amin(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_amin_out(&self, out: &Tensor, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_amin_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntList,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_amin_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9045,8 +9046,8 @@ impl Tensor {
 
     pub fn f_as_strided(
         &self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9055,9 +9056,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9066,8 +9067,8 @@ impl Tensor {
 
     pub fn f_as_strided_(
         &mut self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9076,9 +9077,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9087,8 +9088,8 @@ impl Tensor {
 
     pub fn f_as_strided_copy(
         &self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9097,9 +9098,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9109,8 +9110,8 @@ impl Tensor {
     pub fn f_as_strided_copy_out(
         &self,
         out: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9120,9 +9121,9 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9132,8 +9133,8 @@ impl Tensor {
     pub fn f_as_strided_scatter(
         &self,
         src: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9143,9 +9144,9 @@ impl Tensor {
             self.c_tensor,
             src.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9156,8 +9157,8 @@ impl Tensor {
         &self,
         out: &Tensor,
         src: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         storage_offset: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
         let storage_offset = storage_offset.into();
@@ -9168,9 +9169,9 @@ impl Tensor {
             self.c_tensor,
             src.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             storage_offset.unwrap_or(0i64),
             storage_offset.is_none() as i8
         ));
@@ -9355,9 +9356,9 @@ impl Tensor {
 
     pub fn f_avg_pool1d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
     ) -> Result<Tensor, TchError> {
@@ -9366,11 +9367,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 }
         ));
@@ -9379,9 +9380,9 @@ impl Tensor {
 
     pub fn f_avg_pool2d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9392,11 +9393,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9408,9 +9409,9 @@ impl Tensor {
     pub fn f_avg_pool2d_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9422,11 +9423,11 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9439,9 +9440,9 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9454,11 +9455,11 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9470,9 +9471,9 @@ impl Tensor {
     pub fn f_avg_pool2d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9484,11 +9485,11 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9499,9 +9500,9 @@ impl Tensor {
 
     pub fn f_avg_pool3d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9512,11 +9513,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9528,9 +9529,9 @@ impl Tensor {
     pub fn f_avg_pool3d_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9542,11 +9543,11 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9559,9 +9560,9 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9574,11 +9575,11 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -9590,9 +9591,9 @@ impl Tensor {
     pub fn f_avg_pool3d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
         ceil_mode: bool,
         count_include_pad: bool,
         divisor_override: impl Into<Option<i64>>,
@@ -9604,11 +9605,11 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             if ceil_mode { 1 } else { 0 },
             if count_include_pad { 1 } else { 0 },
             divisor_override.unwrap_or(0i64),
@@ -10926,13 +10927,13 @@ impl Tensor {
         Ok(r__)
     }
 
-    pub fn f_broadcast_to(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_broadcast_to(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_broadcast_to(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -11623,26 +11624,26 @@ impl Tensor {
 
     pub fn f_col2im(
         &self,
-        output_size: &[i64],
-        kernel_size: &[i64],
-        dilation: &[i64],
-        padding: &[i64],
-        stride: &[i64],
+        output_size: impl IntList,
+        kernel_size: impl IntList,
+        dilation: impl IntList,
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_col2im(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -11650,11 +11651,11 @@ impl Tensor {
     pub fn f_col2im_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
-        kernel_size: &[i64],
-        dilation: &[i64],
-        padding: &[i64],
-        stride: &[i64],
+        output_size: impl IntList,
+        kernel_size: impl IntList,
+        dilation: impl IntList,
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_col2im_out(
@@ -11662,15 +11663,15 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -11831,25 +11832,29 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_constant_pad_nd(&self, pad: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_constant_pad_nd(&self, pad: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_constant_pad_nd(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             pad.as_ptr(),
-            pad.len() as i32
+            pad.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_constant_pad_nd_out(&self, out: &Tensor, pad: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_constant_pad_nd_out(
+        &self,
+        out: &Tensor,
+        pad: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_constant_pad_nd_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             pad.as_ptr(),
-            pad.len() as i32
+            pad.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -11864,9 +11869,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11876,11 +11881,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -11890,9 +11895,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
+        stride: impl IntList,
         padding: &str,
-        dilation: &[i64],
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11902,11 +11907,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
             padding.len() as i32,
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -11916,9 +11921,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11928,11 +11933,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -11942,9 +11947,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
+        stride: impl IntList,
         padding: &str,
-        dilation: &[i64],
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11954,11 +11959,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
             padding.len() as i32,
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -11968,9 +11973,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -11980,11 +11985,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -11994,9 +11999,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
+        stride: impl IntList,
         padding: &str,
-        dilation: &[i64],
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12006,11 +12011,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
             padding.len() as i32,
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -12019,11 +12024,11 @@ impl Tensor {
     pub fn f_conv_depthwise3d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_conv_depthwise3d(
@@ -12031,14 +12036,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12047,11 +12052,11 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_conv_depthwise3d_out(
@@ -12060,14 +12065,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12130,11 +12135,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
         groups: i64,
-        dilation: &[i64],
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_conv_transpose1d(
@@ -12143,14 +12148,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12159,11 +12164,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
         groups: i64,
-        dilation: &[i64],
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_conv_transpose2d(
@@ -12172,14 +12177,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12188,11 +12193,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
         groups: i64,
-        dilation: &[i64],
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_conv_transpose3d(
@@ -12201,14 +12206,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups,
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12217,11 +12222,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12231,14 +12236,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -12249,11 +12254,11 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12264,14 +12269,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -12281,11 +12286,11 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12295,14 +12300,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -12313,11 +12318,11 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         transposed: bool,
-        output_padding: &[i64],
+        output_padding: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12328,14 +12333,14 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if transposed { 1 } else { 0 },
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -12536,13 +12541,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_count_nonzero_dim_intlist(&self, dim: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_count_nonzero_dim_intlist(&self, dim: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_count_nonzero_dim_intlist(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12550,7 +12555,7 @@ impl Tensor {
     pub fn f_count_nonzero_dim_intlist_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_count_nonzero_dim_intlist_out(
@@ -12558,7 +12563,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -12675,8 +12680,8 @@ impl Tensor {
     pub fn f_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
-        input_lengths: &[i64],
-        target_lengths: &[i64],
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
         blank: i64,
         reduction: crate::Reduction,
         zero_infinity: bool,
@@ -12687,9 +12692,9 @@ impl Tensor {
             log_probs.c_tensor,
             targets.c_tensor,
             input_lengths.as_ptr(),
-            input_lengths.len() as i32,
+            input_lengths.len_i32(),
             target_lengths.as_ptr(),
-            target_lengths.len() as i32,
+            target_lengths.len_i32(),
             blank,
             reduction.to_int(),
             if zero_infinity { 1 } else { 0 }
@@ -12939,9 +12944,9 @@ impl Tensor {
     pub fn f_cudnn_convolution(
         &self,
         weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -12953,11 +12958,11 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -12972,9 +12977,9 @@ impl Tensor {
         z: &Tensor,
         alpha: S,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -12986,11 +12991,11 @@ impl Tensor {
             alpha.into().c_scalar,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13003,9 +13008,9 @@ impl Tensor {
         z: &Tensor,
         alpha: S,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -13018,11 +13023,11 @@ impl Tensor {
             alpha.into().c_scalar,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13032,9 +13037,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -13047,11 +13052,11 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -13064,9 +13069,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -13076,11 +13081,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13091,9 +13096,9 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -13104,11 +13109,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13117,10 +13122,10 @@ impl Tensor {
     pub fn f_cudnn_convolution_transpose(
         &self,
         weight: &Tensor,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -13132,13 +13137,13 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -13151,10 +13156,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -13167,13 +13172,13 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 },
@@ -13508,7 +13513,7 @@ impl Tensor {
 
     pub fn f_diag_backward(
         grad: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         diagonal: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -13516,7 +13521,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             diagonal
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13578,7 +13583,7 @@ impl Tensor {
 
     pub fn f_diagonal_backward(
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         offset: i64,
         dim1: i64,
         dim2: i64,
@@ -13588,7 +13593,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             offset,
             dim1,
             dim2
@@ -13599,7 +13604,7 @@ impl Tensor {
     pub fn f_diagonal_backward_out(
         out: &Tensor,
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         offset: i64,
         dim1: i64,
         dim2: i64,
@@ -13610,7 +13615,7 @@ impl Tensor {
             out.c_tensor,
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             offset,
             dim1,
             dim2
@@ -14102,12 +14107,9 @@ impl Tensor {
         Ok(r__)
     }
 
-    pub fn f_dsplit_array(&self, indices: &[i64]) -> Result<Vec<Tensor>, TchError> {
-        let c_tensors = unsafe_torch_err!(atg_dsplit_array(
-            self.c_tensor,
-            indices.as_ptr(),
-            indices.len() as i32
-        ));
+    pub fn f_dsplit_array(&self, indices: impl IntList) -> Result<Vec<Tensor>, TchError> {
+        let c_tensors =
+            unsafe_torch_err!(atg_dsplit_array(self.c_tensor, indices.as_ptr(), indices.len_i32()));
         let mut r__ = vec![];
         let mut i = 0;
         loop {
@@ -14146,12 +14148,11 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_einsum<'a, T: Borrow<Tensor>>(
+    pub fn f_einsum<T: Borrow<Tensor>>(
         equation: &str,
         tensors: &[T],
-        path: impl Into<Option<&'a [i64]>>,
+        path: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let path = path.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_einsum(
             c_tensors.as_mut_ptr(),
@@ -14159,8 +14160,8 @@ impl Tensor {
             equation.len() as i32,
             ptr_list(tensors).as_ptr(),
             tensors.len() as i32,
-            path.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            path.as_ref().map_or(-1, |t| t.len() as i32)
+            path.as_ptr(),
+            path.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -14464,12 +14465,12 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_empty(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_empty(size: impl IntList, options: (Kind, Device)) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_empty(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -14488,19 +14489,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_empty_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_empty_out(out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_empty_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_empty_quantized(
-        size: &[i64],
+        size: impl IntList,
         qtensor: &Tensor,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
@@ -14508,7 +14509,7 @@ impl Tensor {
         unsafe_torch_err!(atg_empty_quantized(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             qtensor.c_tensor,
             options.0.c_int(),
             options.1.c_int()
@@ -14518,7 +14519,7 @@ impl Tensor {
 
     pub fn f_empty_quantized_out(
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         qtensor: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -14526,24 +14527,24 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             qtensor.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_empty_strided(
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_empty_strided(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -14552,17 +14553,17 @@ impl Tensor {
 
     pub fn f_empty_strided_out(
         out: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_empty_strided_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -14713,13 +14714,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_expand(&self, size: &[i64], implicit: bool) -> Result<Tensor, TchError> {
+    pub fn f_expand(&self, size: impl IntList, implicit: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_expand(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if implicit { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -14731,13 +14732,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_expand_copy(&self, size: &[i64], implicit: bool) -> Result<Tensor, TchError> {
+    pub fn f_expand_copy(&self, size: impl IntList, implicit: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_expand_copy(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if implicit { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -14746,7 +14747,7 @@ impl Tensor {
     pub fn f_expand_copy_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         implicit: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -14755,7 +14756,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             if implicit { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -15168,44 +15169,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_fft2<'a>(
+    pub fn f_fft_fft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_fft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_fft2_out<'a>(
+    pub fn f_fft_fft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_fft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15252,63 +15251,55 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_fftn<'a>(
+    pub fn f_fft_fftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_fftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_fftn_out<'a>(
+    pub fn f_fft_fftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_fftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_fftshift<'a>(
-        &self,
-        dim: impl Into<Option<&'a [i64]>>,
-    ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
+    pub fn f_fft_fftshift(&self, dim: impl IntListOption) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_fftshift(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32)
+            dim.as_ptr(),
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -15333,44 +15324,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_hfft2<'a>(
+    pub fn f_fft_hfft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_hfft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_hfft2_out<'a>(
+    pub fn f_fft_hfft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_hfft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15399,46 +15388,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_hfftn<'a>(
+    pub fn f_fft_hfftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_hfftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_hfftn_out<'a>(
+    pub fn f_fft_hfftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_hfftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15465,44 +15450,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ifft2<'a>(
+    pub fn f_fft_ifft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ifft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ifft2_out<'a>(
+    pub fn f_fft_ifft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ifft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15531,63 +15514,55 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ifftn<'a>(
+    pub fn f_fft_ifftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ifftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ifftn_out<'a>(
+    pub fn f_fft_ifftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ifftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ifftshift<'a>(
-        &self,
-        dim: impl Into<Option<&'a [i64]>>,
-    ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
+    pub fn f_fft_ifftshift(&self, dim: impl IntListOption) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ifftshift(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32)
+            dim.as_ptr(),
+            dim.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -15612,44 +15587,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ihfft2<'a>(
+    pub fn f_fft_ihfft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ihfft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ihfft2_out<'a>(
+    pub fn f_fft_ihfft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ihfft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15678,46 +15651,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ihfftn<'a>(
+    pub fn f_fft_ihfftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ihfftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_ihfftn_out<'a>(
+    pub fn f_fft_ihfftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_ihfftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15744,44 +15713,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_irfft2<'a>(
+    pub fn f_fft_irfft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_irfft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_irfft2_out<'a>(
+    pub fn f_fft_irfft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_irfft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15810,46 +15777,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_irfftn<'a>(
+    pub fn f_fft_irfftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_irfftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_irfftn_out<'a>(
+    pub fn f_fft_irfftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_irfftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15876,44 +15839,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_rfft2<'a>(
+    pub fn f_fft_rfft2(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_rfft2(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_rfft2_out<'a>(
+    pub fn f_fft_rfft2_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: &[i64],
+        s: impl IntListOption,
+        dim: impl IntList,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_rfft2_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -15960,46 +15921,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_rfftn<'a>(
+    pub fn f_fft_rfftn(
         &self,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_rfftn(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fft_rfftn_out<'a>(
+    pub fn f_fft_rfftn_out(
         &self,
         out: &Tensor,
-        s: impl Into<Option<&'a [i64]>>,
-        dim: impl Into<Option<&'a [i64]>>,
+        s: impl IntListOption,
+        dim: impl IntListOption,
         norm: &str,
     ) -> Result<Tensor, TchError> {
-        let s = s.into();
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_fft_rfftn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            s.as_ref().map_or(-1, |t| t.len() as i32),
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            s.as_ptr(),
+            s.len_i32(),
+            dim.as_ptr(),
+            dim.len_i32(),
             norm.as_ptr(),
             norm.len() as i32
         ));
@@ -16105,25 +16062,25 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_flip(&self, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_flip(&self, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_flip(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_flip_out(&self, out: &Tensor, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_flip_out(&self, out: &Tensor, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_flip_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -16409,8 +16366,8 @@ impl Tensor {
 
     pub fn f_fractional_max_pool2d(
         &self,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         random_samples: &Tensor,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -16418,9 +16375,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             random_samples.c_tensor
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -16429,8 +16386,8 @@ impl Tensor {
     pub fn f_fractional_max_pool2d_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16439,9 +16396,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             indices.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16451,8 +16408,8 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16462,9 +16419,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             indices.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16474,8 +16431,8 @@ impl Tensor {
         &self,
         output: &Tensor,
         indices: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         random_samples: &Tensor,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -16485,9 +16442,9 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             random_samples.c_tensor
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -16495,8 +16452,8 @@ impl Tensor {
 
     pub fn f_fractional_max_pool3d(
         &self,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         random_samples: &Tensor,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -16504,9 +16461,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             random_samples.c_tensor
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -16515,8 +16472,8 @@ impl Tensor {
     pub fn f_fractional_max_pool3d_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16525,9 +16482,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             indices.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16537,8 +16494,8 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16548,9 +16505,9 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             indices.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16560,8 +16517,8 @@ impl Tensor {
         &self,
         output: &Tensor,
         indices: &Tensor,
-        kernel_size: &[i64],
-        output_size: &[i64],
+        kernel_size: impl IntList,
+        output_size: impl IntList,
         random_samples: &Tensor,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -16571,9 +16528,9 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             random_samples.c_tensor
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -16606,13 +16563,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_frobenius_norm_dim(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_frobenius_norm_dim(
+        &self,
+        dim: impl IntList,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_frobenius_norm_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16621,7 +16582,7 @@ impl Tensor {
     pub fn f_frobenius_norm_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16630,7 +16591,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16678,7 +16639,7 @@ impl Tensor {
     }
 
     pub fn f_full<S: Into<Scalar>>(
-        size: &[i64],
+        size: impl IntList,
         fill_value: S,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
@@ -16686,7 +16647,7 @@ impl Tensor {
         unsafe_torch_err!(atg_full(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             fill_value.into().c_scalar,
             options.0.c_int(),
             options.1.c_int()
@@ -16721,7 +16682,7 @@ impl Tensor {
 
     pub fn f_full_out<S: Into<Scalar>>(
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         fill_value: S,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -16729,7 +16690,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             fill_value.into().c_scalar
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -17960,7 +17921,7 @@ impl Tensor {
     pub fn f_histogram_bin_ct<T: Borrow<Tensor>>(
         &self,
         bins: i64,
-        range: &[f64],
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
@@ -17970,7 +17931,7 @@ impl Tensor {
             self.c_tensor,
             bins,
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -17982,7 +17943,7 @@ impl Tensor {
         hist: &Tensor,
         bin_edges: &Tensor,
         bins: i64,
-        range: &[f64],
+        range: impl DoubleList,
         weight: Option<T>,
         density: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
@@ -17994,7 +17955,7 @@ impl Tensor {
             self.c_tensor,
             bins,
             range.as_ptr(),
-            range.len() as i32,
+            range.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if density { 1 } else { 0 }
         ));
@@ -18038,12 +17999,9 @@ impl Tensor {
         Ok(r__)
     }
 
-    pub fn f_hsplit_array(&self, indices: &[i64]) -> Result<Vec<Tensor>, TchError> {
-        let c_tensors = unsafe_torch_err!(atg_hsplit_array(
-            self.c_tensor,
-            indices.as_ptr(),
-            indices.len() as i32
-        ));
+    pub fn f_hsplit_array(&self, indices: impl IntList) -> Result<Vec<Tensor>, TchError> {
+        let c_tensors =
+            unsafe_torch_err!(atg_hsplit_array(self.c_tensor, indices.as_ptr(), indices.len_i32()));
         let mut r__ = vec![];
         let mut i = 0;
         loop {
@@ -18264,23 +18222,23 @@ impl Tensor {
 
     pub fn f_im2col(
         &self,
-        kernel_size: &[i64],
-        dilation: &[i64],
-        padding: &[i64],
-        stride: &[i64],
+        kernel_size: impl IntList,
+        dilation: impl IntList,
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_im2col(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -18288,10 +18246,10 @@ impl Tensor {
     pub fn f_im2col_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        dilation: &[i64],
-        padding: &[i64],
-        stride: &[i64],
+        kernel_size: impl IntList,
+        dilation: impl IntList,
+        padding: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_im2col_out(
@@ -18299,13 +18257,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -18676,7 +18634,7 @@ impl Tensor {
 
     pub fn f_index_select_backward(
         grad: &Tensor,
-        self_sizes: &[i64],
+        self_sizes: impl IntList,
         dim: i64,
         index: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -18685,7 +18643,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             self_sizes.as_ptr(),
-            self_sizes.len() as i32,
+            self_sizes.len_i32(),
             dim,
             index.c_tensor
         ));
@@ -19313,7 +19271,7 @@ impl Tensor {
 
     pub fn f_layer_norm<T: Borrow<Tensor>>(
         &self,
-        normalized_shape: &[i64],
+        normalized_shape: impl IntList,
         weight: Option<T>,
         bias: Option<T>,
         eps: f64,
@@ -19324,7 +19282,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             normalized_shape.as_ptr(),
-            normalized_shape.len() as i32,
+            normalized_shape.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps,
@@ -20577,58 +20535,55 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_norm<'a, S: Into<Scalar>>(
+    pub fn f_linalg_norm<S: Into<Scalar>>(
         &self,
         ord: S,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             ord.into().c_scalar,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_norm_ord_str<'a>(
+    pub fn f_linalg_norm_ord_str(
         &self,
         ord: &str,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_norm_ord_str(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             ord.as_ptr(),
             ord.len() as i32,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_norm_ord_str_out<'a>(
+    pub fn f_linalg_norm_ord_str_out(
         &self,
         out: &Tensor,
         ord: &str,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_norm_ord_str_out(
             c_tensors.as_mut_ptr(),
@@ -20636,31 +20591,30 @@ impl Tensor {
             self.c_tensor,
             ord.as_ptr(),
             ord.len() as i32,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_norm_out<'a, S: Into<Scalar>>(
+    pub fn f_linalg_norm_out<S: Into<Scalar>>(
         &self,
         out: &Tensor,
         ord: S,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_norm_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             ord.into().c_scalar,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -21053,38 +21007,36 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_tensorsolve<'a>(
+    pub fn f_linalg_tensorsolve(
         &self,
         other: &Tensor,
-        dims: impl Into<Option<&'a [i64]>>,
+        dims: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let dims = dims.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_tensorsolve(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             other.c_tensor,
-            dims.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dims.as_ref().map_or(-1, |t| t.len() as i32)
+            dims.as_ptr(),
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_tensorsolve_out<'a>(
+    pub fn f_linalg_tensorsolve_out(
         &self,
         out: &Tensor,
         other: &Tensor,
-        dims: impl Into<Option<&'a [i64]>>,
+        dims: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let dims = dims.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_tensorsolve_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             other.c_tensor,
-            dims.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dims.as_ref().map_or(-1, |t| t.len() as i32)
+            dims.as_ptr(),
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -21619,13 +21571,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_logsumexp(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_logsumexp(&self, dim: impl IntList, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_logsumexp(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -21634,7 +21586,7 @@ impl Tensor {
     pub fn f_logsumexp_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -21643,7 +21595,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -22203,10 +22155,10 @@ impl Tensor {
 
     pub fn f_max_pool1d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -22214,13 +22166,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -22228,10 +22180,10 @@ impl Tensor {
 
     pub fn f_max_pool1d_with_indices(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -22239,13 +22191,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -22253,10 +22205,10 @@ impl Tensor {
 
     pub fn f_max_pool2d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -22264,13 +22216,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -22278,10 +22230,10 @@ impl Tensor {
 
     pub fn f_max_pool2d_with_indices(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -22289,13 +22241,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -22304,10 +22256,10 @@ impl Tensor {
     pub fn f_max_pool2d_with_indices_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -22317,13 +22269,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 },
             indices.c_tensor
         ));
@@ -22334,10 +22286,10 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -22348,13 +22300,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 },
             indices.c_tensor
         ));
@@ -22365,10 +22317,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -22378,13 +22330,13 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -22392,10 +22344,10 @@ impl Tensor {
 
     pub fn f_max_pool3d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -22403,13 +22355,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -22417,10 +22369,10 @@ impl Tensor {
 
     pub fn f_max_pool3d_with_indices(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -22428,13 +22380,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -22443,10 +22395,10 @@ impl Tensor {
     pub fn f_max_pool3d_with_indices_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -22456,13 +22408,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 },
             indices.c_tensor
         ));
@@ -22473,10 +22425,10 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
         indices: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -22487,13 +22439,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 },
             indices.c_tensor
         ));
@@ -22504,10 +22456,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
@@ -22517,13 +22469,13 @@ impl Tensor {
             indices.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -22532,7 +22484,7 @@ impl Tensor {
     pub fn f_max_unpool2d(
         &self,
         indices: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_max_unpool2d(
@@ -22540,7 +22492,7 @@ impl Tensor {
             self.c_tensor,
             indices.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22549,7 +22501,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_max_unpool2d_out(
@@ -22558,7 +22510,7 @@ impl Tensor {
             self.c_tensor,
             indices.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22566,9 +22518,9 @@ impl Tensor {
     pub fn f_max_unpool3d(
         &self,
         indices: &Tensor,
-        output_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        output_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_max_unpool3d(
@@ -22576,11 +22528,11 @@ impl Tensor {
             self.c_tensor,
             indices.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22589,9 +22541,9 @@ impl Tensor {
         &self,
         out: &Tensor,
         indices: &Tensor,
-        output_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
+        output_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_max_unpool3d_out(
@@ -22600,11 +22552,11 @@ impl Tensor {
             self.c_tensor,
             indices.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22632,40 +22584,38 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_mean_dim<'a>(
+    pub fn f_mean_dim(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_mean_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_mean_out<'a>(
+    pub fn f_mean_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_mean_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -22963,9 +22913,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -22977,11 +22927,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -22995,9 +22945,9 @@ impl Tensor {
         z: &Tensor,
         alpha: S,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23009,11 +22959,11 @@ impl Tensor {
             alpha.into().c_scalar,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23024,9 +22974,9 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -23039,11 +22989,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -23055,9 +23005,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23067,11 +23017,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23081,10 +23031,10 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -23096,13 +23046,13 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -23115,10 +23065,10 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        output_padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        output_padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -23131,13 +23081,13 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -23149,9 +23099,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -23163,11 +23113,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -23180,9 +23130,9 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
         benchmark: bool,
         deterministic: bool,
@@ -23195,11 +23145,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups,
             if benchmark { 1 } else { 0 },
             if deterministic { 1 } else { 0 }
@@ -23220,7 +23170,7 @@ impl Tensor {
         dropout: f64,
         train: bool,
         bidirectional: bool,
-        batch_sizes: &[i64],
+        batch_sizes: impl IntList,
         dropout_state: Option<T>,
     ) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 5];
@@ -23240,7 +23190,7 @@ impl Tensor {
             if train { 1 } else { 0 },
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
-            batch_sizes.len() as i32,
+            batch_sizes.len_i32(),
             dropout_state.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
@@ -23270,7 +23220,7 @@ impl Tensor {
         dropout: f64,
         train: bool,
         bidirectional: bool,
-        batch_sizes: &[i64],
+        batch_sizes: impl IntList,
         dropout_state: Option<T>,
     ) -> Result<(Tensor, Tensor, Tensor, Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 5];
@@ -23295,7 +23245,7 @@ impl Tensor {
             if train { 1 } else { 0 },
             if bidirectional { 1 } else { 0 },
             batch_sizes.as_ptr(),
-            batch_sizes.len() as i32,
+            batch_sizes.len_i32(),
             dropout_state.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
         ));
         Ok((
@@ -23335,13 +23285,16 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_mkldnn_adaptive_avg_pool2d(&self, output_size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_mkldnn_adaptive_avg_pool2d(
+        &self,
+        output_size: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_mkldnn_adaptive_avg_pool2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -23377,7 +23330,7 @@ impl Tensor {
     pub fn f_mkldnn_adaptive_avg_pool2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_mkldnn_adaptive_avg_pool2d_out(
@@ -23385,7 +23338,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -23394,9 +23347,9 @@ impl Tensor {
         &self,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23406,11 +23359,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23421,9 +23374,9 @@ impl Tensor {
         out: &Tensor,
         weight: &Tensor,
         bias: Option<T>,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23434,11 +23387,11 @@ impl Tensor {
             weight.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23460,7 +23413,7 @@ impl Tensor {
     }
 
     pub fn f_mkldnn_linear_backward_input(
-        input_size: &[i64],
+        input_size: impl IntList,
         grad_output: &Tensor,
         weight: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -23468,7 +23421,7 @@ impl Tensor {
         unsafe_torch_err!(atg_mkldnn_linear_backward_input(
             c_tensors.as_mut_ptr(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             grad_output.c_tensor,
             weight.c_tensor
         ));
@@ -23477,7 +23430,7 @@ impl Tensor {
 
     pub fn f_mkldnn_linear_backward_input_out(
         out: &Tensor,
-        input_size: &[i64],
+        input_size: impl IntList,
         grad_output: &Tensor,
         weight: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -23486,7 +23439,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             grad_output.c_tensor,
             weight.c_tensor
         ));
@@ -23550,10 +23503,10 @@ impl Tensor {
 
     pub fn f_mkldnn_max_pool2d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23561,13 +23514,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23577,10 +23530,10 @@ impl Tensor {
         &self,
         grad_output: &Tensor,
         output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23590,13 +23543,13 @@ impl Tensor {
             output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23607,10 +23560,10 @@ impl Tensor {
         out: &Tensor,
         grad_output: &Tensor,
         output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23621,13 +23574,13 @@ impl Tensor {
             output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23636,10 +23589,10 @@ impl Tensor {
     pub fn f_mkldnn_max_pool2d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23648,13 +23601,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23662,10 +23615,10 @@ impl Tensor {
 
     pub fn f_mkldnn_max_pool3d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23673,13 +23626,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23689,10 +23642,10 @@ impl Tensor {
         &self,
         grad_output: &Tensor,
         output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23702,13 +23655,13 @@ impl Tensor {
             output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23719,10 +23672,10 @@ impl Tensor {
         out: &Tensor,
         grad_output: &Tensor,
         output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23733,13 +23686,13 @@ impl Tensor {
             output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23748,10 +23701,10 @@ impl Tensor {
     pub fn f_mkldnn_max_pool3d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23760,13 +23713,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23774,9 +23727,9 @@ impl Tensor {
 
     pub fn f_mkldnn_reorder_conv2d_weight(
         &self,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23784,11 +23737,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23797,9 +23750,9 @@ impl Tensor {
     pub fn f_mkldnn_reorder_conv2d_weight_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23808,11 +23761,11 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23820,9 +23773,9 @@ impl Tensor {
 
     pub fn f_mkldnn_reorder_conv3d_weight(
         &self,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23830,11 +23783,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23843,9 +23796,9 @@ impl Tensor {
     pub fn f_mkldnn_reorder_conv3d_weight_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
-        stride: &[i64],
-        dilation: &[i64],
+        padding: impl IntList,
+        stride: impl IntList,
+        dilation: impl IntList,
         groups: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23854,11 +23807,11 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             groups
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23911,15 +23864,19 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_moveaxis(&self, source: &[i64], destination: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_moveaxis(
+        &self,
+        source: impl IntList,
+        destination: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_moveaxis(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             source.as_ptr(),
-            source.len() as i32,
+            source.len_i32(),
             destination.as_ptr(),
-            destination.len() as i32
+            destination.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -23935,15 +23892,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_movedim(&self, source: &[i64], destination: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_movedim(
+        &self,
+        source: impl IntList,
+        destination: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_movedim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             source.as_ptr(),
-            source.len() as i32,
+            source.len_i32(),
             destination.as_ptr(),
-            destination.len() as i32
+            destination.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -23962,10 +23923,10 @@ impl Tensor {
     pub fn f_mps_max_pool2d_backward(
         &self,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -23974,13 +23935,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23990,10 +23951,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         grad_output: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -24003,13 +23964,13 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -24456,40 +24417,38 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nanmean<'a>(
+    pub fn f_nanmean(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nanmean(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nanmean_out<'a>(
+    pub fn f_nanmean_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nanmean_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -24630,40 +24589,38 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nansum<'a>(
+    pub fn f_nansum(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nansum(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nansum_out<'a>(
+    pub fn f_nansum_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nansum_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -24926,7 +24883,7 @@ impl Tensor {
 
     pub fn f_native_layer_norm<T: Borrow<Tensor>>(
         &self,
-        normalized_shape: &[i64],
+        normalized_shape: impl IntList,
         weight: Option<T>,
         bias: Option<T>,
         eps: f64,
@@ -24936,7 +24893,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             normalized_shape.as_ptr(),
-            normalized_shape.len() as i32,
+            normalized_shape.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps
@@ -24953,7 +24910,7 @@ impl Tensor {
         out0: &Tensor,
         out1: &Tensor,
         out2: &Tensor,
-        normalized_shape: &[i64],
+        normalized_shape: impl IntList,
         weight: Option<T>,
         bias: Option<T>,
         eps: f64,
@@ -24966,7 +24923,7 @@ impl Tensor {
             out2.c_tensor,
             self.c_tensor,
             normalized_shape.as_ptr(),
-            normalized_shape.len() as i32,
+            normalized_shape.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             eps
@@ -24993,7 +24950,7 @@ impl Tensor {
     pub fn f_native_norm_scalaropt_dim_dtype<S: Into<Scalar>>(
         &self,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -25003,7 +24960,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -25014,7 +24971,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -25025,7 +24982,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -25118,52 +25075,55 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nested_to_padded_tensor<'a>(
+    pub fn f_nested_to_padded_tensor(
         &self,
         padding: f64,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nested_to_padded_tensor(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32)
+            output_size.as_ptr(),
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_empty(&self, size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_new_empty(
+        &self,
+        size: impl IntList,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_empty(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_empty_out(&self, out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_new_empty_out(&self, out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_empty_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_new_empty_strided(
         &self,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -25171,9 +25131,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -25183,8 +25143,8 @@ impl Tensor {
     pub fn f_new_empty_strided_out(
         &self,
         out: &Tensor,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_empty_strided_out(
@@ -25192,16 +25152,16 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_new_full<S: Into<Scalar>>(
         &self,
-        size: &[i64],
+        size: impl IntList,
         fill_value: S,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
@@ -25210,7 +25170,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             fill_value.into().c_scalar,
             options.0.c_int(),
             options.1.c_int()
@@ -25221,7 +25181,7 @@ impl Tensor {
     pub fn f_new_full_out<S: Into<Scalar>>(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         fill_value: S,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -25230,58 +25190,66 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             fill_value.into().c_scalar
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_ones(&self, size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_new_ones(
+        &self,
+        size: impl IntList,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_ones(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_ones_out(&self, out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_new_ones_out(&self, out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_ones_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_zeros(&self, size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_new_zeros(
+        &self,
+        size: impl IntList,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_zeros(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_new_zeros_out(&self, out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_new_zeros_out(&self, out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_new_zeros_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -25542,7 +25510,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -25553,7 +25521,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -25570,7 +25538,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -25580,7 +25548,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -25595,7 +25563,7 @@ impl Tensor {
     pub fn f_norm_scalaropt_dim<S: Into<Scalar>>(
         &self,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -25604,7 +25572,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -25613,7 +25581,7 @@ impl Tensor {
     pub fn f_norm_scalaropt_dim_dtype<S: Into<Scalar>>(
         &self,
         p: S,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
@@ -25623,7 +25591,7 @@ impl Tensor {
             self.c_tensor,
             p.into().c_scalar,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -25750,13 +25718,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_nuclear_norm_dim(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_nuclear_norm_dim(&self, dim: impl IntList, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_nuclear_norm_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -25765,7 +25733,7 @@ impl Tensor {
     pub fn f_nuclear_norm_dim_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -25774,7 +25742,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -25803,12 +25771,12 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_ones(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_ones(size: impl IntList, options: (Kind, Device)) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_ones(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -25827,13 +25795,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_ones_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_ones_out(out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_ones_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -25920,7 +25888,7 @@ impl Tensor {
 
     pub fn f_pad(
         &self,
-        pad: &[i64],
+        pad: impl IntList,
         mode: &str,
         value: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -25930,7 +25898,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             pad.as_ptr(),
-            pad.len() as i32,
+            pad.len_i32(),
             mode.as_ptr(),
             mode.len() as i32,
             value.unwrap_or(std::f64::NAN),
@@ -25980,36 +25948,36 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_permute(&self, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_permute(&self, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_permute(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_permute_copy(&self, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_permute_copy(&self, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_permute_copy(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_permute_copy_out(&self, out: &Tensor, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_permute_copy_out(&self, out: &Tensor, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_permute_copy_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -26876,10 +26844,10 @@ impl Tensor {
 
     pub fn f_quantized_max_pool1d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -26887,13 +26855,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -26902,10 +26870,10 @@ impl Tensor {
     pub fn f_quantized_max_pool1d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -26914,13 +26882,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -26928,10 +26896,10 @@ impl Tensor {
 
     pub fn f_quantized_max_pool2d(
         &self,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -26939,13 +26907,13 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -26954,10 +26922,10 @@ impl Tensor {
     pub fn f_quantized_max_pool2d_out(
         &self,
         out: &Tensor,
-        kernel_size: &[i64],
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
         ceil_mode: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -26966,13 +26934,13 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32,
+            dilation.len_i32(),
             if ceil_mode { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -27070,12 +27038,12 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_rand(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_rand(size: impl IntList, options: (Kind, Device)) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_rand(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -27094,24 +27062,28 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_rand_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_rand_out(out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_rand_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_randint(high: i64, size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_randint(
+        high: i64,
+        size: impl IntList,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_randint(
             c_tensors.as_mut_ptr(),
             high,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -27166,7 +27138,7 @@ impl Tensor {
     pub fn f_randint_low(
         low: i64,
         high: i64,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -27175,7 +27147,7 @@ impl Tensor {
             low,
             high,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -27186,7 +27158,7 @@ impl Tensor {
         out: &Tensor,
         low: i64,
         high: i64,
-        size: &[i64],
+        size: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_randint_low_out(
@@ -27195,29 +27167,29 @@ impl Tensor {
             low,
             high,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_randint_out(out: &Tensor, high: i64, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_randint_out(out: &Tensor, high: i64, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_randint_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             high,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_randn(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_randn(size: impl IntList, options: (Kind, Device)) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_randn(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -27236,13 +27208,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_randn_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_randn_out(out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_randn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27446,13 +27418,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_reflection_pad1d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_reflection_pad1d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad1d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27460,7 +27432,7 @@ impl Tensor {
     pub fn f_reflection_pad1d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad1d_backward(
@@ -27468,7 +27440,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27477,7 +27449,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad1d_backward_grad_input(
@@ -27486,7 +27458,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27494,7 +27466,7 @@ impl Tensor {
     pub fn f_reflection_pad1d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad1d_out(
@@ -27502,18 +27474,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_reflection_pad2d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_reflection_pad2d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27521,7 +27493,7 @@ impl Tensor {
     pub fn f_reflection_pad2d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad2d_backward(
@@ -27529,7 +27501,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27538,7 +27510,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad2d_backward_grad_input(
@@ -27547,7 +27519,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27555,7 +27527,7 @@ impl Tensor {
     pub fn f_reflection_pad2d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad2d_out(
@@ -27563,18 +27535,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_reflection_pad3d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_reflection_pad3d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad3d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27582,7 +27554,7 @@ impl Tensor {
     pub fn f_reflection_pad3d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad3d_backward(
@@ -27590,7 +27562,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27599,7 +27571,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad3d_backward_grad_input(
@@ -27608,7 +27580,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27616,7 +27588,7 @@ impl Tensor {
     pub fn f_reflection_pad3d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reflection_pad3d_out(
@@ -27624,7 +27596,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27806,13 +27778,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_repeat(&self, repeats: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_repeat(&self, repeats: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             repeats.as_ptr(),
-            repeats.len() as i32
+            repeats.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27891,25 +27863,25 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_repeat_out(&self, out: &Tensor, repeats: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_repeat_out(&self, out: &Tensor, repeats: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_repeat_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             repeats.as_ptr(),
-            repeats.len() as i32
+            repeats.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_replication_pad1d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_replication_pad1d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad1d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27917,7 +27889,7 @@ impl Tensor {
     pub fn f_replication_pad1d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad1d_backward(
@@ -27925,7 +27897,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27934,7 +27906,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad1d_backward_grad_input(
@@ -27943,7 +27915,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27951,7 +27923,7 @@ impl Tensor {
     pub fn f_replication_pad1d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad1d_out(
@@ -27959,18 +27931,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_replication_pad2d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_replication_pad2d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad2d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27978,7 +27950,7 @@ impl Tensor {
     pub fn f_replication_pad2d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad2d_backward(
@@ -27986,7 +27958,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -27995,7 +27967,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad2d_backward_grad_input(
@@ -28004,7 +27976,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28012,7 +27984,7 @@ impl Tensor {
     pub fn f_replication_pad2d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad2d_out(
@@ -28020,18 +27992,18 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_replication_pad3d(&self, padding: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_replication_pad3d(&self, padding: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad3d(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28039,7 +28011,7 @@ impl Tensor {
     pub fn f_replication_pad3d_backward(
         &self,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad3d_backward(
@@ -28047,7 +28019,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28056,7 +28028,7 @@ impl Tensor {
         &self,
         grad_input: &Tensor,
         grad_output: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad3d_backward_grad_input(
@@ -28065,7 +28037,7 @@ impl Tensor {
             grad_output.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28073,7 +28045,7 @@ impl Tensor {
     pub fn f_replication_pad3d_out(
         &self,
         out: &Tensor,
-        padding: &[i64],
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_replication_pad3d_out(
@@ -28081,7 +28053,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28096,13 +28068,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_reshape(&self, shape: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_reshape(&self, shape: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_reshape(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             shape.as_ptr(),
-            shape.len() as i32
+            shape.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28113,24 +28085,24 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_resize(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_resize(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_resize(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_resize_(&mut self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_resize_(&mut self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_resize_(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28201,14 +28173,14 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_resize_out(&self, out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_resize_out(&self, out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_resize_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28385,15 +28357,15 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_roll(&self, shifts: &[i64], dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_roll(&self, shifts: impl IntList, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_roll(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             shifts.as_ptr(),
-            shifts.len() as i32,
+            shifts.len_i32(),
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -28401,8 +28373,8 @@ impl Tensor {
     pub fn f_roll_out(
         &self,
         out: &Tensor,
-        shifts: &[i64],
-        dims: &[i64],
+        shifts: impl IntList,
+        dims: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_roll_out(
@@ -28410,26 +28382,31 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             shifts.as_ptr(),
-            shifts.len() as i32,
+            shifts.len_i32(),
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_rot90(&self, k: i64, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_rot90(&self, k: i64, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_rot90(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             k,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_rot90_out(&self, out: &Tensor, k: i64, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_rot90_out(
+        &self,
+        out: &Tensor,
+        k: i64,
+        dims: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_rot90_out(
             c_tensors.as_mut_ptr(),
@@ -28437,7 +28414,7 @@ impl Tensor {
             self.c_tensor,
             k,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29156,7 +29133,7 @@ impl Tensor {
 
     pub fn f_select_backward(
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         index: i64,
     ) -> Result<Tensor, TchError> {
@@ -29165,7 +29142,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             index
         ));
@@ -29175,7 +29152,7 @@ impl Tensor {
     pub fn f_select_backward_out(
         out: &Tensor,
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         index: i64,
     ) -> Result<Tensor, TchError> {
@@ -29185,7 +29162,7 @@ impl Tensor {
             out.c_tensor,
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             index
         ));
@@ -29330,8 +29307,8 @@ impl Tensor {
         &mut self,
         source: &Tensor,
         storage_offset: i64,
-        size: &[i64],
-        stride: &[i64],
+        size: impl IntList,
+        stride: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_set_source_tensor_storage_offset_(
@@ -29340,9 +29317,9 @@ impl Tensor {
             source.c_tensor,
             storage_offset,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             stride.as_ptr(),
-            stride.len() as i32
+            stride.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29560,7 +29537,7 @@ impl Tensor {
 
     pub fn f_slice_backward(
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         start: i64,
         end: i64,
@@ -29571,7 +29548,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             start,
             end,
@@ -29583,7 +29560,7 @@ impl Tensor {
     pub fn f_slice_backward_out(
         out: &Tensor,
         grad_output: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         start: i64,
         end: i64,
@@ -29595,7 +29572,7 @@ impl Tensor {
             out.c_tensor,
             grad_output.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             start,
             end,
@@ -29728,10 +29705,10 @@ impl Tensor {
     pub fn f_slow_conv3d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv3d(
@@ -29739,12 +29716,12 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29753,10 +29730,10 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv3d_out(
@@ -29765,12 +29742,12 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32
+            padding.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29778,11 +29755,11 @@ impl Tensor {
     pub fn f_slow_conv_dilated2d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_dilated2d(
@@ -29790,14 +29767,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29806,11 +29783,11 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_dilated2d_out(
@@ -29819,14 +29796,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29834,11 +29811,11 @@ impl Tensor {
     pub fn f_slow_conv_dilated3d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_dilated3d(
@@ -29846,14 +29823,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29862,11 +29839,11 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_dilated3d_out(
@@ -29875,14 +29852,14 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29890,12 +29867,12 @@ impl Tensor {
     pub fn f_slow_conv_transpose2d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_transpose2d(
@@ -29903,16 +29880,16 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29921,12 +29898,12 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_transpose2d_out(
@@ -29935,16 +29912,16 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29952,12 +29929,12 @@ impl Tensor {
     pub fn f_slow_conv_transpose3d<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_transpose3d(
@@ -29965,16 +29942,16 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -29983,12 +29960,12 @@ impl Tensor {
         &self,
         out: &Tensor,
         weight: &Tensor,
-        kernel_size: &[i64],
+        kernel_size: impl IntList,
         bias: Option<T>,
-        stride: &[i64],
-        padding: &[i64],
-        output_padding: &[i64],
-        dilation: &[i64],
+        stride: impl IntList,
+        padding: impl IntList,
+        output_padding: impl IntList,
+        dilation: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_slow_conv_transpose3d_out(
@@ -29997,16 +29974,16 @@ impl Tensor {
             self.c_tensor,
             weight.c_tensor,
             kernel_size.as_ptr(),
-            kernel_size.len() as i32,
+            kernel_size.len_i32(),
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             stride.as_ptr(),
-            stride.len() as i32,
+            stride.len_i32(),
             padding.as_ptr(),
-            padding.len() as i32,
+            padding.len_i32(),
             output_padding.as_ptr(),
-            output_padding.len() as i32,
+            output_padding.len_i32(),
             dilation.as_ptr(),
-            dilation.len() as i32
+            dilation.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -30366,7 +30343,7 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30376,7 +30353,7 @@ impl Tensor {
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -30405,7 +30382,7 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30415,7 +30392,7 @@ impl Tensor {
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -30444,7 +30421,7 @@ impl Tensor {
         compressed_indices: &Tensor,
         plain_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30454,19 +30431,22 @@ impl Tensor {
             plain_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sparse_coo_tensor(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_sparse_coo_tensor(
+        size: impl IntList,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sparse_coo_tensor(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -30492,7 +30472,7 @@ impl Tensor {
     pub fn f_sparse_coo_tensor_indices_size(
         indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30501,20 +30481,23 @@ impl Tensor {
             indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sparse_coo_tensor_size_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_sparse_coo_tensor_size_out(
+        out: &Tensor,
+        size: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sparse_coo_tensor_size_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -30541,7 +30524,7 @@ impl Tensor {
         ccol_indices: &Tensor,
         row_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30551,7 +30534,7 @@ impl Tensor {
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -30580,7 +30563,7 @@ impl Tensor {
         crow_indices: &Tensor,
         col_indices: &Tensor,
         values: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -30590,7 +30573,7 @@ impl Tensor {
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -30622,7 +30605,7 @@ impl Tensor {
 
     pub fn f_sparse_resize(
         &self,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30631,7 +30614,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -30640,7 +30623,7 @@ impl Tensor {
 
     pub fn f_sparse_resize_(
         &mut self,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30649,7 +30632,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -30658,7 +30641,7 @@ impl Tensor {
 
     pub fn f_sparse_resize_and_clear(
         &self,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30667,7 +30650,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -30676,7 +30659,7 @@ impl Tensor {
 
     pub fn f_sparse_resize_and_clear_(
         &mut self,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30685,7 +30668,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -30695,7 +30678,7 @@ impl Tensor {
     pub fn f_sparse_resize_and_clear_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30705,7 +30688,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -30715,7 +30698,7 @@ impl Tensor {
     pub fn f_sparse_resize_out(
         &self,
         out: &Tensor,
-        size: &[i64],
+        size: impl IntList,
         sparse_dim: i64,
         dense_dim: i64,
     ) -> Result<Tensor, TchError> {
@@ -30725,7 +30708,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             sparse_dim,
             dense_dim
         ));
@@ -31810,13 +31793,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_special_logsumexp(&self, dim: &[i64], keepdim: bool) -> Result<Tensor, TchError> {
+    pub fn f_special_logsumexp(
+        &self,
+        dim: impl IntList,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_special_logsumexp(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -31825,7 +31812,7 @@ impl Tensor {
     pub fn f_special_logsumexp_out(
         &self,
         out: &Tensor,
-        dim: &[i64],
+        dim: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -31834,7 +31821,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim.as_ptr(),
-            dim.len() as i32,
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -32693,11 +32680,15 @@ impl Tensor {
         Ok(())
     }
 
-    pub fn f_split_sizes(&self, split_size: &[i64], dim: i64) -> Result<Vec<Tensor>, TchError> {
+    pub fn f_split_sizes(
+        &self,
+        split_size: impl IntList,
+        dim: i64,
+    ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg_split_sizes(
             self.c_tensor,
             split_size.as_ptr(),
-            split_size.len() as i32,
+            split_size.len_i32(),
             dim
         ));
         let mut r__ = vec![];
@@ -32716,13 +32707,13 @@ impl Tensor {
 
     pub fn f_split_with_sizes(
         &self,
-        split_sizes: &[i64],
+        split_sizes: impl IntList,
         dim: i64,
     ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg_split_with_sizes(
             self.c_tensor,
             split_sizes.as_ptr(),
-            split_sizes.len() as i32,
+            split_sizes.len_i32(),
             dim
         ));
         let mut r__ = vec![];
@@ -32741,13 +32732,13 @@ impl Tensor {
 
     pub fn f_split_with_sizes_copy(
         &self,
-        split_sizes: &[i64],
+        split_sizes: impl IntList,
         dim: i64,
     ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg_split_with_sizes_copy(
             self.c_tensor,
             split_sizes.as_ptr(),
-            split_sizes.len() as i32,
+            split_sizes.len_i32(),
             dim
         ));
         let mut r__ = vec![];
@@ -32767,7 +32758,7 @@ impl Tensor {
     pub fn f_split_with_sizes_copy_out<T: Borrow<Tensor>>(
         &self,
         out: &[T],
-        split_sizes: &[i64],
+        split_sizes: impl IntList,
         dim: i64,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg_split_with_sizes_copy_out(
@@ -32775,7 +32766,7 @@ impl Tensor {
             out.len() as i32,
             self.c_tensor,
             split_sizes.as_ptr(),
-            split_sizes.len() as i32,
+            split_sizes.len_i32(),
             dim
         ));
         Ok(())
@@ -32939,20 +32930,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_std_correction<'a>(
+    pub fn f_std_correction(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_std_correction(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -32960,22 +32950,21 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_std_correction_out<'a>(
+    pub fn f_std_correction_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_std_correction_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -32983,19 +32972,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_std_dim<'a>(
+    pub fn f_std_dim(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_std_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
@@ -33012,20 +33000,19 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_std_mean_correction<'a>(
+    pub fn f_std_mean_correction(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_std_mean_correction(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -33033,15 +33020,14 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_std_mean_correction_out<'a>(
+    pub fn f_std_mean_correction_out(
         &self,
         out0: &Tensor,
         out1: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_std_mean_correction_out(
@@ -33049,8 +33035,8 @@ impl Tensor {
             out0.c_tensor,
             out1.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -33058,40 +33044,38 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_std_mean_dim<'a>(
+    pub fn f_std_mean_dim(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_std_mean_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_std_out<'a>(
+    pub fn f_std_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_std_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
@@ -33268,40 +33252,38 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sum_dim_intlist<'a>(
+    pub fn f_sum_dim_intlist(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sum_dim_intlist(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sum_intlist_out<'a>(
+    pub fn f_sum_intlist_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         keepdim: bool,
         dtype: Kind,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sum_intlist_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 },
             dtype.c_int()
         ));
@@ -33319,13 +33301,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sum_to_size(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_sum_to_size(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sum_to_size(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33584,13 +33566,13 @@ impl Tensor {
 
     pub fn f_tensor_split_indices(
         &self,
-        indices: &[i64],
+        indices: impl IntList,
         dim: i64,
     ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg_tensor_split_indices(
             self.c_tensor,
             indices.as_ptr(),
-            indices.len() as i32,
+            indices.len_i32(),
             dim
         ));
         let mut r__ = vec![];
@@ -33634,8 +33616,8 @@ impl Tensor {
     pub fn f_tensordot(
         &self,
         other: &Tensor,
-        dims_self: &[i64],
-        dims_other: &[i64],
+        dims_self: impl IntList,
+        dims_other: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_tensordot(
@@ -33643,9 +33625,9 @@ impl Tensor {
             self.c_tensor,
             other.c_tensor,
             dims_self.as_ptr(),
-            dims_self.len() as i32,
+            dims_self.len_i32(),
             dims_other.as_ptr(),
-            dims_other.len() as i32
+            dims_other.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33654,8 +33636,8 @@ impl Tensor {
         &self,
         out: &Tensor,
         other: &Tensor,
-        dims_self: &[i64],
-        dims_other: &[i64],
+        dims_self: impl IntList,
+        dims_other: impl IntList,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_tensordot_out(
@@ -33664,9 +33646,9 @@ impl Tensor {
             self.c_tensor,
             other.c_tensor,
             dims_self.as_ptr(),
-            dims_self.len() as i32,
+            dims_self.len_i32(),
             dims_other.as_ptr(),
-            dims_other.len() as i32
+            dims_other.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33746,13 +33728,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_tile(&self, dims: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_tile(&self, dims: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_tile(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dims.as_ptr(),
-            dims.len() as i32
+            dims.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33877,38 +33859,36 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_padded_tensor<'a>(
+    pub fn f_to_padded_tensor(
         &self,
         padding: f64,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_padded_tensor(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             padding,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32)
+            output_size.as_ptr(),
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_padded_tensor_out<'a>(
+    pub fn f_to_padded_tensor_out(
         &self,
         out: &Tensor,
         padding: f64,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_padded_tensor_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             padding,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32)
+            output_size.as_ptr(),
+            output_size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33919,48 +33899,56 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_sparse_bsc(&self, blocksize: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_to_sparse_bsc(&self, blocksize: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_sparse_bsc(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             blocksize.as_ptr(),
-            blocksize.len() as i32
+            blocksize.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_sparse_bsc_out(&self, out: &Tensor, blocksize: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_to_sparse_bsc_out(
+        &self,
+        out: &Tensor,
+        blocksize: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_sparse_bsc_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             blocksize.as_ptr(),
-            blocksize.len() as i32
+            blocksize.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_sparse_bsr(&self, blocksize: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_to_sparse_bsr(&self, blocksize: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_sparse_bsr(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             blocksize.as_ptr(),
-            blocksize.len() as i32
+            blocksize.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_sparse_bsr_out(&self, out: &Tensor, blocksize: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_to_sparse_bsr_out(
+        &self,
+        out: &Tensor,
+        blocksize: impl IntList,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_sparse_bsr_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             blocksize.as_ptr(),
-            blocksize.len() as i32
+            blocksize.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -34082,13 +34070,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_trace_backward(grad: &Tensor, sizes: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_trace_backward(grad: &Tensor, sizes: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_trace_backward(
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             sizes.as_ptr(),
-            sizes.len() as i32
+            sizes.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -34454,14 +34442,14 @@ impl Tensor {
         Ok(())
     }
 
-    pub fn f_unflatten(&self, dim: i64, sizes: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_unflatten(&self, dim: i64, sizes: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_unflatten(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
             sizes.as_ptr(),
-            sizes.len() as i32
+            sizes.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -34497,7 +34485,7 @@ impl Tensor {
 
     pub fn f_unfold_backward(
         grad_in: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         size: i64,
         step: i64,
@@ -34507,7 +34495,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_in.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             size,
             step
@@ -34518,7 +34506,7 @@ impl Tensor {
     pub fn f_unfold_backward_out(
         out: &Tensor,
         grad_in: &Tensor,
-        input_sizes: &[i64],
+        input_sizes: impl IntList,
         dim: i64,
         size: i64,
         step: i64,
@@ -34529,7 +34517,7 @@ impl Tensor {
             out.c_tensor,
             grad_in.c_tensor,
             input_sizes.as_ptr(),
-            input_sizes.len() as i32,
+            input_sizes.len_i32(),
             dim,
             size,
             step
@@ -34794,13 +34782,13 @@ impl Tensor {
 
     pub fn f_unsafe_split_with_sizes(
         &self,
-        split_sizes: &[i64],
+        split_sizes: impl IntList,
         dim: i64,
     ) -> Result<Vec<Tensor>, TchError> {
         let c_tensors = unsafe_torch_err!(atg_unsafe_split_with_sizes(
             self.c_tensor,
             split_sizes.as_ptr(),
-            split_sizes.len() as i32,
+            split_sizes.len_i32(),
             dim
         ));
         let mut r__ = vec![];
@@ -34820,7 +34808,7 @@ impl Tensor {
     pub fn f_unsafe_split_with_sizes_out<T: Borrow<Tensor>>(
         &self,
         out: &[T],
-        split_sizes: &[i64],
+        split_sizes: impl IntList,
         dim: i64,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg_unsafe_split_with_sizes_out(
@@ -34828,7 +34816,7 @@ impl Tensor {
             out.len() as i32,
             self.c_tensor,
             split_sizes.as_ptr(),
-            split_sizes.len() as i32,
+            split_sizes.len_i32(),
             dim
         ));
         Ok(())
@@ -34865,7 +34853,7 @@ impl Tensor {
 
     pub fn f_upsample_bicubic2d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -34877,7 +34865,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -34889,8 +34877,8 @@ impl Tensor {
 
     pub fn f_upsample_bicubic2d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -34902,9 +34890,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -34917,8 +34905,8 @@ impl Tensor {
     pub fn f_upsample_bicubic2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -34931,9 +34919,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -34943,50 +34931,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bicubic2d_backward_vec<'a>(
+    pub fn f_upsample_bicubic2d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bicubic2d_backward_vec_out<'a>(
+    pub fn f_upsample_bicubic2d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -34994,7 +34980,7 @@ impl Tensor {
     pub fn f_upsample_bicubic2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35007,7 +34993,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -35017,51 +35003,49 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bicubic2d_vec<'a>(
+    pub fn f_upsample_bicubic2d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bicubic2d_vec_out<'a>(
+    pub fn f_upsample_bicubic2d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bicubic2d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_bilinear2d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35073,7 +35057,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -35085,8 +35069,8 @@ impl Tensor {
 
     pub fn f_upsample_bilinear2d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35098,9 +35082,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -35113,8 +35097,8 @@ impl Tensor {
     pub fn f_upsample_bilinear2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35127,9 +35111,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -35139,50 +35123,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bilinear2d_backward_vec<'a>(
+    pub fn f_upsample_bilinear2d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bilinear2d_backward_vec_out<'a>(
+    pub fn f_upsample_bilinear2d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35190,7 +35172,7 @@ impl Tensor {
     pub fn f_upsample_bilinear2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35203,7 +35185,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
@@ -35213,51 +35195,49 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bilinear2d_vec<'a>(
+    pub fn f_upsample_bilinear2d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_bilinear2d_vec_out<'a>(
+    pub fn f_upsample_bilinear2d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_bilinear2d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_linear1d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35267,7 +35247,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
@@ -35277,8 +35257,8 @@ impl Tensor {
 
     pub fn f_upsample_linear1d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35288,9 +35268,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
@@ -35301,8 +35281,8 @@ impl Tensor {
     pub fn f_upsample_linear1d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35313,9 +35293,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
@@ -35323,50 +35303,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_linear1d_backward_vec<'a>(
+    pub fn f_upsample_linear1d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_linear1d_backward_vec_out<'a>(
+    pub fn f_upsample_linear1d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35374,7 +35352,7 @@ impl Tensor {
     pub fn f_upsample_linear1d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35385,7 +35363,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
@@ -35393,51 +35371,49 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_linear1d_vec<'a>(
+    pub fn f_upsample_linear1d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_linear1d_vec_out<'a>(
+    pub fn f_upsample_linear1d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_linear1d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_nearest1d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -35446,7 +35422,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
@@ -35455,8 +35431,8 @@ impl Tensor {
 
     pub fn f_upsample_nearest1d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -35465,9 +35441,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
@@ -35477,8 +35453,8 @@ impl Tensor {
     pub fn f_upsample_nearest1d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -35488,55 +35464,53 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest1d_backward_vec<'a>(
+    pub fn f_upsample_nearest1d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest1d_backward_vec_out<'a>(
+    pub fn f_upsample_nearest1d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35544,7 +35518,7 @@ impl Tensor {
     pub fn f_upsample_nearest1d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
         let scales = scales.into();
@@ -35554,54 +35528,52 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales.unwrap_or(std::f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest1d_vec<'a>(
+    pub fn f_upsample_nearest1d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest1d_vec_out<'a>(
+    pub fn f_upsample_nearest1d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest1d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_nearest2d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35612,7 +35584,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -35623,8 +35595,8 @@ impl Tensor {
 
     pub fn f_upsample_nearest2d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35635,9 +35607,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -35649,8 +35621,8 @@ impl Tensor {
     pub fn f_upsample_nearest2d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35662,9 +35634,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -35673,46 +35645,44 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest2d_backward_vec<'a>(
+    pub fn f_upsample_nearest2d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest2d_backward_vec_out<'a>(
+    pub fn f_upsample_nearest2d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35720,7 +35690,7 @@ impl Tensor {
     pub fn f_upsample_nearest2d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
     ) -> Result<Tensor, TchError> {
@@ -35732,7 +35702,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_h.unwrap_or(std::f64::NAN),
             scales_h.is_none() as i8,
             scales_w.unwrap_or(std::f64::NAN),
@@ -35741,47 +35711,45 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest2d_vec<'a>(
+    pub fn f_upsample_nearest2d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest2d_vec_out<'a>(
+    pub fn f_upsample_nearest2d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_nearest3d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35794,7 +35762,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -35807,8 +35775,8 @@ impl Tensor {
 
     pub fn f_upsample_nearest3d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35821,9 +35789,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -35837,8 +35805,8 @@ impl Tensor {
     pub fn f_upsample_nearest3d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35852,9 +35820,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -35865,46 +35833,44 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest3d_backward_vec<'a>(
+    pub fn f_upsample_nearest3d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest3d_backward_vec_out<'a>(
+    pub fn f_upsample_nearest3d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35912,7 +35878,7 @@ impl Tensor {
     pub fn f_upsample_nearest3d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
         scales_w: impl Into<Option<f64>>,
@@ -35926,7 +35892,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
             scales_h.unwrap_or(std::f64::NAN),
@@ -35937,47 +35903,45 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest3d_vec<'a>(
+    pub fn f_upsample_nearest3d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_nearest3d_vec_out<'a>(
+    pub fn f_upsample_nearest3d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        scale_factors: &[f64],
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest3d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_upsample_trilinear3d(
         &self,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
@@ -35991,7 +35955,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
@@ -36005,8 +35969,8 @@ impl Tensor {
 
     pub fn f_upsample_trilinear3d_backward(
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
@@ -36020,9 +35984,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
@@ -36037,8 +36001,8 @@ impl Tensor {
     pub fn f_upsample_trilinear3d_backward_grad_input(
         grad_input: &Tensor,
         grad_output: &Tensor,
-        output_size: &[i64],
-        input_size: &[i64],
+        output_size: impl IntList,
+        input_size: impl IntList,
         align_corners: bool,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
@@ -36053,9 +36017,9 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
@@ -36067,50 +36031,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_trilinear3d_backward_vec<'a>(
+    pub fn f_upsample_trilinear3d_backward_vec(
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward_vec(
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_trilinear3d_backward_vec_out<'a>(
+    pub fn f_upsample_trilinear3d_backward_vec_out(
         out: &Tensor,
         grad_output: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
-        input_size: &[i64],
+        output_size: impl IntListOption,
+        input_size: impl IntList,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_backward_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             grad_output.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             input_size.as_ptr(),
-            input_size.len() as i32,
+            input_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36118,7 +36080,7 @@ impl Tensor {
     pub fn f_upsample_trilinear3d_out(
         &self,
         out: &Tensor,
-        output_size: &[i64],
+        output_size: impl IntList,
         align_corners: bool,
         scales_d: impl Into<Option<f64>>,
         scales_h: impl Into<Option<f64>>,
@@ -36133,7 +36095,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
-            output_size.len() as i32,
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scales_d.unwrap_or(std::f64::NAN),
             scales_d.is_none() as i8,
@@ -36145,44 +36107,42 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_trilinear3d_vec<'a>(
+    pub fn f_upsample_trilinear3d_vec(
         &self,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_vec(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_upsample_trilinear3d_vec_out<'a>(
+    pub fn f_upsample_trilinear3d_vec_out(
         &self,
         out: &Tensor,
-        output_size: impl Into<Option<&'a [i64]>>,
+        output_size: impl IntListOption,
         align_corners: bool,
-        scale_factors: &[f64],
+        scale_factors: impl DoubleList,
     ) -> Result<Tensor, TchError> {
-        let output_size = output_size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_trilinear3d_vec_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            output_size.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            output_size.as_ref().map_or(-1, |t| t.len() as i32),
+            output_size.as_ptr(),
+            output_size.len_i32(),
             if align_corners { 1 } else { 0 },
             scale_factors.as_ptr(),
-            scale_factors.len() as i32
+            scale_factors.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36191,7 +36151,7 @@ impl Tensor {
         grad: &Tensor,
         dim: i64,
         indices: &Tensor,
-        sizes: &[i64],
+        sizes: impl IntList,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -36201,7 +36161,7 @@ impl Tensor {
             dim,
             indices.c_tensor,
             sizes.as_ptr(),
-            sizes.len() as i32,
+            sizes.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -36252,20 +36212,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_var_correction<'a>(
+    pub fn f_var_correction(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_var_correction(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -36273,22 +36232,21 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_var_correction_out<'a>(
+    pub fn f_var_correction_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_var_correction_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -36296,19 +36254,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_var_dim<'a>(
+    pub fn f_var_dim(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_var_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
@@ -36325,20 +36282,19 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_var_mean_correction<'a>(
+    pub fn f_var_mean_correction(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_var_mean_correction(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -36346,15 +36302,14 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_var_mean_correction_out<'a>(
+    pub fn f_var_mean_correction_out(
         &self,
         out0: &Tensor,
         out1: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         correction: impl Into<Option<i64>>,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let correction = correction.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_var_mean_correction_out(
@@ -36362,8 +36317,8 @@ impl Tensor {
             out0.c_tensor,
             out1.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             correction.unwrap_or(0i64),
             correction.is_none() as i8,
             if keepdim { 1 } else { 0 }
@@ -36371,40 +36326,38 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_var_mean_dim<'a>(
+    pub fn f_var_mean_dim(
         &self,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_var_mean_dim(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_var_out<'a>(
+    pub fn f_var_out(
         &self,
         out: &Tensor,
-        dim: impl Into<Option<&'a [i64]>>,
+        dim: impl IntListOption,
         unbiased: bool,
         keepdim: bool,
     ) -> Result<Tensor, TchError> {
-        let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_var_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
-            dim.as_ref().map_or(-1, |t| t.len() as i32),
+            dim.as_ptr(),
+            dim.len_i32(),
             if unbiased { 1 } else { 0 },
             if keepdim { 1 } else { 0 }
         ));
@@ -36428,13 +36381,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_view_(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_view_(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_view(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36489,13 +36442,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_view_copy(&self, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_view_copy(&self, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_view_copy(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36521,14 +36474,14 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_view_copy_out(&self, out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_view_copy_out(&self, out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_view_copy_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36555,12 +36508,9 @@ impl Tensor {
         Ok(r__)
     }
 
-    pub fn f_vsplit_array(&self, indices: &[i64]) -> Result<Vec<Tensor>, TchError> {
-        let c_tensors = unsafe_torch_err!(atg_vsplit_array(
-            self.c_tensor,
-            indices.as_ptr(),
-            indices.len() as i32
-        ));
+    pub fn f_vsplit_array(&self, indices: impl IntList) -> Result<Vec<Tensor>, TchError> {
+        let c_tensors =
+            unsafe_torch_err!(atg_vsplit_array(self.c_tensor, indices.as_ptr(), indices.len_i32()));
         let mut r__ = vec![];
         let mut i = 0;
         loop {
@@ -36792,12 +36742,12 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_zeros(size: &[i64], options: (Kind, Device)) -> Result<Tensor, TchError> {
+    pub fn f_zeros(size: impl IntList, options: (Kind, Device)) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_zeros(
             c_tensors.as_mut_ptr(),
             size.as_ptr(),
-            size.len() as i32,
+            size.len_i32(),
             options.0.c_int(),
             options.1.c_int()
         ));
@@ -36816,13 +36766,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_zeros_out(out: &Tensor, size: &[i64]) -> Result<Tensor, TchError> {
+    pub fn f_zeros_out(out: &Tensor, size: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_zeros_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             size.as_ptr(),
-            size.len() as i32
+            size.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

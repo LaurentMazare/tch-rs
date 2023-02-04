@@ -339,16 +339,9 @@ module Func = struct
           | TensorOptList | TensorList | TensorOption -> true
           | _ -> false)
     in
-    let needs_lifetime_parameter =
-      List.exists t.args ~f:(fun arg ->
-          match arg.arg_type with
-          | IntListOption -> true
-          | _ -> false)
-    in
     let type_parameter = if needs_type_parameter then [ "T: Borrow<Tensor>" ] else [] in
     let scalar_parameter = if needs_scalar_parameter then [ "S: Into<Scalar>" ] else [] in
-    let lifetime_parameter = if needs_lifetime_parameter then [ "'a" ] else [] in
-    let parameters = lifetime_parameter @ type_parameter @ scalar_parameter in
+    let parameters = type_parameter @ scalar_parameter in
     match parameters with
     | [] -> ""
     | p -> "<" ^ String.concat p ~sep:", " ^ ">"
@@ -372,9 +365,9 @@ module Func = struct
             | Double -> "f64"
             | Tensor -> "&Tensor"
             | TensorOption -> "Option<T>"
-            | IntList -> "&[i64]"
-            | IntListOption -> "impl Into<Option<&'a [i64]>>"
-            | DoubleList -> "&[f64]"
+            | IntList -> "impl IntList"
+            | IntListOption -> "impl IntListOption"
+            | DoubleList -> "impl DoubleList"
             | TensorOptList -> "&[Option<T>]"
             | TensorList -> "&[T]"
             | String -> "&str"
@@ -442,14 +435,8 @@ module Func = struct
         | DoubleOption ->
           Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8" name name
         | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
-        | IntList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
-        | IntListOption ->
-          Printf.sprintf
-            "%s.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()), \
-             %s.as_ref().map_or(-1, |t| t.len() as i32)"
-            name
-            name
-        | DoubleList -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
+        | IntList | IntListOption | DoubleList ->
+          Printf.sprintf "%s.as_ptr(), %s.len_i32()" name name
         | TensorOptList ->
           Printf.sprintf "ptr_list_opt(%s).as_ptr(), %s.len() as i32" name name
         | TensorList -> Printf.sprintf "ptr_list(%s).as_ptr(), %s.len() as i32" name name
@@ -676,7 +663,7 @@ let write_fallible_wrapper funcs filename =
           pm "    )%s {" (Func.rust_return_type func ~fallible:true);
           List.iter func.args ~f:(fun arg ->
               match arg.arg_type with
-              | DoubleOption | Int64Option | IntListOption ->
+              | DoubleOption | Int64Option ->
                 pm "        let %s = %s.into();" arg.arg_name arg.arg_name
               | _ -> ());
           match func.returns with
@@ -744,6 +731,7 @@ let write_wrapper funcs filename =
       pm "use crate::{Device, Kind, Scalar, Tensor};";
       pm "use std::convert::Into;";
       pm "use std::borrow::Borrow;";
+      pm "use torch_sys::*;";
       pm "";
       pm "impl Tensor {";
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:(func : Func.t) ->
