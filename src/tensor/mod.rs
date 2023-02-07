@@ -7,6 +7,7 @@ pub mod display;
 pub mod index;
 mod iter;
 mod npy;
+mod safetensors;
 mod ops;
 
 pub use super::wrappers::tensor::{
