@@ -15,7 +15,7 @@ pub fn main() -> Result<()> {
     };
     // Load the dataset and resize it to the usual imagenet dimension of 224x224.
     let dataset = imagenet::load_from_dir(dataset_dir)?;
-    println!("{:?}", dataset);
+    println!("{dataset:?}");
 
     // Create the model and load the weights from the file.
     let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);

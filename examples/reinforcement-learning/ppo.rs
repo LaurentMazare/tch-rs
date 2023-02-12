@@ -148,8 +148,8 @@ pub fn train() -> cpython::PyResult<()> {
             total_episodes = 0.;
         }
         if update_index > 0 && update_index % 1000 == 0 {
-            if let Err(err) = vs.save(format!("trpo{}.ot", update_index)) {
-                println!("error while saving {}", err)
+            if let Err(err) = vs.save(format!("trpo{update_index}.ot")) {
+                println!("error while saving {err}")
             }
         }
     }

@@ -50,7 +50,7 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(
         Some(path) => Ok(std::ffi::CString::new(path)?),
         None => Err(TchError::Io(io::Error::new(
             io::ErrorKind::Other,
-            format!("path {:?} cannot be converted to UTF-8", path),
+            format!("path {path:?} cannot be converted to UTF-8"),
         ))),
     }
 }

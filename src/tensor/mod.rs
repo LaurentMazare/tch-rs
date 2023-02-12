@@ -217,8 +217,7 @@ impl Tensor {
     /// This returns a flattened version of the given tensor. The first dimension
     /// is preserved as it is assumed to be the mini-batch dimension.
     pub fn flat_view(&self) -> Tensor {
-        let batch_size = self.size()[0] as i64;
-        self.view((batch_size, -1))
+        self.view((self.size()[0], -1))
     }
 
     /// Converts a tensor to a one-hot encoded version.

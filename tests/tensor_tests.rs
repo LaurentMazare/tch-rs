@@ -54,9 +54,9 @@ fn iter() {
     let t = Tensor::of_slice(&[7i64, 3, 9, 3, 11]);
     let v = t.iter::<i64>().unwrap().collect::<Vec<_>>();
     assert_eq!(v, [7, 3, 9, 3, 11]);
-    let t = Tensor::of_slice(&[3.14, 15.926, 5.3589, 79.0]);
+    let t = Tensor::of_slice(&[std::f64::consts::PI, 15.926, 5.3589, 79.0]);
     let v = t.iter::<f64>().unwrap().collect::<Vec<_>>();
-    assert_eq!(v, [3.14, 15.926, 5.3589, 79.0]);
+    assert_eq!(v, [std::f64::consts::PI, 15.926, 5.3589, 79.0]);
 }
 
 #[test]
@@ -175,8 +175,8 @@ fn eq() {
     assert!(t == u);
     assert!(t != u - 1);
 
-    let t = Tensor::of_slice(&[3.14]);
-    let u = Tensor::from(3.14);
+    let t = Tensor::of_slice(&[std::f64::consts::PI]);
+    let u = Tensor::from(std::f64::consts::PI);
     // The tensor shape is important for equality.
     assert!(t != u);
     assert!(t.size() != u.size());
@@ -317,15 +317,15 @@ fn bool_tensor() {
     let t2_any = t2.any();
     let t1_all = t1.all();
     let t2_all = t2.all();
-    assert_eq!(bool::from(&t1_any), true);
-    assert_eq!(bool::from(&t1_all), false);
-    assert_eq!(bool::from(&t2_any), true);
-    assert_eq!(bool::from(&t2_all), true);
+    assert!(bool::from(&t1_any));
+    assert!(!bool::from(&t1_all));
+    assert!(bool::from(&t2_any));
+    assert!(bool::from(&t2_all));
 }
 
 #[test]
 fn copy_overflow() {
-    let mut s = [3.14];
+    let mut s = [f32::consts::PI];
     let r = Tensor::zeros(&[1], (tch::Kind::Int64, Device::Cpu)).f_copy_data(&mut s, 1);
     assert!(r.is_err());
 
@@ -448,8 +448,8 @@ fn allclose() {
     let t = Tensor::of_slice(&[-1f32, 0., 1., 2., 120., 0.42]);
     let t = t.quantize_per_tensor(0.1, 10, tch::Kind::QUInt8);
     let t = t.dequantize();
-    assert_eq!(t.allclose(&(&t + 0.1), 1e-5, 1e-8, false), false);
-    assert_eq!(t.allclose(&(&t + 1e-9), 1e-5, 1e-8, false), true);
+    assert!(!t.allclose(&(&t + 0.1), 1e-5, 1e-8, false));
+    assert!(t.allclose(&(&t + 1e-9), 1e-5, 1e-8, false));
 }
 
 #[test]

@@ -320,7 +320,7 @@ impl IValue {
             4 => {
                 let b = unsafe_torch_err!(ati_to_bool(c_ivalue));
                 if b < 0 {
-                    return Err(TchError::Kind(format!("unexpected bool value {}", b)));
+                    return Err(TchError::Kind(format!("unexpected bool value {b}")));
                 }
                 IValue::Bool(b != 0)
             }
@@ -394,7 +394,7 @@ impl IValue {
                 free = false;
                 IValue::Object(Object { c_ivalue })
             }
-            _ => return Err(TchError::Kind(format!("unhandled tag {}", tag))),
+            _ => return Err(TchError::Kind(format!("unhandled tag {tag}"))),
         };
         if free {
             unsafe_torch_err!(ati_free(c_ivalue));
@@ -780,8 +780,7 @@ impl Object {
             unsafe_torch_err!(ati_object_getattr_(self.c_ivalue, property_name.as_ptr()));
         if c_ivalue.is_null() {
             return Err(TchError::Torch(format!(
-                "Object.getattr(\"{}\") returned CIValue nullptr",
-                attr_name
+                "Object.getattr(\"{attr_name}\") returned CIValue nullptr"
             )));
         }
         IValue::of_c(c_ivalue)
@@ -797,6 +796,8 @@ impl Drop for Object {
 #[cfg(test)]
 mod tests {
     use super::IValue;
+    use std::f64::consts;
+
     fn round_trip<T: Into<IValue>>(t: T) {
         let ivalue: IValue = t.into();
         let ivalue2 = IValue::of_c(ivalue.to_c().unwrap()).unwrap();
@@ -809,13 +810,13 @@ mod tests {
         round_trip(false);
         round_trip(-1);
         round_trip(42);
-        round_trip(3.1415);
+        round_trip(15);
         round_trip("".to_string());
         round_trip("foobar".to_string());
-        round_trip((42, 3.1415));
+        round_trip((42, consts::PI));
         round_trip(vec![42, 1337]);
-        round_trip(vec![2.71828, 3.141592, 299792458.00001]);
-        round_trip((vec![true, false, true, true], vec![2.71828, 3.141592, 299792458.00001]));
+        round_trip(vec![consts::E, consts::PI, 299792458.00001]);
+        round_trip((vec![true, false, true, true], vec![consts::E, consts::PI, 299792458.00001]));
         round_trip(vec![IValue::from(42), IValue::from("foobar")]);
         round_trip(vec![
             (IValue::from(42), IValue::from("foobar")),

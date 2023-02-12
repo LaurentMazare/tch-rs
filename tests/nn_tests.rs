@@ -21,7 +21,7 @@ fn optimizer_test() {
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     opt.set_lr(1e-2);
     // Optimization loop.
@@ -31,7 +31,7 @@ fn optimizer_test() {
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {}", final_loss);
+    assert!(final_loss < 0.25, "{}", "final loss {final_loss}");
 
     // Reset the weights to their initial values.
     tch::no_grad(|| {
@@ -50,7 +50,7 @@ fn optimizer_test() {
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
+    assert!((final_loss - initial_loss) < 1e-5, "{}", "final loss {final_loss}")
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
@@ -182,7 +182,7 @@ fn layer_norm_parameters_test() {
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
     let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     // Optimization loop.
     for _idx in 1..50 {
@@ -191,7 +191,7 @@ fn layer_norm_parameters_test() {
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
     let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {:?}", final_loss);
+    assert!(final_loss < 0.25, "{}", "final loss {final_loss:?}");
 
     //     Reset the weights to their initial values.
     tch::no_grad(|| {
@@ -213,7 +213,7 @@ fn gru_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let gru = nn::gru(&vs.root(), input_dim, output_dim, rnn_config);
+    let gru = nn::gru(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
@@ -245,7 +245,7 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let lstm = nn::lstm(&vs.root(), input_dim, output_dim, rnn_config);
+    let lstm = nn::lstm(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
@@ -277,7 +277,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let embeddings = nn::embedding(&vs.root(), input_dim, output_dim, embedding_config);
+    let embeddings = nn::embedding(vs.root(), input_dim, output_dim, embedding_config);
 
     // forward test
     let input = Tensor::randint(10, &[batch_dim, seq_len], kind::INT64_CPU);
@@ -290,7 +290,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let input = Tensor::of_slice(&[padding_idx]);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [1, output_dim]);
     assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
@@ -316,7 +316,7 @@ fn linear_test(linear_config: nn::LinearConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let linear = nn::linear(&vs.root(), input_dim, output_dim, linear_config);
+    let linear = nn::linear(vs.root(), input_dim, output_dim, linear_config);
 
     // forward test
     let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
@@ -369,11 +369,11 @@ fn pad() {
 fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
     let vs = nn::VarStore::new(Device::Cpu);
     let conv_cfg = nn::ConvConfig { padding: 1, bias: false, padding_mode, ..Default::default() };
-    let mut conv = nn::conv2d(&vs.root(), 1, 1, 3, conv_cfg);
+    let mut conv = nn::conv2d(vs.root(), 1, 1, 3, conv_cfg);
     tch::no_grad(|| {
         _ = conv.ws.fill_(1.);
     });
-    conv.forward(&xs)
+    conv.forward(xs)
 }
 
 #[test]

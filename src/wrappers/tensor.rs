@@ -91,7 +91,7 @@ impl Tensor {
     pub fn size1(&self) -> Result<i64, TchError> {
         match self.size().as_slice() {
             &[s0] => Ok(s0),
-            size => Err(TchError::Shape(format!("expected one dim, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected one dim, got {size:?}"))),
         }
     }
 
@@ -99,7 +99,7 @@ impl Tensor {
     pub fn size2(&self) -> Result<(i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => Err(TchError::Shape(format!("expected two dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected two dims, got {size:?}"))),
         }
     }
 
@@ -107,7 +107,7 @@ impl Tensor {
     pub fn size3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => Err(TchError::Shape(format!("expected three dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected three dims, got {size:?}"))),
         }
     }
 
@@ -115,7 +115,7 @@ impl Tensor {
     pub fn size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => Err(TchError::Shape(format!("expected four dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected four dims, got {size:?}"))),
         }
     }
 
@@ -123,7 +123,7 @@ impl Tensor {
     pub fn size5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
-            size => Err(TchError::Shape(format!("expected five dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected five dims, got {size:?}"))),
         }
     }
 
@@ -131,7 +131,7 @@ impl Tensor {
     pub fn size6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
         match self.size().as_slice() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
-            size => Err(TchError::Shape(format!("expected six dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected six dims, got {size:?}"))),
         }
     }
 
@@ -147,7 +147,7 @@ impl Tensor {
     pub fn stride1(&self) -> Result<i64, TchError> {
         match self.stride().as_slice() {
             &[s0] => Ok(s0),
-            size => Err(TchError::Shape(format!("expected one dim, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected one dim, got {size:?}"))),
         }
     }
 
@@ -155,7 +155,7 @@ impl Tensor {
     pub fn stride2(&self) -> Result<(i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1] => Ok((s0, s1)),
-            size => Err(TchError::Shape(format!("expected two dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected two dims, got {size:?}"))),
         }
     }
 
@@ -163,7 +163,7 @@ impl Tensor {
     pub fn stride3(&self) -> Result<(i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
-            size => Err(TchError::Shape(format!("expected three dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected three dims, got {size:?}"))),
         }
     }
 
@@ -171,7 +171,7 @@ impl Tensor {
     pub fn stride4(&self) -> Result<(i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
-            size => Err(TchError::Shape(format!("expected four dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected four dims, got {size:?}"))),
         }
     }
 
@@ -179,7 +179,7 @@ impl Tensor {
     pub fn stride5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
-            size => Err(TchError::Shape(format!("expected five dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected five dims, got {size:?}"))),
         }
     }
 
@@ -187,7 +187,7 @@ impl Tensor {
     pub fn stride6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
         match self.stride().as_slice() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
-            size => Err(TchError::Shape(format!("expected six dims, got {:?}", size))),
+            size => Err(TchError::Shape(format!("expected six dims, got {size:?}"))),
         }
     }
 
@@ -337,7 +337,7 @@ impl Tensor {
     pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Result<(), TchError> {
         let elt_size_in_bytes = self.f_kind()?.elt_size_in_bytes();
         if dst.len() < numel * elt_size_in_bytes {
-            return Err(TchError::Shape(format!("slice len < {}", numel)));
+            return Err(TchError::Shape(format!("slice len < {numel}")));
         }
         unsafe_torch_err!(at_copy_data(
             self.c_tensor,
@@ -401,7 +401,7 @@ impl Tensor {
             )));
         }
         if dst.len() < numel {
-            return Err(TchError::Shape(format!("slice len < {}", numel)));
+            return Err(TchError::Shape(format!("slice len < {numel}")));
         }
         unsafe_torch_err!(at_copy_data(
             self.c_tensor,
@@ -619,7 +619,8 @@ impl Tensor {
 
     /// Loads some named tensors from a file
     ///
-    /// The file format is the same as the one used by the PyTorch C++ API.
+    /// The file format is the same as the one used for modules in the PyTorch C++ API.
+    /// It commonly uses the .ot extension.
     pub fn load_multi<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
@@ -633,7 +634,8 @@ impl Tensor {
 
     /// Loads some named tensors from a file to a given device
     ///
-    /// The file format is the same as the one used by the PyTorch C++ API.
+    /// The file format is the same as the one used for modules in the PyTorch C++ API.
+    /// It commonly uses the .ot extension.
     pub fn load_multi_with_device<T: AsRef<Path>>(
         path: T,
         device: Device,
@@ -641,6 +643,42 @@ impl Tensor {
         let path = path_to_cstring(path)?;
         let mut v: Vec<(String, Tensor)> = vec![];
         unsafe_torch_err!(at_load_callback_with_device(
+            path.as_ptr(),
+            &mut v as *mut _ as *mut c_void,
+            add_callback,
+            device.c_int(),
+        ));
+        Ok(v)
+    }
+
+    /// Loads some named tensors from a zip file
+    ///
+    /// The expected file format is a zip archive containing a data.pkl file describing
+    /// the embedded tensors. These are commonly used with the .bin extension to export
+    /// PyTorch models and weights using the Python api.
+    pub fn loadz_multi<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
+        let path = path_to_cstring(path)?;
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!(at_loadz_callback(
+            path.as_ptr(),
+            &mut v as *mut _ as *mut c_void,
+            add_callback
+        ));
+        Ok(v)
+    }
+
+    /// Loads some named tensors from a zip file to a given device
+    ///
+    /// The expected file format is a zip archive containing a data.pkl file describing
+    /// the embedded tensors. These are commonly used with the .bin extension to export
+    /// PyTorch models and weights using the Python api.
+    pub fn loadz_multi_with_device<T: AsRef<Path>>(
+        path: T,
+        device: Device,
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
+        let path = path_to_cstring(path)?;
+        let mut v: Vec<(String, Tensor)> = vec![];
+        unsafe_torch_err!(at_loadz_callback_with_device(
             path.as_ptr(),
             &mut v as *mut _ as *mut c_void,
             add_callback,

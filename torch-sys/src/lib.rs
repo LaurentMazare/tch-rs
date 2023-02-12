@@ -106,6 +106,17 @@ extern "C" {
         n: c_int,
         stream_ptr: *mut c_void,
     );
+    pub fn at_loadz_callback(
+        filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+    );
+    pub fn at_loadz_callback_with_device(
+        filename: *const c_char,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
+        device_id: c_int,
+    );
     pub fn at_load_callback(
         filename: *const c_char,
         data: *mut c_void,
@@ -144,8 +155,22 @@ pub struct C_optimizer {
 }
 
 extern "C" {
-    pub fn ato_adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> *mut C_optimizer;
-    pub fn ato_adamw(lr: f64, beta1: f64, beta2: f64, wd: f64) -> *mut C_optimizer;
+    pub fn ato_adam(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> *mut C_optimizer;
+    pub fn ato_adamw(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> *mut C_optimizer;
     pub fn ato_rms_prop(
         lr: f64,
         alpha: f64,

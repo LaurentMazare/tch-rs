@@ -46,7 +46,7 @@ The header files location can also be specified separately from the shared libra
 the following:
 ```bash
 # LIBTORCH_INCLUDE must contains `include` directory.
-export LIBTORCH_INCLUDE=/path/to/libtorch/include
+export LIBTORCH_INCLUDE=/path/to/libtorch/
 # LIBTORCH_LIB must contains `lib` directory.
 export LIBTORCH_LIB=/path/to/libtorch/
 ```

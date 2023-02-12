@@ -60,7 +60,7 @@ pub enum TchError {
 impl TchError {
     pub fn path_context(&self, path_name: &str) -> Self {
         match self {
-            TchError::Torch(error) => TchError::Torch(format!("{}: {}", path_name, error)),
+            TchError::Torch(error) => TchError::Torch(format!("{path_name}: {error}")),
             _ => unimplemented!(),
         }
     }
