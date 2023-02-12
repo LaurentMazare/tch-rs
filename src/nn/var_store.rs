@@ -185,18 +185,32 @@ impl VarStore {
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
+        // Current workaround to allow loading in MPS device.
+        // On new libtorch releases check if direct loading becomes possible and revert
+        // See (https://github.com/LaurentMazare/tch-rs/issues/609#issuecomment-1427071598).
+        let is_mps = Device::Mps == self.device;
+        if is_mps {
+            self.set_device(Device::Cpu);
+        };
         let named_tensors = self.named_tensors(&path)?;
-        let mut variables = self.variables_.lock().unwrap();
-        for (name, var) in variables.named_variables.iter_mut() {
-            match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
-                None => {
-                    return Err(TchError::TensorNameNotFound(
-                        name.to_string(),
-                        path.as_ref().to_string_lossy().into_owned(),
-                    ));
+        {
+            let mut variables = self.variables_.lock().unwrap();
+            for (name, var) in variables.named_variables.iter_mut() {
+                match named_tensors.get(name) {
+                    Some(src) => {
+                        crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?
+                    }
+                    None => {
+                        return Err(TchError::TensorNameNotFound(
+                            name.to_string(),
+                            path.as_ref().to_string_lossy().into_owned(),
+                        ));
+                    }
                 }
             }
+        }
+        if is_mps {
+            self.set_device(Device::Mps);
         }
         Ok(())
     }
