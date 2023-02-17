@@ -1,5 +1,5 @@
 //! Recurrent Neural Networks
-use crate::{Device, Kind, Tensor};
+use crate::{Device, Tensor};
 use std::borrow::Borrow;
 
 /// Trait for Recurrent Neural Networks.
