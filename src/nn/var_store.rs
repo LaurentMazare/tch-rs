@@ -192,27 +192,30 @@ impl VarStore {
         if is_mps {
             self.set_device(Device::Cpu);
         };
-        let named_tensors = self.named_tensors(&path)?;
-        {
-            let mut variables = self.variables_.lock().unwrap();
-            for (name, var) in variables.named_variables.iter_mut() {
-                match named_tensors.get(name) {
-                    Some(src) => {
-                        crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?
-                    }
-                    None => {
-                        return Err(TchError::TensorNameNotFound(
-                            name.to_string(),
-                            path.as_ref().to_string_lossy().into_owned(),
-                        ));
+        let load_tensors_result: Result<(), TchError> = {
+            let named_tensors = self.named_tensors(&path)?;
+            {
+                let mut variables = self.variables_.lock().unwrap();
+                for (name, var) in variables.named_variables.iter_mut() {
+                    match named_tensors.get(name) {
+                        Some(src) => {
+                            crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?
+                        }
+                        None => {
+                            return Err(TchError::TensorNameNotFound(
+                                name.to_string(),
+                                path.as_ref().to_string_lossy().into_owned(),
+                            ));
+                        }
                     }
                 }
             }
-        }
+            Ok(())
+        };
         if is_mps {
             self.set_device(Device::Mps);
         }
-        Ok(())
+        load_tensors_result
     }
 
     /// Loads the var-store variable values from a stream.
