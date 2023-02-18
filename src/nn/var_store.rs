@@ -192,7 +192,7 @@ impl VarStore {
         if is_mps {
             self.set_device(Device::Cpu);
         };
-        let load_tensors_result: Result<(), TchError> = {
+        let load_tensors = || -> Result<(), TchError> {
             let named_tensors = self.named_tensors(&path)?;
             {
                 let mut variables = self.variables_.lock().unwrap();
@@ -212,6 +212,7 @@ impl VarStore {
             }
             Ok(())
         };
+        let load_tensors_result = load_tensors();
         if is_mps {
             self.set_device(Device::Mps);
         }
