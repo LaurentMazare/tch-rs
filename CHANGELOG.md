@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.10.2 - 2023-02-19
+### Changed
+- Fix loading of `VarStore` when using `Mps` devices, [623](https://github.com/LaurentMazare/tch-rs/pull/623).
+- Use `ureq` instead of `curl` to reduce compile times, [620](https://github.com/LaurentMazare/tch-rs/pull/620).
+- Add the `eps` and `amsgrad` options to Adam, [600](https://github.com/LaurentMazare/tch-rs/pull/600).
+- Fix the handling of dicts in TorchScript, [597](https://github.com/LaurentMazare/tch-rs/issues/597).
+
 ## v0.10.1 - 2022-12-12
 ### Changed
 - Default `vs.load` to use the Python weight format when the file extension is `.pt` or `.bin`.
