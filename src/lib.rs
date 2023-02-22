@@ -7,7 +7,7 @@ mod error;
 pub use error::TchError;
 
 pub(crate) mod wrappers;
-pub use wrappers::device::{Cuda, Device};
+pub use wrappers::device::{Cuda, Device, Vulkan};
 pub use wrappers::jit::{self, CModule, IValue, TrainableCModule};
 pub use wrappers::kind::{self, Kind};
 pub use wrappers::optimizer::COptimizer;

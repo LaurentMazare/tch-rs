@@ -59,6 +59,17 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn env_var_target_specific(name: &str) -> Result<String, env::VarError> {
+    let target = env::var("TARGET").expect("Unable to get TARGET");
+
+    let name_with_target_hyphenated = name.to_owned() + "_" + &target;
+    let name_with_target_underscored = name.to_owned() + "_" + &target.replace("-", "_");
+
+    env_var_rerun(&name_with_target_hyphenated)
+        .or_else(|_| env_var_rerun(&name_with_target_underscored))
+        .or_else(|_| env_var_rerun(name))
+}
+
 fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
     println!("cargo:rerun-if-env-changed={name}");
     env::var(name)
@@ -96,7 +107,7 @@ fn prepare_libtorch_dir() -> PathBuf {
         Err(_) => "cpu".to_owned(),
     };
 
-    if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
+    if let Ok(libtorch) = env_var_target_specific("LIBTORCH") {
         PathBuf::from(libtorch)
     } else if let Some(pathbuf) = check_system_location() {
         pathbuf
@@ -141,14 +152,15 @@ fn prepare_libtorch_dir() -> PathBuf {
     }
 }
 
-fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
-    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
-    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE")
-        .map(Into::into)
-        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
-    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB")
-        .map(Into::into)
-        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
+fn make(
+    includes: impl AsRef<Path>,
+    lib: impl AsRef<Path>,
+    use_cuda: bool,
+    use_hip: bool,
+    os: &str,
+) {
+    let includes = includes.as_ref();
+    let lib = lib.as_ref();
 
     let cuda_dependency = if use_cuda || use_hip {
         "libtch/dummy_cuda_dependency.cpp"
@@ -162,17 +174,17 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
     println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
-    match os.as_str() {
-        "linux" | "macos" => {
+    match os {
+        "linux" | "macos" | "android" => {
             let libtorch_cxx11_abi =
                 env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned());
             cc::Build::new()
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(includes.join("include"))
-                .include(includes.join("include/torch/csrc/api/include"))
-                .flag(&format!("-Wl,-rpath={}", lib.join("lib").display()))
+                .include(includes)
+                .include(includes.join("torch/csrc/api/include"))
+                .flag(&format!("-Wl,-rpath={}", lib.display()))
                 .flag("-std=c++14")
                 .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={libtorch_cxx11_abi}"))
                 .file("libtch/torch_api.cpp")
@@ -187,19 +199,32 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(includes.join("include"))
-                .include(includes.join("include/torch/csrc/api/include"))
+                .include(includes)
+                .include(includes.join("torch/csrc/api/include"))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
                 .compile("tch");
         }
-        _ => panic!("Unsupported OS"),
+        os => panic!("Unsupported OS: {}", os),
     };
 }
 
 fn main() {
     if !cfg!(feature = "doc-only") {
+        let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+
         let libtorch = prepare_libtorch_dir();
+
+        let libtorch_includes: PathBuf = env_var_target_specific("LIBTORCH_INCLUDE")
+            .map(Into::into)
+            .unwrap_or_else(|_| libtorch.join("include"));
+        let libtorch_lib: PathBuf = env_var_target_specific("LIBTORCH_LIB")
+            .map(Into::into)
+            .unwrap_or_else(|_| libtorch.join("lib"));
+        let libtorch_lite: bool = env_var_target_specific("LIBTORCH_LITE")
+            .map(|s| s.parse().unwrap_or(true))
+            .unwrap_or(true);
+
         // use_cuda is a hacky way to detect whether cuda is available and
         // if it's the case link to it by explicitly depending on a symbol
         // from the torch_cuda library.
@@ -214,42 +239,56 @@ fn main() {
         // This will be available starting from cargo 1.50 but will be a nightly
         // only option to start with.
         // https://github.com/rust-lang/cargo/blob/master/CHANGELOG.md
-        let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
-            || libtorch.join("lib").join("torch_cuda.dll").exists();
-        let use_cuda_cu = libtorch.join("lib").join("libtorch_cuda_cu.so").exists()
-            || libtorch.join("lib").join("torch_cuda_cu.dll").exists();
-        let use_cuda_cpp = libtorch.join("lib").join("libtorch_cuda_cpp.so").exists()
-            || libtorch.join("lib").join("torch_cuda_cpp.dll").exists();
-        let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
-            || libtorch.join("lib").join("torch_hip.dll").exists();
-        println!("cargo:rustc-link-search=native={}", libtorch.join("lib").display());
+        let use_cuda = libtorch_lib.join("libtorch_cuda.so").exists()
+            || libtorch_lib.join("torch_cuda.dll").exists();
+        let use_cuda_cu = libtorch_lib.join("libtorch_cuda_cu.so").exists()
+            || libtorch_lib.join("torch_cuda_cu.dll").exists();
+        let use_cuda_cpp = libtorch_lib.join("libtorch_cuda_cpp.so").exists()
+            || libtorch_lib.join("torch_cuda_cpp.dll").exists();
+        let use_hip = libtorch_lib.join("libtorch_hip.so").exists()
+            || libtorch_lib.join("torch_hip.dll").exists();
 
-        make(&libtorch, use_cuda, use_hip);
+        println!("cargo:rustc-link-search=native={}", libtorch_lib.display());
+
+        make(&libtorch_includes, &libtorch_lib, use_cuda, use_hip, &os);
 
         println!("cargo:rustc-link-lib=static=tch");
-        if use_cuda {
-            println!("cargo:rustc-link-lib=torch_cuda");
-        }
-        if use_cuda_cu {
-            println!("cargo:rustc-link-lib=torch_cuda_cu");
-        }
-        if use_cuda_cpp {
-            println!("cargo:rustc-link-lib=torch_cuda_cpp");
-        }
-        if use_hip {
-            println!("cargo:rustc-link-lib=torch_hip");
-        }
-        println!("cargo:rustc-link-lib=torch_cpu");
-        println!("cargo:rustc-link-lib=torch");
-        println!("cargo:rustc-link-lib=c10");
-        if use_hip {
-            println!("cargo:rustc-link-lib=c10_hip");
-        }
 
-        let target = env::var("TARGET").unwrap();
+        match os.as_str() {
+            "windows" | "linux" | "macos" => {
+                if use_cuda {
+                    println!("cargo:rustc-link-lib=torch_cuda");
+                }
+                if use_cuda_cu {
+                    println!("cargo:rustc-link-lib=torch_cuda_cu");
+                }
+                if use_cuda_cpp {
+                    println!("cargo:rustc-link-lib=torch_cuda_cpp");
+                }
+                if use_hip {
+                    println!("cargo:rustc-link-lib=torch_hip");
+                }
+                println!("cargo:rustc-link-lib=torch_cpu");
+                println!("cargo:rustc-link-lib=torch");
+                println!("cargo:rustc-link-lib=c10");
+                if use_hip {
+                    println!("cargo:rustc-link-lib=c10_hip");
+                }
 
-        if !target.contains("msvc") && !target.contains("apple") {
-            println!("cargo:rustc-link-lib=gomp");
+                let target = env::var("TARGET").unwrap();
+
+                if !target.contains("msvc") && !target.contains("apple") {
+                    println!("cargo:rustc-link-lib=gomp");
+                }
+            }
+            "android" => {
+                if libtorch_lite {
+                    println!("cargo:rustc-link-lib=pytorch_jni_lite");
+                } else {
+                    println!("cargo:rustc-link-lib=pytorch_jni");
+                }
+            }
+            other => panic!("unsupported OS: {}", other),
         }
     }
 }
