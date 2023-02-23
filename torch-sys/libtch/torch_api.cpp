@@ -971,11 +971,134 @@ int atc_user_enabled_cudnn() {
 }
 
 void atc_set_user_enabled_cudnn(int b) {
+  PROTECT(
   at::globalContext().setUserEnabledCuDNN(b);
+  )
 }
 
 void atc_set_benchmark_cudnn(int b) {
+  PROTECT(
   at::globalContext().setBenchmarkCuDNN(b);
+  )
+}
+
+bool at_context_has_openmp() {
+  PROTECT (
+  return at::globalContext().hasOpenMP();
+  )
+  return 0;
+}
+
+bool at_context_has_mkl() {
+  PROTECT (
+  return at::globalContext().hasMKL();
+  )
+  return 0;
+}
+
+bool at_context_has_lapack() {
+  PROTECT (
+  return at::globalContext().hasLAPACK();
+  )
+  return 0;
+}
+
+bool at_context_has_mkldnn() {
+  PROTECT (
+  return at::globalContext().hasMKLDNN();
+  )
+  return 0;
+}
+
+bool at_context_has_magma() {
+  PROTECT (
+  return at::globalContext().hasMAGMA();
+  )
+  return 0;
+}
+
+bool at_context_has_cuda() {
+  PROTECT (
+  return at::globalContext().hasCUDA();
+  )
+  return 0;
+}
+
+bool at_context_has_cudart() {
+  PROTECT (
+  return at::globalContext().hasCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cudnn() {
+  PROTECT (
+  return at::globalContext().hasCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudnn() {
+  PROTECT (
+  return at::globalContext().versionCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudart() {
+  PROTECT (
+  return at::globalContext().versionCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cusolver() {
+  PROTECT (
+  return at::globalContext().hasCuSOLVER();
+  )
+  return 0;
+}
+
+bool at_context_has_hip() {
+  PROTECT (
+  return at::globalContext().hasHIP();
+  )
+  return 0;
+}
+
+bool at_context_has_ipu() {
+  PROTECT (
+  return at::globalContext().hasIPU();
+  )
+  return 0;
+}
+
+bool at_context_has_xla() {
+  PROTECT (
+  return at::globalContext().hasXLA();
+  )
+  return 0;
+}
+
+bool at_context_has_lazy() {
+  PROTECT (
+  return at::globalContext().hasLazy();
+  )
+  return 0;
+}
+
+bool at_context_has_mps() {
+  PROTECT (
+  return at::globalContext().hasMPS();
+  )
+  return 0;
+}
+
+bool at_context_has_ort() {
+  PROTECT (
+  return at::globalContext().hasORT();
+  )
+  return 0;
 }
 
 module atm_load(char *filename) {

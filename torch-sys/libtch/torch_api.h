@@ -151,6 +151,24 @@ double ats_to_float(scalar);
 char *ats_to_string(scalar);
 void ats_free(scalar);
 
+bool at_context_has_openmp();
+bool at_context_has_mkl();
+bool at_context_has_lapack();
+bool at_context_has_mkldnn();
+bool at_context_has_magma();
+bool at_context_has_cuda();
+bool at_context_has_cudart();
+bool at_context_has_cudnn();
+long at_context_version_cudnn();
+long at_context_version_cudart();
+bool at_context_has_cusolver();
+bool at_context_has_hip();
+bool at_context_has_ipu();
+bool at_context_has_xla();
+bool at_context_has_lazy();
+bool at_context_has_mps();
+bool at_context_has_ort();
+
 
 /// Returns the number of CUDA devices available.
 int atc_cuda_device_count();
