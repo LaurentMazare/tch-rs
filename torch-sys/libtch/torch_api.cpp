@@ -8,6 +8,7 @@
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
+#include <torch/csrc/jit/passes/tensorexpr_fuser.h>
 #include<stdexcept>
 #include<vector>
 #include "torch_api.h"
@@ -1229,6 +1230,19 @@ int atm_get_profiling_mode() {
   return 0;
 }
 
+void atm_set_tensor_expr_fuser_enabled(int enabled) {
+  PROTECT(
+    torch::jit::setTensorExprFuserEnabled((bool)enabled);
+  )
+}
+
+bool atm_get_tensor_expr_fuser_enabled() {
+  PROTECT(
+    return torch::jit::tensorExprFuserEnabled();
+  )
+  return false;
+}
+
 void atm_set_profiling_mode(int b) {
   PROTECT(
     torch::jit::getProfilingMode() = (bool)b;
@@ -1272,6 +1286,7 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
     m->type()->addMethod(fn);
   )
 }
+
 
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(

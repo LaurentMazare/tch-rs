@@ -725,6 +725,23 @@ pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
 
+pub fn f_set_tensor_expr_fuser_enabled(b: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(atm_set_tensor_expr_fuser_enabled(b as c_int));
+    Ok(())
+}
+
+pub fn set_tensor_expr_fuser_enabled(b: bool) {
+    f_set_tensor_expr_fuser_enabled(b).unwrap()
+}
+
+pub fn f_get_tensor_expr_fuser_enabled() -> Result<bool, TchError> {
+    Ok(unsafe_torch_err!(atm_get_tensor_expr_fuser_enabled()))
+}
+
+pub fn get_tensor_expr_fuser_enabled() -> bool {
+    f_get_tensor_expr_fuser_enabled().unwrap()
+}
+
 /// Enables or disables the graph executor optimizer for the current thread.
 ///
 /// # Arguments

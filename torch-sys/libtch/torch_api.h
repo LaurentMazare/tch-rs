@@ -256,6 +256,9 @@ void ati_to_double_list(ivalue, double *, int);
 void ati_to_bool_list(ivalue, char *, int);
 void ati_to_tensor_list(ivalue, tensor *, int);
 
+void atm_set_tensor_expr_fuser_enabled(int);
+bool atm_get_tensor_expr_fuser_enabled();
+
 int ati_tag(ivalue);
 
 ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
