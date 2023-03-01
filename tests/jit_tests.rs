@@ -85,6 +85,14 @@ fn profiling_mode() {
 }
 
 #[test]
+fn tensor_expr_fuser() {
+    tch::jit::set_tensor_expr_fuser_enabled(true);
+    assert!(tch::jit::get_tensor_expr_fuser_enabled());
+    tch::jit::set_tensor_expr_fuser_enabled(false);
+    assert!(!tch::jit::get_tensor_expr_fuser_enabled());
+}
+
+#[test]
 fn jit5() {
     let mod_ = tch::CModule::load("tests/foo5.pt").unwrap();
     let result = mod_
