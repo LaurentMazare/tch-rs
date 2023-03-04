@@ -13,7 +13,7 @@ void atcg_capture_end(cuda_graph) {}
 void atcg_replay(cuda_graph) {}
 void atcg_reset(cuda_graph) {}
 
-void atcs_free(cuda_stream); {}
+void atcs_free(cuda_stream) {}
 cuda_stream atcs_get_stream_from_pool(int, int) {
   return nullptr;
 }
