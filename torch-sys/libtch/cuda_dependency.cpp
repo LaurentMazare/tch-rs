@@ -63,3 +63,34 @@ void atcg_reset(cuda_graph c) {
       c->reset();
   )
 }
+
+void atcs_free(cuda_stream s) {
+  delete s;
+}
+
+cuda_stream atcs_get_stream_from_pool(int high_priority, int device) {
+  PROTECT (
+      return new c10::cuda::CUDAStream(c10::cuda::getStreamFromPool(high_priority, device));
+  )
+  return nullptr;
+}
+
+cuda_stream atcs_get_default_stream(int device) {
+  PROTECT (
+      return new c10::cuda::CUDAStream(c10::cuda::getDefaultCUDAStream(device));
+  )
+  return nullptr;
+}
+
+cuda_stream atcs_get_current_stream(int device) {
+  PROTECT (
+      return new c10::cuda::CUDAStream(c10::cuda::getCurrentCUDAStream(device));
+  )
+  return nullptr;
+}
+
+void atcs_set_current_stream(cuda_stream s) {
+  PROTECT (
+      c10::cuda::setCurrentCUDAStream(*s);
+  )
+}

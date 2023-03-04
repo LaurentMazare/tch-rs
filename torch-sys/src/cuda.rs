@@ -5,6 +5,11 @@ pub struct CCudaGraph {
     _private: [u8; 0],
 }
 
+#[repr(C)]
+pub struct CCudaStream {
+    _private: [u8; 0],
+}
+
 extern "C" {
     /// Returns the number of CUDA devices available.
     pub fn atc_cuda_device_count() -> c_int;
@@ -39,4 +44,10 @@ extern "C" {
     pub fn atcg_reset(arg: *mut CCudaGraph);
     pub fn atcg_capture_begin(arg: *mut CCudaGraph);
     pub fn atcg_capture_end(arg: *mut CCudaGraph);
+
+    pub fn atcs_free(arg: *mut CCudaStream);
+    pub fn atcs_get_stream_from_pool(high_priority: c_int, device: c_int) -> *mut CCudaStream;
+    pub fn atcs_get_default_stream(device: c_int) -> *mut CCudaStream;
+    pub fn atcs_get_current_stream(device: c_int) -> *mut CCudaStream;
+    pub fn atcs_set_current_stream(arg: *mut CCudaStream);
 }
