@@ -1,16 +1,3 @@
-#include<torch/csrc/autograd/engine.h>
-#include<torch/csrc/jit/frontend/tracer.h>
-#include<torch/csrc/jit/runtime/graph_executor.h>
-#include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
-#include<torch/csrc/jit/passes/normalize_ops.h>
-#include<torch/csrc/jit/mobile/import_data.h>
-#include <torch/csrc/jit/runtime/graph_executor.h>
-#include<torch/torch.h>
-#include<ATen/autocast_mode.h>
-#include<torch/script.h>
-#include <torch/csrc/jit/passes/tensorexpr_fuser.h>
-#include<stdexcept>
-#include<vector>
 #include "torch_api.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,6 +10,7 @@
 #include "stb_image_resize.h"
 
 using namespace std;
+thread_local char *torch_last_err = nullptr;
 
 char *get_and_reset_last_err() {
     char *tmp = torch_last_err;

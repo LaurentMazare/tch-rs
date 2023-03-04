@@ -1,5 +1,10 @@
 use libc::c_int;
 
+#[repr(C)]
+pub struct CCudaGraph {
+    _private: [u8; 0],
+}
+
 extern "C" {
     /// Returns the number of CUDA devices available.
     pub fn atc_cuda_device_count() -> c_int;
@@ -27,4 +32,11 @@ extern "C" {
 
     /// Sets CUDNN benchmark mode.
     pub fn atc_set_benchmark_cudnn(b: c_int);
+
+    pub fn atcg_new() -> *mut CCudaGraph;
+    pub fn atcg_free(arg: *mut CCudaGraph);
+    pub fn atcg_replay(arg: *mut CCudaGraph);
+    pub fn atcg_reset(arg: *mut CCudaGraph);
+    pub fn atcg_capture_begin(arg: *mut CCudaGraph);
+    pub fn atcg_capture_end(arg: *mut CCudaGraph);
 }
