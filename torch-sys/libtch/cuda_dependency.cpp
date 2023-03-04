@@ -1,3 +1,4 @@
+#define __TCH_ACTUAL_CUDA_DEPENDENCY__
 #include "cuda_dependency.h"
 #include "torch_api.h"
 

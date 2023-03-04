@@ -5,9 +5,16 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
+
+#ifdef __TCH_ACTUAL_CUDA_DEPENDENCY__
 #include<ATen/cuda/CUDAGraph.h>
-extern "C" {
 typedef at::cuda::CUDAGraph *cuda_graph;
+#else
+typedef void *cuda_graph;
+#endif
+
+extern "C" {
+
 #else
 typedef void *cuda_graph;
 #endif
