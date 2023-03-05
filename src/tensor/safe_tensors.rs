@@ -79,6 +79,8 @@ fn shape_to_size(shape: &[usize]) -> Vec<i64> {
 
 impl VarStore {
     /// Read data from safe tensor file, missing tensors will raise a error.
+    ///
+    /// Used to load in disk safe tensor data
     pub fn read_safe_tensors<P: AsRef<Path>>(&self, path: P) -> Result<(), TchError> {
         let path = path.as_ref();
         let bytes = std::fs::read(path)?;
@@ -100,11 +102,10 @@ impl VarStore {
         Ok(())
     }
     /// Fill data from safe tensor, extra tensors in the file will be ignored.
-    pub fn fill_safe_tensor<P: AsRef<Path>>(&self, path: P) -> Result<(), TchError> {
-        let path = path.as_ref();
-        let bytes = std::fs::read(path)?;
-        let data = load_safe_tensors(&bytes)?;
-        let data: BTreeMap<String, TensorView> = data.tensors().into_iter().collect();
+    ///
+    /// Used to load in memory safe tensor data
+    pub fn fill_safe_tensor(&self, safe_tensor: SafeTensors) -> Result<(), TchError> {
+        let data: BTreeMap<String, TensorView> = safe_tensor.tensors().into_iter().collect();
         for (name, tensor) in data {
             match self.variables_.lock().unwrap().named_variables.get_mut(&name) {
                 Some(s) => {
@@ -120,7 +121,7 @@ impl VarStore {
         Ok(())
     }
     /// Writes a tensor to file with the safe tensors format.
-    pub fn write_safe_tensors<'a>(&self, path: &'a Path) -> Result<(), TchError> {
+    pub fn save_safe_tensors<'a>(&self, path: &'a Path) -> Result<(), TchError> {
         let mut tensors: BTreeMap<String, TensorView<'a>> = BTreeMap::new();
         for (name, tensor) in self.variables() {
             if tensor.is_sparse() {
