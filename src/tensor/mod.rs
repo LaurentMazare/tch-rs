@@ -9,6 +9,9 @@ mod iter;
 mod npy;
 mod ops;
 
+#[cfg(feature = "safetensors")]
+mod safe_tensors;
+
 pub use super::wrappers::tensor::{
     autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
 };
