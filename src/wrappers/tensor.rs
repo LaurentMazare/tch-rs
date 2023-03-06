@@ -269,6 +269,11 @@ impl Tensor {
         unsafe_torch!(at_is_sparse(self.c_tensor) != 0)
     }
 
+    // Returns true if the tensor if contiguous
+    pub fn is_contiguous(&self) -> bool {
+        unsafe_torch!(at_is_contiguous(self.c_tensor) != 0)
+    }
+
     /// Zeroes the gradient tensor attached to this tensor if defined.
     pub fn zero_grad(&mut self) {
         let mut grad = self.grad();

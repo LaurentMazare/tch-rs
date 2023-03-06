@@ -37,6 +37,7 @@ void *at_data_ptr(tensor);
 int at_defined(tensor);
 int at_is_mkldnn(tensor);
 int at_is_sparse(tensor);
+int at_is_contiguous(tensor);
 int at_device(tensor);
 size_t at_dim(tensor);
 void at_shape(tensor, int64_t *);
