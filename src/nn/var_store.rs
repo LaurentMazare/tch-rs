@@ -173,6 +173,7 @@ impl VarStore {
     ) -> Result<HashMap<String, Tensor>, TchError> {
         let named_tensors = match path.as_ref().extension().and_then(|x| x.to_str()) {
             Some("bin") | Some("pt") => Tensor::loadz_multi_with_device(&path, self.device),
+            Some("safetensors") => Tensor::read_safetensors(path),
             Some(_) | None => Tensor::load_multi_with_device(&path, self.device),
         };
         Ok(named_tensors?.into_iter().collect())
