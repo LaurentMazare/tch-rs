@@ -174,6 +174,7 @@ pub fn main() -> Result<()> {
                     let loss = logits
                         .view([BATCH_SIZE * BLOCK_SIZE, labels])
                         .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
+                    opt.zero_grad();
                     opt.backward_step_clip(&loss, 0.5);
                     sum_loss += f64::from(loss);
                     cnt_loss += 1.0;
