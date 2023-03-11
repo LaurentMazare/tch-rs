@@ -1157,7 +1157,7 @@ pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
         [CLASS_COUNT] => tensor.shallow_clone(),
         [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
         [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
-        _ => panic!("unexpected tensor shape {:?}", tensor),
+        _ => panic!("unexpected tensor shape {tensor:?}"),
     };
     let (values, indexes) = tensor.topk(k, 0, true, true);
     let values = Vec::<f64>::from(values);

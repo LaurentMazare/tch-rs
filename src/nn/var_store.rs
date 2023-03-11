@@ -363,7 +363,7 @@ impl<'a> Path<'a> {
     pub fn sub<T: std::string::ToString>(&self, s: T) -> Path<'a> {
         let s = s.to_string();
         if s.chars().any(|x| x == SEP) {
-            panic!("sub name cannot contain {} {}", SEP, s);
+            panic!("sub name cannot contain {SEP} {s}");
         }
         let mut path = self.path.clone();
         path.push(s);
@@ -381,7 +381,7 @@ impl<'a> Path<'a> {
 
     pub fn path(&self, name: &str) -> String {
         if name.chars().any(|x| x == SEP) {
-            panic!("variable name cannot contain {} {}", SEP, name);
+            panic!("variable name cannot contain {SEP} {name}");
         }
         if self.path.is_empty() {
             name.to_string()
