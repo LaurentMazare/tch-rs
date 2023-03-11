@@ -94,7 +94,7 @@ impl Device {
             -1 => Device::Cpu,
             -2 => Device::Mps,
             index if index >= 0 => Device::Cuda(index as usize),
-            _ => panic!("unexpected device {}", v),
+            _ => panic!("unexpected device {v}"),
         }
     }
 

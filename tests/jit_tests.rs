@@ -164,7 +164,7 @@ fn jit_double_free() {
     let result = mod_.method_is("add_them", &[&input.unwrap()]);
     let result = match result.unwrap() {
         IValue::Tensor(tensor) => tensor,
-        result => panic!("expected a tensor got {:?}", result),
+        result => panic!("expected a tensor got {result:?}"),
     };
     assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
 }
