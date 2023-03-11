@@ -139,23 +139,15 @@ fn assert_tensor_as_image(tensor: &Tensor, except: Kind, channel: i64) -> Result
     let kind = tensor.kind();
     let size = tensor.size();
     if size.len() != 3 {
-        let msg = format!("Tensor size is `{size:?}`, except rank 3 tensor", size = size);
+        let msg = format!("Tensor size is `{size:?}`, except rank 3 tensor");
         Err(TchError::Convert(msg))?;
     }
     if size[0] != channel {
-        let msg = format!(
-            "Tensor size is `{size:?}`, except {channel} channels",
-            size = size,
-            channel = channel
-        );
+        let msg = format!("Tensor size is `{size:?}`, except {channel} channels");
         Err(TchError::Convert(msg))?;
     }
     if kind != except {
-        let msg = format!(
-            "Tensor kind is `{kind:?}`, except `{except:?}` tensor",
-            kind = kind,
-            except = except
-        );
+        let msg = format!("Tensor kind is `{kind:?}`, except `{except:?}` tensor");
         Err(TchError::Convert(msg))?;
     }
     Ok(chw_to_hwc(tensor))
