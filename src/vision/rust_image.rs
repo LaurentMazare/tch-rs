@@ -8,19 +8,21 @@ use image::{
 use crate::vision::image::{chw_to_hwc, hwc_to_chw};
 use crate::{Kind, TchError, Tensor};
 
-impl<'i> From<&'i DynamicImage> for Tensor {
-    fn from(image: &'i DynamicImage) -> Self {
+impl<'i> TryFrom<&'i DynamicImage> for Tensor {
+    type Error = TchError;
+
+    fn try_from(image: &'i DynamicImage) -> Result<Self, Self::Error> {
         match image {
-            DynamicImage::ImageLuma8(gray) => Tensor::from(gray),
-            DynamicImage::ImageLumaA8(gray_a) => Tensor::from(gray_a),
-            DynamicImage::ImageRgb8(rgb) => Tensor::from(rgb),
-            DynamicImage::ImageRgba8(rgba) => Tensor::from(rgba),
+            DynamicImage::ImageLuma8(gray) => Tensor::try_from(gray),
+            DynamicImage::ImageLumaA8(gray_a) => Tensor::try_from(gray_a),
+            DynamicImage::ImageRgb8(rgb) => Tensor::try_from(rgb),
+            DynamicImage::ImageRgba8(rgba) => Tensor::try_from(rgba),
             DynamicImage::ImageLuma16(_) => unimplemented!(),
             DynamicImage::ImageLumaA16(_) => unimplemented!(),
             DynamicImage::ImageRgb16(_) => unimplemented!(),
             DynamicImage::ImageRgba16(_) => unimplemented!(),
-            DynamicImage::ImageRgb32F(rgb) => Tensor::from(rgb),
-            DynamicImage::ImageRgba32F(rgba) => Tensor::from(rgba),
+            DynamicImage::ImageRgb32F(rgb) => Tensor::try_from(rgb),
+            DynamicImage::ImageRgba32F(rgba) => Tensor::try_from(rgba),
             _ => {
                 unimplemented!()
             }
@@ -28,47 +30,50 @@ impl<'i> From<&'i DynamicImage> for Tensor {
     }
 }
 
-impl<'i> From<&'i GrayImage> for Tensor {
+impl<'i> TryFrom<&'i GrayImage> for Tensor {
+    type Error = TchError;
     ///  `h * w` => `1 * 1 * h * w`
-    fn from(gray: &'i GrayImage) -> Self {
+    fn try_from(gray: &'i GrayImage) -> Result<Self, Self::Error> {
         let kind = Kind::Uint8;
         let size = &[gray.height() as i64, gray.width() as i64, 1];
-        let tensor =
-            Tensor::f_of_data_size(gray.as_bytes(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(gray.as_bytes(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
-impl<'i> From<&'i GrayAlphaImage> for Tensor {
-    ///  `2 * h * w` => `1 * 1 * h * w`
-    fn from(gray: &'i GrayAlphaImage) -> Self {
+impl<'i> TryFrom<&'i GrayAlphaImage> for Tensor {
+    type Error = TchError;
+    ///  `2 * h * w` => `1 * 2 * h * w`
+    fn try_from(gray: &'i GrayAlphaImage) -> Result<Self, Self::Error> {
         let kind = Kind::Uint8;
         let size = &[gray.height() as i64, gray.width() as i64, 2];
-        let tensor =
-            Tensor::f_of_data_size(gray.as_bytes(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(gray.as_bytes(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
-impl<'i> From<&'i RgbImage> for Tensor {
+impl<'i> TryFrom<&'i RgbImage> for Tensor {
     /// `h * w * 3` => `1 * 3 * h * w`
-    fn from(rgb: &'i RgbImage) -> Self {
+    type Error = TchError;
+
+    fn try_from(rgb: &'i RgbImage) -> Result<Self, Self::Error> {
         let kind = Kind::Uint8;
         let size = &[rgb.height() as i64, rgb.width() as i64, 3];
-        let tensor =
-            Tensor::f_of_data_size(rgb.as_raw(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(rgb.as_raw(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
-impl<'i> From<&'i RgbaImage> for Tensor {
+impl<'i> TryFrom<&'i RgbaImage> for Tensor {
     /// `h * w * 4` => `1 * 4 * h * w`
-    fn from(rgb: &'i RgbaImage) -> Self {
+
+    type Error = TchError;
+
+    fn try_from(rgb: &'i RgbaImage) -> Result<Self, Self::Error> {
         let kind = Kind::Uint8;
         let size = &[rgb.height() as i64, rgb.width() as i64, 4];
-        let tensor =
-            Tensor::f_of_data_size(rgb.as_raw(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(rgb.as_raw(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
@@ -89,25 +94,26 @@ impl<'i> TryFrom<&'i Tensor> for RgbImage {
     }
 }
 
-impl<'i> From<&'i Rgb32FImage> for Tensor {
+impl<'i> TryFrom<&'i Rgb32FImage> for Tensor {
     /// `h * w * 3` => `1 * 3 * h * w`
-    fn from(rgb: &'i Rgb32FImage) -> Self {
+    type Error = TchError;
+    fn try_from(rgb: &'i Rgb32FImage) -> Result<Self, Self::Error> {
         let kind = Kind::Float;
         let size = &[rgb.height() as i64, rgb.width() as i64, 3];
-        let tensor =
-            Tensor::f_of_data_size(rgb.as_bytes(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(rgb.as_bytes(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
-impl<'i> From<&'i Rgba32FImage> for Tensor {
+impl<'i> TryFrom<&'i Rgba32FImage> for Tensor {
     /// `h * w * 4` => `1 * 4 * h * w`
-    fn from(rgb: &'i Rgba32FImage) -> Self {
+    type Error = TchError;
+
+    fn try_from(rgb: &'i Rgba32FImage) -> Result<Self, Self::Error> {
         let kind = Kind::Float;
         let size = &[rgb.height() as i64, rgb.width() as i64, 4];
-        let tensor =
-            Tensor::f_of_data_size(rgb.as_bytes(), size, kind).expect("Failed to create tensor");
-        hwc_to_chw(&tensor)
+        let tensor = Tensor::f_of_data_size(rgb.as_bytes(), size, kind)?;
+        Ok(hwc_to_chw(&tensor))
     }
 }
 
@@ -154,27 +160,3 @@ fn assert_tensor_as_image(tensor: &Tensor, except: Kind, channel: i64) -> Result
     }
     Ok(chw_to_hwc(tensor))
 }
-
-// #[test]
-// fn dump_u8() {
-//     use crate::vision::image::save;
-//     use image::io::Reader;
-//     let img = Reader::open("img_in.png").unwrap().decode().unwrap();
-//     let tensor = Tensor::from(&img);
-//     save(&tensor, "img_tensor.png").unwrap();
-//     let img2 = RgbImage::try_from(&tensor).unwrap();
-//     img2.save("img_out.png").unwrap();
-// }
-//
-//
-// #[test]
-// fn dump_f32() {
-//     use crate::vision::image::save;
-//     use image::io::Reader;
-//     let img = Reader::open("img_in.png").unwrap().decode().unwrap().to_rgb32f();
-//     let tensor = Tensor::from(&img);
-//     // in fact does not support f32
-//     save(&tensor, "img_tensor.png").unwrap();
-//     let img2 = Rgb32FImage::try_from(&tensor).unwrap();
-//     DynamicImage::ImageRgb32F(img2).to_rgb8().save("img_out.png").unwrap();
-// }
