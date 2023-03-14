@@ -2,9 +2,11 @@
 //!
 //! Format spec:
 //! https://github.com/huggingface/safetensors
+use crate::nn::VarStore;
 use crate::{Kind, TchError, Tensor};
 
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
 use std::path::Path;
 
@@ -77,8 +79,7 @@ impl<'a> TryFrom<&'a Tensor> for SafeView<'a> {
         if !tensor.is_contiguous() {
             return Err(TchError::Convert("Cannot save non contiguous tensors".to_string()));
         }
-        // TODO here it would be better to know if tensors `is_contiguous` which
-        // doesn't seem available.
+
         let dtype = tensor.kind().try_into()?;
         let shape: Vec<usize> = tensor.size().iter().map(|&x| x as usize).collect();
         Ok(Self { tensor, shape, dtype })
@@ -154,6 +155,41 @@ impl crate::Tensor {
         tensor::serialize_to_file(views, &None, path.as_ref())
             .map_err(|e| TchError::Convert(format!("Error while saving safetensor file {e}")))?;
 
+        Ok(())
+    }
+}
+
+impl VarStore {
+    /// Read data from safe tensor file, missing tensors will raise a error.
+    pub fn read_safetensors<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
+        let data: BTreeMap<String, Tensor> = Tensor::read_safetensors(path)?.into_iter().collect();
+
+        for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
+            match data.get(name) {
+                Some(s) => {
+                    tensor.f_copy_(s)?
+                }
+                None => {
+                    Err(TchError::TensorNameNotFound(name.to_string(), "".to_owned()))?
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn fill_safetensors<P: AsRef<Path>>(&self, path: P) -> Result<(), TchError> {
+        let data = Tensor::read_safetensors(path)?;
+
+        for (name, tensor) in data {
+            match self.variables_.lock().unwrap().named_variables.get_mut(&name) {
+                Some(s) => {
+                    s.f_copy_(&tensor)?
+                }
+                None => {
+                    continue;
+                }
+            }
+        }
         Ok(())
     }
 }
