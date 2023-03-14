@@ -54,7 +54,7 @@ fn filter_prefix(s: &str) -> bool {
 }
 
 fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Result<Vec<(String, String)>> {
-    let file = File::open(format!("data/{}-{}.txt", ilang, olang))?;
+    let file = File::open(format!("data/{ilang}-{olang}.txt"))?;
     let mut res: Vec<(String, String)> = vec![];
     for line in BufReader::new(file).lines() {
         let line = line?;

@@ -114,10 +114,10 @@ pub fn report(pred: &Tensor, img: &Tensor, w: i64, h: i64) -> Result<Tensor> {
     for (class_index, bboxes_for_class) in bboxes.iter().enumerate() {
         for b in bboxes_for_class.iter() {
             println!("{}: {:?}", coco_classes::NAMES[class_index], b);
-            let xmin = ((b.xmin * w_ratio) as i64).max(0).min(initial_w - 1);
-            let ymin = ((b.ymin * h_ratio) as i64).max(0).min(initial_h - 1);
-            let xmax = ((b.xmax * w_ratio) as i64).max(0).min(initial_w - 1);
-            let ymax = ((b.ymax * h_ratio) as i64).max(0).min(initial_h - 1);
+            let xmin = ((b.xmin * w_ratio) as i64).clamp(0, initial_w - 1);
+            let ymin = ((b.ymin * h_ratio) as i64).clamp(0, initial_h - 1);
+            let xmax = ((b.xmax * w_ratio) as i64).clamp(0, initial_w - 1);
+            let ymax = ((b.ymax * h_ratio) as i64).clamp(0, initial_h - 1);
             draw_rect(&mut img, xmin, xmax, ymin, ymax.min(ymin + 2));
             draw_rect(&mut img, xmin, xmax, ymin.max(ymax - 2), ymax);
             draw_rect(&mut img, xmin, xmax.min(xmin + 2), ymin, ymax);
@@ -146,8 +146,8 @@ pub fn main() -> Result<()> {
         let image = image.unsqueeze(0).to_kind(tch::Kind::Float) / 255.;
         let predictions = model.forward_t(&image, false).squeeze();
         let image = report(&predictions, &original_image, net_width, net_height)?;
-        image::save(&image, format!("output-{:05}.jpg", index))?;
-        println!("Converted {}", index);
+        image::save(&image, format!("output-{index:05}.jpg"))?;
+        println!("Converted {index}");
     }
     Ok(())
 }

@@ -142,7 +142,7 @@ pub fn main() -> Result<()> {
     let mut vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
-    println!("Dataset loaded, {} labels.", labels);
+    println!("Dataset loaded, {labels} labels.");
     let cfg = Config {
         vocab_size: labels,
         n_embd: 512,
@@ -182,8 +182,8 @@ pub fn main() -> Result<()> {
                         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
                         let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
                         println!("Sample: {}", sample(&data, &gpt, input));
-                        if let Err(err) = vs.save(format!("gpt{}.ot", idx)) {
-                            println!("error while saving {}", err);
+                        if let Err(err) = vs.save(format!("gpt{idx}.ot")) {
+                            println!("error while saving {err}");
                         }
                         sum_loss = 0.;
                         cnt_loss = 0.;

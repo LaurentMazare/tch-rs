@@ -351,7 +351,7 @@ impl Tokenizer {
             vocab.push(elem.into())
         }
         for (_index, elem) in BYTES_TO_UNICODE {
-            vocab.push(format!("{}</w>", elem));
+            vocab.push(format!("{elem}</w>"));
         }
         for elem in bpe_lines.iter() {
             vocab.push(format!("{}{}", elem.0, elem.1))
@@ -413,7 +413,7 @@ impl Tokenizer {
             while index < word.len() {
                 let w = &word[index];
                 if index + 1 < word.len() && w == first && &word[index + 1] == second {
-                    new_word.push(format!("{}{}", first, second));
+                    new_word.push(format!("{first}{second}"));
                     index += 2
                 } else {
                     new_word.push(w.clone());
@@ -2470,13 +2470,13 @@ fn main() -> anyhow::Result<()> {
     let tokenizer = Tokenizer::create("data/bpe_simple_vocab_16e6.txt")?;
     let tokens = tokenizer.encode(&prompt, Some(MAX_POSITION_EMBEDDINGS))?;
     let str = tokenizer.decode(&tokens);
-    println!("Str: {}", str);
+    println!("Str: {str}");
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
     let tokens = Tensor::of_slice(&tokens).view((1, -1)).to(device);
     let uncond_tokens = tokenizer.encode("", Some(MAX_POSITION_EMBEDDINGS))?;
     let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
     let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1)).to(device);
-    println!("Tokens: {:?}", tokens);
+    println!("Tokens: {tokens:?}");
 
     let no_grad_guard = tch::no_grad_guard();
     println!("Building the Clip transformer.");
@@ -2484,7 +2484,7 @@ fn main() -> anyhow::Result<()> {
     let text_embeddings = text_model.forward(&tokens);
     let uncond_embeddings = text_model.forward(&uncond_tokens);
     let text_embeddings = Tensor::cat(&[uncond_embeddings, text_embeddings], 0);
-    println!("Text embeddings: {:?}", text_embeddings);
+    println!("Text embeddings: {text_embeddings:?}");
 
     println!("Building the autoencoder.");
     let vae = build_vae(device)?;
@@ -2497,7 +2497,7 @@ fn main() -> anyhow::Result<()> {
     let mut latents = Tensor::randn(&[bsize, 4, HEIGHT / 8, WIDTH / 8], (Kind::Float, device));
 
     for (timestep_index, &timestep) in scheduler.timesteps.iter().enumerate() {
-        println!("Timestep {} {} {:?}", timestep_index, timestep, latents);
+        println!("Timestep {timestep_index} {timestep} {latents:?}");
         let latent_model_input = Tensor::cat(&[&latents, &latents], 0);
         let noise_pred = unet.forward(&latent_model_input, timestep as f64, &text_embeddings);
         let noise_pred = noise_pred.chunk(2, 0);
@@ -2508,7 +2508,7 @@ fn main() -> anyhow::Result<()> {
         let image = vae.decode(&(&latents / 0.18215));
         let image = (image / 2 + 0.5).clamp(0., 1.).to_device(Device::Cpu);
         let image = (image * 255.).to_kind(Kind::Uint8);
-        tch::vision::image::save(&image, format!("sd_{}.png", timestep_index))?
+        tch::vision::image::save(&image, format!("sd_{timestep_index}.png"))?
     }
 
     drop(no_grad_guard);

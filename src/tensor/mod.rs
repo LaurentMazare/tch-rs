@@ -187,7 +187,7 @@ impl Tensor {
         let device1 = t1.device();
         let device2 = t2.device();
         if device1 != device2 {
-            panic!("random_batch2: device mismatch {:?} {:?}", device1, device2)
+            panic!("random_batch2: device mismatch {device1:?} {device2:?}")
         }
         let index = Tensor::randint(len1, &[batch_size], (Kind::Int64, device1));
         let batch1 = t1.index_select(0, &index);
@@ -217,8 +217,7 @@ impl Tensor {
     /// This returns a flattened version of the given tensor. The first dimension
     /// is preserved as it is assumed to be the mini-batch dimension.
     pub fn flat_view(&self) -> Tensor {
-        let batch_size = self.size()[0] as i64;
-        self.view((batch_size, -1))
+        self.view((self.size()[0], -1))
     }
 
     /// Converts a tensor to a one-hot encoded version.

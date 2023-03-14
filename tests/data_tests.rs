@@ -32,7 +32,7 @@ fn iter2() {
             }
         }
     }
-    assert_eq!(all_in_order, false)
+    assert!(!all_in_order)
 }
 
 #[test]
