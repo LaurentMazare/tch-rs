@@ -188,7 +188,7 @@ impl Tensor {
         let device1 = t1.device();
         let device2 = t2.device();
         if device1 != device2 {
-            panic!("random_batch2: device mismatch {:?} {:?}", device1, device2)
+            panic!("random_batch2: device mismatch {device1:?} {device2:?}")
         }
         let index = Tensor::randint(len1, &[batch_size], (Kind::Int64, device1));
         let batch1 = t1.index_select(0, &index);

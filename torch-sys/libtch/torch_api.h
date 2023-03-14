@@ -152,6 +152,24 @@ double ats_to_float(scalar);
 char *ats_to_string(scalar);
 void ats_free(scalar);
 
+bool at_context_has_openmp();
+bool at_context_has_mkl();
+bool at_context_has_lapack();
+bool at_context_has_mkldnn();
+bool at_context_has_magma();
+bool at_context_has_cuda();
+bool at_context_has_cudart();
+bool at_context_has_cudnn();
+long at_context_version_cudnn();
+long at_context_version_cudart();
+bool at_context_has_cusolver();
+bool at_context_has_hip();
+bool at_context_has_ipu();
+bool at_context_has_xla();
+bool at_context_has_lazy();
+bool at_context_has_mps();
+bool at_context_has_ort();
+
 
 /// Returns the number of CUDA devices available.
 int atc_cuda_device_count();
@@ -238,6 +256,9 @@ void ati_to_int_list(ivalue, int64_t *, int);
 void ati_to_double_list(ivalue, double *, int);
 void ati_to_bool_list(ivalue, char *, int);
 void ati_to_tensor_list(ivalue, tensor *, int);
+
+void atm_set_tensor_expr_fuser_enabled(int);
+bool atm_get_tensor_expr_fuser_enabled();
 
 int ati_tag(ivalue);
 

@@ -30,5 +30,8 @@ fn main() {
     println!("{t}");
     let t = Tensor::randn(&[1000, 1000], kind::FLOAT_CPU);
     println!("{t}");
-    println!("{}", t * 100)
+    println!("{}", t * 100);
+    println!("has_mps: {}", tch::utils::has_mps());
+    println!("version_cudnn: {}", tch::utils::version_cudnn());
+    println!("version_cudart: {}", tch::utils::version_cudart());
 }

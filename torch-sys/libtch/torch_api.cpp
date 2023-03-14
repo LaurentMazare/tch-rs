@@ -8,6 +8,7 @@
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
+#include <torch/csrc/jit/passes/tensorexpr_fuser.h>
 #include<stdexcept>
 #include<vector>
 #include "torch_api.h"
@@ -976,11 +977,134 @@ int atc_user_enabled_cudnn() {
 }
 
 void atc_set_user_enabled_cudnn(int b) {
+  PROTECT(
   at::globalContext().setUserEnabledCuDNN(b);
+  )
 }
 
 void atc_set_benchmark_cudnn(int b) {
+  PROTECT(
   at::globalContext().setBenchmarkCuDNN(b);
+  )
+}
+
+bool at_context_has_openmp() {
+  PROTECT (
+  return at::globalContext().hasOpenMP();
+  )
+  return 0;
+}
+
+bool at_context_has_mkl() {
+  PROTECT (
+  return at::globalContext().hasMKL();
+  )
+  return 0;
+}
+
+bool at_context_has_lapack() {
+  PROTECT (
+  return at::globalContext().hasLAPACK();
+  )
+  return 0;
+}
+
+bool at_context_has_mkldnn() {
+  PROTECT (
+  return at::globalContext().hasMKLDNN();
+  )
+  return 0;
+}
+
+bool at_context_has_magma() {
+  PROTECT (
+  return at::globalContext().hasMAGMA();
+  )
+  return 0;
+}
+
+bool at_context_has_cuda() {
+  PROTECT (
+  return at::globalContext().hasCUDA();
+  )
+  return 0;
+}
+
+bool at_context_has_cudart() {
+  PROTECT (
+  return at::globalContext().hasCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cudnn() {
+  PROTECT (
+  return at::globalContext().hasCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudnn() {
+  PROTECT (
+  return at::globalContext().versionCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudart() {
+  PROTECT (
+  return at::globalContext().versionCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cusolver() {
+  PROTECT (
+  return at::globalContext().hasCuSOLVER();
+  )
+  return 0;
+}
+
+bool at_context_has_hip() {
+  PROTECT (
+  return at::globalContext().hasHIP();
+  )
+  return 0;
+}
+
+bool at_context_has_ipu() {
+  PROTECT (
+  return at::globalContext().hasIPU();
+  )
+  return 0;
+}
+
+bool at_context_has_xla() {
+  PROTECT (
+  return at::globalContext().hasXLA();
+  )
+  return 0;
+}
+
+bool at_context_has_lazy() {
+  PROTECT (
+  return at::globalContext().hasLazy();
+  )
+  return 0;
+}
+
+bool at_context_has_mps() {
+  PROTECT (
+  return at::globalContext().hasMPS();
+  )
+  return 0;
+}
+
+bool at_context_has_ort() {
+  PROTECT (
+  return at::globalContext().hasORT();
+  )
+  return 0;
 }
 
 module atm_load(char *filename) {
@@ -1111,6 +1235,19 @@ int atm_get_profiling_mode() {
   return 0;
 }
 
+void atm_set_tensor_expr_fuser_enabled(int enabled) {
+  PROTECT(
+    torch::jit::setTensorExprFuserEnabled((bool)enabled);
+  )
+}
+
+bool atm_get_tensor_expr_fuser_enabled() {
+  PROTECT(
+    return torch::jit::tensorExprFuserEnabled();
+  )
+  return false;
+}
+
 void atm_set_profiling_mode(int b) {
   PROTECT(
     torch::jit::getProfilingMode() = (bool)b;
@@ -1154,6 +1291,7 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
     m->type()->addMethod(fn);
   )
 }
+
 
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
