@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v0.10.3 - 2023-02-23
 ### Added
 - Add some helper functions in a utils module to check the available devices and versions.
+### Changed
+- Update the `half` dependency to version `2`, [646](https://github.com/LaurentMazare/tch-rs/pull/646).
 
 ## v0.10.2 - 2023-02-19
 ### Added
