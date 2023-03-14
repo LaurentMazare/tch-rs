@@ -27,3 +27,6 @@ pub mod imagenet;
 pub mod efficientnet;
 
 pub mod convmixer;
+
+#[cfg(feature = "image")]
+mod rust_image;

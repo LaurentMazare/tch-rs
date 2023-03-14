@@ -1,6 +1,7 @@
 target/
 _build/
 data/
+.idea/
 gen/.merlin
 **/*.rs.bk
 *.swp
