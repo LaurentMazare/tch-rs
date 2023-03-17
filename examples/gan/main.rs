@@ -82,7 +82,7 @@ pub fn main() -> Result<()> {
         _ => bail!("usage: main image-dataset-dir"),
     };
     let images = tch::vision::image::load_dir(image_dir, IMG_SIZE, IMG_SIZE)?;
-    println!("loaded dataset: {:?}", images);
+    println!("loaded dataset: {images:?}");
     let train_size = images.size()[0];
 
     let random_batch_images = || {
@@ -137,10 +137,10 @@ pub fn main() -> Result<()> {
                 .apply_t(&generator, true)
                 .view([-1, 3, IMG_SIZE, IMG_SIZE])
                 .to_device(Device::Cpu);
-            tch::vision::image::save(&image_matrix(&imgs, 4)?, format!("relout{}.png", index))?
+            tch::vision::image::save(&image_matrix(&imgs, 4)?, format!("relout{index}.png"))?
         }
         if index % 100 == 0 {
-            println!("{}", index)
+            println!("{index}")
         };
     }
 

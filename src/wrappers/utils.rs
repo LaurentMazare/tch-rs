@@ -50,7 +50,7 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(
         Some(path) => Ok(std::ffi::CString::new(path)?),
         None => Err(TchError::Io(io::Error::new(
             io::ErrorKind::Other,
-            format!("path {:?} cannot be converted to UTF-8", path),
+            format!("path {path:?} cannot be converted to UTF-8"),
         ))),
     }
 }
@@ -78,6 +78,58 @@ pub fn set_num_interop_threads(n_threads: i32) {
 /// Set the number of threads used by torch in parallel regions.
 pub fn set_num_threads(n_threads: i32) {
     unsafe_torch!(torch_sys::at_set_num_threads(n_threads))
+}
+
+pub fn has_openmp() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_openmp())
+}
+
+pub fn has_mkl() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_mkl())
+}
+pub fn has_lapack() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_lapack())
+}
+pub fn has_mkldnn() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_mkldnn())
+}
+pub fn has_magma() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_magma())
+}
+pub fn has_cuda() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_cuda())
+}
+pub fn has_cudart() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_cudart())
+}
+pub fn has_cusolver() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_cusolver())
+}
+pub fn has_hip() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_hip())
+}
+pub fn has_ipu() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_ipu())
+}
+pub fn has_xla() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_xla())
+}
+pub fn has_lazy() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_lazy())
+}
+pub fn has_mps() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_mps())
+}
+pub fn has_ort() -> bool {
+    unsafe_torch!(torch_sys::at_context_has_ort())
+}
+#[allow(clippy::unnecessary_cast)]
+pub fn version_cudnn() -> i64 {
+    unsafe_torch!(torch_sys::at_context_version_cudnn() as i64)
+}
+#[allow(clippy::unnecessary_cast)]
+pub fn version_cudart() -> i64 {
+    unsafe_torch!(torch_sys::at_context_version_cudart() as i64)
 }
 
 /// Quantization engines

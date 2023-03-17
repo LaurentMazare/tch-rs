@@ -320,7 +320,7 @@ impl IValue {
             4 => {
                 let b = unsafe_torch_err!(ati_to_bool(c_ivalue));
                 if b < 0 {
-                    return Err(TchError::Kind(format!("unexpected bool value {}", b)));
+                    return Err(TchError::Kind(format!("unexpected bool value {b}")));
                 }
                 IValue::Bool(b != 0)
             }
@@ -394,7 +394,7 @@ impl IValue {
                 free = false;
                 IValue::Object(Object { c_ivalue })
             }
-            _ => return Err(TchError::Kind(format!("unhandled tag {}", tag))),
+            _ => return Err(TchError::Kind(format!("unhandled tag {tag}"))),
         };
         if free {
             unsafe_torch_err!(ati_free(c_ivalue));
@@ -782,6 +782,23 @@ pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
 
+pub fn f_set_tensor_expr_fuser_enabled(b: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(atm_set_tensor_expr_fuser_enabled(b as c_int));
+    Ok(())
+}
+
+pub fn set_tensor_expr_fuser_enabled(b: bool) {
+    f_set_tensor_expr_fuser_enabled(b).unwrap()
+}
+
+pub fn f_get_tensor_expr_fuser_enabled() -> Result<bool, TchError> {
+    Ok(unsafe_torch_err!(atm_get_tensor_expr_fuser_enabled()))
+}
+
+pub fn get_tensor_expr_fuser_enabled() -> bool {
+    f_get_tensor_expr_fuser_enabled().unwrap()
+}
+
 /// Enables or disables the graph executor optimizer for the current thread.
 ///
 /// # Arguments
@@ -837,8 +854,7 @@ impl Object {
             unsafe_torch_err!(ati_object_getattr_(self.c_ivalue, property_name.as_ptr()));
         if c_ivalue.is_null() {
             return Err(TchError::Torch(format!(
-                "Object.getattr(\"{}\") returned CIValue nullptr",
-                attr_name
+                "Object.getattr(\"{attr_name}\") returned CIValue nullptr"
             )));
         }
         IValue::of_c(c_ivalue)

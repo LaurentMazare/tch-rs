@@ -18,8 +18,8 @@ fn block(p: nn::Path, dim: i64, kernel_size: i64) -> impl nn::ModuleT {
     })
 }
 
-fn convmixer<'a>(
-    p: &'a nn::Path,
+fn convmixer(
+    p: &nn::Path,
     nclasses: i64,
     dim: i64,
     depth: i64,
@@ -40,10 +40,10 @@ fn convmixer<'a>(
     })
 }
 
-pub fn c1536_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1536_20(p: &nn::Path, nclasses: i64) -> nn::FuncT<'static> {
     convmixer(p, nclasses, 1536, 20, 9, 7)
 }
 
-pub fn c1024_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1024_20(p: &nn::Path, nclasses: i64) -> nn::FuncT<'static> {
     convmixer(p, nclasses, 1024, 20, 9, 14)
 }

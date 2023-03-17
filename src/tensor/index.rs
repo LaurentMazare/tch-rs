@@ -286,7 +286,7 @@ impl Tensor {
                     Int8 => {}
                     Int => {}
                     _ => {
-                        return Err(TchError::Kind(format!("the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}", Int64, Int16, Int8, Int)));
+                        return Err(TchError::Kind(format!("the kind of tensors used as indices must be one of {Int64:?}, {Int16:?}, {Int8:?}, {Int:?}")));
                     }
                 }
             }

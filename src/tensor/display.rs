@@ -299,7 +299,7 @@ impl TensorFormatter for FloatFormatter {
             if v.is_finite() {
                 write!(f, "{v:width$.0}.", v = v, width = max_w - 1)
             } else {
-                write!(f, "{v:width$.0}", v = v, width = max_w)
+                write!(f, "{v:max_w$.0}")
             }
         } else {
             write!(f, "{v:width$.prec$}", v = v, width = max_w, prec = self.precision)
@@ -321,7 +321,7 @@ impl TensorFormatter for IntFormatter {
     type Elem = i64;
 
     fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
-        write!(f, "{v:width$}", width = max_w)
+        write!(f, "{v:max_w$}")
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
@@ -340,7 +340,7 @@ impl TensorFormatter for BoolFormatter {
 
     fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
         let v = if v { "true" } else { "false" };
-        write!(f, "{v:width$}", width = max_w)
+        write!(f, "{v:max_w$}")
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
@@ -411,8 +411,8 @@ impl std::fmt::Display for Tensor {
                 BasicKind::Complex => {}
             };
             let kind = match self.f_kind() {
-                Ok(kind) => format!("{:?}", kind),
-                Err(err) => format!("{:?}", err),
+                Ok(kind) => format!("{kind:?}"),
+                Err(err) => format!("{err:?}"),
             };
             write!(f, "Tensor[{:?}, {}]", self.size(), kind)
         } else {

@@ -117,14 +117,14 @@ fn conv(vs: nn::Path, index: usize, p: i64, b: &Block) -> Result<(i64, Bl)> {
     let pad = if pad != 0 { (size - 1) / 2 } else { 0 };
     let (bn, bias) = match b.parameters.get("batch_normalize") {
         Some(p) if p.parse::<i64>()? != 0 => {
-            let vs = &vs / format!("batch_norm_{}", index);
+            let vs = &vs / format!("batch_norm_{index}");
             let bn = nn::batch_norm2d(vs, filters, Default::default());
             (Some(bn), false)
         }
         Some(_) | None => (None, true),
     };
     let conv_cfg = nn::ConvConfig { stride, padding: pad, bias, ..Default::default() };
-    let vs = &vs / format!("conv_{}", index);
+    let vs = &vs / format!("conv_{index}");
     let conv = nn::conv2d(vs, p, filters, size, conv_cfg);
     let leaky = match activation {
         "leaky" => true,

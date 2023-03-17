@@ -142,6 +142,14 @@ fn profiling_mode() {
 }
 
 #[test]
+fn tensor_expr_fuser() {
+    tch::jit::set_tensor_expr_fuser_enabled(true);
+    assert!(tch::jit::get_tensor_expr_fuser_enabled());
+    tch::jit::set_tensor_expr_fuser_enabled(false);
+    assert!(!tch::jit::get_tensor_expr_fuser_enabled());
+}
+
+#[test]
 fn jit5() {
     let mod_ = tch::CModule::load("tests/foo5.pt").unwrap();
     let result = mod_
@@ -213,7 +221,7 @@ fn jit_double_free() {
     let result = mod_.method_is("add_them", &[&input.unwrap()]);
     let result = match result.unwrap() {
         IValue::Tensor(tensor) => tensor,
-        result => panic!("expected a tensor got {:?}", result),
+        result => panic!("expected a tensor got {result:?}"),
     };
     assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
 }

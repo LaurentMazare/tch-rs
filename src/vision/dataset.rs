@@ -28,7 +28,7 @@ impl Dataset {
 pub fn random_flip(t: &Tensor) -> Tensor {
     let size = t.size();
     if size.len() != 4 {
-        panic!("unexpected shape for tensor {:?}", t)
+        panic!("unexpected shape for tensor {t:?}")
     }
     let output = t.zeros_like();
     for batch_index in 0..size[0] {
@@ -46,7 +46,7 @@ pub fn random_flip(t: &Tensor) -> Tensor {
 pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
     let size = t.size();
     if size.len() != 4 {
-        panic!("unexpected shape for tensor {:?}", t)
+        panic!("unexpected shape for tensor {t:?}")
     }
     let sz_h = size[2];
     let sz_w = size[3];
@@ -67,7 +67,7 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
 pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     let size = t.size();
     if size.len() != 4 || sz > size[2] || sz > size[3] {
-        panic!("unexpected shape for tensor {:?} {}", t, sz)
+        panic!("unexpected shape for tensor {t:?} {sz}")
     }
     let mut output = t.zeros_like();
     output.copy_(t);

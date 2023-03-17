@@ -146,8 +146,8 @@ pub fn main() -> Result<()> {
         let image = image.unsqueeze(0).to_kind(tch::Kind::Float) / 255.;
         let predictions = model.forward_t(&image, false).squeeze();
         let image = report(&predictions, &original_image, net_width, net_height)?;
-        image::save(&image, format!("output-{:05}.jpg", index))?;
-        println!("Converted {}", index);
+        image::save(&image, format!("output-{index:05}.jpg"))?;
+        println!("Converted {index}");
     }
     Ok(())
 }

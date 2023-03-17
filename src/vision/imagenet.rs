@@ -101,7 +101,7 @@ fn load_images_from_dir(dir: std::path::PathBuf) -> Result<Tensor, TchError> {
     if images.is_empty() {
         return Err(TchError::Io(io::Error::new(
             io::ErrorKind::NotFound,
-            format!("no image found in {:?}", dir),
+            format!("no image found in {dir:?}"),
         )));
     }
     Tensor::f_stack(&images, 0)
@@ -121,7 +121,7 @@ pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Result<Dataset, TchError> {
         .filter(|d| d.is_dir())
         .filter_map(|d| d.file_name().map(|d| d.to_os_string()))
         .collect::<Vec<_>>();
-    println!("classes: {:?}", classes);
+    println!("classes: {classes:?}");
     let mut train_images: Vec<Tensor> = vec![];
     let mut train_labels: Vec<Tensor> = vec![];
     let mut test_images: Vec<Tensor> = vec![];
@@ -1157,7 +1157,7 @@ pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
         [CLASS_COUNT] => tensor.shallow_clone(),
         [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
         [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
-        _ => panic!("unexpected tensor shape {:?}", tensor),
+        _ => panic!("unexpected tensor shape {tensor:?}"),
     };
     let (values, indexes) = tensor.topk(k, 0, true, true);
     let values = Vec::<f64>::from(values);
