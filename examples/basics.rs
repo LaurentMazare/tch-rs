@@ -11,7 +11,6 @@ fn grad_example() {
 }
 
 fn main() {
-    tch::maybe_init_cuda();
     let t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
     t.print();
     let t = Tensor::randn(&[5, 4], kind::FLOAT_CPU);
@@ -25,10 +24,7 @@ fn main() {
     grad_example();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
-    println!("{t}");
     let t = Tensor::randn(&[1000], kind::FLOAT_CPU);
-    println!("{t}");
-    let t = Tensor::randn(&[1000, 1000], kind::FLOAT_CPU);
     println!("{t}");
     println!("{}", t * 100);
     println!("has_mps: {}", tch::utils::has_mps());

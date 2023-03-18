@@ -3,6 +3,7 @@ name = "tch"
 version = "0.10.3"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
+build = "build.rs"
 
 description = "Rust wrappers for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"

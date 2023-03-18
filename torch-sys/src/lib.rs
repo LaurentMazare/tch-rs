@@ -327,7 +327,3 @@ extern "C" {
     pub fn atm_set_tensor_expr_fuser_enabled(enabled: c_int);
     pub fn atm_get_tensor_expr_fuser_enabled() -> bool;
 }
-
-extern "C" {
-    pub fn dummy_cuda_dependency();
-}
