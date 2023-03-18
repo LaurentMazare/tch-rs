@@ -153,7 +153,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
         .unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
     let cuda_dependency = if use_cuda || use_hip {
-        "libtch/dummy_cuda_dependency.cpp"
+        "libtch/cuda_dependency.cpp"
     } else {
         "libtch/fake_cuda_dependency.cpp"
     };
@@ -161,6 +161,9 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/torch_api.h");
     println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
     println!("cargo:rerun-if-changed=libtch/torch_api_generated.h");
+    println!("cargo:rerun-if-changed=libtch/cuda_dependency.cpp");
+    println!("cargo:rerun-if-changed=libtch/cuda_dependency.h");
+    println!("cargo:rerun-if-changed=libtch/fake_cuda_dependency.cpp");
     println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
     println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
@@ -230,6 +233,7 @@ fn main() {
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
+            println!("cargo:rustc-link-lib=c10_cuda");
             println!("cargo:rustc-link-lib=torch_cuda");
         }
         if use_cuda_cu {

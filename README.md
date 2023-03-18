@@ -254,6 +254,16 @@ See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues
 
 Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
 
+### What if I get some errors not finding `cuda_runtime_api.h`?
+
+This may be caused by the cuda headers not being in your default include paths.
+To get around this, you can try changing the `CPLUS_INCLUDE_PATH` environment
+variable pointing it at the appropriate directory, e.g.
+
+```bash
+CPLUS_INCLUDE_PATH=/usr/local/cuda/include:$CPLUS_INCLUDE_PATH
+```
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.

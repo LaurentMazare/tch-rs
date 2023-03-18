@@ -6,6 +6,8 @@ pub use utils::{
     set_num_threads, QEngine,
 };
 
+pub mod cuda_graph;
+pub mod cuda_stream;
 pub(crate) mod device;
 pub(crate) mod image;
 pub mod jit;

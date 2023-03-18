@@ -3,7 +3,21 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
-thread_local char *torch_last_err = nullptr;
+#include<stdexcept>
+#include<vector>
+#include<ATen/autocast_mode.h>
+#include<torch/csrc/autograd/engine.h>
+#include<torch/csrc/jit/frontend/tracer.h>
+#include<torch/csrc/jit/mobile/import_data.h>
+#include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
+#include<torch/csrc/jit/passes/normalize_ops.h>
+#include<torch/csrc/jit/passes/tensorexpr_fuser.h>
+#include<torch/csrc/jit/runtime/graph_executor.h>
+#include<torch/csrc/jit/runtime/graph_executor.h>
+#include<torch/script.h>
+#include<torch/torch.h>
+
+extern thread_local char *torch_last_err;
 
 extern "C" {
 typedef torch::Tensor *tensor;
