@@ -116,6 +116,9 @@ fn gradient_clip_test() {
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_value(4.0);
+    let g1 = var1.grad();
+    let g2 = var2.grad();
+    let g3 = var3.grad();
     assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
     assert_eq!(Vec::<f64>::from(&g2), [4.0]);
     assert_eq!(Vec::<f64>::from(&g3), [-4.0, -4.0]);
@@ -124,6 +127,9 @@ fn gradient_clip_test() {
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_norm(1.0);
+    let g1 = var1.grad();
+    let g2 = var2.grad();
+    let g3 = var3.grad();
     assert_eq!(round4(g1), [0.1414, 0.1414]);
     assert_eq!(round4(g2), [0.5657]);
     assert_eq!(round4(g3), [-0.5657, -0.5657]);
