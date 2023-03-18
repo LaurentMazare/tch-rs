@@ -10,6 +10,7 @@ pub(crate) mod wrappers;
 pub use wrappers::device::{Cuda, Device};
 pub use wrappers::jit::{self, CModule, IValue, TrainableCModule};
 pub use wrappers::kind::{self, Kind};
+pub use wrappers::layout::Layout;
 pub use wrappers::optimizer::COptimizer;
 pub use wrappers::scalar::Scalar;
 pub use wrappers::utils;
