@@ -6,8 +6,12 @@ fn grad_example() {
     println!("{}", y.double_value(&[]));
     x.zero_grad();
     y.backward();
-    let dy_over_dx = x.grad();
-    println!("{}", dy_over_dx.double_value(&[]));
+    let mut dy_over_dx = x.grad();
+    dy_over_dx.print();
+    let t2 = dy_over_dx.clamp_(1.23, 1.24);
+    dy_over_dx.print();
+    t2.print();
+    println!("Grad {}", dy_over_dx.double_value(&[]));
 }
 
 fn main() {
@@ -25,12 +29,6 @@ fn main() {
     grad_example();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
-    println!("{t}");
-    let t = Tensor::randn(&[1000], kind::FLOAT_CPU);
-    println!("{t}");
-    let t = Tensor::randn(&[1000, 1000], kind::FLOAT_CPU);
-    println!("{t}");
-    println!("{}", t * 100);
     println!("has_mps: {}", tch::utils::has_mps());
     println!("version_cudnn: {}", tch::utils::version_cudnn());
     println!("version_cudart: {}", tch::utils::version_cudart());
