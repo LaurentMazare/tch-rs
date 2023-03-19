@@ -566,6 +566,24 @@ impl CModule {
         self.f_set_train().unwrap();
     }
 
+    /// True if the module is in training mode.
+    pub fn f_is_training(& self) -> Result<bool, TchError> {
+        let result = unsafe_torch_err!(atm_is_training(self.c_module));
+        Ok(result)
+    }
+
+    /// True if the module is in training mode.
+    pub fn is_training(& self) -> Result<bool, TchError> {
+        let result = self.f_is_training().unwrap();
+        Ok(result)
+    }
+
+    /// Recursively casts all parameters to the given `kind`(`dtype`) and `device`.
+    ///
+    /// If `non_blocking` is true and the source is in pinned memory and
+    /// destination is on the GPU or vice versa, the copy is performed
+    /// asynchronously with respect to the host. Otherwise, the argument has no
+    /// effect.
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
         unsafe_torch!(atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking));
     }
@@ -615,6 +633,35 @@ impl CModule {
             c_outputs.as_ptr(),
             c_outputs.len() as c_int,
         ));
+        Ok(CModule { c_module })
+    }
+
+    /// Clones both the underlying `ClassType` and the module instance(data).
+    pub fn clone_module(&self) -> Result<CModule, TchError> {
+        let c_module = unsafe_torch_err!(atm_clone(self.c_module, false));
+        Ok(CModule { c_module })
+    }
+
+    /// Clones in place both the underlying `ClassType` and the module instance(data).
+    pub fn clone_module_in_place(&self) -> Result<CModule, TchError> {
+        let c_module = unsafe_torch_err!(atm_clone(self.c_module, true));
+        Ok(CModule { c_module })
+    }
+
+    /// Performs a set of optimization passes to optimize a model for the purposes of inference.
+    ///
+    /// If the model is not already frozen, optimize_for_inference will invoke torch.jit.freeze
+    /// automatically.
+    /// In addition to generic optimizations that should speed up your model regardless of environment,
+    /// prepare for inference will also bake in build specific settings such as the presence of CUDNN or
+    /// MKLDNN, and may in the future make transformations which speed things up on one machine but
+    /// slow things down on another. Accordingly, serialization is not implemented following invoking
+    /// optimize_for_inference and is not guaranteed.
+    /// This is still in prototype, and may have the potential to slow down your model.
+    /// Primary use cases that have been targeted so far have been vision models
+    /// on cpu and gpu to a lesser extent.
+    pub fn optimize_for_inference(&self) -> Result<CModule, TchError> {
+        let c_module = unsafe_torch_err!(atm_optimize_for_inference(self.c_module));
         Ok(CModule { c_module })
     }
 }
@@ -677,6 +724,16 @@ impl TrainableCModule {
     /// Switches the module to evaluation mode.
     pub fn set_eval(&mut self) {
         self.inner.set_eval()
+    }
+
+    /// True if the module is in training mode.
+    pub fn f_is_training(& self) -> Result<bool, TchError> {
+        self.inner.f_is_training()
+    }
+
+    /// True if the module is in training mode.
+    pub fn is_training(& self) -> Result<bool, TchError> {
+        self.inner.is_training()
     }
 
     /// Performs the forward pass for a model on some specified tensor inputs.

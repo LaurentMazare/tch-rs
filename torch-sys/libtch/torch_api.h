@@ -215,6 +215,10 @@ ivalue atm_create_class_(module,
                    int nivalues);
 void atm_eval(module);
 void atm_train(module);
+
+/// True if the module is in training mode.
+bool atm_is_training(module m);
+
 void atm_free(module);
 void atm_to(module m, int device, int dtype, bool non_blocking);
 void atm_save(module m, char*);
@@ -225,6 +229,12 @@ void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor))
 // This function has to be followed by a call to atm_end_tracing.
 module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
 void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
+
+/// Clones both the underlying `ClassType` and the module instance(data).
+module atm_clone(module m, bool in_place);
+
+/// Performs a set of optimization passes to optimize a model for the purposes of inference.
+module atm_optimize_for_inference(module m);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);

@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `ureq` instead of `curl` to reduce compile times, [620](https://github.com/LaurentMazare/tch-rs/pull/620).
 - Fix the handling of dicts in TorchScript, [597](https://github.com/LaurentMazare/tch-rs/issues/597).
 
+## Unreleased
+### Added
+- Expose `optimize_for_inference` for `jit` modules.
+- Expose `clone` for `jit` modules.
+- Expose `is_training` for `jit` modules.
+
 ## v0.10.1 - 2022-12-12
 ### Changed
 - Default `vs.load` to use the Python weight format when the file extension is `.pt` or `.bin`.

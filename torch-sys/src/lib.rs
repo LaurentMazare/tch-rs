@@ -303,6 +303,10 @@ extern "C" {
     ) -> *mut CIValue;
     pub fn atm_eval(m: *mut CModule_);
     pub fn atm_train(m: *mut CModule_);
+
+    /// True if the module is in training mode.
+    pub fn atm_is_training(m: *mut CModule_) -> bool;
+
     pub fn atm_free(m: *mut CModule_);
     pub fn atm_to(m: *mut CModule_, device: c_int, kind: c_int, non_blocking: bool);
     pub fn atm_save(m: *mut CModule_, filename: *const c_char);
@@ -324,6 +328,13 @@ extern "C" {
         outputs: *const *mut C_tensor,
         noutputs: c_int,
     );
+
+    /// Clones both the underlying `ClassType` and the module instance(data).
+    pub fn atm_clone(m: *mut CModule_, in_place: bool) -> *mut CModule_;
+
+    /// Performs a set of optimization passes to optimize a model for the purposes of inference.
+    pub fn atm_optimize_for_inference(m: *mut CModule_) -> *mut CModule_;
+
     pub fn atm_set_tensor_expr_fuser_enabled(enabled: c_int);
     pub fn atm_get_tensor_expr_fuser_enabled() -> bool;
 }

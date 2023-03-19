@@ -24,6 +24,63 @@ fn jit_data() {
 }
 
 #[test]
+fn jit_train_eval() {
+    let mut mod_ = tch::CModule::load("tests/foo2.pt").unwrap();
+    let result = mod_.is_training().unwrap();
+    assert!(result);
+
+    mod_.set_eval();
+    let result = mod_.is_training().unwrap();
+    assert!(!result);
+
+    mod_.set_train();
+    let result = mod_.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
+fn jit_clone_module() {
+    let mut original = tch::CModule::load("tests/foo2.pt").unwrap();
+    let cloned = original.clone_module().unwrap();
+
+    // Check that they are both trainable.
+    let result = original.is_training().unwrap();
+    assert!(result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+
+    // Make the original non trainable.
+    original.set_eval();
+
+    // Check that the original is non trainable, while the lcone is still trainable.
+    let result = original.is_training().unwrap();
+    assert!(!result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
+fn jit_clone_module_in_place() {
+    let mut original = tch::CModule::load("tests/foo2.pt").unwrap();
+    let cloned = original.clone_module_in_place().unwrap();
+
+    // Check that they are both trainable.
+    let result = original.is_training().unwrap();
+    assert!(result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+
+    // Make the original non trainable.
+    original.set_eval();
+
+    // Check that the original is non trainable, while the lcone is still trainable.
+    let result = original.is_training().unwrap();
+    assert!(!result);
+    let result = cloned.is_training().unwrap();
+    assert!(result);
+}
+
+#[test]
 fn jit1() {
     let mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
     let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
@@ -169,6 +226,21 @@ fn jit_double_free() {
     assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
 }
 
+#[test]
+fn jit_optimize_for_inference() {
+    let mut mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
+    let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+    let result = mod_.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+
+    mod_.set_eval();
+    let optimized = mod_.optimize_for_inference().unwrap();
+    let result = optimized.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+    let result = optimized.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
+    assert_eq!(i64::from(&result), 1421);
+
 // https://github.com/LaurentMazare/tch-rs/issues/597
 #[test]
 fn specialized_dict() {
@@ -184,4 +256,5 @@ fn specialized_dict() {
     let result: (Tensor, Tensor) = result.try_into().unwrap();
     assert_eq!(Vec::<f64>::from(&result.0), [1.0, 2.0, 3.0]);
     assert_eq!(Vec::<f64>::from(&result.1), [1.0, 7.0])
+
 }
