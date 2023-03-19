@@ -169,6 +169,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     } else {
         "libtch/fake_cuda_dependency.cpp"
     };
+    println!("cargo:rerun-if-changed={}", cuda_dependency);
     println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
     println!("cargo:rerun-if-changed=libtch/torch_api.h");
     println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
