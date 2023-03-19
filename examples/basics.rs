@@ -17,7 +17,8 @@ fn grad_example() {
 fn main() {
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
-    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]);
+    let device = tch::Device::cuda_if_available();
+    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]).to(device);
     t.print();
     let t = Tensor::randn(&[5, 4], kind::FLOAT_CPU);
     t.print();
