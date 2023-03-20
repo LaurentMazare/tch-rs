@@ -4,7 +4,7 @@ This documents the main changes to the `tch` crate.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v0.11.0
+## v0.11.0 - 2023-03-20
 ### Added
 - Adapt to C++ PyTorch library (`libtorch`) version `v2.0.0`.
 ### Changed
@@ -31,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose functions for setting manual seeds for CUDA devices, [#500](https://github.com/LaurentMazare/tch-rs/pull/500).
 - Expose functions for triggering manual sync, [#500](https://github.com/LaurentMazare/tch-rs/pull/500).
 - Add some functions to load Python weight files.
-
 ### Changed
 - Extending the Kaiming initialization, [#573](https://github.com/LaurentMazare/tch-rs/pull/573).
 
