@@ -7,8 +7,8 @@ pub mod display;
 pub mod index;
 mod iter;
 mod npy;
-mod safetensors;
 mod ops;
+mod safetensors;
 
 pub use super::wrappers::tensor::{
     autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
