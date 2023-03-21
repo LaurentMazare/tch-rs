@@ -142,7 +142,7 @@ impl crate::Tensor {
         path: P,
     ) -> Result<(), TchError> {
         let views: Result<Vec<_>, TchError> = tensors
-            .into_iter()
+            .iter()
             .map(|(name, tensor)| -> Result<(&str, SafeView), TchError> {
                 let name = name.as_ref();
                 let tensor = tensor.as_ref();
@@ -166,12 +166,8 @@ impl VarStore {
 
         for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
             match data.get(name) {
-                Some(s) => {
-                    tensor.f_copy_(s)?
-                }
-                None => {
-                    Err(TchError::TensorNameNotFound(name.to_string(), "".to_owned()))?
-                }
+                Some(s) => tensor.f_copy_(s)?,
+                None => Err(TchError::TensorNameNotFound(name.to_string(), "".to_owned()))?,
             }
         }
         Ok(())
@@ -182,9 +178,7 @@ impl VarStore {
 
         for (name, tensor) in data {
             match self.variables_.lock().unwrap().named_variables.get_mut(&name) {
-                Some(s) => {
-                    s.f_copy_(&tensor)?
-                }
+                Some(s) => s.f_copy_(&tensor)?,
                 None => {
                     continue;
                 }
@@ -196,10 +190,10 @@ impl VarStore {
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryInto};
+    use std::convert::TryInto;
 
+    use crate::Kind;
     use safetensors::Dtype;
-    use crate::{Kind};
 
     #[test]
     fn parse() {
