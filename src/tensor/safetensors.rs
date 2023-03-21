@@ -10,8 +10,7 @@ use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
 use std::path::Path;
 
-use safetensors::tensor;
-use safetensors::tensor::{Dtype, SafeTensorError, SafeTensors, TensorView, View};
+use safetensors::tensor::{self, Dtype, SafeTensorError, SafeTensors, TensorView, View};
 
 impl TryFrom<Kind> for Dtype {
     type Error = TchError;
@@ -81,7 +80,7 @@ impl<'a> TryFrom<&'a Tensor> for SafeView<'a> {
         }
 
         let dtype = tensor.kind().try_into()?;
-        let shape: Vec<usize> = tensor.size().iter().map(|&x| x as usize).collect();
+        let shape = tensor.size().iter().map(|&x| x as usize).collect();
         Ok(Self { tensor, shape, dtype })
     }
 }
@@ -102,8 +101,7 @@ impl<'a> View for SafeView<'a> {
     }
 
     fn data_len(&self) -> usize {
-        let numel = self.tensor.numel();
-        numel * self.tensor.kind().elt_size_in_bytes()
+        self.tensor.numel() * self.tensor.kind().elt_size_in_bytes()
     }
 }
 
@@ -115,14 +113,9 @@ impl crate::Tensor {
         let safetensors = match SafeTensors::deserialize(&file) {
             Ok(value) => value,
             Err(e) => match e {
-                SafeTensorError::IoError(e) => return Err(TchError::Io(e)),
-                // Always reoutput the error message from the underlying error
-                // For easier debugging
-                e => {
-                    return Err(TchError::FileFormat(format!(
-                        "unable to load safetensor file : {e}"
-                    )))
-                }
+                SafeTensorError::IoError(e) => Err(e)?,
+                // Always reoutput the error message from the underlying error for easier debugging
+                e => Err(TchError::FileFormat(format!("unable to load safetensor file : {e}")))?,
             },
         };
 
@@ -130,8 +123,7 @@ impl crate::Tensor {
             .tensors()
             .into_iter()
             .map(|(name, view)| -> Result<(String, Tensor), TchError> {
-                let tensor: Tensor = view.try_into()?;
-                Ok((name, tensor))
+                Ok((name, view.try_into()?))
             })
             .collect()
     }
@@ -141,17 +133,12 @@ impl crate::Tensor {
         tensors: &[(S, T)],
         path: P,
     ) -> Result<(), TchError> {
-        let views: Result<Vec<_>, TchError> = tensors
+        let views = tensors
             .iter()
             .map(|(name, tensor)| -> Result<(&str, SafeView), TchError> {
-                let name = name.as_ref();
-                let tensor = tensor.as_ref();
-                let view: SafeView = tensor.try_into()?;
-                Ok((name, view))
+                Ok((name.as_ref(), tensor.as_ref().try_into()?))
             })
-            .collect();
-        let views = views?;
-
+            .collect::<Result<Vec<_>, _>>()?;
         tensor::serialize_to_file(views, &None, path.as_ref())
             .map_err(|e| TchError::Convert(format!("Error while saving safetensor file {e}")))?;
 
@@ -162,12 +149,16 @@ impl crate::Tensor {
 impl VarStore {
     /// Read data from safe tensor file, missing tensors will raise a error.
     pub fn read_safetensors<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
+        let path = path.as_ref();
         let data: BTreeMap<String, Tensor> = Tensor::read_safetensors(path)?.into_iter().collect();
 
         for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
             match data.get(name) {
                 Some(s) => tensor.f_copy_(s)?,
-                None => Err(TchError::TensorNameNotFound(name.to_string(), "".to_owned()))?,
+                None => Err(TchError::TensorNameNotFound(
+                    name.to_string(),
+                    path.to_string_lossy().to_string(),
+                ))?,
             }
         }
         Ok(())
@@ -177,11 +168,8 @@ impl VarStore {
         let data = Tensor::read_safetensors(path)?;
 
         for (name, tensor) in data {
-            match self.variables_.lock().unwrap().named_variables.get_mut(&name) {
-                Some(s) => s.f_copy_(&tensor)?,
-                None => {
-                    continue;
-                }
+            if let Some(s) = self.variables_.lock().unwrap().named_variables.get_mut(&name) {
+                s.f_copy_(&tensor)?
             }
         }
         Ok(())
