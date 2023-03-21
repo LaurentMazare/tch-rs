@@ -25,6 +25,7 @@ thiserror = "1"
 torch-sys = { version = "0.11.0", path = "torch-sys" }
 zip = "0.6"
 half = "2"
+safetensors = "0.3.0"
 
 cpython = { version = "0.2.0", optional = true }
 regex = { version = "1.6.0", optional = true }

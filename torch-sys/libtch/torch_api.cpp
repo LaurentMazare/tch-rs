@@ -126,6 +126,11 @@ int at_is_sparse(tensor t) {
   return -1;
 }
 
+int at_is_contiguous(tensor t) {
+  PROTECT(return t->is_contiguous();)
+  return -1;
+}
+
 size_t at_dim(tensor t) {
   PROTECT(return t->dim();)
   return -1;

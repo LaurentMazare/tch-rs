@@ -155,3 +155,38 @@ fn save_and_load_npy() {
     assert_eq!(pi.size(), [3, 1, 2]);
     assert_eq!(Vec::<f64>::from(pi.flatten(0, -1)), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
 }
+
+#[test]
+fn save_and_load_safetensors() {
+    let tmp_file = TmpFile::create("save-and-load-safetensors");
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]);
+    let e = Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]);
+    Tensor::write_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
+    let named_tensors = Tensor::read_safetensors(&tmp_file).unwrap();
+    assert_eq!(named_tensors.len(), 2); 
+    for (name, tensor) in named_tensors {
+        match name.as_str() {
+            "pi" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 14),
+            "e" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 57),
+            _ => panic!("unknow name tensors"),
+        }
+    }
+}
+
+#[test]
+fn save_and_load_safetensors_half() {
+    let tmp_file = TmpFile::create("save-and-load-safetensors-half");
+    let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to_dtype(Kind::Half, true, false);
+    let e =
+        Tensor::of_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to_dtype(Kind::Half, true, false);
+    Tensor::write_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
+    let named_tensors = Tensor::read_safetensors(&tmp_file).unwrap();
+    assert_eq!(named_tensors.len(), 2); 
+    for (name, tensor) in named_tensors {
+        match name.as_str() {
+            "pi" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 14),
+            "e" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 57),
+            _ => panic!("unknow name tensors"),
+        }
+    }
+}
