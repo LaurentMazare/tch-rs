@@ -156,7 +156,7 @@ impl VarStore {
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
         match path.as_ref().extension().and_then(|x| x.to_str()) {
             Some("safetensors") => Tensor::write_safetensors(named_tensors.as_slice(), path),
-            Some(_) | None => Tensor::save_multi(named_tensors.as_slice(), path)
+            Some(_) | None => Tensor::save_multi(named_tensors.as_slice(), path),
         }
     }
 
