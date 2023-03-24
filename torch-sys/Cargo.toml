@@ -20,9 +20,12 @@ anyhow = "1.0"
 cc = "1.0"
 ureq = { version = "2.6", optional = true }
 zip = "0.6"
+cmake = { version = "0.1.49", optional = true }
+git2 = { version = "0.16.1", optional = true }
 
 [features]
 download-libtorch = ["ureq"]
+build-libtorch = ["cmake", "git2"]
 doc-only = []
 
 [package.metadata.docs.rs]

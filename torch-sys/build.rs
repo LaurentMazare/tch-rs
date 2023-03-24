@@ -102,6 +102,7 @@ fn prepare_libtorch_dir() -> PathBuf {
         pathbuf
     } else {
         let libtorch_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtorch");
+        #[cfg(not(feature = "build-libtorch"))]
         if !libtorch_dir.exists() {
             fs::create_dir(&libtorch_dir).unwrap_or_default();
             let libtorch_url = match os.as_str() {
@@ -150,9 +151,71 @@ fn prepare_libtorch_dir() -> PathBuf {
             download(&libtorch_url, &filename).unwrap();
             extract(&filename, &libtorch_dir).unwrap();
         }
+        /*
+        #[cfg(feature = "build-libtorch")]
+        build_libtorch(&os, &libtorch_dir).expect("Failed to build libtorch");
+        */
 
         libtorch_dir.join("libtorch")
     }
+}
+
+fn build_libtorch(os: &str, target_dir: &PathBuf) -> anyhow::Result<()> {
+    use git2::Repository;
+    let url = "https://github.com/pytorch/pytorch";
+    let src = if let Ok(src) = env::var("PYTORCH_SRC") {
+        PathBuf::from(src)
+    } else {
+        let src = PathBuf::from(env::var("OUT_DIR").unwrap()).join("pytorch");
+        Repository::clone_recurse(url, src.clone())?.path().to_path_buf()
+    };
+    let target_dir = target_dir.join("libtorch");
+    use cmake::Config;
+    match os {
+        "macos" => {
+            Config::new(src)
+                .define("BUILD_SHARED_LIBS:BOOL", "OFF")
+                .define("CROSS_COMPILING_MACOSX:BOOL", "OFF")
+                .define("USE_NUMPY:BOOL", "OFF")
+                .define("CMAKE_INSTALL_PREFIX:PATH", target_dir.clone())
+                .define("PYTHON_EXECUTABLE:PATH", "/opt/homebrew/bin/python3")
+                .out_dir(target_dir)
+                //.build_arg("-j8")
+                //.very_verbose(true)
+                .build();
+        }
+        "ios" => {
+            Config::new(src)
+                .define("BUILD_SHARED_LIBS:BOOL", "OFF")
+                .define("CROSS_COMPILING_MACOSX:BOOL", "OFF")
+                .define("USE_NUMPY:BOOL", "OFF")
+                .define("CMAKE_INSTALL_PREFIX:PATH", target_dir.clone())
+                .define("PYTHON_EXECUTABLE:PATH", "/opt/homebrew/bin/python3")
+                .define("BUILD_CUSTOM_PROTOBUF", "OFF")
+                .define("BUILD_TEST", "OFF")
+                .define("BUILD_BINARY", "OFF")
+                .define("-DUSE_ROCM", "OFF")
+                .define("-DUSE_CUDA", "OFF")
+                .define("-DUSE_ITT", "OFF")
+                .define("-DUSE_GFLAGS", "OFF")
+                .define("-DUSE_OPENCV", "OFF")
+                .define("-DUSE_LMDB", "OFF")
+                .define("-DUSE_LEVELDB", "OFF")
+                .define("-DUSE_MPI", "OFF")
+                .define("-DUSE_OPENMP", "OFF")
+                .define("-DUSE_MKLDNN", "OFF")
+                .define("-DUSE_NNPACK", "OFF")
+                .define("-DUSE_NUMPY", "OFF")
+                .define("-DUSE_BLAS", "OFF")
+                .define("-DBUILD_PYTHON", "OFF")
+                .define("-DCMAKE_CXX_FLAGS", "-fobjc-arc")
+                .out_dir(target_dir)
+                .build();
+        }
+        _ => panic!("Unsupported OS"),
+    }
+
+    Ok(())
 }
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
@@ -178,7 +241,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
-        "linux" | "macos" => {
+        "linux" | "macos" | "ios" => {
             let libtorch_cxx11_abi =
                 env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned());
             cc::Build::new()
