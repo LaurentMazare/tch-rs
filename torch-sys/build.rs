@@ -46,7 +46,7 @@ struct PyPiPackageUrl {
 #[cfg(feature = "download-libtorch")]
 #[derive(serde::Deserialize, Debug)]
 struct PyPiPackage {
-    urls: Vec<PyPiPackageUrl>
+    urls: Vec<PyPiPackageUrl>,
 }
 #[cfg(feature = "download-libtorch")]
 fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
@@ -56,10 +56,10 @@ fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
     if response_code != 200 {
         anyhow::bail!("Unexpected response code {} for {}", response_code, pypi_url)
     }
-    let pypi_package : PyPiPackage = response.into_json()?;
+    let pypi_package: PyPiPackage = response.into_json()?;
     let urls = pypi_package.urls;
     let url = urls.iter().find_map(|pipi_url: &PyPiPackageUrl| {
-        if pipi_url.filename == format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl"){
+        if pipi_url.filename == format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl") {
             Some(pipi_url.url.clone())
         } else {
             None
@@ -99,7 +99,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
 
     // This is is if we're unzipping a python wheel.
     if outpath.as_ref().join("torch").exists() {
-        let _ = fs::rename(outpath.as_ref().join("torch"), outpath.as_ref().join("libtorch"))?;
+        fs::rename(outpath.as_ref().join("torch"), outpath.as_ref().join("libtorch"))?;
     }
     Ok(())
 }
