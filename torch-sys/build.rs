@@ -164,7 +164,14 @@ fn prepare_libtorch_dir() -> PathBuf {
                 ),
                 "macos" => {
                     if env::var("CARGO_CFG_TARGET_ARCH") == Ok(String::from("aarch64")) {
-                        get_pypi_wheel_url_for_aarch64_macosx().expect("Failed to python wheel url from pypi")
+                        get_pypi_wheel_url_for_aarch64_macosx().expect(
+                            "Failed to retrieve torch from pypi.  Pre-built version of libtorch for apple silicon are not available.
+                            You can install torch manually following the indications from https://github.com/LaurentMazare/tch-rs/issues/629
+                            pip3 install torch=={TORCH_VERSION}
+                            Then update the following environment variables:
+                            export LIBTORCH=$(python3 -c 'import torch; from pathlib import Path; print(Path(torch.__file__).parent)')
+                            export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
+                            ")
                     } else {
                         format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
                     }
