@@ -18,11 +18,13 @@ libc = "0.2.0"
 [build-dependencies]
 anyhow = "1.0"
 cc = "1.0"
-ureq = { version = "2.6", optional = true }
+ureq = { version = "2.6", optional = true, features = ["json"] }
+serde_json= { version = "1.0", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
 zip = "0.6"
 
 [features]
-download-libtorch = ["ureq"]
+download-libtorch = ["ureq", "serde", "serde_json"]
 doc-only = []
 
 [package.metadata.docs.rs]
