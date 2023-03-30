@@ -6,10 +6,9 @@
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
-use std::env;
-use std::fs;
-use std::io;
+use anyhow::Context;
 use std::path::{Path, PathBuf};
+use std::{env, fs, io};
 
 const TORCH_VERSION: &str = "2.0.0";
 
@@ -30,6 +29,43 @@ fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<
 #[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
     anyhow::bail!("cannot use download without the ureq feature")
+}
+
+#[cfg(not(feature = "download-libtorch"))]
+fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<&str> {
+    anyhow::bail!("cannot get pypi wheel url without the ureq feature")
+}
+
+#[cfg(feature = "download-libtorch")]
+#[derive(serde::Deserialize, Debug)]
+struct PyPiPackageUrl {
+    url: String,
+    filename: String,
+}
+#[cfg(feature = "download-libtorch")]
+#[derive(serde::Deserialize, Debug)]
+struct PyPiPackage {
+    urls: Vec<PyPiPackageUrl>,
+}
+#[cfg(feature = "download-libtorch")]
+fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
+    let pypi_url = format!("https://pypi.org/pypi/torch/{TORCH_VERSION}/json");
+    let response = ureq::get(pypi_url.as_str()).call()?;
+    let response_code = response.status();
+    if response_code != 200 {
+        anyhow::bail!("Unexpected response code {} for {}", response_code, pypi_url)
+    }
+    let pypi_package: PyPiPackage = response.into_json()?;
+    let urls = pypi_package.urls;
+    let expected_filename = format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl");
+    let url = urls.iter().find_map(|pypi_url: &PyPiPackageUrl| {
+        if pypi_url.filename == expected_filename {
+            Some(pypi_url.url.clone())
+        } else {
+            None
+        }
+    });
+    url.context("Failed to find arm64 macosx wheel from pypi")
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
@@ -55,6 +91,11 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
             let mut outfile = fs::File::create(&outpath)?;
             io::copy(&mut file, &mut outfile)?;
         }
+    }
+
+    // This is is if we're unzipping a python wheel.
+    if outpath.as_ref().join("torch").exists() {
+        fs::rename(outpath.as_ref().join("torch"), outpath.as_ref().join("libtorch"))?;
     }
     Ok(())
 }
@@ -118,19 +159,18 @@ fn prepare_libtorch_dir() -> PathBuf {
                     }
                 ),
                 "macos" => {
-                    if let Ok(arch) = env::var("CARGO_CFG_TARGET_ARCH") {
-                        if arch.as_str() == "aarch64" {
-                            panic!("Pre-built version of libtorch for apple silicon are not available.
+                    if env::var("CARGO_CFG_TARGET_ARCH") == Ok(String::from("aarch64")) {
+                        get_pypi_wheel_url_for_aarch64_macosx().expect(
+                            "Failed to retrieve torch from pypi.  Pre-built version of libtorch for apple silicon are not available.
                             You can install torch manually following the indications from https://github.com/LaurentMazare/tch-rs/issues/629
                             pip3 install torch=={TORCH_VERSION}
-
                             Then update the following environment variables:
                             export LIBTORCH=$(python3 -c 'import torch; from pathlib import Path; print(Path(torch.__file__).parent)')
                             export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
-                            ");
-                        }
+                            ")
+                    } else {
+                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
                     }
-                    format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
                 },
                 "windows" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",

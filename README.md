@@ -8,6 +8,7 @@ rust bindings could then be developed on top of this. The
 [![Build Status](https://github.com/LaurentMazare/tch-rs/workflows/Continuous%20integration/badge.svg)](https://github.com/LaurentMazare/tch-rs/actions)
 [![Latest version](https://img.shields.io/crates/v/tch.svg)](https://crates.io/crates/tch)
 [![Documentation](https://docs.rs/tch/badge.svg)](https://docs.rs/tch)
+[![Dependency Status](https://deps.rs/repo/github/LaurentMazare/tch-rs/status.svg)](https://deps.rs/repo/github/LaurentMazare/tch-rs)
 ![License](https://img.shields.io/crates/l/tch.svg)
 [changelog](https://github.com/LaurentMazare/tch-rs/blob/main/CHANGELOG.md)
 

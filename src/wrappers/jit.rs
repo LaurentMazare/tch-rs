@@ -7,7 +7,8 @@ use std::borrow::Borrow;
 use std::convert::TryFrom;
 use torch_sys::*;
 
-/// Argument and output values for JIT models.
+/// Argument and output values for JIT models. These represent arbitrary values,
+/// e.g. tensors, atomic values, pairs of values, etc.
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub enum IValue {
@@ -468,7 +469,8 @@ impl CModule {
         Ok(CModule { c_module })
     }
 
-    /// Performs the forward pass for a model on some specified tensor inputs.
+    /// Performs the forward pass for a model on some specified tensor inputs. This is equivalent
+    /// to calling method_ts with the 'forward' method name, and returns a single tensor.
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_tensor =
@@ -476,7 +478,8 @@ impl CModule {
         Ok(Tensor { c_tensor })
     }
 
-    /// Performs the forward pass for a model on some specified ivalue inputs.
+    /// Performs the forward pass for a model on some specified ivalue inputs. This is equivalent
+    /// to calling method_is with the 'forward' method name, and returns an arbitrary ivalue.
     pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Result<IValue, TchError> {
         let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
         let c_ivalue =
@@ -566,6 +569,7 @@ impl CModule {
         self.f_set_train().unwrap();
     }
 
+    /// Moves the module to a different device and converts the kind.
     pub fn to(&mut self, device: Device, kind: Kind, non_blocking: bool) {
         unsafe_torch!(atm_to(self.c_module, device.c_int(), kind.c_int(), non_blocking));
     }
@@ -708,19 +712,23 @@ impl TrainableCModule {
     }
 }
 
+/// Returns whether profiling mode is set or not.
 pub fn f_get_profiling_mode() -> Result<bool, TchError> {
     Ok(unsafe_torch_err!(atm_get_profiling_mode()) != 0)
 }
 
+/// Returns whether profiling mode is set or not.
 pub fn get_profiling_mode() -> bool {
     f_get_profiling_mode().unwrap()
 }
 
+/// Activates or deactivates the profiling mode.
 pub fn f_set_profiling_mode(b: bool) -> Result<(), TchError> {
     unsafe_torch_err!(atm_set_profiling_mode(b as c_int));
     Ok(())
 }
 
+/// Activates or deactivates the profiling mode.
 pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
@@ -772,6 +780,8 @@ pub struct Object {
 }
 
 impl Object {
+    /// Applies the specified method to the object. The method takes as argument an arbitrary
+    /// number of ivalues and returns an ivalue.
     pub fn method_is<T: Borrow<IValue>>(
         &self,
         method_name: &str,
@@ -791,6 +801,7 @@ impl Object {
         IValue::of_c(c_ivalue)
     }
 
+    /// Retrieves the specified attribute from an object as an ivalue.
     pub fn getattr(&self, attr_name: &str) -> Result<IValue, TchError> {
         let property_name = std::ffi::CString::new(attr_name)?;
         let c_ivalue =
