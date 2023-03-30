@@ -6,10 +6,9 @@
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
-use std::env;
-use std::fs;
-use std::io;
+use anyhow::Context;
 use std::path::{Path, PathBuf};
+use std::{env, fs, io};
 
 const TORCH_VERSION: &str = "2.0.0";
 
@@ -58,18 +57,15 @@ fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
     }
     let pypi_package: PyPiPackage = response.into_json()?;
     let urls = pypi_package.urls;
-    let url = urls.iter().find_map(|pipi_url: &PyPiPackageUrl| {
-        if pipi_url.filename == format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl") {
-            Some(pipi_url.url.clone())
+    let expected_filename = format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl");
+    let url = urls.iter().find_map(|pypi_url: &PyPiPackageUrl| {
+        if pypi_url.filename == expected_filename {
+            Some(pypi_url.url.clone())
         } else {
             None
         }
     });
-    if let Some(url) = url {
-        Ok(url)
-    } else {
-        anyhow::bail!("Failed to find arm64 macosx wheel from pypi")
-    }
+    url.context("Failed to find arm64 macosx wheel from pypi")
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
