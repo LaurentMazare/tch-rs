@@ -1,7 +1,7 @@
 //! Implement conversion traits for tensors
 use super::Tensor;
 use crate::{kind::Element, TchError};
-use half::f16;
+use half::{bf16, f16};
 use std::convert::{TryFrom, TryInto};
 
 impl<T: Element> From<&Tensor> for Vec<T> {
@@ -68,6 +68,7 @@ macro_rules! from_tensor {
 from_tensor!(f64);
 from_tensor!(f32);
 from_tensor!(f16);
+from_tensor!(bf16);
 from_tensor!(i64);
 from_tensor!(i32);
 from_tensor!(i8);
