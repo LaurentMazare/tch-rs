@@ -46,10 +46,27 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
 
 impl super::module::Module for Linear {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        if let Some(bias) = &self.bs {
-            xs.matmul(&self.ws.tr()) + bias
-        } else {
-            xs.matmul(&self.ws.tr())
-        }
+        xs.linear(&self.ws, self.bs.as_ref())
     }
+}
+
+#[test]
+/// To run this test, generate test tensors:
+///
+/// ```shell
+/// cd tests/linear
+/// python gen-test-data.py
+/// ```
+#[ignore]
+fn matches_pytorch() {
+    use crate::nn::Module;
+
+    let input = Tensor::read_npy("tests/linear/in.npy").unwrap();
+    let expected_output = Tensor::read_npy("tests/linear/out.npy").unwrap();
+    let ws = Tensor::read_npy("tests/linear/ws.npy").unwrap();
+    let bs = Tensor::read_npy("tests/linear/bs.npy").unwrap();
+
+    let linear = Linear { ws, bs: Some(bs) };
+    let output = linear.forward(&input);
+    assert!(output.allclose(&expected_output, 1e-5, 1e-8, false));
 }
