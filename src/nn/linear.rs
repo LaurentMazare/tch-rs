@@ -51,22 +51,22 @@ impl super::module::Module for Linear {
 }
 
 #[test]
-/// To run this test, generate test tensors:
-///
-/// ```shell
-/// cd tests/linear
-/// python gen-test-data.py
-/// ```
-#[ignore]
 fn matches_pytorch() {
     use crate::nn::Module;
 
     let input = Tensor::read_npy("tests/linear/in.npy").unwrap();
     let expected_output = Tensor::read_npy("tests/linear/out.npy").unwrap();
     let ws = Tensor::read_npy("tests/linear/ws.npy").unwrap();
-    let bs = Tensor::read_npy("tests/linear/bs.npy").unwrap();
+    let bs = Some(Tensor::read_npy("tests/linear/bs.npy").unwrap());
 
-    let linear = Linear { ws, bs: Some(bs) };
+    let original_output =
+        if let Some(bias) = &bs { input.matmul(&ws.tr()) + bias } else { input.matmul(&ws.tr()) };
+
+    let linear = Linear { ws, bs };
     let output = linear.forward(&input);
-    assert!(output.allclose(&expected_output, 1e-5, 1e-8, false));
+
+    // The `matmul()` implementation close, but not as close as calling `linear()`
+    assert!(original_output.allclose(&expected_output, 1e-2, 1e-3, false));
+    assert!(!original_output.equal(&expected_output));
+    assert!(output.equal(&expected_output));
 }
