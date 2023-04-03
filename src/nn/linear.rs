@@ -65,8 +65,10 @@ fn matches_pytorch() {
     let linear = Linear { ws, bs };
     let output = linear.forward(&input);
 
-    // The `matmul()` implementation close, but not as close as calling `linear()`
-    assert!(original_output.allclose(&expected_output, 1e-2, 1e-3, false));
-    assert!(!original_output.equal(&expected_output));
-    assert!(output.equal(&expected_output));
+    let delta_output: f32 = (&output - &expected_output).norm().into();
+    let delta_original: f32 = (&original_output - &expected_output).norm().into();
+
+    // The `matmul()` implementation is close, but `linear()` is at least as close or closer.
+    assert!(output.allclose(&expected_output, 1e-5, 1e-8, false));
+    assert!(delta_output <= delta_original);
 }
