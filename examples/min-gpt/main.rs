@@ -125,16 +125,18 @@ fn gpt(p: nn::Path, cfg: Config) -> impl ModuleT {
 
 /// Generates some sample string using the GPT model.
 fn sample(data: &TextData, gpt: &impl ModuleT, input: Tensor) -> String {
-    let mut input = input;
-    let mut result = String::new();
-    for _index in 0..SAMPLING_LEN {
-        let logits = input.apply_t(gpt, false).i((0, -1, ..));
-        let sampled_y = logits.softmax(-1, Kind::Float).multinomial(1, true);
-        let last_label = i64::from(&sampled_y);
-        result.push(data.label_to_char(last_label));
-        input = Tensor::cat(&[input, sampled_y.view([1, 1])], 1).narrow(1, 1, BLOCK_SIZE);
-    }
-    result
+    tch::no_grad(move || {
+        let mut input = input;
+        let mut result = String::new();
+        for _index in 0..SAMPLING_LEN {
+            let logits = input.apply_t(gpt, false).i((0, -1, ..));
+            let sampled_y = logits.softmax(-1, Kind::Float).multinomial(1, true);
+            let last_label = i64::from(&sampled_y);
+            result.push(data.label_to_char(last_label));
+            input = Tensor::cat(&[input, sampled_y.view([1, 1])], 1).narrow(1, 1, BLOCK_SIZE);
+        }
+        result
+    })
 }
 
 pub fn main() -> Result<()> {
