@@ -138,15 +138,21 @@ impl crate::Tensor {
 impl VarStore {
     /// Read data from safe tensor file, missing tensors will raise a error.
     pub fn read_safetensors<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
-        let path = path.as_ref();
-        let data: std::collections::BTreeMap<String, Tensor> =
-            Tensor::read_safetensors(path)?.into_iter().collect();
-
+        let file = std::fs::read(&path)?;
+        let safetensors = match SafeTensors::deserialize(&file) {
+            Ok(value) => value,
+            Err(err) => Err(TchError::SafeTensorError {
+                path: path.as_ref().to_string_lossy().to_string(),
+                err,
+            })?,
+        };
         for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
-            let data = data.get(name).ok_or_else(|| {
-                TchError::TensorNameNotFound(name.to_string(), path.to_string_lossy().to_string())
+            let view = safetensors.tensor(name).map_err(|err| TchError::SafeTensorError {
+                path: path.as_ref().to_string_lossy().to_string(),
+                err,
             })?;
-            tensor.f_copy_(data)?
+            let data: Tensor = view.try_into()?;
+            tensor.f_copy_(&data)?
         }
         Ok(())
     }
