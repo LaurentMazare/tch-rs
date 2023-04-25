@@ -270,7 +270,7 @@ impl Tensor {
         a: &Tensor,
         size: impl Into<Option<&'a [i64]>>,
         stride: impl Into<Option<&'a [i64]>>,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) {
         Tensor::f_internal_assert_tensor_metadata(a, size, stride, dtype).unwrap()
     }
@@ -3145,7 +3145,7 @@ impl Tensor {
         sobolstate: &Tensor,
         dimension: i64,
         num_generated: i64,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> (Tensor, Tensor) {
         Tensor::f_internal_sobol_engine_draw(quasi, n, sobolstate, dimension, num_generated, dtype)
             .unwrap()
@@ -3348,7 +3348,12 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_sparse_csr_prod(&self, dim: &[i64], keepdim: bool, dtype: Kind) -> Tensor {
+    pub fn internal_sparse_csr_prod(
+        &self,
+        dim: &[i64],
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_internal_sparse_csr_prod(dim, keepdim, dtype).unwrap()
     }
 
@@ -3357,12 +3362,17 @@ impl Tensor {
         out: &Tensor,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_internal_sparse_csr_prod_dim_dtype_out(out, dim, keepdim, dtype).unwrap()
     }
 
-    pub fn internal_sparse_csr_sum(&self, dim: &[i64], keepdim: bool, dtype: Kind) -> Tensor {
+    pub fn internal_sparse_csr_sum(
+        &self,
+        dim: &[i64],
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_internal_sparse_csr_sum(dim, keepdim, dtype).unwrap()
     }
 
@@ -3371,7 +3381,7 @@ impl Tensor {
         out: &Tensor,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_internal_sparse_csr_sum_dim_dtype_out(out, dim, keepdim, dtype).unwrap()
     }
@@ -3416,7 +3426,11 @@ impl Tensor {
         self.f_internal_sparse_log_softmax_backward_data_out(out, grad_output, output, dim).unwrap()
     }
 
-    pub fn internal_sparse_log_softmax_int(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn internal_sparse_log_softmax_int(
+        &self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_internal_sparse_log_softmax_int(dim, dtype).unwrap()
     }
 
@@ -3464,7 +3478,7 @@ impl Tensor {
         self.f_internal_sparse_softmax_backward_data_out(out, grad_output, output, dim).unwrap()
     }
 
-    pub fn internal_sparse_softmax_int(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn internal_sparse_softmax_int(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_internal_sparse_softmax_int(dim, dtype).unwrap()
     }
 
@@ -3670,11 +3684,11 @@ impl Tensor {
         Tensor::f_internal_to_cpu(tensors).unwrap()
     }
 
-    pub fn internal_to_dense(&self, dtype: Kind) -> Tensor {
+    pub fn internal_to_dense(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_internal_to_dense(dtype).unwrap()
     }
 
-    pub fn internal_to_dense_out(&self, out: &Tensor, dtype: Kind) -> Tensor {
+    pub fn internal_to_dense_out(&self, out: &Tensor, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_internal_to_dense_out(out, dtype).unwrap()
     }
 
@@ -7260,11 +7274,11 @@ impl Tensor {
         self.f_cummin_out(values, indices, dim).unwrap()
     }
 
-    pub fn cumprod(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumprod(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumprod(dim, dtype).unwrap()
     }
 
-    pub fn cumprod_(&mut self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumprod_(&mut self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumprod_(dim, dtype).unwrap()
     }
 
@@ -7272,19 +7286,19 @@ impl Tensor {
         self.f_cumprod_backward(grad, dim, output).unwrap()
     }
 
-    pub fn cumprod_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumprod_out(&self, out: &Tensor, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumprod_out(out, dim, dtype).unwrap()
     }
 
-    pub fn cumsum(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumsum(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumsum(dim, dtype).unwrap()
     }
 
-    pub fn cumsum_(&mut self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumsum_(&mut self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumsum_(dim, dtype).unwrap()
     }
 
-    pub fn cumsum_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Tensor {
+    pub fn cumsum_out(&self, out: &Tensor, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_cumsum_out(out, dim, dtype).unwrap()
     }
 
@@ -10644,7 +10658,7 @@ impl Tensor {
         ord: S,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_linalg_norm(ord, dim, keepdim, dtype).unwrap()
     }
@@ -10654,7 +10668,7 @@ impl Tensor {
         ord: &str,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_linalg_norm_ord_str(ord, dim, keepdim, dtype).unwrap()
     }
@@ -10665,7 +10679,7 @@ impl Tensor {
         ord: &str,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_linalg_norm_ord_str_out(out, ord, dim, keepdim, dtype).unwrap()
     }
@@ -10676,7 +10690,7 @@ impl Tensor {
         ord: S,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_linalg_norm_out(out, ord, dim, keepdim, dtype).unwrap()
     }
@@ -10972,11 +10986,16 @@ impl Tensor {
         self.f_log_sigmoid_out(out).unwrap()
     }
 
-    pub fn log_softmax(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn log_softmax(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_log_softmax(dim, dtype).unwrap()
     }
 
-    pub fn log_softmax_int_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Tensor {
+    pub fn log_softmax_int_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_log_softmax_int_out(out, dim, dtype).unwrap()
     }
 
@@ -11650,7 +11669,7 @@ impl Tensor {
         self.f_maximum_out(out, other).unwrap()
     }
 
-    pub fn mean(&self, dtype: Kind) -> Tensor {
+    pub fn mean(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_mean(dtype).unwrap()
     }
 
@@ -11658,7 +11677,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_mean_dim(dim, keepdim, dtype).unwrap()
     }
@@ -11668,7 +11687,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_mean_out(out, dim, keepdim, dtype).unwrap()
     }
@@ -12863,7 +12882,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_nanmean(dim, keepdim, dtype).unwrap()
     }
@@ -12873,7 +12892,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_nanmean_out(out, dim, keepdim, dtype).unwrap()
     }
@@ -12946,7 +12965,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_nansum(dim, keepdim, dtype).unwrap()
     }
@@ -12956,7 +12975,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_nansum_out(out, dim, keepdim, dtype).unwrap()
     }
@@ -13115,7 +13134,7 @@ impl Tensor {
         p: S,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_native_norm_scalaropt_dim_dtype(p, dim, keepdim, dtype).unwrap()
     }
@@ -13126,7 +13145,7 @@ impl Tensor {
         p: S,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_native_norm_scalaropt_dim_dtype_out(out, p, dim, keepdim, dtype).unwrap()
     }
@@ -13701,19 +13720,25 @@ impl Tensor {
         self.f_prelu(weight).unwrap()
     }
 
-    pub fn prod(&self, dtype: Kind) -> Tensor {
+    pub fn prod(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_prod(dtype).unwrap()
     }
 
-    pub fn prod_dim_int(&self, dim: i64, keepdim: bool, dtype: Kind) -> Tensor {
+    pub fn prod_dim_int(&self, dim: i64, keepdim: bool, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_prod_dim_int(dim, keepdim, dtype).unwrap()
     }
 
-    pub fn prod_int_out(&self, out: &Tensor, dim: i64, keepdim: bool, dtype: Kind) -> Tensor {
+    pub fn prod_int_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_prod_int_out(out, dim, keepdim, dtype).unwrap()
     }
 
-    pub fn prod_out(&self, out: &Tensor, dtype: Kind) -> Tensor {
+    pub fn prod_out(&self, out: &Tensor, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_prod_out(out, dtype).unwrap()
     }
 
@@ -15574,11 +15599,16 @@ impl Tensor {
         self.f_soft_margin_loss_out(out, target, reduction).unwrap()
     }
 
-    pub fn softmax(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn softmax(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_softmax(dim, dtype).unwrap()
     }
 
-    pub fn softmax_int_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Tensor {
+    pub fn softmax_int_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
         self.f_softmax_int_out(out, dim, dtype).unwrap()
     }
 
@@ -16316,7 +16346,7 @@ impl Tensor {
         self.f_special_log_ndtr_out(out).unwrap()
     }
 
-    pub fn special_log_softmax(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn special_log_softmax(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_special_log_softmax(dim, dtype).unwrap()
     }
 
@@ -16608,7 +16638,7 @@ impl Tensor {
         self.f_special_sinc_out(out).unwrap()
     }
 
-    pub fn special_softmax(&self, dim: i64, dtype: Kind) -> Tensor {
+    pub fn special_softmax(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_special_softmax(dim, dtype).unwrap()
     }
 
@@ -16992,7 +17022,7 @@ impl Tensor {
         self.f_subtract_scalar_(other).unwrap()
     }
 
-    pub fn sum(&self, dtype: Kind) -> Tensor {
+    pub fn sum(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_sum(dtype).unwrap()
     }
 
@@ -17000,7 +17030,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_sum_dim_intlist(dim, keepdim, dtype).unwrap()
     }
@@ -17010,12 +17040,12 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Tensor {
         self.f_sum_intlist_out(out, dim, keepdim, dtype).unwrap()
     }
 
-    pub fn sum_out(&self, out: &Tensor, dtype: Kind) -> Tensor {
+    pub fn sum_out(&self, out: &Tensor, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_sum_out(out, dtype).unwrap()
     }
 
@@ -17194,7 +17224,7 @@ impl Tensor {
         self.f_to(device).unwrap()
     }
 
-    pub fn to_dense(&self, dtype: Kind) -> Tensor {
+    pub fn to_dense(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_to_dense(dtype).unwrap()
     }
 
@@ -17225,7 +17255,7 @@ impl Tensor {
         self.f_to_dtype_layout(options, non_blocking, copy).unwrap()
     }
 
-    pub fn g_to_mkldnn(&self, dtype: Kind) -> Tensor {
+    pub fn g_to_mkldnn(&self, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_to_mkldnn(dtype).unwrap()
     }
 
@@ -17233,7 +17263,7 @@ impl Tensor {
         self.f_to_mkldnn_backward(grad).unwrap()
     }
 
-    pub fn to_mkldnn_out(&self, out: &Tensor, dtype: Kind) -> Tensor {
+    pub fn to_mkldnn_out(&self, out: &Tensor, dtype: impl Into<Option<Kind>>) -> Tensor {
         self.f_to_mkldnn_out(out, dtype).unwrap()
     }
 

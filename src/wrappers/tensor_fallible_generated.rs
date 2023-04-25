@@ -616,7 +616,7 @@ impl Tensor {
         a: &Tensor,
         size: impl Into<Option<&'a [i64]>>,
         stride: impl Into<Option<&'a [i64]>>,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<(), TchError> {
         let size = size.into();
         let stride = stride.into();
@@ -626,7 +626,7 @@ impl Tensor {
             size.as_ref().map_or(-1, |t| t.len() as i32),
             stride.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             stride.as_ref().map_or(-1, |t| t.len() as i32),
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(())
     }
@@ -5230,7 +5230,7 @@ impl Tensor {
         sobolstate: &Tensor,
         dimension: i64,
         num_generated: i64,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg__sobol_engine_draw(
@@ -5240,7 +5240,7 @@ impl Tensor {
             sobolstate.c_tensor,
             dimension,
             num_generated,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -5615,7 +5615,7 @@ impl Tensor {
         &self,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_csr_prod(
@@ -5624,7 +5624,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5634,7 +5634,7 @@ impl Tensor {
         out: &Tensor,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_csr_prod_dim_dtype_out(
@@ -5644,7 +5644,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5653,7 +5653,7 @@ impl Tensor {
         &self,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_csr_sum(
@@ -5662,7 +5662,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5672,7 +5672,7 @@ impl Tensor {
         out: &Tensor,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_csr_sum_dim_dtype_out(
@@ -5682,7 +5682,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5762,14 +5762,14 @@ impl Tensor {
     pub fn f_internal_sparse_log_softmax_int(
         &self,
         dim: i64,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_log_softmax_int(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5880,13 +5880,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_sparse_softmax_int(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_internal_sparse_softmax_int(
+        &self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_softmax_int(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6426,19 +6430,27 @@ impl Tensor {
         Ok(r__)
     }
 
-    pub fn f_internal_to_dense(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_internal_to_dense(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg__to_dense(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg__to_dense(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_to_dense_out(&self, out: &Tensor, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_internal_to_dense_out(
+        &self,
+        out: &Tensor,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__to_dense_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -13302,15 +13314,29 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_cumprod(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumprod(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cumprod(c_tensors.as_mut_ptr(), self.c_tensor, dim, dtype.c_int()));
+        unsafe_torch_err!(atg_cumprod(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cumprod_(&mut self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumprod_(
+        &mut self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cumprod_(c_tensors.as_mut_ptr(), self.c_tensor, dim, dtype.c_int()));
+        unsafe_torch_err!(atg_cumprod_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -13331,38 +13357,62 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cumprod_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumprod_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cumprod_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cumsum(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumsum(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cumsum(c_tensors.as_mut_ptr(), self.c_tensor, dim, dtype.c_int()));
+        unsafe_torch_err!(atg_cumsum(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cumsum_(&mut self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumsum_(
+        &mut self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cumsum_(c_tensors.as_mut_ptr(), self.c_tensor, dim, dtype.c_int()));
+        unsafe_torch_err!(atg_cumsum_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cumsum_out(&self, out: &Tensor, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_cumsum_out(
+        &self,
+        out: &Tensor,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cumsum_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -20552,7 +20602,7 @@ impl Tensor {
         ord: S,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -20563,7 +20613,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -20573,7 +20623,7 @@ impl Tensor {
         ord: &str,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -20585,7 +20635,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -20596,7 +20646,7 @@ impl Tensor {
         ord: &str,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -20609,7 +20659,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -20620,7 +20670,7 @@ impl Tensor {
         ord: S,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -20632,7 +20682,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -21301,13 +21351,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_log_softmax(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_log_softmax(
+        &self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_log_softmax(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -21316,7 +21370,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         dim: i64,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_log_softmax_int_out(
@@ -21324,7 +21378,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22660,9 +22714,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_mean(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_mean(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_mean(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg_mean(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -22670,7 +22728,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -22680,7 +22738,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22690,7 +22748,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -22701,7 +22759,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -24690,7 +24748,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -24700,7 +24758,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -24710,7 +24768,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -24721,7 +24779,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -24864,7 +24922,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -24874,7 +24932,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -24884,7 +24942,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -24895,7 +24953,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -25225,7 +25283,7 @@ impl Tensor {
         p: S,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_native_norm_scalaropt_dim_dtype(
@@ -25235,7 +25293,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -25246,7 +25304,7 @@ impl Tensor {
         p: S,
         dim: &[i64],
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_native_norm_scalaropt_dim_dtype_out(
@@ -25257,7 +25315,7 @@ impl Tensor {
             dim.as_ptr(),
             dim.len() as i32,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -26481,20 +26539,29 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_prod(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_prod(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_prod(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg_prod(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_prod_dim_int(&self, dim: i64, keepdim: bool, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_prod_dim_int(
+        &self,
+        dim: i64,
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_prod_dim_int(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -26504,7 +26571,7 @@ impl Tensor {
         out: &Tensor,
         dim: i64,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_prod_int_out(
@@ -26513,18 +26580,22 @@ impl Tensor {
             self.c_tensor,
             dim,
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_prod_out(&self, out: &Tensor, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_prod_out(
+        &self,
+        out: &Tensor,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_prod_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -30367,9 +30438,14 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_softmax(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_softmax(&self, dim: i64, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_softmax(c_tensors.as_mut_ptr(), self.c_tensor, dim, dtype.c_int()));
+        unsafe_torch_err!(atg_softmax(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -30377,7 +30453,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         dim: i64,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_softmax_int_out(
@@ -30385,7 +30461,7 @@ impl Tensor {
             out.c_tensor,
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -31976,13 +32052,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_special_log_softmax(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_special_log_softmax(
+        &self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_special_log_softmax(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -32601,13 +32681,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_special_softmax(&self, dim: i64, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_special_softmax(
+        &self,
+        dim: i64,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_special_softmax(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33513,9 +33597,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sum(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_sum(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_sum(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg_sum(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -33523,7 +33611,7 @@ impl Tensor {
         &self,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -33533,7 +33621,7 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33543,7 +33631,7 @@ impl Tensor {
         out: &Tensor,
         dim: impl Into<Option<&'a [i64]>>,
         keepdim: bool,
-        dtype: Kind,
+        dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let dim = dim.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -33554,18 +33642,22 @@ impl Tensor {
             dim.as_ref().map_or(std::ptr::null_mut(), |t| t.as_ptr()),
             dim.as_ref().map_or(-1, |t| t.len() as i32),
             if keepdim { 1 } else { 0 },
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sum_out(&self, out: &Tensor, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_sum_out(
+        &self,
+        out: &Tensor,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sum_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33984,9 +34076,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_dense(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_to_dense(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_to_dense(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg_to_dense(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -34054,9 +34150,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_mkldnn(&self, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_to_mkldnn(&self, dtype: impl Into<Option<Kind>>) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_to_mkldnn(c_tensors.as_mut_ptr(), self.c_tensor, dtype.c_int()));
+        unsafe_torch_err!(atg_to_mkldnn(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -34070,13 +34170,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_to_mkldnn_out(&self, out: &Tensor, dtype: Kind) -> Result<Tensor, TchError> {
+    pub fn f_to_mkldnn_out(
+        &self,
+        out: &Tensor,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_mkldnn_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            dtype.c_int()
+            dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
