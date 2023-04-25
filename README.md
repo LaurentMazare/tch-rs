@@ -255,6 +255,11 @@ See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues
 
 Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
 
+### Compilation is slow, torch-sys seems to be rebuilt every time cargo gets run.
+See this [issue](https://github.com/LaurentMazare/tch-rs/issues/596), this could
+be caused by rust-analyzer not knowing about the proper environment variables
+like `LIBTORCH` and `LD_LIBRARY_PATH`.
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.
