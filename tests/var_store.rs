@@ -246,7 +246,7 @@ fn init_test() {
     vs2.copy(&vs).unwrap();
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
     let ortho = vs.root().var("orthogonal", &[100, 100], Init::Orthogonal { gain: 2.0 });
-    let ortho_norm = f64::from(ortho.linalg_norm_ord_str("fro", None, true, Kind::Float));
+    let ortho_norm = f64::from(ortho.linalg_norm_ord_str("fro", None::<i64>, true, Kind::Float));
     assert!(
         f64::abs(ortho_norm - 20.) < 1e-5,
         "{}",
