@@ -148,7 +148,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             let cols: i64 = dims.iter().skip(1).product();
 
             let mut flattened =
-                Tensor::f_empty(&[rows, cols], (Kind::Float, device))?.f_normal_(0.0, 1.0)?;
+                Tensor::f_empty([rows, cols], (Kind::Float, device))?.f_normal_(0.0, 1.0)?;
             let flattened = if rows < cols { flattened.f_t_()? } else { flattened };
 
             let (mut q, r) = Tensor::f_linalg_qr(&flattened, "reduced")?;

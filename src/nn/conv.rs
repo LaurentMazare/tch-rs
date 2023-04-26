@@ -199,9 +199,9 @@ impl super::module::Module for Conv1D {
         xs.conv1d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }
@@ -216,9 +216,9 @@ impl super::module::Module for Conv2D {
         xs.conv2d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }
@@ -233,9 +233,9 @@ impl super::module::Module for Conv3D {
         xs.conv3d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }

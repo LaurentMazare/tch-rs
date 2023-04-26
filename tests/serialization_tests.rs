@@ -149,7 +149,7 @@ fn save_and_load_npy() {
     pi.write_npy(&tmp_file).unwrap();
     let pi = Tensor::read_npy(&tmp_file).unwrap();
     assert_eq!(Vec::<f64>::from(&pi), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
-    let pi = pi.reshape(&[3, 1, 2]);
+    let pi = pi.reshape([3, 1, 2]);
     pi.write_npy(&tmp_file).unwrap();
     let pi = Tensor::read_npy(&tmp_file).unwrap();
     assert_eq!(pi.size(), [3, 1, 2]);

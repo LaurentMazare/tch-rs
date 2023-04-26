@@ -99,7 +99,7 @@ where
             .ok_or_else(|| TchError::Convert("cannot convert to slice".to_string()))?;
         let tn = Self::f_of_slice(slice)?;
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
-        tn.f_reshape(&shape)
+        tn.f_reshape(shape)
     }
 }
 
