@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.12.0 - unreleased
 ### Changed
-EfficientNet models have been reworked, [679](https://github.com/LaurentMazare/tch-rs/pull/679).
+- EfficientNet models have been reworked, pre-trained models used `safetensors`
+  weight by default, [679](https://github.com/LaurentMazare/tch-rs/pull/679).
+- None can be used for nullable scalar types,
+  [680](https://github.com/LaurentMazare/tch-rs/pull/680).
 
 ## v0.11.0 - 2023-03-20
 ### Added
