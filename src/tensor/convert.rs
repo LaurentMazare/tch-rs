@@ -47,19 +47,31 @@ impl<T: Element> From<Tensor> for Vec<Vec<Vec<T>>> {
 
 macro_rules! from_tensor {
     ($typ:ident) => {
-        impl From<&Tensor> for $typ {
-            fn from(tensor: &Tensor) -> $typ {
+        impl TryFrom<&Tensor> for $typ {
+            type Error = TchError;
+
+            fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
                 let numel = tensor.numel();
                 if numel != 1 {
-                    panic!("expected exactly one element, got {}", numel)
+                    return Err(TchError::Convert(format!(
+                        "expected exactly one element, got {}",
+                        numel
+                    )));
                 }
-                Vec::from(tensor)[0]
+                let mut vec = [$typ::ZERO; 1];
+                tensor
+                    .f_to_device(crate::Device::Cpu)?
+                    .f_to_kind($typ::KIND)?
+                    .f_copy_data(&mut vec, numel)?;
+                Ok(vec[0])
             }
         }
 
-        impl From<Tensor> for $typ {
-            fn from(tensor: Tensor) -> $typ {
-                $typ::from(&tensor)
+        impl TryFrom<Tensor> for $typ {
+            type Error = TchError;
+
+            fn try_from(tensor: Tensor) -> Result<Self, Self::Error> {
+                $typ::try_from(&tensor)
             }
         }
     };
@@ -68,12 +80,12 @@ macro_rules! from_tensor {
 from_tensor!(f64);
 from_tensor!(f32);
 from_tensor!(f16);
-from_tensor!(bf16);
 from_tensor!(i64);
 from_tensor!(i32);
 from_tensor!(i8);
 from_tensor!(u8);
 from_tensor!(bool);
+from_tensor!(bf16);
 
 impl<T: Element> TryInto<ndarray::ArrayD<T>> for &Tensor {
     type Error = ndarray::ShapeError;

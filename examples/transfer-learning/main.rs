@@ -36,7 +36,7 @@ pub fn main() -> Result<()> {
         sgd.backward_step(&loss);
 
         let test_accuracy = test_images.apply(&linear).accuracy_for_logits(&dataset.test_labels);
-        println!("{} {:.2}%", epoch_idx, 100. * f64::from(test_accuracy));
+        println!("{} {:.2}%", epoch_idx, 100. * f64::try_from(test_accuracy)?);
     }
     Ok(())
 }

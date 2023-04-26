@@ -317,7 +317,7 @@ pub fn run() -> cpython::PyResult<()> {
 
         let mut total_reward = 0.0;
         for _ in 0..EPISODE_LENGTH {
-            let mut actions = 2.0 * f64::from(agent.actions(&obs));
+            let mut actions = 2.0 * f64::try_from(agent.actions(&obs)).unwrap();
             actions = actions.clamp(-2.0, 2.0);
 
             let action_vec = vec![actions];

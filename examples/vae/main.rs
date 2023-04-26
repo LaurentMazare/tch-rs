@@ -83,7 +83,7 @@ pub fn main() -> Result<()> {
             let (recon_batch, mu, logvar) = vae.forward(&bimages);
             let loss = loss(&recon_batch, &bimages, &mu, &logvar);
             opt.backward_step(&loss);
-            train_loss += f64::from(&loss);
+            train_loss += f64::try_from(&loss)?;
             samples += bimages.size()[0] as f64;
         }
         println!("Epoch: {}, loss: {}", epoch, train_loss / samples);

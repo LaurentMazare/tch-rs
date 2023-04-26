@@ -93,8 +93,8 @@ pub fn train() -> cpython::PyResult<()> {
             let step = env.step(Vec::<i64>::from(&actions))?;
 
             sum_rewards += &step.reward;
-            total_rewards += f64::from((&sum_rewards * &step.is_done).sum(Float));
-            total_episodes += f64::from(step.is_done.sum(Float));
+            total_rewards += f64::try_from((&sum_rewards * &step.is_done).sum(Float)).unwrap();
+            total_episodes += f64::try_from(step.is_done.sum(Float)).unwrap();
 
             let masks = Tensor::from(1f32) - step.is_done;
             sum_rewards *= &masks;

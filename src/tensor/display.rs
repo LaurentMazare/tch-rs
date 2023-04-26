@@ -61,9 +61,9 @@ impl std::fmt::Debug for Tensor {
                         | Kind::ComplexDouble => (false, false),
                     };
                     match (self.size().as_slice(), is_int, is_float) {
-                        ([], true, false) => write!(f, "[{}]", i64::from(self)),
+                        ([], true, false) => write!(f, "[{}]", i64::try_from(self).unwrap()),
                         ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
-                        ([], false, true) => write!(f, "[{}]", f64::from(self)),
+                        ([], false, true) => write!(f, "[{}]", f64::try_from(self).unwrap()),
                         ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
                         _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), kind),
                     }

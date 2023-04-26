@@ -130,7 +130,7 @@ fn sample(data: &TextData, gpt: &impl ModuleT, input: Tensor) -> String {
     for _index in 0..SAMPLING_LEN {
         let logits = input.apply_t(gpt, false).i((0, -1, ..));
         let sampled_y = logits.softmax(-1, Kind::Float).multinomial(1, true);
-        let last_label = i64::from(&sampled_y);
+        let last_label = i64::try_from(&sampled_y).unwrap();
         result.push(data.label_to_char(last_label));
         input = Tensor::cat(&[input, sampled_y.view([1, 1])], 1).narrow(1, 1, BLOCK_SIZE);
     }
@@ -175,7 +175,7 @@ pub fn main() -> Result<()> {
                         .view([BATCH_SIZE * BLOCK_SIZE, labels])
                         .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
                     opt.backward_step_clip(&loss, 0.5);
-                    sum_loss += f64::from(loss);
+                    sum_loss += f64::try_from(loss)?;
                     cnt_loss += 1.0;
                     idx += 1;
                     if idx % 10000 == 0 {

@@ -4,6 +4,8 @@ use std::convert::{TryFrom, TryInto};
 use std::f32;
 use tch::{Device, Tensor};
 
+mod test_utils;
+
 #[test]
 #[cfg(feature = "cuda-tests")]
 fn amp_non_finite_check_and_unscale() {
@@ -98,7 +100,7 @@ fn grad_grad() {
     let dy_over_dx = &dy_over_dx[0];
     dy_over_dx.backward();
     let dy_over_dx2 = x.grad();
-    assert_eq!(f64::from(&dy_over_dx2), 254.0);
+    assert_eq!(test_utils::from::<f64>(&dy_over_dx2), 254.0);
 }
 
 #[test]
@@ -317,10 +319,10 @@ fn bool_tensor() {
     let t2_any = t2.any();
     let t1_all = t1.all();
     let t2_all = t2.all();
-    assert!(bool::from(&t1_any));
-    assert!(!bool::from(&t1_all));
-    assert!(bool::from(&t2_any));
-    assert!(bool::from(&t2_all));
+    assert!(test_utils::from::<bool>(&t1_any));
+    assert!(!test_utils::from::<bool>(&t1_all));
+    assert!(test_utils::from::<bool>(&t2_any));
+    assert!(test_utils::from::<bool>(&t2_all));
 }
 
 #[test]

@@ -2,6 +2,9 @@ use std::fs;
 use tch::nn::OptimizerConfig;
 use tch::{nn, nn::linear, nn::Init, nn::VarStore, Device, Kind, TchError, Tensor};
 
+mod test_utils;
+use test_utils::f64_from;
+
 #[test]
 fn path_components() {
     let vs = VarStore::new(Device::Cpu);
@@ -42,15 +45,15 @@ fn save_and_load_var_store() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -73,15 +76,15 @@ fn save_to_stream_and_load_var_store() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save_to_stream(std::fs::File::create(&filename).unwrap()).unwrap();
     vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -104,15 +107,15 @@ fn save_and_load_from_stream_var_store() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     vs2.load_from_stream(std::fs::File::open(&filename).unwrap()).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -135,15 +138,15 @@ fn save_and_load_partial_var_store() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     let missing_variables = vs2.load_partial(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
     assert!(missing_variables.is_empty());
     fs::remove_file(filename).unwrap();
 }
@@ -171,14 +174,14 @@ fn save_and_load_var_store_incomplete_file() {
     tch::no_grad(|| {
         u1 += 42.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -204,14 +207,14 @@ fn save_and_load_partial_var_store_incomplete_file() {
     tch::no_grad(|| {
         u1 += 42.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     let missing_variables = vs2.load_partial(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     assert_eq!(missing_variables, vec!(String::from("a.b.t2")));
     fs::remove_file(filename).unwrap();
 }
@@ -231,14 +234,14 @@ fn init_test() {
     let forty_two = vs.root().var("t4", &[2], Init::Const(42.));
     assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
     let uniform = vs.root().var("t5", &[100], Init::Uniform { lo: 1.0, up: 2.0 });
-    let uniform_min = f64::from(&uniform.min());
-    let uniform_max = f64::from(&uniform.max());
+    let uniform_min = f64_from(&uniform.min());
+    let uniform_max = f64_from(&uniform.max());
     assert!(uniform_min >= 1., "{}", "min {uniform_min}");
     assert!(uniform_max <= 2., "{}", "max {uniform_max}");
-    let uniform_std = f64::from(&uniform.std(true));
+    let uniform_std = f64_from(&uniform.std(true));
     assert!(uniform_std > 0.15 && uniform_std < 0.35, "{}", "std {uniform_std}");
     let normal = vs.root().var("normal", &[100], Init::Randn { mean: 0., stdev: 0.02 });
-    let normal_std = f64::from(&normal.std(true));
+    let normal_std = f64_from(&normal.std(true));
     assert!(normal_std <= 0.03, "{}", "std {normal_std}");
     let mut vs2 = VarStore::new(Device::Cpu);
     let ones = vs2.root().ones("t1", &[3]);
@@ -246,7 +249,7 @@ fn init_test() {
     vs2.copy(&vs).unwrap();
     assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
     let ortho = vs.root().var("orthogonal", &[100, 100], Init::Orthogonal { gain: 2.0 });
-    let ortho_norm = f64::from(ortho.linalg_norm_ord_str("fro", None::<i64>, true, Kind::Float));
+    let ortho_norm = f64_from(&ortho.linalg_norm_ord_str("fro", None::<i64>, true, Kind::Float));
     assert!(
         f64::abs(ortho_norm - 20.) < 1e-5,
         "{}",
@@ -255,12 +258,12 @@ fn init_test() {
     let ortho_shape_fail = tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu);
     assert!(ortho_shape_fail.is_err());
     let kaiming_u = vs.root().var("kaiming_u", &[20, 100], nn::init::DEFAULT_KAIMING_UNIFORM);
-    assert!(f64::abs(f64::from(kaiming_u.mean(Kind::Float))) < 5e-3);
+    assert!(f64::abs(f64_from(&kaiming_u.mean(Kind::Float))) < 5e-3);
     // The expected stdev is sqrt(2 / 100)
-    assert!(f64::abs(f64::from(kaiming_u.std(true)) - (0.02f64).sqrt()) < 2e-3);
+    assert!(f64::abs(f64_from(&kaiming_u.std(true)) - (0.02f64).sqrt()) < 2e-3);
     let kaiming_n = vs.root().var("kaiming_n", &[20, 100], nn::init::DEFAULT_KAIMING_NORMAL);
-    assert!(f64::abs(f64::from(kaiming_n.mean(Kind::Float))) < 5e-3);
-    assert!(f64::abs(f64::from(kaiming_n.std(true)) - (0.02f64).sqrt()) < 3e-3);
+    assert!(f64::abs(f64_from(&kaiming_n.mean(Kind::Float))) < 5e-3);
+    assert!(f64::abs(f64_from(&kaiming_n.std(true)) - (0.02f64).sqrt()) < 3e-3);
 }
 
 fn check_param_group(mut opt: tch::nn::Optimizer, var_foo: Tensor, var_bar: Tensor) {
@@ -270,37 +273,37 @@ fn check_param_group(mut opt: tch::nn::Optimizer, var_foo: Tensor, var_bar: Tens
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.00");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.42");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.00");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.42");
     opt.set_lr_group(0, 0.1);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "-0.21");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "-0.21");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.21");
     opt.set_lr_group(7, 0.);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.22f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.01");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.21");
     // The following sets the learning rate for both groups.
     opt.set_lr(0.);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.01");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.21");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.01");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.21");
     opt.set_lr(0.1);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(0.42f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.11");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.31");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.11");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.31");
 }
 
 #[test]
@@ -332,15 +335,15 @@ fn save_and_load_with_group() {
         u1 += 42.0;
         v1 *= 2.0;
     });
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v1.mean(Kind::Float)), 2.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 0.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v1.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 0.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     vs1.save(&filename).unwrap();
     vs2.load(&filename).unwrap();
-    assert_eq!(f64::from(&u1.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&u2.mean(Kind::Float)), 42.0);
-    assert_eq!(f64::from(&v2.mean(Kind::Float)), 2.0);
+    assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -357,22 +360,22 @@ fn param_group_weight_decay() {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.50");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.50");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.50");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.50");
     opt.set_weight_decay(0.1);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.49");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.49");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.49");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.49");
     opt.set_weight_decay_group(7, 0.);
     for _idx in 1..100 {
         let loss = (&var_foo + &var_bar).mse_loss(&Tensor::from(1f32), tch::Reduction::Mean);
         opt.backward_step(&loss);
     }
-    assert_eq!(format!("{:.2}", f64::from(&var_foo)), "0.30");
-    assert_eq!(format!("{:.2}", f64::from(&var_bar)), "0.69");
+    assert_eq!(format!("{:.2}", f64_from(&var_foo)), "0.30");
+    assert_eq!(format!("{:.2}", f64_from(&var_bar)), "0.69");
 }
 
 #[test]
@@ -410,9 +413,9 @@ fn half_precision_conversion_entire_varstore() {
     assert_eq!(vs.root().get("zeros").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().get("forty_two").unwrap().kind(), Kind::Float);
-    assert_eq!(format!("{:.2}", f64::from(vs.root().get("zeros").unwrap())), "0.00");
-    assert_eq!(format!("{:.2}", f64::from(vs.root().get("ones").unwrap())), "1.00");
-    assert_eq!(format!("{:.2}", f64::from(vs.root().get("forty_two").unwrap())), "42.00");
+    assert_eq!(format!("{:.2}", f64_from(&vs.root().get("zeros").unwrap())), "0.00");
+    assert_eq!(format!("{:.2}", f64_from(&vs.root().get("ones").unwrap())), "1.00");
+    assert_eq!(format!("{:.2}", f64_from(&vs.root().get("forty_two").unwrap())), "42.00");
 }
 
 #[test]
@@ -476,13 +479,13 @@ fn path_free_type_conversion() {
     assert_eq!(vs.root().sub("convert").sub("group_1").get("ones").unwrap().kind(), Kind::Float);
     assert_eq!(vs.root().sub("convert").sub("group_2").get("zeros").unwrap().kind(), Kind::Float);
 
-    assert_eq!(format!("{:.2}", f64::from(vs.root().sub("ignore").get("zeros").unwrap())), "0.00");
+    assert_eq!(format!("{:.2}", f64_from(&vs.root().sub("ignore").get("zeros").unwrap())), "0.00");
     assert_eq!(
-        format!("{:.2}", f64::from(vs.root().sub("convert").sub("group_1").get("ones").unwrap())),
+        format!("{:.2}", f64_from(&vs.root().sub("convert").sub("group_1").get("ones").unwrap())),
         "1.00"
     );
     assert_eq!(
-        format!("{:.2}", f64::from(vs.root().sub("convert").sub("group_2").get("zeros").unwrap())),
+        format!("{:.2}", f64_from(&vs.root().sub("convert").sub("group_2").get("zeros").unwrap())),
         "0.00"
     );
 }
