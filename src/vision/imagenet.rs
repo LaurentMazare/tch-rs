@@ -131,11 +131,11 @@ pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Result<Dataset, TchError> {
         let images = load_images_from_dir(train_path.join(label_dir))?;
         let nimages = images.size()[0];
         train_images.push(images);
-        train_labels.push(Tensor::ones(&[nimages], kind::INT64_CPU) * label_index);
+        train_labels.push(Tensor::ones([nimages], kind::INT64_CPU) * label_index);
         let images = load_images_from_dir(valid_path.join(label_dir))?;
         let nimages = images.size()[0];
         test_images.push(images);
-        test_labels.push(Tensor::ones(&[nimages], kind::INT64_CPU) * label_index);
+        test_labels.push(Tensor::ones([nimages], kind::INT64_CPU) * label_index);
     }
     Ok(Dataset {
         train_images: Tensor::f_cat(&train_images, 0)?,

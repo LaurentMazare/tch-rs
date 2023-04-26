@@ -36,7 +36,7 @@ fn convmixer(
         for block in blocks.iter() {
             xs = xs.apply_t(block, train)
         }
-        xs.adaptive_avg_pool2d(&[1, 1]).flat_view().apply(&fc)
+        xs.adaptive_avg_pool2d([1, 1]).flat_view().apply(&fc)
     })
 }
 

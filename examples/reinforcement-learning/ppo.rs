@@ -49,7 +49,7 @@ struct FrameStack {
 
 impl FrameStack {
     fn new(nprocs: i64, nstack: i64) -> FrameStack {
-        FrameStack { data: Tensor::zeros(&[nprocs, nstack, 84, 84], FLOAT_CPU), nprocs, nstack }
+        FrameStack { data: Tensor::zeros([nprocs, nstack, 84, 84], FLOAT_CPU), nprocs, nstack }
     }
 
     fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
@@ -75,21 +75,21 @@ pub fn train() -> cpython::PyResult<()> {
     let model = model(&vs.root(), env.action_space());
     let mut opt = nn::Adam::default().build(&vs, 1e-4).unwrap();
 
-    let mut sum_rewards = Tensor::zeros(&[NPROCS], FLOAT_CPU);
+    let mut sum_rewards = Tensor::zeros([NPROCS], FLOAT_CPU);
     let mut total_rewards = 0f64;
     let mut total_episodes = 0f64;
 
     let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
     let _ = frame_stack.update(&env.reset()?, None);
-    let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
+    let s_states = Tensor::zeros([NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
 
     let train_size = NSTEPS * NPROCS;
     for update_index in 0..UPDATES {
         s_states.get(0).copy_(&s_states.get(-1));
-        let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-        let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-        let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
-        let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_values = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
+        let s_rewards = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
+        let s_actions = Tensor::zeros([NSTEPS, NPROCS], INT64_CPU);
+        let s_masks = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1, Kind::Float);
@@ -111,7 +111,7 @@ pub fn train() -> cpython::PyResult<()> {
         }
         let states = s_states.narrow(0, 0, NSTEPS).view([train_size, NSTACK, 84, 84]);
         let returns = {
-            let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
+            let r = Tensor::zeros([NSTEPS + 1, NPROCS], FLOAT_CPU);
             let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
             r.get(-1).copy_(&critic.view([NPROCS]));
             for s in (0..NSTEPS).rev() {
@@ -122,7 +122,7 @@ pub fn train() -> cpython::PyResult<()> {
         };
         let actions = s_actions.view([train_size]);
         for _index in 0..OPTIM_EPOCHS {
-            let batch_indexes = Tensor::randint(train_size, &[OPTIM_BATCHSIZE], INT64_CPU);
+            let batch_indexes = Tensor::randint(train_size, [OPTIM_BATCHSIZE], INT64_CPU);
             let states = states.index_select(0, &batch_indexes);
             let actions = actions.index_select(0, &batch_indexes);
             let returns = returns.index_select(0, &batch_indexes);
@@ -133,9 +133,8 @@ pub fn train() -> cpython::PyResult<()> {
                 let index = actions.unsqueeze(-1).to_device(device);
                 log_probs.gather(-1, &index, false).squeeze_dim(-1)
             };
-            let dist_entropy = (-log_probs * probs)
-                .sum_dim_intlist(Some([-1].as_slice()), false, Kind::Float)
-                .mean(Kind::Float);
+            let dist_entropy =
+                (-log_probs * probs).sum_dim_intlist(-1, false, Kind::Float).mean(Kind::Float);
             let advantages = returns.to_device(device) - critic;
             let value_loss = (&advantages * &advantages).mean(Kind::Float);
             let action_loss = (-advantages.detach() * action_log_probs).mean(Kind::Float);

@@ -86,11 +86,11 @@ pub fn main() -> Result<()> {
     let train_size = images.size()[0];
 
     let random_batch_images = || {
-        let index = Tensor::randint(train_size, &[BATCH_SIZE], kind::INT64_CPU);
+        let index = Tensor::randint(train_size, [BATCH_SIZE], kind::INT64_CPU);
         images.index_select(0, &index).to_device(device).to_kind(Kind::Float) / 127.5 - 1.
     };
     let rand_latent = || {
-        (Tensor::rand(&[BATCH_SIZE, LATENT_DIM, 1, 1], kind::FLOAT_CPU) * 2.0 - 1.0)
+        (Tensor::rand([BATCH_SIZE, LATENT_DIM, 1, 1], kind::FLOAT_CPU) * 2.0 - 1.0)
             .to_device(device)
     };
 

@@ -65,8 +65,8 @@ fn gradient_descent_test() {
     let my_module = my_module(vs.root(), 7);
     let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
-        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let xs = Tensor::zeros([7], kind::FLOAT_CPU);
+        let ys = Tensor::zeros([7], kind::FLOAT_CPU);
         let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step(&loss);
     }
@@ -78,8 +78,8 @@ fn gradient_descent_test_clip_norm() {
     let my_module = my_module(vs.root(), 7);
     let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
-        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let ys = Tensor::ones(&[7], kind::FLOAT_CPU);
+        let xs = Tensor::zeros([7], kind::FLOAT_CPU);
+        let ys = Tensor::ones([7], kind::FLOAT_CPU);
         let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step_clip_norm(&loss, 0.1);
     }
@@ -140,7 +140,7 @@ fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
-    let x = Tensor::randn(&[10, 40], opts);
+    let x = Tensor::randn([10, 40], opts);
     let _y = x.apply_t(&bn, true);
     assert_eq!(vs.len(), 4);
 }
@@ -151,7 +151,7 @@ fn bn_test_no_affine() {
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let bn_cfg = nn::BatchNormConfig { affine: false, ..Default::default() };
     let bn = nn::batch_norm1d(vs.root(), 40, bn_cfg);
-    let x = Tensor::randn(&[10, 40], opts);
+    let x = Tensor::randn([10, 40], opts);
     let _y = x.apply_t(&bn, true);
     assert_eq!(vs.len(), 2);
 }
@@ -161,7 +161,7 @@ fn layer_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let ln = layer_norm(vs.root(), vec![5, 10, 10], Default::default());
-    let x = Tensor::randn(&[20, 5, 10, 10], opts);
+    let x = Tensor::randn([20, 5, 10, 10], opts);
     let _y = x.apply(&ln);
 }
 
@@ -170,7 +170,7 @@ fn group_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let ln = group_norm(vs.root(), 2, 10, Default::default());
-    let x = Tensor::randn(&[1, 10, 7], opts);
+    let x = Tensor::randn([1, 10, 7], opts);
     let _y = x.apply(&ln);
 }
 
@@ -225,12 +225,12 @@ fn gru_test(rnn_config: nn::RNNConfig) {
     let layer_dim = rnn_config.num_layers * num_directions;
     //
     // step test
-    let input = Tensor::randn(&[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, input_dim], kind::FLOAT_CPU);
     let nn::GRUState(output) = gru.step(&input, &gru.zero_state(batch_dim));
     assert_eq!(output.size(), [layer_dim, batch_dim, output_dim]);
 
     // seq test
-    let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = gru.seq(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
@@ -257,13 +257,13 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
     let layer_dim = rnn_config.num_layers * num_directions;
     //
     // step test
-    let input = Tensor::randn(&[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, input_dim], kind::FLOAT_CPU);
     let nn::LSTMState((h, c)) = lstm.step(&input, &lstm.zero_state(batch_dim));
     assert_eq!(h.size(), [layer_dim, batch_dim, output_dim]);
     assert_eq!(c.size(), [layer_dim, batch_dim, output_dim]);
 
     // seq test
-    let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = lstm.seq(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
@@ -286,7 +286,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     let embeddings = nn::embedding(vs.root(), input_dim, output_dim, embedding_config);
 
     // forward test
-    let input = Tensor::randint(10, &[batch_dim, seq_len], kind::INT64_CPU);
+    let input = Tensor::randint(10, [batch_dim, seq_len], kind::INT64_CPU);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim]);
 
@@ -325,7 +325,7 @@ fn linear_test(linear_config: nn::LinearConfig) {
     let linear = nn::linear(vs.root(), input_dim, output_dim, linear_config);
 
     // forward test
-    let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randint(10, [batch_dim, input_dim], kind::FLOAT_CPU);
     let expected_var_store_size = if linear_config.bias { 2 } else { 1 };
 
     let output = linear.forward(&input);

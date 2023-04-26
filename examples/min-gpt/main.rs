@@ -69,7 +69,7 @@ fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let value = linear(p / "value", cfg.n_embd, cfg.n_embd);
     let proj = linear(p / "proj", cfg.n_embd, cfg.n_embd);
     let mask_init =
-        Tensor::ones(&[cfg.block_size, cfg.block_size], (Kind::Float, p.device())).tril(0);
+        Tensor::ones([cfg.block_size, cfg.block_size], (Kind::Float, p.device())).tril(0);
     let mask_init = mask_init.view([1, 1, cfg.block_size, cfg.block_size]);
     // let mask = p.var_copy("mask", &mask_init);
     let mask = mask_init;
@@ -180,7 +180,7 @@ pub fn main() -> Result<()> {
                     idx += 1;
                     if idx % 10000 == 0 {
                         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
-                        let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+                        let input = Tensor::zeros([1, BLOCK_SIZE], (Kind::Int64, device));
                         println!("Sample: {}", sample(&data, &gpt, input));
                         if let Err(err) = vs.save(format!("gpt{idx}.ot")) {
                             println!("error while saving {err}");
@@ -194,7 +194,7 @@ pub fn main() -> Result<()> {
         "predict" => {
             vs.load(args[2].as_str())?;
             let seqstart = args[3].as_str();
-            let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+            let input = Tensor::zeros([1, BLOCK_SIZE], (Kind::Int64, device));
             for (idx, c) in seqstart.chars().rev().enumerate() {
                 let idx = idx as i64;
                 if idx >= BLOCK_SIZE {

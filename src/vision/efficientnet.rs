@@ -167,7 +167,7 @@ impl SqueezeExcitation {
 impl ModuleT for SqueezeExcitation {
     fn forward_t(&self, xs: &Tensor, t: bool) -> Tensor {
         let scale = xs
-            .adaptive_avg_pool2d(&[1, 1])
+            .adaptive_avg_pool2d([1, 1])
             .apply_t(&self.fc1, t)
             .swish()
             .apply_t(&self.fc2, t)
@@ -276,7 +276,7 @@ impl ModuleT for EfficientNet {
             xs = xs.apply_t(block, t)
         }
         xs.apply_t(&self.final_cna, t)
-            .adaptive_avg_pool2d(&[1, 1])
+            .adaptive_avg_pool2d([1, 1])
             .squeeze_dim(-1)
             .squeeze_dim(-1)
             .apply(&self.classifier)

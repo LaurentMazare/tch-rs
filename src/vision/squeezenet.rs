@@ -3,7 +3,7 @@
 use crate::{nn, nn::Module, nn::ModuleT, Tensor};
 
 fn max_pool2d(xs: &Tensor) -> Tensor {
-    xs.max_pool2d(&[3, 3], &[2, 2], &[0, 0], &[1, 1], true)
+    xs.max_pool2d([3, 3], [2, 2], [0, 0], [1, 1], true)
 }
 
 fn fire(p: nn::Path, c_in: i64, c_squeeze: i64, c_exp1: i64, c_exp3: i64) -> impl Module {
@@ -56,7 +56,7 @@ fn squeezenet(p: &nn::Path, v1_0: bool, nclasses: i64) -> impl ModuleT {
     features
         .add_fn_t(|xs, train| xs.dropout(0.5, train))
         .add(nn::conv2d(&c_p / "1", 512, nclasses, 1, final_conv_cfg))
-        .add_fn(|xs| xs.relu().adaptive_avg_pool2d(&[1, 1]).flat_view())
+        .add_fn(|xs| xs.relu().adaptive_avg_pool2d([1, 1]).flat_view())
 }
 
 pub fn v1_0(p: &nn::Path, nclasses: i64) -> impl ModuleT {

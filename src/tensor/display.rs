@@ -259,7 +259,7 @@ impl FloatFormatter {
         // Rather than containing all values, this should only include
         // values that end up being displayed according to [threshold].
         let nonzero_finite_vals = {
-            let t = t.reshape(&[-1]);
+            let t = t.reshape([-1]);
             t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
         };
 

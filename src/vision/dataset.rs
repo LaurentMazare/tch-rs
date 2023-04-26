@@ -34,7 +34,7 @@ pub fn random_flip(t: &Tensor) -> Tensor {
     for batch_index in 0..size[0] {
         let mut output_view = output.i(batch_index);
         let t_view = t.i(batch_index);
-        let src = if rand::random() { t_view } else { t_view.flip(&[2]) };
+        let src = if rand::random() { t_view } else { t_view.flip([2]) };
         output_view.copy_(&src)
     }
     output
@@ -50,7 +50,7 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
     }
     let sz_h = size[2];
     let sz_w = size[3];
-    let padded = t.reflection_pad2d(&[pad, pad, pad, pad]);
+    let padded = t.reflection_pad2d([pad, pad, pad, pad]);
     let output = t.zeros_like();
     for bindex in 0..size[0] {
         let mut output_view = output.i(bindex);

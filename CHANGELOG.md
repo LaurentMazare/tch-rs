@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   weight by default, [679](https://github.com/LaurentMazare/tch-rs/pull/679).
 - None can be used for nullable scalar types,
   [680](https://github.com/LaurentMazare/tch-rs/pull/680).
+- Automated conversion of list arguments: all the generated functions that take
+  as input a slice of int or float can now be used directly with int values or
+  fixed length arrays [682](https://github.com/LaurentMazare/tch-rs/pull/682).
 
 ## v0.11.0 - 2023-03-20
 ### Added
