@@ -14,8 +14,8 @@ pub enum FanInOut {
 
 impl FanInOut {
     /// Compute the fan-in or fan-out value for a weight tensor of
-    /// the specified dims.
-    /// https://github.com/pytorch/pytorch/blob/dbeacf11820e336e803bb719b7aaaf2125ae4d9c/torch/nn/init.py#L284
+    /// the specified dimensions.
+    /// <https://github.com/pytorch/pytorch/blob/dbeacf11820e336e803bb719b7aaaf2125ae4d9c/torch/nn/init.py#L284>
     pub fn for_weight_dims(&self, dims: &[i64]) -> i64 {
         let receptive_field_size: i64 = dims.iter().skip(2).product();
         match &self {

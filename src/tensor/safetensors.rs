@@ -1,7 +1,7 @@
 //! Safetensors support for tensors.
 //!
-//! Format spec:
-//! https://github.com/huggingface/safetensors
+//! This module implements reading and writing tensors in the `.safetensors` format.
+//! <https://github.com/huggingface/safetensors>
 use crate::nn::VarStore;
 use crate::{Kind, TchError, Tensor};
 

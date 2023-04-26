@@ -1,9 +1,9 @@
 //! VGG models.
 //!
 //! Pre-trained weights for the vgg-13/16/19 models can be found here:
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg13.ot
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg19.ot
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg13.ot>
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot>
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg19.ot>
 use crate::{nn, nn::Conv2D, nn::SequentialT};
 
 // Each list element contains multiple convolutions with some specified number

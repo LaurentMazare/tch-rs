@@ -63,7 +63,7 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
 }
 
 /// Applies cutout: randomly remove some square areas in the original images.
-/// https://arxiv.org/abs/1708.04552
+/// <https://arxiv.org/abs/1708.04552>
 pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     let size = t.size();
     if size.len() != 4 || sz > size[2] || sz > size[3] {

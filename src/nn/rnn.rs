@@ -129,7 +129,7 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
 
 /// A Long Short-Term Memory (LSTM) layer.
 ///
-/// https://en.wikipedia.org/wiki/Long_short-term_memory
+/// <https://en.wikipedia.org/wiki/Long_short-term_memory>
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct LSTM {
@@ -214,7 +214,7 @@ impl GRUState {
 
 /// A Gated Recurrent Unit (GRU) layer.
 ///
-/// https://en.wikipedia.org/wiki/Gated_recurrent_unit
+/// <https://en.wikipedia.org/wiki/Gated_recurrent_unit>
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct GRU {

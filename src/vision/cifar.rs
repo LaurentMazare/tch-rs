@@ -1,7 +1,7 @@
 //! The CIFAR-10 dataset.
 //!
 //! The files can be downloaded from the following page:
-//! https://www.cs.toronto.edu/~kriz/cifar.html
+//! <https://www.cs.toronto.edu/~kriz/cifar.html>
 //! The binary version of the dataset is used.
 use super::dataset::Dataset;
 use crate::{kind, IndexOp, Kind, Tensor};

@@ -1,5 +1,5 @@
 //! A group-normalization layer.
-//! Group Normalization https://arxiv.org/abs/1803.0849
+//! Group Normalization <https://arxiv.org/abs/1803.0849>
 use crate::Tensor;
 use std::borrow::Borrow;
 
