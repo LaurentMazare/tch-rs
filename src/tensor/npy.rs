@@ -1,7 +1,8 @@
 //! Numpy support for tensors.
 //!
-//! Format spec:
-//! https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html
+//! This module implements the support for reading and writing `.npy` and `.npz` files. The file
+//! format spec can be found at:
+//! <https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html>.
 use crate::{Kind, TchError, Tensor};
 use std::collections::HashMap;
 use std::fs::File;

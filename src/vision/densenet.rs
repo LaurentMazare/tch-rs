@@ -1,10 +1,10 @@
 //! DenseNet implementation.
 //!
 //! See "Densely Connected Convolutional Networks", Huang et al 2016.
-//! https://arxiv.org/abs/1608.06993
+//! <https://arxiv.org/abs/1608.06993>
 //!
 //! Pre-trained weights for the densenet-121 variants can be found here:
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/densenet121.ot
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/densenet121.ot>
 use crate::{nn, nn::Conv2D, nn::ModuleT, Tensor};
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: i64) -> Conv2D {
