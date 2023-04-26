@@ -26,7 +26,7 @@ pub trait ModuleT: std::fmt::Debug + Send {
         for (xs, ys) in Iter2::new(xs, ys, batch_size).return_smaller_last_batch() {
             let acc = self.forward_t(&xs.to_device(d), false).accuracy_for_logits(&ys.to_device(d));
             let size = xs.size()[0] as f64;
-            sum_accuracy += f64::from(&acc) * size;
+            sum_accuracy += f64::try_from(&acc).unwrap() * size;
             sample_count += size;
         }
         sum_accuracy / sample_count

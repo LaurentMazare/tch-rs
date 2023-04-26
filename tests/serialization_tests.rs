@@ -1,5 +1,8 @@
 use tch::{Kind, Tensor};
 
+mod test_utils;
+use test_utils::*;
+
 struct TmpFile(std::path::PathBuf);
 
 impl TmpFile {
@@ -33,7 +36,7 @@ fn save_and_load() {
     let t1 = Tensor::of_slice(&vec);
     t1.save(&tmp_file).unwrap();
     let t2 = Tensor::load(&tmp_file).unwrap();
-    assert_eq!(Vec::<f64>::from(&t2), vec)
+    assert_eq!(vec_f64_from(&t2), vec)
 }
 
 #[test]
@@ -43,7 +46,7 @@ fn save_to_stream_and_load() {
     let t1 = Tensor::of_slice(&vec);
     t1.save_to_stream(std::fs::File::create(&tmp_file).unwrap()).unwrap();
     let t2 = Tensor::load(&tmp_file).unwrap();
-    assert_eq!(Vec::<f64>::from(&t2), vec)
+    assert_eq!(vec_f64_from(&t2), vec)
 }
 
 #[test]
@@ -54,7 +57,7 @@ fn save_and_load_from_stream() {
     t1.save(&tmp_file).unwrap();
     let reader = std::io::BufReader::new(std::fs::File::open(&tmp_file).unwrap());
     let t2 = Tensor::load_from_stream(reader).unwrap();
-    assert_eq!(Vec::<f64>::from(&t2), vec)
+    assert_eq!(vec_f64_from(&t2), vec)
 }
 
 #[test]
@@ -67,7 +70,7 @@ fn save_and_load_multi() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(from::<i64>(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -84,7 +87,7 @@ fn save_to_stream_and_load_multi() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(from::<i64>(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -98,7 +101,7 @@ fn save_and_load_multi_from_stream() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(from::<i64>(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -111,7 +114,7 @@ fn save_and_load_npz() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(from::<i64>(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -125,7 +128,7 @@ fn save_and_load_npz_half() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i64::from(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
+    assert_eq!(from::<i64>(&named_tensors[1].1.sum(tch::Kind::Float)), 57);
 }
 
 #[test]
@@ -139,7 +142,7 @@ fn save_and_load_npz_byte() {
     assert_eq!(named_tensors.len(), 2);
     assert_eq!(named_tensors[0].0, "pi");
     assert_eq!(named_tensors[1].0, "e");
-    assert_eq!(i8::from(&named_tensors[1].1.sum(tch::Kind::Int8)), 57);
+    assert_eq!(from::<i8>(&named_tensors[1].1.sum(tch::Kind::Int8)), 57);
 }
 
 #[test]
@@ -148,12 +151,12 @@ fn save_and_load_npy() {
     let pi = Tensor::of_slice(&[3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
     pi.write_npy(&tmp_file).unwrap();
     let pi = Tensor::read_npy(&tmp_file).unwrap();
-    assert_eq!(Vec::<f64>::from(&pi), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
+    assert_eq!(vec_f64_from(&pi), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
     let pi = pi.reshape([3, 1, 2]);
     pi.write_npy(&tmp_file).unwrap();
     let pi = Tensor::read_npy(&tmp_file).unwrap();
     assert_eq!(pi.size(), [3, 1, 2]);
-    assert_eq!(Vec::<f64>::from(pi.flatten(0, -1)), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
+    assert_eq!(vec_f64_from(&pi.flatten(0, -1)), [3.0, 1.0, 4.0, 1.0, 5.0, 9.0]);
 }
 
 #[test]
@@ -166,8 +169,8 @@ fn save_and_load_safetensors() {
     assert_eq!(named_tensors.len(), 2);
     for (name, tensor) in named_tensors {
         match name.as_str() {
-            "pi" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 14),
-            "e" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 57),
+            "pi" => assert_eq!(from::<i64>(&tensor.sum(tch::Kind::Float)), 14),
+            "e" => assert_eq!(from::<i64>(&tensor.sum(tch::Kind::Float)), 57),
             _ => panic!("unknow name tensors"),
         }
     }
@@ -184,8 +187,8 @@ fn save_and_load_safetensors_half() {
     assert_eq!(named_tensors.len(), 2);
     for (name, tensor) in named_tensors {
         match name.as_str() {
-            "pi" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 14),
-            "e" => assert_eq!(i64::from(&tensor.sum(tch::Kind::Float)), 57),
+            "pi" => assert_eq!(from::<i64>(&tensor.sum(tch::Kind::Float)), 14),
+            "e" => assert_eq!(from::<i64>(&tensor.sum(tch::Kind::Float)), 57),
             _ => panic!("unknow name tensors"),
         }
     }

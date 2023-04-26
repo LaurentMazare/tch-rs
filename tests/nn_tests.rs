@@ -2,6 +2,9 @@ use tch::nn::{group_norm, layer_norm};
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
 
+mod test_utils;
+use test_utils::*;
+
 #[test]
 fn optimizer_test() {
     tch::manual_seed(42);
@@ -20,7 +23,7 @@ fn optimizer_test() {
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss: f64 = from(&loss);
     assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     opt.set_lr(1e-2);
@@ -30,7 +33,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss: f64 = from(&loss);
     assert!(final_loss < 0.25, "{}", "final loss {final_loss}");
 
     // Reset the weights to their initial values.
@@ -38,7 +41,7 @@ fn optimizer_test() {
         linear.ws.init(nn::Init::Const(0.));
         linear.bs.as_mut().unwrap().init(nn::Init::Const(0.));
     });
-    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2: f64 = from(&xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2);
 
     // Set the learning-rate to be very small and check that the loss does not change
@@ -49,7 +52,7 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss: f64 = from(&loss);
     assert!((final_loss - initial_loss) < 1e-5, "{}", "final loss {final_loss}")
 }
 
@@ -86,7 +89,7 @@ fn gradient_descent_test_clip_norm() {
 }
 
 fn round4(t: Tensor) -> Vec<f64> {
-    let v = Vec::<f64>::from(t);
+    let v = vec_f64_from(&t);
     v.iter().map(|x| (10000. * x).round() / 10000.).collect()
 }
 
@@ -108,9 +111,9 @@ fn gradient_clip_test() {
     let g1 = var1.grad();
     let g2 = var2.grad();
     let g3 = var3.grad();
-    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
-    assert_eq!(Vec::<f64>::from(&g2), [8.0]);
-    assert_eq!(Vec::<f64>::from(&g3), [-8.0, -8.0]);
+    assert_eq!(vec_f64_from(&g1), [2.0, 2.0]);
+    assert_eq!(vec_f64_from(&g2), [8.0]);
+    assert_eq!(vec_f64_from(&g3), [-8.0, -8.0]);
     // Test clipping the gradient by value.
     let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
@@ -119,9 +122,9 @@ fn gradient_clip_test() {
     let g1 = var1.grad();
     let g2 = var2.grad();
     let g3 = var3.grad();
-    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
-    assert_eq!(Vec::<f64>::from(&g2), [4.0]);
-    assert_eq!(Vec::<f64>::from(&g3), [-4.0, -4.0]);
+    assert_eq!(vec_f64_from(&g1), [2.0, 2.0]);
+    assert_eq!(vec_f64_from(&g2), [4.0]);
+    assert_eq!(vec_f64_from(&g3), [-4.0, -4.0]);
     // Test clipping the gradient norm.
     let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
@@ -187,7 +190,7 @@ fn layer_norm_parameters_test() {
     let mut ln = layer_norm(vs.root(), vec![2], Default::default());
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
+    let initial_loss: f64 = from(&loss);
     assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     // Optimization loop.
@@ -196,7 +199,7 @@ fn layer_norm_parameters_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
+    let final_loss: f64 = from(&loss);
     assert!(final_loss < 0.25, "{}", "final loss {final_loss:?}");
 
     //     Reset the weights to their initial values.
@@ -208,7 +211,7 @@ fn layer_norm_parameters_test() {
             bs.init(nn::Init::Const(0.));
         }
     });
-    let initial_loss2 = f64::from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2: f64 = from(&xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2)
 }
 
@@ -348,26 +351,26 @@ fn linear() {
 fn pad() {
     let xs = Tensor::of_slice(&[1., 2., 3.]);
     let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
-    assert_eq!(Vec::<f32>::from(&padded), [0., 1., 2., 3., 0.]);
+    assert_eq!(vec_f32_from(&padded), [0., 1., 2., 3., 0.]);
 
     let xs = Tensor::of_slice(&[1., 2., 3.]).view([1, 3]);
     let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
-    assert_eq!(Vec::<f32>::from(&padded), [0., 1., 2., 3., 0.]);
+    assert_eq!(vec_f32_from(&padded.reshape(-1)), [0., 1., 2., 3., 0.]);
 
     let xs = Tensor::of_slice(&[1., 2., 3., 4.]).view([1, 2, 2]);
     let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
     assert_eq!(
-        Vec::<f32>::from(&padded),
+        vec_f32_from(&padded.reshape(-1)),
         &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
     );
     let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
     assert_eq!(
-        Vec::<f32>::from(&padded),
+        vec_f32_from(&padded.reshape(-1)),
         &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
     );
     let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
     assert_eq!(
-        Vec::<f32>::from(&padded),
+        vec_f32_from(&padded.reshape(-1)),
         &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
     );
 }
@@ -387,14 +390,14 @@ fn conv() {
     let xs = Tensor::of_slice(&[1f32, 2., 3., 4.]).view([1, 1, 2, 2]); // NCHW
 
     let conved = apply_conv(&xs, nn::PaddingMode::Zeros);
-    assert_eq!(Vec::<f32>::from(&conved), &[10.0, 10.0, 10.0, 10.0]);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[10.0, 10.0, 10.0, 10.0]);
 
     let conved = apply_conv(&xs, nn::PaddingMode::Reflect);
-    assert_eq!(Vec::<f32>::from(&conved), &[27.0, 24.0, 21.0, 18.0]);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[27.0, 24.0, 21.0, 18.0]);
 
     let conved = apply_conv(&xs, nn::PaddingMode::Circular);
-    assert_eq!(Vec::<f32>::from(&conved), &[27.0, 24.0, 21.0, 18.0]);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[27.0, 24.0, 21.0, 18.0]);
 
     let conved = apply_conv(&xs, nn::PaddingMode::Replicate);
-    assert_eq!(Vec::<f32>::from(&conved), &[18.0, 21.0, 24.0, 27.0]);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[18.0, 21.0, 24.0, 27.0]);
 }

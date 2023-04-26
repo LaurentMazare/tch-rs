@@ -90,11 +90,11 @@ pub fn train() -> cpython::PyResult<()> {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1, Float);
             let actions = probs.multinomial(1, true).squeeze_dim(-1);
-            let step = env.step(Vec::<i64>::from(&actions))?;
+            let step = env.step(Vec::<i64>::try_from(&actions).unwrap())?;
 
             sum_rewards += &step.reward;
-            total_rewards += f64::from((&sum_rewards * &step.is_done).sum(Float));
-            total_episodes += f64::from(step.is_done.sum(Float));
+            total_rewards += f64::try_from((&sum_rewards * &step.is_done).sum(Float)).unwrap();
+            total_episodes += f64::try_from(step.is_done.sum(Float)).unwrap();
 
             let masks = Tensor::from(1f32) - step.is_done;
             sum_rewards *= &masks;
@@ -162,7 +162,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
         let (_critic, actor) = tch::no_grad(|| model(obs));
         let probs = actor.softmax(-1, Float);
         let actions = probs.multinomial(1, true).squeeze_dim(-1);
-        let step = env.step(Vec::<i64>::from(&actions))?;
+        let step = env.step(Vec::<i64>::try_from(&actions).unwrap())?;
 
         let masks = Tensor::from(1f32) - step.is_done;
         obs = frame_stack.update(&step.obs, Some(&masks));

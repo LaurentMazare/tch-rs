@@ -192,7 +192,7 @@ impl Iterator for TextDataIter {
             None
         } else {
             self.batch_index += 1;
-            let indexes = Vec::<i64>::from(&self.indexes.i(start..start + size));
+            let indexes = Vec::<i64>::try_from(&self.indexes.i(start..start + size)).unwrap();
             let batch: Vec<_> = indexes.iter().map(|&i| self.data.i(i..i + self.seq_len)).collect();
             let batch: Vec<_> = batch.iter().collect();
             Some(Tensor::stack(&batch, 0))

@@ -1,6 +1,9 @@
 use std::convert::{TryFrom, TryInto};
 use tch::{IValue, Kind, Tensor};
 
+mod test_utils;
+use test_utils::*;
+
 #[test]
 fn jit() {
     let x = Tensor::of_slice(&[3, 1, 4, 1, 5]).to_kind(Kind::Float);
@@ -9,7 +12,7 @@ fn jit() {
     let mod_ = tch::CModule::load("tests/foo.pt").unwrap();
     let result = mod_.forward_ts(&[&x, &y]).unwrap();
     let expected = x * 2.0 + y + 42.0;
-    assert_eq!(Vec::<f64>::from(&result), Vec::<f64>::from(&expected));
+    assert_eq!(vec_f64_from(&result), vec_f64_from(&expected));
 }
 
 #[test]
@@ -20,16 +23,16 @@ fn jit_data() {
     let mod_ = tch::CModule::load_data(&mut file).unwrap();
     let result = mod_.forward_ts(&[&x, &y]).unwrap();
     let expected = x * 2.0 + y + 42.0;
-    assert_eq!(Vec::<f64>::from(&result), Vec::<f64>::from(&expected));
+    assert_eq!(vec_f64_from(&result), vec_f64_from(&expected));
 }
 
 #[test]
 fn jit1() {
     let mod_ = tch::CModule::load("tests/foo1.pt").unwrap();
     let result = mod_.forward_ts(&[Tensor::from(42), Tensor::from(1337)]).unwrap();
-    assert_eq!(i64::from(&result), 1421);
+    assert_eq!(from::<i64>(&result), 1421);
     let result = mod_.method_ts("forward", &[Tensor::from(42), Tensor::from(1337)]).unwrap();
-    assert_eq!(i64::from(&result), 1421);
+    assert_eq!(from::<i64>(&result), 1421);
 }
 
 #[test]
@@ -43,8 +46,8 @@ fn jit2() {
     assert_eq!(result, IValue::from((expected1, expected2)));
     // Destructure the tuple, using an option.
     let (v1, v2) = <(Tensor, Option<Tensor>)>::try_from(result).unwrap();
-    assert_eq!(i64::from(v1), 1421);
-    assert_eq!(i64::from(v2.unwrap()), -1295);
+    assert_eq!(from::<i64>(&v1), 1421);
+    assert_eq!(from::<i64>(&v2.unwrap()), -1295);
     let result = mod_
         .method_is("forward", &[IValue::from(Tensor::from(42)), IValue::from(Tensor::from(1337))])
         .unwrap();
@@ -52,8 +55,8 @@ fn jit2() {
     let expected2 = Tensor::from(-1295);
     assert_eq!(result, IValue::from((expected1, expected2)));
     let (v1, v2) = <(Tensor, Tensor)>::try_from(result).unwrap();
-    assert_eq!(i64::from(v1), 1421);
-    assert_eq!(i64::from(v2), -1295);
+    assert_eq!(from::<i64>(&v1), 1421);
+    assert_eq!(from::<i64>(&v2), -1295);
 }
 
 #[test]
@@ -61,7 +64,7 @@ fn jit3() {
     let mod_ = tch::CModule::load("tests/foo3.pt").unwrap();
     let xs = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
     let result = mod_.forward_ts(&[xs]).unwrap();
-    assert_eq!(f64::from(&result), 120.0);
+    assert_eq!(from::<f64>(&result), 120.0);
 }
 
 #[test]
@@ -147,7 +150,10 @@ fn create_traced() {
     let xs = Tensor::of_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
     let ys = Tensor::of_slice(&[41.0, 1335.0, std::f64::consts::PI - 3., 4.0, 5.0]);
     let result = modl.method_ts("MyFn", &[xs, ys]).unwrap();
-    assert_eq!(Vec::<f64>::from(&result), [42.0, 1337.0, std::f64::consts::PI, 8.0, 10.0])
+    assert_eq!(
+        Vec::<f64>::try_from(&result).unwrap(),
+        [42.0, 1337.0, std::f64::consts::PI, 8.0, 10.0]
+    )
 }
 
 // https://github.com/LaurentMazare/tch-rs/issues/475
@@ -166,7 +172,7 @@ fn jit_double_free() {
         IValue::Tensor(tensor) => tensor,
         result => panic!("expected a tensor got {result:?}"),
     };
-    assert_eq!(Vec::<f64>::from(&result), [5.0, 7.0, 9.0])
+    assert_eq!(Vec::<f64>::try_from(&result).unwrap(), [5.0, 7.0, 9.0])
 }
 
 // https://github.com/LaurentMazare/tch-rs/issues/597
@@ -182,6 +188,6 @@ fn specialized_dict() {
     ]);
     let result = mod_.method_is("generate", &[input]).unwrap();
     let result: (Tensor, Tensor) = result.try_into().unwrap();
-    assert_eq!(Vec::<f64>::from(&result.0), [1.0, 2.0, 3.0]);
-    assert_eq!(Vec::<f64>::from(&result.1), [1.0, 7.0])
+    assert_eq!(Vec::<f64>::try_from(&result.0).unwrap(), [1.0, 2.0, 3.0]);
+    assert_eq!(Vec::<f64>::try_from(&result.1).unwrap(), [1.0, 7.0])
 }

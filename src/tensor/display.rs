@@ -61,10 +61,14 @@ impl std::fmt::Debug for Tensor {
                         | Kind::ComplexDouble => (false, false),
                     };
                     match (self.size().as_slice(), is_int, is_float) {
-                        ([], true, false) => write!(f, "[{}]", i64::from(self)),
-                        ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
-                        ([], false, true) => write!(f, "[{}]", f64::from(self)),
-                        ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
+                        ([], true, false) => write!(f, "[{}]", i64::try_from(self).unwrap()),
+                        ([s], true, false) if *s < 10 => {
+                            write!(f, "{:?}", Vec::<i64>::try_from(self).unwrap())
+                        }
+                        ([], false, true) => write!(f, "[{}]", f64::try_from(self).unwrap()),
+                        ([s], false, true) if *s < 10 => {
+                            write!(f, "{:?}", Vec::<f64>::try_from(self).unwrap())
+                        }
                         _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), kind),
                     }
                 }
@@ -263,7 +267,7 @@ impl FloatFormatter {
             t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
         };
 
-        let values = Vec::<f64>::from(&nonzero_finite_vals);
+        let values = Vec::<f64>::try_from(&nonzero_finite_vals).unwrap();
         if nonzero_finite_vals.numel() > 0 {
             let nonzero_finite_abs = nonzero_finite_vals.abs();
             let nonzero_finite_min = nonzero_finite_abs.min().double_value(&[]);
@@ -311,7 +315,7 @@ impl TensorFormatter for FloatFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
@@ -329,7 +333,7 @@ impl TensorFormatter for IntFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
@@ -348,7 +352,7 @@ impl TensorFormatter for BoolFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
