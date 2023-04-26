@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated conversion of list arguments: all the generated functions that take
   as input a slice of int or float can now be used directly with int values or
   fixed length arrays [682](https://github.com/LaurentMazare/tch-rs/pull/682).
+- Replace the `From<Tensor>` traits with some `TryFrom` versions,
+  [683](https://github.com/LaurentMazare/tch-rs/pull/683). This is a breaking
+  change, note that also the old version would flatten the tensor if needed to
+  reduce the number of dimensions, this has to be done explicitely with the new
+  version.
 
 ## v0.11.0 - 2023-03-20
 ### Added

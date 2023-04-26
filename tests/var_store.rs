@@ -3,7 +3,7 @@ use tch::nn::OptimizerConfig;
 use tch::{nn, nn::linear, nn::Init, nn::VarStore, Device, Kind, TchError, Tensor};
 
 mod test_utils;
-use test_utils::f64_from;
+use test_utils::*;
 
 #[test]
 fn path_components() {
@@ -224,15 +224,15 @@ fn init_test() {
     tch::manual_seed(42);
     let vs = VarStore::new(Device::Cpu);
     let zeros = vs.root().zeros("t1", &[3]);
-    assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
+    assert_eq!(vec_f64_from(&zeros), [0., 0., 0.]);
     let zeros = vs.root().var("t2", &[3], Init::Const(0.));
-    assert_eq!(Vec::<f64>::from(&zeros), [0., 0., 0.]);
+    assert_eq!(vec_f64_from(&zeros), [0., 0., 0.]);
     let ones = vs.root().var("t3", &[3], Init::Const(1.));
-    assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    assert_eq!(vec_f64_from(&ones), [1., 1., 1.]);
     let ones = vs.root().var("t4", &[3], Init::Const(0.5));
-    assert_eq!(Vec::<f64>::from(&ones), [0.5, 0.5, 0.5]);
+    assert_eq!(vec_f64_from(&ones), [0.5, 0.5, 0.5]);
     let forty_two = vs.root().var("t4", &[2], Init::Const(42.));
-    assert_eq!(Vec::<f64>::from(&forty_two), [42., 42.]);
+    assert_eq!(vec_f64_from(&forty_two), [42., 42.]);
     let uniform = vs.root().var("t5", &[100], Init::Uniform { lo: 1.0, up: 2.0 });
     let uniform_min = f64_from(&uniform.min());
     let uniform_max = f64_from(&uniform.max());
@@ -245,9 +245,9 @@ fn init_test() {
     assert!(normal_std <= 0.03, "{}", "std {normal_std}");
     let mut vs2 = VarStore::new(Device::Cpu);
     let ones = vs2.root().ones("t1", &[3]);
-    assert_eq!(Vec::<f64>::from(&ones), [1., 1., 1.]);
+    assert_eq!(vec_f64_from(&ones), [1., 1., 1.]);
     vs2.copy(&vs).unwrap();
-    assert_eq!(Vec::<f64>::from(&ones), [0., 0., 0.]);
+    assert_eq!(vec_f64_from(&ones), [0., 0., 0.]);
     let ortho = vs.root().var("orthogonal", &[100, 100], Init::Orthogonal { gain: 2.0 });
     let ortho_norm = f64_from(&ortho.linalg_norm_ord_str("fro", None::<i64>, true, Kind::Float));
     assert!(

@@ -4,44 +4,72 @@ use crate::{kind::Element, TchError};
 use half::{bf16, f16};
 use std::convert::{TryFrom, TryInto};
 
-impl<T: Element> From<&Tensor> for Vec<T> {
-    fn from(tensor: &Tensor) -> Vec<T> {
-        let numel = tensor.numel();
-        let mut vec = vec![T::ZERO; numel];
-        tensor.to_device(crate::Device::Cpu).to_kind(T::KIND).copy_data(&mut vec, numel);
-        vec
+impl<T: Element + Copy> TryFrom<&Tensor> for Vec<T> {
+    type Error = TchError;
+    fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
+        let s1 = tensor.size1()? as usize;
+        let num_elem = s1;
+        let mut vec = vec![T::ZERO; num_elem];
+        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, num_elem)?;
+        Ok(vec)
     }
 }
 
-impl<T: Element> From<&Tensor> for Vec<Vec<T>> {
-    fn from(tensor: &Tensor) -> Vec<Vec<T>> {
-        let first_dim = tensor.size()[0];
-        (0..first_dim).map(|i| Vec::<T>::from(tensor.get(i))).collect()
+impl<T: Element + Copy> TryFrom<&Tensor> for Vec<Vec<T>> {
+    type Error = TchError;
+    fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
+        let (s1, s2) = tensor.size2()?;
+        let s1 = s1 as usize;
+        let s2 = s2 as usize;
+        let num_elem = s1 * s2;
+        // TODO: Try to remove this intermediary copy.
+        let mut all_elems = vec![T::ZERO; num_elem];
+        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut all_elems, num_elem)?;
+        let out = (0..s1).map(|i1| (0..s2).map(|i2| all_elems[i1 * s2 + i2]).collect()).collect();
+        Ok(out)
     }
 }
 
-impl<T: Element> From<&Tensor> for Vec<Vec<Vec<T>>> {
-    fn from(tensor: &Tensor) -> Vec<Vec<Vec<T>>> {
-        let first_dim = tensor.size()[0];
-        (0..first_dim).map(|i| Vec::<Vec<T>>::from(tensor.get(i))).collect()
+impl<T: Element + Copy> TryFrom<&Tensor> for Vec<Vec<Vec<T>>> {
+    type Error = TchError;
+    fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
+        let (s1, s2, s3) = tensor.size3()?;
+        let s1 = s1 as usize;
+        let s2 = s2 as usize;
+        let s3 = s3 as usize;
+        let num_elem = s1 * s2 * s3;
+        // TODO: Try to remove this intermediary copy.
+        let mut all_elems = vec![T::ZERO; num_elem];
+        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut all_elems, num_elem)?;
+        let out = (0..s1)
+            .map(|i1| {
+                (0..s2)
+                    .map(|i2| (0..s3).map(|i3| all_elems[i1 * s2 * s3 + i2 * s3 + i3]).collect())
+                    .collect()
+            })
+            .collect();
+        Ok(out)
     }
 }
 
-impl<T: Element> From<Tensor> for Vec<T> {
-    fn from(tensor: Tensor) -> Vec<T> {
-        Vec::<T>::from(&tensor)
+impl<T: Element + Copy> TryFrom<Tensor> for Vec<T> {
+    type Error = TchError;
+    fn try_from(tensor: Tensor) -> Result<Self, Self::Error> {
+        Vec::<T>::try_from(&tensor)
     }
 }
 
-impl<T: Element> From<Tensor> for Vec<Vec<T>> {
-    fn from(tensor: Tensor) -> Vec<Vec<T>> {
-        Vec::<Vec<T>>::from(&tensor)
+impl<T: Element + Copy> TryFrom<Tensor> for Vec<Vec<T>> {
+    type Error = TchError;
+    fn try_from(tensor: Tensor) -> Result<Self, Self::Error> {
+        Vec::<Vec<T>>::try_from(&tensor)
     }
 }
 
-impl<T: Element> From<Tensor> for Vec<Vec<Vec<T>>> {
-    fn from(tensor: Tensor) -> Vec<Vec<Vec<T>>> {
-        Vec::<Vec<Vec<T>>>::from(&tensor)
+impl<T: Element + Copy> TryFrom<Tensor> for Vec<Vec<Vec<T>>> {
+    type Error = TchError;
+    fn try_from(tensor: Tensor) -> Result<Self, Self::Error> {
+        Vec::<Vec<Vec<T>>>::try_from(&tensor)
     }
 }
 
@@ -87,13 +115,13 @@ from_tensor!(u8);
 from_tensor!(bool);
 from_tensor!(bf16);
 
-impl<T: Element> TryInto<ndarray::ArrayD<T>> for &Tensor {
-    type Error = ndarray::ShapeError;
+impl<T: Element + Copy> TryInto<ndarray::ArrayD<T>> for &Tensor {
+    type Error = TchError;
 
     fn try_into(self) -> Result<ndarray::ArrayD<T>, Self::Error> {
-        let v: Vec<T> = self.into();
+        let v: Vec<T> = self.try_into()?;
         let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
-        ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)
+        Ok(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)?)
     }
 }
 

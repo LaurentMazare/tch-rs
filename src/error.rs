@@ -56,6 +56,9 @@ pub enum TchError {
     #[error(transparent)]
     Zip(#[from] ZipError),
 
+    #[error(transparent)]
+    NdArray(#[from] ndarray::ShapeError),
+
     /// Errors returned by the safetensors library.
     #[error("safetensors error {path}: {err}")]
     SafeTensorError { path: String, err: safetensors::SafeTensorError },

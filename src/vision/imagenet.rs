@@ -1160,8 +1160,8 @@ pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
         _ => panic!("unexpected tensor shape {tensor:?}"),
     };
     let (values, indexes) = tensor.topk(k, 0, true, true);
-    let values = Vec::<f64>::from(values);
-    let indexes = Vec::<i64>::from(indexes);
+    let values = Vec::<f64>::try_from(values).unwrap();
+    let indexes = Vec::<i64>::try_from(indexes).unwrap();
     values
         .iter()
         .zip(indexes.iter())
