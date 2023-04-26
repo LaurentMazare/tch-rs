@@ -127,7 +127,7 @@ fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Result<(), TchE
     Ok(())
 }
 
-/// Loads all the images in a director.
+/// Loads all the images in a directory.
 pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
     let mut files: Vec<std::fs::DirEntry> = vec![];
     visit_dirs(path.as_ref(), &mut files)?;
