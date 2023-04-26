@@ -133,9 +133,8 @@ pub fn train() -> cpython::PyResult<()> {
                 let index = actions.unsqueeze(-1).to_device(device);
                 log_probs.gather(-1, &index, false).squeeze_dim(-1)
             };
-            let dist_entropy = (-log_probs * probs)
-                .sum_dim_intlist(Some([-1].as_slice()), false, Kind::Float)
-                .mean(Kind::Float);
+            let dist_entropy =
+                (-log_probs * probs).sum_dim_intlist(-1, false, Kind::Float).mean(Kind::Float);
             let advantages = returns.to_device(device) - critic;
             let value_loss = (&advantages * &advantages).mean(Kind::Float);
             let action_loss = (-advantages.detach() * action_log_probs).mean(Kind::Float);
