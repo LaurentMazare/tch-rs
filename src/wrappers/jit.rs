@@ -232,6 +232,7 @@ impl_from!(Vec<String>, StringList);
 impl_from!(Vec<crate::Tensor>, TensorList);
 impl_from!(Vec<IValue>, GenericList);
 impl_from!(Vec<(IValue, IValue)>, GenericDict);
+impl_from!(Object, Object);
 
 impl From<&str> for IValue {
     fn from(s: &str) -> Self {
