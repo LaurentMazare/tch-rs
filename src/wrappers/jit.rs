@@ -82,17 +82,17 @@ impl<T1: Into<IValue>, T2: Into<IValue>, T3: Into<IValue>, T4: Into<IValue>> Fro
 impl<T1, T2, T1E, T2E> TryFrom<IValue> for (T1, T2)
 where
     T1: TryFrom<IValue, Error = T1E>,
-    T1E: Into<TchError>,
+    TchError: From<T1E>,
     T2: TryFrom<IValue, Error = T2E>,
-    T2E: Into<TchError>,
+    TchError: From<T2E>,
 {
     type Error = TchError;
     fn try_from(value: IValue) -> Result<Self, TchError> {
         match value {
             IValue::GenericList(mut vec) | IValue::Tuple(mut vec) => {
                 if vec.len() == 2 {
-                    let t2 = T2::try_from(vec.swap_remove(1)).map_err(Into::into)?;
-                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t2 = T2::try_from(vec.pop().unwrap())?;
+                    let t1 = T1::try_from(vec.pop().unwrap())?;
                     Ok((t1, t2))
                 } else {
                     Err(TchError::Kind(format!(
@@ -112,20 +112,20 @@ where
 impl<T1, T2, T3, T1E, T2E, T3E> TryFrom<IValue> for (T1, T2, T3)
 where
     T1: TryFrom<IValue, Error = T1E>,
-    T1E: Into<TchError>,
+    TchError: From<T1E>,
     T2: TryFrom<IValue, Error = T2E>,
-    T2E: Into<TchError>,
+    TchError: From<T2E>,
     T3: TryFrom<IValue, Error = T3E>,
-    T3E: Into<TchError>,
+    TchError: From<T3E>,
 {
     type Error = TchError;
     fn try_from(value: IValue) -> Result<Self, TchError> {
         match value {
             IValue::GenericList(mut vec) | IValue::Tuple(mut vec) => {
                 if vec.len() == 3 {
-                    let t3 = T3::try_from(vec.swap_remove(2)).map_err(Into::into)?;
-                    let t2 = T2::try_from(vec.swap_remove(1)).map_err(Into::into)?;
-                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t3 = T3::try_from(vec.pop().unwrap())?;
+                    let t2 = T2::try_from(vec.pop().unwrap())?;
+                    let t1 = T1::try_from(vec.pop().unwrap())?;
                     Ok((t1, t2, t3))
                 } else {
                     Err(TchError::Kind(format!(
@@ -145,23 +145,23 @@ where
 impl<T1, T2, T3, T4, T1E, T2E, T3E, T4E> TryFrom<IValue> for (T1, T2, T3, T4)
 where
     T1: TryFrom<IValue, Error = T1E>,
-    T1E: Into<TchError>,
+    TchError: From<T1E>,
     T2: TryFrom<IValue, Error = T2E>,
-    T2E: Into<TchError>,
+    TchError: From<T2E>,
     T3: TryFrom<IValue, Error = T3E>,
-    T3E: Into<TchError>,
+    TchError: From<T3E>,
     T4: TryFrom<IValue, Error = T4E>,
-    T4E: Into<TchError>,
+    TchError: From<T4E>,
 {
     type Error = TchError;
     fn try_from(value: IValue) -> Result<Self, TchError> {
         match value {
             IValue::GenericList(mut vec) | IValue::Tuple(mut vec) => {
                 if vec.len() == 4 {
-                    let t4 = T4::try_from(vec.swap_remove(3)).map_err(Into::into)?;
-                    let t3 = T3::try_from(vec.swap_remove(2)).map_err(Into::into)?;
-                    let t2 = T2::try_from(vec.swap_remove(1)).map_err(Into::into)?;
-                    let t1 = T1::try_from(vec.swap_remove(0)).map_err(Into::into)?;
+                    let t4 = T4::try_from(vec.pop().unwrap())?;
+                    let t3 = T3::try_from(vec.pop().unwrap())?;
+                    let t2 = T2::try_from(vec.pop().unwrap())?;
+                    let t1 = T1::try_from(vec.pop().unwrap())?;
                     Ok((t1, t2, t3, t4))
                 } else {
                     Err(TchError::Kind(format!(
