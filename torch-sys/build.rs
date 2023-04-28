@@ -32,7 +32,7 @@ fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Resul
 }
 
 #[cfg(not(feature = "download-libtorch"))]
-fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<&str> {
+fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
     anyhow::bail!("cannot get pypi wheel url without the ureq feature")
 }
 
