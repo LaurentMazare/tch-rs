@@ -455,3 +455,18 @@ fn set_data() {
     t.set_data(&t.to_kind(tch::Kind::BFloat16));
     assert_eq!(t.kind(), tch::Kind::BFloat16);
 }
+
+#[test]
+fn convert_ndarray() {
+    let t_1d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]);
+    let array_1d: ndarray::ArrayD<i64> = t_1d.as_ref().try_into().unwrap();
+    assert_eq!(array_1d.as_slice(), ndarray::array![0, 1, 2, 3, 4, 5].as_slice());
+
+    let t_2d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]).view((3, 2));
+    let array_2d: ndarray::ArrayD<i64> = t_2d.as_ref().try_into().unwrap();
+    assert_eq!(array_2d.as_slice(), ndarray::array![[0, 1, 2], [3, 4, 5]].as_slice());
+
+    let t_3d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5, 6, 7]).view((2, 2, 2));
+    let array_3d: ndarray::ArrayD<i64> = t_3d.as_ref().try_into().unwrap();
+    assert_eq!(array_3d.as_slice(), ndarray::array![[[0, 1], [2, 3]], [[4, 5], [6, 7]]].as_slice());
+}
