@@ -7,7 +7,7 @@ use std::convert::{TryFrom, TryInto};
 impl<T: Element + Copy> TryFrom<&Tensor> for Vec<T> {
     type Error = TchError;
     fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
-        let num_elem = tensor.numel() as usize;
+        let num_elem = tensor.numel();
         let mut vec = vec![T::ZERO; num_elem];
         tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, num_elem)?;
         Ok(vec)
