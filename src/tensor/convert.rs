@@ -7,17 +7,17 @@ use std::convert::{TryFrom, TryInto};
 impl<T: Element + Copy> TryFrom<&Tensor> for Vec<T> {
     type Error = TchError;
     fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
-        let tensor_dim = tensor.dim();
-        if tensor.dim() > 1 {
+        let size = tensor.size();
+        if size.len() != 1 {
             Err(TchError::Convert(format!(
-                "Attempting to convert a Tensor with {tensor_dim} dimensions to flat vector"
-            )))
-        } else {
-            let numel = tensor.size1()? as usize;
-            let mut vec = vec![T::ZERO; numel];
-            tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, numel)?;
-            Ok(vec)
+                "Attempting to convert a Tensor with {} dimensions to flat vector",
+                size.len()
+            )))?;
         }
+        let numel = size[0] as usize;
+        let mut vec = vec![T::ZERO; numel];
+        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, numel)?;
+        Ok(vec)
     }
 }
 
