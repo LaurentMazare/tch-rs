@@ -1,9 +1,11 @@
 //! DINOv2: Learning Robust Visual Features without Supervision
 //! https://github.com/facebookresearch/dinov2
+// TODO: use swiglu.
 use crate::{nn, IndexOp, Kind, Tensor};
 
-const IMG_SIZE: i64 = 224;
-const PATCH_SIZE: i64 = 16;
+const IMG_SIZE: i64 = 518;
+const PATCH_SIZE: i64 = 14;
+const NUM_CLASSES: i64 = 1000;
 
 #[derive(Debug)]
 struct Attention {
@@ -153,19 +155,19 @@ pub struct DinoVisionTransformer {
 }
 
 impl DinoVisionTransformer {
-    pub fn new(vs: nn::Path, depth: usize, embed_dim: i64, num_heads: i64) -> Self {
-        let patch_embed = PatchEmbed::new(&vs / "patch_embed", IMG_SIZE, PATCH_SIZE, 3, embed_dim);
+    pub fn new(vs: &nn::Path, depth: usize, embed_dim: i64, num_heads: i64) -> Self {
+        let patch_embed = PatchEmbed::new(vs / "patch_embed", IMG_SIZE, PATCH_SIZE, 3, embed_dim);
         let cls_token = vs.var("cls_token", &[1, 1, embed_dim], nn::Init::Const(0.));
         let num_tokens = 1;
         let pos_embed = vs.var(
-            "cls_token",
+            "pos_embed",
             &[1, patch_embed.num_patches + num_tokens, embed_dim],
             nn::Init::Const(0.),
         );
-        let head = nn::linear(&vs / "head", 0, 0, Default::default());
-        let norm = nn::layer_norm(&vs / "norm", vec![embed_dim], Default::default());
+        let head = nn::linear(vs / "head", 2 * embed_dim, NUM_CLASSES, Default::default());
+        let norm = nn::layer_norm(vs / "norm", vec![embed_dim], Default::default());
         let blocks =
-            (0..depth).map(|i| Block::new(&vs / "blocks" / i, embed_dim, num_heads)).collect();
+            (0..depth).map(|i| Block::new(vs / "blocks" / i, embed_dim, num_heads)).collect();
         Self { patch_embed, cls_token, pos_embed, blocks, norm, head }
     }
 
@@ -176,14 +178,14 @@ impl DinoVisionTransformer {
         if npatch == n && w == h {
             return xs.shallow_clone();
         }
-        let class_pos_embed = self.pos_embed.i((.., 0));
+        let class_pos_embed = self.pos_embed.i((.., ..1));
         let patch_pos_embed = self.pos_embed.i((.., 1..));
         let dim = *xs.size().last().unwrap();
         let (w0, h0) = ((w / PATCH_SIZE) as f64 + 0.1, (h / PATCH_SIZE) as f64 + 0.1);
         let patch_pos_embed = patch_pos_embed
             .reshape([1, sqrt_n as i64, sqrt_n as i64, dim])
             .permute([0, 3, 1, 2])
-            .upsample_bicubic2d([], false, w0 / sqrt_n, h0 / sqrt_n);
+            .upsample_bicubic2d([w0 as i64, h0 as i64], false, w0 / sqrt_n, h0 / sqrt_n);
         let patch_pos_embed = patch_pos_embed.permute([0, 2, 3, 1]).reshape([1, -1, dim]);
         Tensor::cat(&[class_pos_embed, patch_pos_embed], 1)
     }
@@ -206,4 +208,8 @@ impl nn::Module for DinoVisionTransformer {
         let xs_norm_clstoken = xs.i((.., 0));
         xs_norm_clstoken.apply(&self.head)
     }
+}
+
+pub fn vit_small(vs: &nn::Path) -> DinoVisionTransformer {
+    DinoVisionTransformer::new(vs, 12, 384, 6)
 }
