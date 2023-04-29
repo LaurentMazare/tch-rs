@@ -206,7 +206,9 @@ impl nn::Module for DinoVisionTransformer {
         }
         let xs = xs.apply(&self.norm);
         let xs_norm_clstoken = xs.i((.., 0));
-        xs_norm_clstoken.apply(&self.head)
+        let xs_norm_patchtokens = xs.i((.., 1..)).mean_dim(1, false, None);
+        let xs = Tensor::concat(&[xs_norm_clstoken, xs_norm_patchtokens], -1);
+        xs.apply(&self.head)
     }
 }
 
