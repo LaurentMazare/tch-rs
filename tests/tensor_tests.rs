@@ -2,7 +2,7 @@ use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
-use tch::{Device, Tensor};
+use tch::{Device, TchError, Tensor};
 
 mod test_utils;
 use test_utils::*;
@@ -457,12 +457,28 @@ fn set_data() {
 }
 
 #[test]
+fn convert_vec() {
+    let t_1d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]);
+    let vec: Vec<i64> = Vec::try_from(t_1d).unwrap();
+    assert_eq!(vec, vec![0, 1, 2, 3, 4, 5]);
+
+    let t_2d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]).view((2, 3));
+    let vec: Result<Vec<i64>, TchError> = Vec::try_from(t_2d);
+    assert!(matches!(vec, Err(TchError::Convert(msg)) if msg==
+             "Attempting to convert a Tensor with 2 dimensions to flat vector"));
+
+    let t_2d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]).view((2, 3));
+    let vec: Vec<Vec<i64>> = Vec::try_from(t_2d).unwrap();
+    assert_eq!(vec, vec![vec![0, 1, 2], vec![3, 4, 5]]);
+}
+
+#[test]
 fn convert_ndarray() {
     let t_1d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]);
     let array_1d: ndarray::ArrayD<i64> = t_1d.as_ref().try_into().unwrap();
     assert_eq!(array_1d.as_slice(), ndarray::array![0, 1, 2, 3, 4, 5].as_slice());
 
-    let t_2d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]).view((3, 2));
+    let t_2d = Tensor::of_slice(&[0, 1, 2, 3, 4, 5]).view((2, 3));
     let array_2d: ndarray::ArrayD<i64> = t_2d.as_ref().try_into().unwrap();
     assert_eq!(array_2d.as_slice(), ndarray::array![[0, 1, 2], [3, 4, 5]].as_slice());
 

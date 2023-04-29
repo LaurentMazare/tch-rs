@@ -7,10 +7,17 @@ use std::convert::{TryFrom, TryInto};
 impl<T: Element + Copy> TryFrom<&Tensor> for Vec<T> {
     type Error = TchError;
     fn try_from(tensor: &Tensor) -> Result<Self, Self::Error> {
-        let num_elem = tensor.numel();
-        let mut vec = vec![T::ZERO; num_elem];
-        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, num_elem)?;
-        Ok(vec)
+        let tensor_dim = tensor.dim();
+        if tensor.dim() > 1 {
+            Err(TchError::Convert(format!(
+                "Attempting to convert a Tensor with {tensor_dim} dimensions to flat vector"
+            )))
+        } else {
+            let numel = tensor.size1()? as usize;
+            let mut vec = vec![T::ZERO; numel];
+            tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, numel)?;
+            Ok(vec)
+        }
     }
 }
 
@@ -118,9 +125,11 @@ impl<T: Element + Copy> TryInto<ndarray::ArrayD<T>> for &Tensor {
     type Error = TchError;
 
     fn try_into(self) -> Result<ndarray::ArrayD<T>, Self::Error> {
-        let v: Vec<T> = self.try_into()?;
+        let num_elem = self.numel();
+        let mut vec = vec![T::ZERO; num_elem];
+        self.f_to_kind(T::KIND)?.f_copy_data(&mut vec, num_elem)?;
         let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
-        Ok(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), v)?)
+        Ok(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), vec)?)
     }
 }
 
