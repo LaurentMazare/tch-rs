@@ -5,6 +5,7 @@ pub mod data;
 
 mod error;
 pub use error::TchError;
+pub type Result<T> = std::result::Result<T, error::TchError>;
 
 pub(crate) mod wrappers;
 pub use wrappers::device::{Cuda, Device};
