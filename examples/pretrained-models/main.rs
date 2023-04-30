@@ -20,7 +20,8 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b4.safetensors
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1536_20.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1024_20.ot
-// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/dinov2_vits14.safetensors
+// In order to obtain the dinov2 weights, e.g. dinov2_vits14.safetensors, run the
+// src/vision/export_dinov2.py
 use anyhow::{bail, Context, Result};
 use tch::nn::ModuleT;
 use tch::vision::{

@@ -1,5 +1,7 @@
 //! DINOv2: Learning Robust Visual Features without Supervision
 //! https://github.com/facebookresearch/dinov2
+//! The weights can be extracted from pre-trained Python models
+//! using `python src/vision/export_dinov2.py`.
 // TODO: use swiglu.
 use crate::{nn, IndexOp, Kind, Tensor};
 
