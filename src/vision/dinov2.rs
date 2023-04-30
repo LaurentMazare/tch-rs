@@ -95,7 +95,7 @@ struct Block {
 impl Block {
     fn new(vs: nn::Path, dim: i64, num_heads: i64) -> Self {
         let norm1 = nn::layer_norm(&vs / "norm1", vec![dim], Default::default());
-        let attn = Attention::new(&vs / "attn", dim, num_heads, false, true);
+        let attn = Attention::new(&vs / "attn", dim, num_heads, true, true);
         let ls1 = LayerScale::new(&vs / "ls1", dim);
         let norm2 = nn::layer_norm(&vs / "norm2", vec![dim], Default::default());
         let mlp = Mlp::new(&vs / "mlp", dim, dim * 4, true);
