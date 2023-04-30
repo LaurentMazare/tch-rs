@@ -20,11 +20,12 @@
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b4.safetensors
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1536_20.ot
 // https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/convmixer1024_20.ot
+// https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/dinov2_vits14.safetensors
 use anyhow::{bail, Context, Result};
 use tch::nn::ModuleT;
 use tch::vision::{
-    alexnet, convmixer, densenet, efficientnet, imagenet, inception, mobilenet, resnet, squeezenet,
-    vgg,
+    alexnet, convmixer, densenet, dinov2, efficientnet, imagenet, inception, mobilenet, resnet,
+    squeezenet, vgg,
 };
 
 pub fn main() -> Result<()> {
@@ -62,6 +63,7 @@ pub fn main() -> Result<()> {
             "efficientnet-b7" => Box::new(efficientnet::b7(&vs.root(), imagenet::CLASS_COUNT)),
             "convmixer1536_20" => Box::new(convmixer::c1536_20(&vs.root(), imagenet::CLASS_COUNT)),
             "convmixer1024_20" => Box::new(convmixer::c1024_20(&vs.root(), imagenet::CLASS_COUNT)),
+            "dinov2_vits14" => Box::new(dinov2::vit_small(&vs.root())),
             s => bail!("unknown model for {s}, use a weight file named e.g. resnet18.ot"),
         };
     vs.load(weights)?;
