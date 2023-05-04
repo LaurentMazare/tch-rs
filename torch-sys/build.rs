@@ -351,7 +351,7 @@ fn main() {
 
         make(&libtorch, use_cuda, use_hip, use_python);
 
-        let link_type = if true { "dylib" } else { "static" };
+        let link_type = if use_python { "dylib" } else { "static" };
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
