@@ -1,5 +1,5 @@
 //! MobileNet V2 implementation.
-//! https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.html
+//! <https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.htmla>
 use crate::nn::{self, ModuleT};
 
 #[allow(clippy::identity_op)]
@@ -76,8 +76,8 @@ pub fn v2(p: &nn::Path, nclasses: i64) -> impl ModuleT {
     ));
     nn::func_t(move |xs, train| {
         xs.apply_t(&features, train)
-            .mean_dim(&[2], false, crate::Kind::Float)
-            .mean_dim(&[2], false, crate::Kind::Float)
+            .mean_dim(Some([2i64].as_slice()), false, crate::Kind::Float)
+            .mean_dim(Some([2i64].as_slice()), false, crate::Kind::Float)
             .apply_t(&classifier, train)
     })
 }

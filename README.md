@@ -8,7 +8,9 @@ rust bindings could then be developed on top of this. The
 [![Build Status](https://github.com/LaurentMazare/tch-rs/workflows/Continuous%20integration/badge.svg)](https://github.com/LaurentMazare/tch-rs/actions)
 [![Latest version](https://img.shields.io/crates/v/tch.svg)](https://crates.io/crates/tch)
 [![Documentation](https://docs.rs/tch/badge.svg)](https://docs.rs/tch)
+[![Dependency Status](https://deps.rs/repo/github/LaurentMazare/tch-rs/status.svg)](https://deps.rs/repo/github/LaurentMazare/tch-rs)
 ![License](https://img.shields.io/crates/l/tch.svg)
+[changelog](https://github.com/LaurentMazare/tch-rs/blob/main/CHANGELOG.md)
 
 
 The code generation part for the C api on top of libtorch comes from
@@ -16,14 +18,14 @@ The code generation part for the C api on top of libtorch comes from
 
 ## Getting Started
 
-This crate requires the C++ PyTorch library (libtorch) in version *v1.11.0* to be available on
+This crate requires the C++ PyTorch library (libtorch) in version *v2.0.0* to be available on
 your system. You can either:
 
 - Use the system-wide libtorch installation (default).
 - Install libtorch manually and let the build script know about it via the `LIBTORCH` environment variable.
 - When a system-wide libtorch can't be found and `LIBTORCH` is not set, the build script will download a pre-built binary version
 of libtorch. By default a CPU version is used. The `TORCH_CUDA_VERSION` environment variable
-can be set to `cu113` in order to get a pre-built binary using CUDA 11.3.
+can be set to `cu117` in order to get a pre-built binary using CUDA 11.7.
 
 ### System-wide Libtorch
 
@@ -41,6 +43,14 @@ is the path to the directory that was created when unzipping the file.
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
+The header files location can also be specified separately from the shared library via
+the following:
+```bash
+# LIBTORCH_INCLUDE must contains `include` directory.
+export LIBTORCH_INCLUDE=/path/to/libtorch/
+# LIBTORCH_LIB must contains `lib` directory.
+export LIBTORCH_LIB=/path/to/libtorch/
+```
 - For Windows users, assuming that `X:\path\to\libtorch` is the unzipped libtorch directory.
     - Navigate to Control Panel -> View advanced system settings -> Environment variables.
     - Create the `LIBTORCH` variable and set it to `X:\path\to\libtorch`.
@@ -56,6 +66,8 @@ $Env:Path += ";X:\path\to\libtorch\lib"
 ### Windows Specific Notes
 
 As per [the pytorch docs](https://pytorch.org/cppdocs/installing.html) the Windows debug and release builds are not ABI-compatible. This could lead to some segfaults if the incorrect version of libtorch is used.
+
+It is recommended to use the MSVC Rust toolchain (e.g. by installing `stable-x86_64-pc-windows-msvc` via rustup) rather than a MinGW based one as PyTorch has compatibilities issues with MinGW.
 
 ## Examples
 
@@ -223,11 +235,30 @@ Further examples include:
   example as well as an A2C implementation that can run on Atari games.
 * A [Transfer Learning Tutorial](https://github.com/LaurentMazare/tch-rs/blob/master/examples/transfer-learning)
   shows how to finetune a pre-trained ResNet model on a very small dataset.
+* A [simplified version of GPT](https://github.com/LaurentMazare/tch-rs/blob/master/examples/min-gpt)
+  similar to minGPT.
+* A [Stable Diffusion](https://github.com/LaurentMazare/diffusers-rs)
+  implementation following the lines of hugginface's diffusers library.
 
 External material:
 * A [tutorial](http://vegapit.com/article/how-to-use-torch-in-rust-with-tch-rs) showing how to use Torch to compute option prices and greeks.
 * [tchrs-opencv-webcam-inference](https://github.com/metobom/tchrs-opencv-webcam-inference) uses `tch-rs` and `opencv` to run inference
   on a webcam feed for some Python trained model based on mobilenet v3.
+
+## FAQ
+
+### What are the best practices for Python to Rust model translations?
+
+See some details in [this thread](https://github.com/LaurentMazare/tch-rs/issues/549#issuecomment-1296840898).
+
+### How to get this to work on a M1/M2 mac?
+
+Check this [issue](https://github.com/LaurentMazare/tch-rs/issues/488).
+
+### Compilation is slow, torch-sys seems to be rebuilt every time cargo gets run.
+See this [issue](https://github.com/LaurentMazare/tch-rs/issues/596), this could
+be caused by rust-analyzer not knowing about the proper environment variables
+like `LIBTORCH` and `LD_LIBRARY_PATH`.
 
 ## License
 `tch-rs` is distributed under the terms of both the MIT license

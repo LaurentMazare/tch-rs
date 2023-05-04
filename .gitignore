@@ -1,6 +1,7 @@
 target/
 _build/
 data/
+.idea/
 gen/.merlin
 **/*.rs.bk
 *.swp
@@ -9,3 +10,7 @@ Cargo.lock
 __pycache__
 *~
 .*~
+.vscode/
+
+*.ot
+*.safetensors

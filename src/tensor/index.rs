@@ -57,7 +57,7 @@ use std::ops::{
     Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct NewAxis;
 
 #[derive(Debug, PartialEq)]
@@ -286,7 +286,7 @@ impl Tensor {
                     Int8 => {}
                     Int => {}
                     _ => {
-                        return Err(TchError::Kind(format!("the kind of tensors used as indices must be one of {:?}, {:?}, {:?}, {:?}", Int64, Int16, Int8, Int)));
+                        return Err(TchError::Kind(format!("the kind of tensors used as indices must be one of {Int64:?}, {Int16:?}, {Int8:?}, {Int:?}")));
                     }
                 }
             }
@@ -305,11 +305,11 @@ impl Tensor {
                 ),
                 Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
                 Narrow(Included(start), Unbounded) => {
-                    let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
+                    let dim_len = curr_tensor.size()[curr_idx as usize];
                     (curr_tensor.narrow(curr_idx, *start, dim_len - *start), curr_idx + 1)
                 }
                 Narrow(Excluded(start), Unbounded) => {
-                    let dim_len = curr_tensor.size()[curr_idx as usize] as i64;
+                    let dim_len = curr_tensor.size()[curr_idx as usize];
                     (curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1), curr_idx + 1)
                 }
                 Narrow(Unbounded, Included(end)) => {

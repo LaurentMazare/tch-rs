@@ -48,13 +48,13 @@ struct OuNoise {
 
 impl OuNoise {
     fn new(mu: f64, theta: f64, sigma: f64, num_actions: usize) -> Self {
-        let state = Tensor::ones(&[num_actions as _], FLOAT_CPU);
+        let state = Tensor::ones([num_actions as _], FLOAT_CPU);
         Self { mu, theta, sigma, state }
     }
 
     fn sample(&mut self) -> &Tensor {
         let dx = self.theta * (self.mu - &self.state)
-            + self.sigma * Tensor::randn(&self.state.size(), FLOAT_CPU);
+            + self.sigma * Tensor::randn(self.state.size(), FLOAT_CPU);
         self.state += dx;
         &self.state
     }
@@ -73,10 +73,10 @@ struct ReplayBuffer {
 impl ReplayBuffer {
     fn new(capacity: usize, num_obs: usize, num_actions: usize) -> Self {
         Self {
-            obs: Tensor::zeros(&[capacity as _, num_obs as _], FLOAT_CPU),
-            next_obs: Tensor::zeros(&[capacity as _, num_obs as _], FLOAT_CPU),
-            rewards: Tensor::zeros(&[capacity as _, 1], FLOAT_CPU),
-            actions: Tensor::zeros(&[capacity as _, num_actions as _], FLOAT_CPU),
+            obs: Tensor::zeros([capacity as _, num_obs as _], FLOAT_CPU),
+            next_obs: Tensor::zeros([capacity as _, num_obs as _], FLOAT_CPU),
+            rewards: Tensor::zeros([capacity as _, 1], FLOAT_CPU),
+            actions: Tensor::zeros([capacity as _, num_actions as _], FLOAT_CPU),
             capacity,
             len: 0,
             i: 0,
@@ -101,7 +101,7 @@ impl ReplayBuffer {
         }
 
         let batch_size = batch_size.min(self.len - 1);
-        let batch_indexes = Tensor::randint((self.len - 2) as _, &[batch_size as _], INT64_CPU);
+        let batch_indexes = Tensor::randint((self.len - 2) as _, [batch_size as _], INT64_CPU);
 
         let states = self.obs.index_select(0, &batch_indexes);
         let next_states = self.next_obs.index_select(0, &batch_indexes);
@@ -304,7 +304,7 @@ pub fn run() -> cpython::PyResult<()> {
     println!("action space: {}", env.action_space());
     println!("observation space: {:?}", env.observation_space());
 
-    let num_obs = env.observation_space().iter().fold(1, |acc, x| acc * x) as usize;
+    let num_obs = env.observation_space().iter().product::<i64>() as usize;
     let num_actions = env.action_space() as usize;
 
     let actor = Actor::new(num_obs, num_actions, ACTOR_LEARNING_RATE);
@@ -317,8 +317,8 @@ pub fn run() -> cpython::PyResult<()> {
 
         let mut total_reward = 0.0;
         for _ in 0..EPISODE_LENGTH {
-            let mut actions = 2.0 * f64::from(agent.actions(&obs));
-            actions = actions.max(-2.0).min(2.0);
+            let mut actions = 2.0 * f64::try_from(agent.actions(&obs)).unwrap();
+            actions = actions.clamp(-2.0, 2.0);
 
             let action_vec = vec![actions];
             let step = env.step(&action_vec)?;
@@ -332,7 +332,7 @@ pub fn run() -> cpython::PyResult<()> {
             obs = step.obs;
         }
 
-        println!("episode {} with total reward of {}", episode, total_reward);
+        println!("episode {episode} with total reward of {total_reward}");
 
         for _ in 0..TRAINING_ITERATIONS {
             agent.train(TRAINING_BATCH_SIZE);

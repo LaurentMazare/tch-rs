@@ -48,7 +48,7 @@ impl std::fmt::Debug for Scalar {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.to_string() {
             Err(_) => write!(f, "err"),
-            Ok(s) => write!(f, "scalar<{}>", s),
+            Ok(s) => write!(f, "scalar<{s}>"),
         }
     }
 }
@@ -100,12 +100,12 @@ mod tests {
     use super::Scalar;
     #[test]
     fn scalar() {
-        let pi = Scalar::float(3.14159265358979);
+        let pi = Scalar::float(std::f64::consts::PI);
         assert_eq!(i64::from(&pi), 3);
-        assert_eq!(f64::from(&pi), 3.14159265358979);
+        assert_eq!(f64::from(&pi), std::f64::consts::PI);
         let leet = Scalar::int(1337);
         assert_eq!(i64::from(&leet), 1337);
         assert_eq!(f64::from(&leet), 1337.);
-        assert_eq!(&format!("{:?}", pi), "scalar<3.14159>");
+        assert_eq!(&format!("{pi:?}"), "scalar<3.14159>");
     }
 }

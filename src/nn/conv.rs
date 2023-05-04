@@ -1,7 +1,43 @@
 //! N-dimensional convolution layers.
 use super::Path;
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
+
+/// How padding is performed by convolution operations
+/// on the edge of the input tensor.
+#[derive(Debug, Clone, Copy)]
+pub enum PaddingMode {
+    Zeros,
+    Reflect,
+    Replicate,
+    Circular,
+}
+
+impl PaddingMode {
+    fn to_string(self) -> &'static str {
+        // This has to match the internal representation used on the C++
+        // side.
+        match self {
+            // The default value when using constant is zero.
+            PaddingMode::Zeros => "constant",
+            PaddingMode::Reflect => "reflect",
+            PaddingMode::Replicate => "replicate",
+            PaddingMode::Circular => "circular",
+        }
+    }
+
+    pub fn f_pad(
+        self,
+        xs: &Tensor,
+        reversed_padding_repeated_twice: &[i64],
+    ) -> Result<Tensor, TchError> {
+        xs.f_pad(reversed_padding_repeated_twice, self.to_string(), None)
+    }
+
+    pub fn pad(self, xs: &Tensor, reversed_padding_repeated_twice: &[i64]) -> Tensor {
+        xs.pad(reversed_padding_repeated_twice, self.to_string(), None)
+    }
+}
 
 /// Generic convolution config.
 #[allow(clippy::upper_case_acronyms)]
@@ -14,6 +50,7 @@ pub struct ConvConfigND<ND> {
     pub bias: bool,
     pub ws_init: super::Init,
     pub bs_init: super::Init,
+    pub padding_mode: PaddingMode,
 }
 
 /// Convolution config using the same parameters on all dimensions.
@@ -27,8 +64,9 @@ impl Default for ConvConfig {
             dilation: 1,
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
+            padding_mode: PaddingMode::Zeros,
         }
     }
 }
@@ -41,8 +79,9 @@ impl Default for ConvConfigND<[i64; 2]> {
             dilation: [1, 1],
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
+            padding_mode: PaddingMode::Zeros,
         }
     }
 }
@@ -58,6 +97,7 @@ pub fn no_bias() -> ConvConfig {
 pub struct Conv<ND> {
     pub ws: Tensor,
     pub bs: Option<Tensor>,
+    reversed_padding_repeated_twice: Vec<i64>,
     config: ConvConfigND<ND>,
 }
 
@@ -83,7 +123,14 @@ pub fn conv<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
     let mut weight_size = vec![out_dim, in_dim / config.groups];
     weight_size.extend(ksizes.as_ref().iter());
     let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
-    Conv { ws, bs, config }
+    let mut reversed_padding_repeated_twice = vec![];
+    for &v in config.padding.as_ref().iter().rev() {
+        reversed_padding_repeated_twice.push(v)
+    }
+    for &v in config.padding.as_ref().iter().rev() {
+        reversed_padding_repeated_twice.push(v)
+    }
+    Conv { ws, bs, config, reversed_padding_repeated_twice }
 }
 
 trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
@@ -104,6 +151,7 @@ trait Create: std::convert::AsRef<[i64]> + std::marker::Sized {
             bias: config.bias,
             ws_init: config.ws_init,
             bs_init: config.bs_init,
+            padding_mode: config.padding_mode,
         };
         conv(vs, in_dim, out_dim, Self::make_array(ksize), config)
     }
@@ -144,13 +192,16 @@ pub fn conv3d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvCon
 
 impl super::module::Module for Conv1D {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        Tensor::conv1d(
-            xs,
+        let (xs, padding) = match self.config.padding_mode {
+            PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0]),
+        };
+        xs.conv1d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }
@@ -158,13 +209,16 @@ impl super::module::Module for Conv1D {
 
 impl super::module::Module for Conv2D {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        Tensor::conv2d(
-            xs,
+        let (xs, padding) = match self.config.padding_mode {
+            PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0, 0]),
+        };
+        xs.conv2d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }
@@ -172,13 +226,16 @@ impl super::module::Module for Conv2D {
 
 impl super::module::Module for Conv3D {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        Tensor::conv3d(
-            xs,
+        let (xs, padding) = match self.config.padding_mode {
+            PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0, 0, 0]),
+        };
+        xs.conv3d(
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.dilation,
+            self.config.stride,
+            padding,
+            self.config.dilation,
             self.config.groups,
         )
     }

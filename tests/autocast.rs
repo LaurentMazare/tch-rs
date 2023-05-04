@@ -7,8 +7,8 @@ mod tests {
     fn autocast_narrows_type() {
         let device = Device::Cuda(0);
 
-        let linear = Tensor::rand(&[10, 10], (Kind::Float, device));
-        let input = Tensor::rand(&[10], (Kind::Float, device));
+        let linear = Tensor::rand([10, 10], (Kind::Float, device));
+        let input = Tensor::rand([10], (Kind::Float, device));
 
         autocast(true, || {
             let output1 = autocast(false, || linear.matmul(&input));

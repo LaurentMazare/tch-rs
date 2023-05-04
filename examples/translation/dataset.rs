@@ -54,11 +54,11 @@ fn filter_prefix(s: &str) -> bool {
 }
 
 fn read_pairs(ilang: &str, olang: &str, max_length: usize) -> Result<Vec<(String, String)>> {
-    let file = File::open(format!("data/{}-{}.txt", ilang, olang))?;
+    let file = File::open(format!("data/{ilang}-{olang}.txt"))?;
     let mut res: Vec<(String, String)> = vec![];
     for line in BufReader::new(file).lines() {
         let line = line?;
-        match line.split("\t").collect::<Vec<_>>().as_slice() {
+        match line.split('\t').collect::<Vec<_>>().as_slice() {
             [lhs, rhs] => {
                 let lhs = normalize(lhs);
                 let rhs = normalize(rhs);
@@ -81,8 +81,8 @@ impl Dataset {
         let mut input_lang = lang::Lang::new(ilang);
         let mut output_lang = lang::Lang::new(olang);
         for (lhs, rhs) in pairs.iter() {
-            input_lang.add_sentence(&lhs);
-            output_lang.add_sentence(&rhs);
+            input_lang.add_sentence(lhs);
+            output_lang.add_sentence(rhs);
         }
         let dataset = Dataset { input_lang, output_lang, pairs };
         Ok(dataset)
@@ -108,7 +108,7 @@ impl Dataset {
         self.pairs
             .iter()
             .map(|(lhs, rhs)| {
-                (to_indexes(&lhs, &self.input_lang), to_indexes(&rhs, &self.output_lang))
+                (to_indexes(lhs, &self.input_lang), to_indexes(rhs, &self.output_lang))
             })
             .collect::<Vec<_>>()
     }

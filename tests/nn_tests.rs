@@ -1,6 +1,9 @@
-use tch::nn::layer_norm;
+use tch::nn::{group_norm, layer_norm};
 use tch::nn::{Module, OptimizerConfig};
 use tch::{kind, nn, Device, Kind, Reduction, Tensor};
+
+mod test_utils;
+use test_utils::*;
 
 #[test]
 fn optimizer_test() {
@@ -20,8 +23,8 @@ fn optimizer_test() {
     let mut linear = nn::linear(vs.root(), 1, 1, cfg);
 
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    let initial_loss: f64 = from(&loss);
+    assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     opt.set_lr(1e-2);
     // Optimization loop.
@@ -30,15 +33,15 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {}", final_loss);
+    let final_loss: f64 = from(&loss);
+    assert!(final_loss < 0.25, "{}", "final loss {final_loss}");
 
     // Reset the weights to their initial values.
     tch::no_grad(|| {
         linear.ws.init(nn::Init::Const(0.));
         linear.bs.as_mut().unwrap().init(nn::Init::Const(0.));
     });
-    let initial_loss2 = f64::from(xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2: f64 = from(&xs.apply(&linear).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2);
 
     // Set the learning-rate to be very small and check that the loss does not change
@@ -49,8 +52,8 @@ fn optimizer_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&linear).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
-    assert!((final_loss - initial_loss) < 1e-5, "final loss {}", final_loss)
+    let final_loss: f64 = from(&loss);
+    assert!((final_loss - initial_loss) < 1e-5, "{}", "final loss {final_loss}")
 }
 
 fn my_module(p: nn::Path, dim: i64) -> impl nn::Module {
@@ -65,8 +68,8 @@ fn gradient_descent_test() {
     let my_module = my_module(vs.root(), 7);
     let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
-        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let ys = Tensor::zeros(&[7], kind::FLOAT_CPU);
+        let xs = Tensor::zeros([7], kind::FLOAT_CPU);
+        let ys = Tensor::zeros([7], kind::FLOAT_CPU);
         let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step(&loss);
     }
@@ -78,15 +81,15 @@ fn gradient_descent_test_clip_norm() {
     let my_module = my_module(vs.root(), 7);
     let mut opt = nn::Sgd::default().build(&vs, 1e-2).unwrap();
     for _idx in 1..50 {
-        let xs = Tensor::zeros(&[7], kind::FLOAT_CPU);
-        let ys = Tensor::ones(&[7], kind::FLOAT_CPU);
+        let xs = Tensor::zeros([7], kind::FLOAT_CPU);
+        let ys = Tensor::ones([7], kind::FLOAT_CPU);
         let loss = (my_module.forward(&xs) - ys).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step_clip_norm(&loss, 0.1);
     }
 }
 
 fn round4(t: Tensor) -> Vec<f64> {
-    let v = Vec::<f64>::from(t);
+    let v = vec_f64_from(&t);
     v.iter().map(|x| (10000. * x).round() / 10000.).collect()
 }
 
@@ -108,22 +111,28 @@ fn gradient_clip_test() {
     let g1 = var1.grad();
     let g2 = var2.grad();
     let g3 = var3.grad();
-    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
-    assert_eq!(Vec::<f64>::from(&g2), [8.0]);
-    assert_eq!(Vec::<f64>::from(&g3), [-8.0, -8.0]);
+    assert_eq!(vec_f64_from(&g1), [2.0, 2.0]);
+    assert_eq!(vec_f64_from(&g2), [8.0]);
+    assert_eq!(vec_f64_from(&g3), [-8.0, -8.0]);
     // Test clipping the gradient by value.
     let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_value(4.0);
-    assert_eq!(Vec::<f64>::from(&g1), [2.0, 2.0]);
-    assert_eq!(Vec::<f64>::from(&g2), [4.0]);
-    assert_eq!(Vec::<f64>::from(&g3), [-4.0, -4.0]);
+    let g1 = var1.grad();
+    let g2 = var2.grad();
+    let g3 = var3.grad();
+    assert_eq!(vec_f64_from(&g1), [2.0, 2.0]);
+    assert_eq!(vec_f64_from(&g2), [4.0]);
+    assert_eq!(vec_f64_from(&g3), [-4.0, -4.0]);
     // Test clipping the gradient norm.
     let loss = all.pow_tensor_scalar(2).sum(Kind::Float);
     opt.zero_grad();
     loss.backward();
     opt.clip_grad_norm(1.0);
+    let g1 = var1.grad();
+    let g2 = var2.grad();
+    let g3 = var3.grad();
     assert_eq!(round4(g1), [0.1414, 0.1414]);
     assert_eq!(round4(g2), [0.5657]);
     assert_eq!(round4(g3), [-0.5657, -0.5657]);
@@ -134,8 +143,20 @@ fn bn_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let bn = nn::batch_norm1d(vs.root(), 40, Default::default());
-    let x = Tensor::randn(&[10, 40], opts);
+    let x = Tensor::randn([10, 40], opts);
     let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 4);
+}
+
+#[test]
+fn bn_test_no_affine() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let bn_cfg = nn::BatchNormConfig { affine: false, ..Default::default() };
+    let bn = nn::batch_norm1d(vs.root(), 40, bn_cfg);
+    let x = Tensor::randn([10, 40], opts);
+    let _y = x.apply_t(&bn, true);
+    assert_eq!(vs.len(), 2);
 }
 
 #[test]
@@ -143,7 +164,16 @@ fn layer_norm_test() {
     let opts = (tch::Kind::Float, tch::Device::Cpu);
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let ln = layer_norm(vs.root(), vec![5, 10, 10], Default::default());
-    let x = Tensor::randn(&[20, 5, 10, 10], opts);
+    let x = Tensor::randn([20, 5, 10, 10], opts);
+    let _y = x.apply(&ln);
+}
+
+#[test]
+fn group_norm_test() {
+    let opts = (tch::Kind::Float, tch::Device::Cpu);
+    let vs = nn::VarStore::new(tch::Device::Cpu);
+    let ln = group_norm(vs.root(), 2, 10, Default::default());
+    let x = Tensor::randn([1, 10, 7], opts);
     let _y = x.apply(&ln);
 }
 
@@ -160,8 +190,8 @@ fn layer_norm_parameters_test() {
     let mut ln = layer_norm(vs.root(), vec![2], Default::default());
 
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let initial_loss = f64::from(&loss);
-    assert!(initial_loss > 1.0, "initial loss {}", initial_loss);
+    let initial_loss: f64 = from(&loss);
+    assert!(initial_loss > 1.0, "{}", "initial loss {initial_loss}");
 
     // Optimization loop.
     for _idx in 1..50 {
@@ -169,8 +199,8 @@ fn layer_norm_parameters_test() {
         opt.backward_step(&loss);
     }
     let loss = xs.apply(&ln).mse_loss(&ys, Reduction::Mean);
-    let final_loss = f64::from(loss);
-    assert!(final_loss < 0.25, "final loss {:?}", final_loss);
+    let final_loss: f64 = from(&loss);
+    assert!(final_loss < 0.25, "{}", "final loss {final_loss:?}");
 
     //     Reset the weights to their initial values.
     tch::no_grad(|| {
@@ -181,7 +211,7 @@ fn layer_norm_parameters_test() {
             bs.init(nn::Init::Const(0.));
         }
     });
-    let initial_loss2 = f64::from(xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
+    let initial_loss2: f64 = from(&xs.apply(&ln).mse_loss(&ys, Reduction::Mean));
     assert_eq!(initial_loss, initial_loss2)
 }
 
@@ -192,18 +222,18 @@ fn gru_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let gru = nn::gru(&vs.root(), input_dim, output_dim, rnn_config);
+    let gru = nn::gru(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
     //
     // step test
-    let input = Tensor::randn(&[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, input_dim], kind::FLOAT_CPU);
     let nn::GRUState(output) = gru.step(&input, &gru.zero_state(batch_dim));
     assert_eq!(output.size(), [layer_dim, batch_dim, output_dim]);
 
     // seq test
-    let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = gru.seq(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
@@ -224,19 +254,19 @@ fn lstm_test(rnn_config: nn::RNNConfig) {
     let input_dim = 2;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let lstm = nn::lstm(&vs.root(), input_dim, output_dim, rnn_config);
+    let lstm = nn::lstm(vs.root(), input_dim, output_dim, rnn_config);
 
     let num_directions = if rnn_config.bidirectional { 2 } else { 1 };
     let layer_dim = rnn_config.num_layers * num_directions;
     //
     // step test
-    let input = Tensor::randn(&[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, input_dim], kind::FLOAT_CPU);
     let nn::LSTMState((h, c)) = lstm.step(&input, &lstm.zero_state(batch_dim));
     assert_eq!(h.size(), [layer_dim, batch_dim, output_dim]);
     assert_eq!(c.size(), [layer_dim, batch_dim, output_dim]);
 
     // seq test
-    let input = Tensor::randn(&[batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randn([batch_dim, seq_len, input_dim], kind::FLOAT_CPU);
     let (output, _) = lstm.seq(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim * num_directions]);
 }
@@ -256,10 +286,10 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let embeddings = nn::embedding(&vs.root(), input_dim, output_dim, embedding_config);
+    let embeddings = nn::embedding(vs.root(), input_dim, output_dim, embedding_config);
 
     // forward test
-    let input = Tensor::randint(10, &[batch_dim, seq_len], kind::INT64_CPU);
+    let input = Tensor::randint(10, [batch_dim, seq_len], kind::INT64_CPU);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [batch_dim, seq_len, output_dim]);
 
@@ -269,7 +299,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&vec![padding_idx; 1]);
+    let input = Tensor::of_slice(&[padding_idx]);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [1, output_dim]);
     assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
@@ -295,10 +325,10 @@ fn linear_test(linear_config: nn::LinearConfig) {
     let input_dim = 10;
     let output_dim = 4;
     let vs = nn::VarStore::new(tch::Device::Cpu);
-    let linear = nn::linear(&vs.root(), input_dim, output_dim, linear_config);
+    let linear = nn::linear(vs.root(), input_dim, output_dim, linear_config);
 
     // forward test
-    let input = Tensor::randint(10, &[batch_dim, input_dim], kind::FLOAT_CPU);
+    let input = Tensor::randint(10, [batch_dim, input_dim], kind::FLOAT_CPU);
     let expected_var_store_size = if linear_config.bias { 2 } else { 1 };
 
     let output = linear.forward(&input);
@@ -315,4 +345,59 @@ fn linear() {
     linear_test(Default::default());
     linear_test(nn::LinearConfig { bias: true, ..Default::default() });
     linear_test(nn::LinearConfig { bias: false, ..Default::default() });
+}
+
+#[test]
+fn pad() {
+    let xs = Tensor::of_slice(&[1., 2., 3.]);
+    let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
+    assert_eq!(vec_f32_from(&padded), [0., 1., 2., 3., 0.]);
+
+    let xs = Tensor::of_slice(&[1., 2., 3.]).view([1, 3]);
+    let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
+    assert_eq!(vec_f32_from(&padded.reshape(-1)), [0., 1., 2., 3., 0.]);
+
+    let xs = Tensor::of_slice(&[1., 2., 3., 4.]).view([1, 2, 2]);
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        vec_f32_from(&padded.reshape(-1)),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        vec_f32_from(&padded.reshape(-1)),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+    let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
+    assert_eq!(
+        vec_f32_from(&padded.reshape(-1)),
+        &[4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0, 4.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 1.0]
+    );
+}
+
+fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
+    let vs = nn::VarStore::new(Device::Cpu);
+    let conv_cfg = nn::ConvConfig { padding: 1, bias: false, padding_mode, ..Default::default() };
+    let mut conv = nn::conv2d(vs.root(), 1, 1, 3, conv_cfg);
+    tch::no_grad(|| {
+        _ = conv.ws.fill_(1.);
+    });
+    conv.forward(xs)
+}
+
+#[test]
+fn conv() {
+    let xs = Tensor::of_slice(&[1f32, 2., 3., 4.]).view([1, 1, 2, 2]); // NCHW
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Zeros);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[10.0, 10.0, 10.0, 10.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Reflect);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[27.0, 24.0, 21.0, 18.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Circular);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[27.0, 24.0, 21.0, 18.0]);
+
+    let conved = apply_conv(&xs, nn::PaddingMode::Replicate);
+    assert_eq!(vec_f32_from(&conved.reshape(-1)), &[18.0, 21.0, 24.0, 27.0]);
 }

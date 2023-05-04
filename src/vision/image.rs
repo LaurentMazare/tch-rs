@@ -4,12 +4,12 @@ use crate::{Device, TchError, Tensor};
 use std::io;
 use std::path::Path;
 
-fn hwc_to_chw(tensor: &Tensor) -> Tensor {
-    tensor.permute(&[2, 0, 1])
+pub(crate) fn hwc_to_chw(tensor: &Tensor) -> Tensor {
+    tensor.permute([2, 0, 1])
 }
 
-fn chw_to_hwc(tensor: &Tensor) -> Tensor {
-    tensor.permute(&[1, 2, 0])
+pub(crate) fn chw_to_hwc(tensor: &Tensor) -> Tensor {
+    tensor.permute([1, 2, 0])
 }
 
 /// Loads an image from a file.
@@ -40,7 +40,7 @@ pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     match t.size().as_slice() {
         [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze_dim(0)).to_device(Device::Cpu), path),
         [_, _, _] => save_hwc(&chw_to_hwc(&t).to_device(Device::Cpu), path),
-        sz => Err(TchError::FileFormat(format!("unexpected size for image tensor {:?}", sz))),
+        sz => Err(TchError::FileFormat(format!("unexpected size for image tensor {sz:?}"))),
     }
 }
 
@@ -127,7 +127,7 @@ fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Result<(), TchE
     Ok(())
 }
 
-/// Loads all the images in a director.
+/// Loads all the images in a directory.
 pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
     let mut files: Vec<std::fs::DirEntry> = vec![];
     visit_dirs(path.as_ref(), &mut files)?;

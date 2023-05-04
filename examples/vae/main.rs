@@ -13,7 +13,7 @@
 use anyhow::Result;
 use tch::{nn, nn::Module, nn::OptimizerConfig, Kind, Reduction, Tensor};
 
-struct VAE {
+struct Vae {
     fc1: nn::Linear,
     fc21: nn::Linear,
     fc22: nn::Linear,
@@ -21,9 +21,9 @@ struct VAE {
     fc4: nn::Linear,
 }
 
-impl VAE {
+impl Vae {
     fn new(vs: &nn::Path) -> Self {
-        VAE {
+        Vae {
             fc1: nn::linear(vs / "fc1", 784, 400, Default::default()),
             fc21: nn::linear(vs / "fc21", 400, 20, Default::default()),
             fc22: nn::linear(vs / "fc22", 400, 20, Default::default()),
@@ -74,7 +74,7 @@ pub fn main() -> Result<()> {
     let device = tch::Device::cuda_if_available();
     let m = tch::vision::mnist::load_dir("data")?;
     let vs = nn::VarStore::new(device);
-    let vae = VAE::new(&vs.root());
+    let vae = Vae::new(&vs.root());
     let mut opt = nn::Adam::default().build(&vs, 1e-3)?;
     for epoch in 1..21 {
         let mut train_loss = 0f64;
@@ -83,13 +83,13 @@ pub fn main() -> Result<()> {
             let (recon_batch, mu, logvar) = vae.forward(&bimages);
             let loss = loss(&recon_batch, &bimages, &mu, &logvar);
             opt.backward_step(&loss);
-            train_loss += f64::from(&loss);
+            train_loss += f64::try_from(&loss)?;
             samples += bimages.size()[0] as f64;
         }
         println!("Epoch: {}, loss: {}", epoch, train_loss / samples);
-        let s = Tensor::randn(&[64, 20], tch::kind::FLOAT_CPU).to(device);
+        let s = Tensor::randn([64, 20], tch::kind::FLOAT_CPU).to(device);
         let s = vae.decode(&s).to(tch::Device::Cpu).view([64, 1, 28, 28]);
-        tch::vision::image::save(&image_matrix(&s, 8)?, format!("s_{}.png", epoch))?
+        tch::vision::image::save(&image_matrix(&s, 8)?, format!("s_{epoch}.png"))?
     }
     Ok(())
 }

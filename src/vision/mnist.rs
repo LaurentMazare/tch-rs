@@ -1,7 +1,7 @@
 //! The MNIST hand-written digit dataset.
 //!
 //! The files can be obtained from the following link:
-//! http://yann.lecun.com/exdb/mnist/
+//! <http://yann.lecun.com/exdb/mnist/>
 use super::dataset::Dataset;
 use crate::{Kind, Tensor};
 use std::fs::File;
@@ -20,7 +20,7 @@ fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> Result<()> {
     if magic_number != expected {
         return Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("incorrect magic number {} != {}", magic_number, expected),
+            format!("incorrect magic number {magic_number} != {expected}"),
         ));
     }
     Ok(())
@@ -52,12 +52,12 @@ fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
 
 fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
     read_labels_(filename)
-        .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
+        .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
 }
 
 fn read_images(filename: &std::path::Path) -> Result<Tensor> {
     read_images_(filename)
-        .map_err(|err| std::io::Error::new(err.kind(), format!("{:?} {}", filename, err)))
+        .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
 }
 
 pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset> {

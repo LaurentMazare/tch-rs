@@ -6,36 +6,67 @@
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
-use std::env;
-use std::fs;
-use std::io;
+use anyhow::Context;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, fs, io};
 
-const TORCH_VERSION: &str = "1.11.0";
+const TORCH_VERSION: &str = "2.0.0";
 
-#[cfg(feature = "curl")]
+#[cfg(feature = "ureq")]
 fn download<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyhow::Result<()> {
-    use curl::easy::Easy;
-    use std::io::Write;
-
     let f = fs::File::create(&target_file)?;
     let mut writer = io::BufWriter::new(f);
-    let mut easy = Easy::new();
-    easy.url(source_url)?;
-    easy.write_function(move |data| Ok(writer.write(data).unwrap()))?;
-    easy.perform()?;
-    let response_code = easy.response_code()?;
-    if response_code == 200 {
-        Ok(())
-    } else {
-        Err(anyhow::anyhow!("Unexpected response code {} for {}", response_code, source_url))
+    let response = ureq::get(source_url).call()?;
+    let response_code = response.status();
+    if response_code != 200 {
+        anyhow::bail!("Unexpected response code {} for {}", response_code, source_url)
     }
+    let mut reader = response.into_reader();
+    std::io::copy(&mut reader, &mut writer)?;
+    Ok(())
 }
 
-#[cfg(not(feature = "curl"))]
+#[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
-    anyhow::bail!("cannot use download without the curl feature")
+    anyhow::bail!("cannot use download without the ureq feature")
+}
+
+#[cfg(not(feature = "download-libtorch"))]
+fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
+    anyhow::bail!("cannot get pypi wheel url without the ureq feature")
+}
+
+#[cfg(feature = "download-libtorch")]
+#[derive(serde::Deserialize, Debug)]
+struct PyPiPackageUrl {
+    url: String,
+    filename: String,
+}
+#[cfg(feature = "download-libtorch")]
+#[derive(serde::Deserialize, Debug)]
+struct PyPiPackage {
+    urls: Vec<PyPiPackageUrl>,
+}
+#[cfg(feature = "download-libtorch")]
+fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
+    let pypi_url = format!("https://pypi.org/pypi/torch/{TORCH_VERSION}/json");
+    let response = ureq::get(pypi_url.as_str()).call()?;
+    let response_code = response.status();
+    if response_code != 200 {
+        anyhow::bail!("Unexpected response code {} for {}", response_code, pypi_url)
+    }
+    let pypi_package: PyPiPackage = response.into_json()?;
+    let urls = pypi_package.urls;
+    let expected_filename = format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl");
+    let url = urls.iter().find_map(|pypi_url: &PyPiPackageUrl| {
+        if pypi_url.filename == expected_filename {
+            Some(pypi_url.url.clone())
+        } else {
+            None
+        }
+    });
+    url.context("Failed to find arm64 macosx wheel from pypi")
 }
 
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
@@ -46,7 +77,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
         let mut file = archive.by_index(i)?;
         #[allow(deprecated)]
         let outpath = outpath.as_ref().join(file.sanitized_name());
-        if !(&*file.name()).ends_with('/') {
+        if !file.name().ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
                 i,
@@ -55,18 +86,23 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p)?;
+                    fs::create_dir_all(p)?;
                 }
             }
             let mut outfile = fs::File::create(&outpath)?;
             io::copy(&mut file, &mut outfile)?;
         }
     }
+
+    // This is is if we're unzipping a python wheel.
+    if outpath.as_ref().join("torch").exists() {
+        fs::rename(outpath.as_ref().join("torch"), outpath.as_ref().join("libtorch"))?;
+    }
     Ok(())
 }
 
 fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
-    println!("cargo:rerun-if-env-changed={}", name);
+    println!("cargo:rerun-if-env-changed={name}");
     env::var(name)
 }
 
@@ -158,25 +194,41 @@ fn prepare_libtorch_dir() -> PathBuf {
                         "cpu" => "%2Bcpu",
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
-                        _ => ""
+                        "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
+                        "cu118" => "%2Bcu118",
+                        _ => panic!("unsupported device {}, TORCH_CUDA_VERSION may be set incorrectly?", device),
                     }
                 ),
-                "macos" => format!(
-                    "https://download.pytorch.org/libtorch/cpu/libtorch-macos-{}.zip",
-                    TORCH_VERSION
-                ),
+                "macos" => {
+                    if env::var("CARGO_CFG_TARGET_ARCH") == Ok(String::from("aarch64")) {
+                        get_pypi_wheel_url_for_aarch64_macosx().expect(
+                            "Failed to retrieve torch from pypi.  Pre-built version of libtorch for apple silicon are not available.
+                            You can install torch manually following the indications from https://github.com/LaurentMazare/tch-rs/issues/629
+                            pip3 install torch=={TORCH_VERSION}
+                            Then update the following environment variables:
+                            export LIBTORCH=$(python3 -c 'import torch; from pathlib import Path; print(Path(torch.__file__).parent)')
+                            export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
+                            ")
+                    } else {
+                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
+                    }
+                },
                 "windows" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
                         "cu102" => "%2Bcu102",
                         "cu113" => "%2Bcu113",
+                        "cu116" => "%2Bcu116",
+                        "cu117" => "%2Bcu117",
+                        "cu118" => "%2Bcu118",
                         _ => ""
                     }),
                 _ => panic!("Unsupported OS"),
             };
 
-            let filename = libtorch_dir.join(format!("v{}.zip", TORCH_VERSION));
+            let filename = libtorch_dir.join(format!("v{TORCH_VERSION}.zip"));
             download(&libtorch_url, &filename).unwrap();
             extract(&filename, &libtorch_dir).unwrap();
         }
@@ -187,6 +239,12 @@ fn prepare_libtorch_dir() -> PathBuf {
 
 fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: bool) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+    let includes: PathBuf = env_var_rerun("LIBTORCH_INCLUDE")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
+    let lib: PathBuf = env_var_rerun("LIBTORCH_LIB")
+        .map(Into::into)
+        .unwrap_or_else(|_| libtorch.as_ref().to_owned());
 
     let python_includes = if use_python {
         let python_include_dir = find_python_include_dir();
@@ -201,6 +259,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: 
     } else {
         "libtch/fake_cuda_dependency.cpp"
     };
+    println!("cargo:rerun-if-changed={}", cuda_dependency);
     println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
     println!("cargo:rerun-if-changed=libtch/torch_api.h");
     println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
@@ -216,12 +275,12 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: 
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(includes.join("include"))
+                .include(includes.join("include/torch/csrc/api/include"))
                 .includes(python_includes)
-                .flag(&format!("-Wl,-rpath={}", libtorch.as_ref().join("lib").display()))
+                .flag(&format!("-Wl,-rpath={}", lib.join("lib").display()))
                 .flag("-std=c++14")
-                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", libtorch_cxx11_abi))
+                .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={libtorch_cxx11_abi}"))
                 .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
                 .file("libtch/torch_api.cpp")
                 .file(cuda_dependency)
@@ -235,8 +294,8 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool, use_python: 
                 .cpp(true)
                 .pic(true)
                 .warnings(false)
-                .include(libtorch.as_ref().join("include"))
-                .include(libtorch.as_ref().join("include/torch/csrc/api/include"))
+                .include(includes.join("include"))
+                .include(includes.join("include/torch/csrc/api/include"))
                 .includes(python_includes)
                 .flag(&format!("-DWITH_PYTHON={}", use_python_flag))
                 .file("libtch/torch_api.cpp")

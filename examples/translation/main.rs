@@ -9,7 +9,6 @@
    https://download.pytorch.org/tutorial/data.zip
    The eng-fra.txt file should be moved in the data directory.
 */
-
 use anyhow::Result;
 use rand::prelude::*;
 use tch::nn::{GRUState, Module, OptimizerConfig, RNN};
@@ -40,8 +39,8 @@ impl Encoder {
     }
 
     fn forward(&self, xs: &Tensor, state: &GRUState) -> (Tensor, GRUState) {
-        let xs = self.embedding.forward(&xs).view([1, -1]);
-        let state = self.gru.step(&xs, &state);
+        let xs = self.embedding.forward(xs).view([1, -1]);
+        let state = self.gru.step(&xs, state);
         (state.value().squeeze_dim(1), state)
     }
 }
@@ -76,7 +75,7 @@ impl Decoder {
         enc_outputs: &Tensor,
         is_training: bool,
     ) -> (Tensor, GRUState) {
-        let xs = self.embedding.forward(&xs).dropout(0.1, is_training).view([1, -1]);
+        let xs = self.embedding.forward(xs).dropout(0.1, is_training).view([1, -1]);
         let attn_weights =
             Tensor::cat(&[&xs, &state.value().squeeze_dim(1)], 1).apply(&self.attn).unsqueeze(0);
         let (sz1, sz2, sz3) = enc_outputs.size3().unwrap();
@@ -84,12 +83,12 @@ impl Decoder {
             enc_outputs.shallow_clone()
         } else {
             let shape = [sz1, MAX_LENGTH as i64 - sz2, sz3];
-            let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+            let zeros = Tensor::zeros(shape, (Kind::Float, self.device));
             Tensor::cat(&[enc_outputs, &zeros], 1)
         };
         let attn_applied = attn_weights.bmm(&enc_outputs).squeeze_dim(1);
         let xs = Tensor::cat(&[&xs, &attn_applied], 1).apply(&self.attn_combine).relu();
-        let state = self.gru.step(&xs, &state);
+        let state = self.gru.step(&xs, state);
         (self.linear.forward(&state.value()).log_softmax(-1, Kind::Float).squeeze_dim(1), state)
     }
 }
@@ -113,6 +112,7 @@ impl Model {
         }
     }
 
+    #[allow(clippy::assign_op_pattern)]
     fn train_loss(&self, input_: &[usize], target: &[usize], rng: &mut ThreadRng) -> Tensor {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
@@ -132,7 +132,7 @@ impl Model {
             let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
             loss = loss + output.nll_loss(&target_tensor);
             let (_, output) = output.topk(1, -1, true, true);
-            if self.decoder_eos == i64::from(&output) as usize {
+            if self.decoder_eos == i64::try_from(&output).unwrap() as usize {
                 break;
             }
             prev = if use_teacher_forcing { target_tensor } else { output };
@@ -155,7 +155,7 @@ impl Model {
         for _i in 0..MAX_LENGTH {
             let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
             let (_, output) = output.topk(1, -1, true, true);
-            let output_ = i64::from(&output) as usize;
+            let output_ = i64::try_from(&output).unwrap() as usize;
             output_seq.push(output_);
             if self.decoder_eos == output_ {
                 break;
@@ -201,19 +201,19 @@ pub fn main() -> Result<()> {
     let mut rng = thread_rng();
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
-    let model = Model::new(vs.root(), &ilang, &olang, HIDDEN_SIZE);
+    let model = Model::new(vs.root(), ilang, olang, HIDDEN_SIZE);
     let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     let mut loss_stats = LossStats::new();
     for idx in 1..=SAMPLES {
         let (input_, target) = pairs.choose(&mut rng).unwrap();
-        let loss = model.train_loss(&input_, &target, &mut rng);
+        let loss = model.train_loss(input_, target, &mut rng);
         opt.backward_step(&loss);
-        loss_stats.update(f64::from(loss) / target.len() as f64);
+        loss_stats.update(f64::try_from(loss)? / target.len() as f64);
         if idx % 1000 == 0 {
             println!("{} {}", idx, loss_stats.avg_and_reset());
             for _pred_index in 1..5 {
                 let (input_, target) = pairs.choose(&mut rng).unwrap();
-                let predict = model.predict(&input_);
+                let predict = model.predict(input_);
                 println!("in:  {}", ilang.seq_to_string(input_));
                 println!("tgt: {}", olang.seq_to_string(target));
                 println!("out: {}", olang.seq_to_string(&predict));

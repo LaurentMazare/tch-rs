@@ -33,15 +33,15 @@ pub fn main() -> Result<()> {
 
     let mut net_vs = tch::nn::VarStore::new(device);
     let net = vgg::vgg16(&net_vs.root(), imagenet::CLASS_COUNT);
-    net_vs.load(&weights).expect(&format!("Could not load weights file {}", &weights));
+    net_vs.load(&weights).unwrap_or_else(|_| panic!("Could not load weights file {}", &weights));
     net_vs.freeze();
 
     let style_img = imagenet::load_image(&style_img)
-        .expect(&format!("Could not load the style file {}", &style_img))
+        .unwrap_or_else(|_| panic!("Could not load the style file {}", &style_img))
         .unsqueeze(0)
         .to_device(device);
     let content_img = imagenet::load_image(&content_img)
-        .expect(&format!("Could not load the content file {}", &content_img))
+        .unwrap_or_else(|_| panic!("Could not load the content file {}", &content_img))
         .unsqueeze(0)
         .to_device(device);
     let max_layer = STYLE_INDEXES.iter().max().unwrap() + 1;
@@ -63,8 +63,8 @@ pub fn main() -> Result<()> {
         let loss = style_loss * STYLE_WEIGHT + content_loss;
         opt.backward_step(&loss);
         if step_idx % 1000 == 0 {
-            println!("{} {}", step_idx, f64::from(loss));
-            imagenet::save_image(&input_var, &format!("out{}.jpg", step_idx))?;
+            println!("{} {}", step_idx, f64::try_from(loss)?);
+            imagenet::save_image(&input_var, format!("out{step_idx}.jpg"))?;
         }
     }
 

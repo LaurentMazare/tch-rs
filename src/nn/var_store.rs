@@ -3,6 +3,7 @@ use super::Init;
 use crate::tensor::Tensor;
 use crate::wrappers::stream::ReadSeekAdapter;
 use crate::{Device, Kind, TchError};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::ops::Div;
@@ -35,7 +36,7 @@ pub struct VarStore {
 }
 
 /// A variable store with an associated path for variables naming.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Path<'a> {
     path: Vec<String>,
     group: usize,
@@ -57,6 +58,51 @@ impl VarStore {
         let variables =
             Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
         VarStore { variables_: Arc::new(Mutex::new(variables)), device }
+    }
+
+    pub fn merge(var_stores: Vec<(VarStore, Option<&str>)>) -> Result<VarStore, TchError> {
+        let mut new_var_store = VarStore::new(Device::Cpu);
+
+        if var_stores.is_empty() {
+            Ok(new_var_store)
+        } else {
+            let mut new_variables =
+                Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
+            let device = var_stores[0].0.device();
+
+            for (var_store, prefix) in var_stores {
+                if var_store.device() != device {
+                    return Err(TchError::Torch(format!(
+                        "All VarStores must be on the same device, got {:?} and {:?}",
+                        device,
+                        var_store.device()
+                    )));
+                }
+                for (var_name, var) in var_store.variables() {
+                    let new_var_name = format!("{}{}", prefix.unwrap_or(""), var_name);
+                    match new_variables.named_variables.entry(new_var_name) {
+                        Occupied(v) => {
+                            return Err(TchError::Torch(format!(
+                                "Duplicate variable name found: {}. Provide a unique prefix to allow merge operation",
+                                v.key(),
+                            )));
+                        }
+                        Vacant(v) => {
+                            v.insert(var);
+                        }
+                    }
+                }
+                for trainable_var in
+                    var_store.variables_.lock().unwrap().trainable_variables.drain(..)
+                {
+                    new_variables.trainable_variables.push(trainable_var);
+                }
+            }
+            new_var_store.variables_ = Arc::new(Mutex::new(new_variables));
+            new_var_store.device = device;
+
+            Ok(new_var_store)
+        }
     }
 
     /// Gets the device for this var-store.
@@ -108,7 +154,10 @@ impl VarStore {
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<(), TchError> {
         let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
-        Tensor::save_multi(named_tensors.as_slice(), path)
+        match path.as_ref().extension().and_then(|x| x.to_str()) {
+            Some("safetensors") => Tensor::write_safetensors(named_tensors.as_slice(), path),
+            Some(_) | None => Tensor::save_multi(named_tensors.as_slice(), path),
+        }
     }
 
     /// Saves the var-store variable values to a stream.
@@ -121,15 +170,20 @@ impl VarStore {
         Tensor::save_multi_to_stream(named_tensors.as_slice(), stream)
     }
 
-    /// Loads the var-store variable values from a file.
-    ///
-    /// Weight values for all the tensors currently stored in the
-    /// var-store are loaded from the given file. Note that the set of
-    /// variables stored in the var-store is not changed, only the values
-    /// for these tensors are modified.
-    pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
-        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
-        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+    fn named_tensors<T: AsRef<std::path::Path>>(
+        &self,
+        path: T,
+    ) -> Result<HashMap<String, Tensor>, TchError> {
+        let named_tensors = match path.as_ref().extension().and_then(|x| x.to_str()) {
+            Some("bin") | Some("pt") => Tensor::loadz_multi_with_device(&path, self.device),
+            Some("safetensors") => Tensor::read_safetensors(path),
+            Some(_) | None => Tensor::load_multi_with_device(&path, self.device),
+        };
+        Ok(named_tensors?.into_iter().collect())
+    }
+
+    fn load_internal<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
+        let named_tensors = self.named_tensors(&path)?;
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
@@ -143,6 +197,28 @@ impl VarStore {
             }
         }
         Ok(())
+    }
+
+    /// Loads the var-store variable values from a file.
+    ///
+    /// Weight values for all the tensors currently stored in the
+    /// var-store are loaded from the given file. Note that the set of
+    /// variables stored in the var-store is not changed, only the values
+    /// for these tensors are modified.
+    pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
+        if self.device != Device::Mps {
+            self.load_internal(path)
+        } else {
+            // Current workaround to allow loading in MPS device.
+            // On new libtorch releases check if direct loading becomes possible and revert
+            // See (https://github.com/LaurentMazare/tch-rs/issues/609#issuecomment-1427071598).
+            self.set_device(Device::Cpu);
+            let or_error = self.load_internal(path);
+            // Be cautious not to early exit so as to ensure that the device is set back to Mps
+            // even on errors.
+            self.set_device(Device::Mps);
+            or_error
+        }
     }
 
     /// Loads the var-store variable values from a stream.
@@ -184,8 +260,7 @@ impl VarStore {
         &mut self,
         path: T,
     ) -> Result<Vec<String>, TchError> {
-        let named_tensors = Tensor::load_multi_with_device(&path, self.device)?;
-        let named_tensors: HashMap<_, _> = named_tensors.into_iter().collect();
+        let named_tensors = self.named_tensors(&path)?;
         let mut variables = self.variables_.lock().unwrap();
         let mut missing_variables = Vec::new();
         for (name, var) in variables.named_variables.iter_mut() {
@@ -292,7 +367,7 @@ impl<'a> Path<'a> {
     pub fn sub<T: std::string::ToString>(&self, s: T) -> Path<'a> {
         let s = s.to_string();
         if s.chars().any(|x| x == SEP) {
-            panic!("sub name cannot contain {} {}", SEP, s);
+            panic!("sub name cannot contain {SEP} {s}");
         }
         let mut path = self.path.clone();
         path.push(s);
@@ -308,9 +383,9 @@ impl<'a> Path<'a> {
         self.var_store.device
     }
 
-    fn path(&self, name: &str) -> String {
+    pub fn path(&self, name: &str) -> String {
         if name.chars().any(|x| x == SEP) {
-            panic!("variable name cannot contain {} {}", SEP, name);
+            panic!("variable name cannot contain {SEP} {name}");
         }
         if self.path.is_empty() {
             name.to_string()
@@ -527,7 +602,32 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized randomly using a
     /// uniform distribution which bounds follow Kaiming initialization.
     pub fn f_kaiming_uniform(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
-        self.f_var(name, dims, Init::KaimingUniform)
+        self.f_var(name, dims, super::init::DEFAULT_KAIMING_UNIFORM)
+    }
+
+    /// Creates a new variable initialized randomly with kaiming normal.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution which stdev follow Kaiming initialization.
+    pub fn f_kaiming_normal(&self, name: &str, dims: &[i64]) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, super::init::DEFAULT_KAIMING_NORMAL)
+    }
+
+    /// Creates a new variable initialized randomly with an orthogonal matrix
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly with an orthogonal
+    /// matrix as described in *Exact solutions to the nonlinear dynamics
+    /// of learning in deep linear neural networks* - Saxe, A. et. al. (2013).
+    /// The input tensor must have at least 2 dimensions, and for tensors
+    /// with more than 2 dimensions the trailing dimensions are flattened.
+    pub fn f_orthogonal(&self, name: &str, dims: &[i64], gain: f64) -> Result<Tensor, TchError> {
+        self.f_var(name, dims, Init::Orthogonal { gain })
     }
 
     /// Creates a new variable initialized by copying an existing tensor.
@@ -638,6 +738,31 @@ impl<'a> Path<'a> {
         self.f_kaiming_uniform(name, dims).unwrap()
     }
 
+    /// Creates a new variable initialized randomly with kaiming normal.
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly using a
+    /// normal distribution which stdev follow Kaiming initialization.
+    pub fn kaiming_normal(&self, name: &str, dims: &[i64]) -> Tensor {
+        self.f_kaiming_normal(name, dims).unwrap()
+    }
+
+    /// Creates a new variable initialized randomly with an orthogonal matrix
+    ///
+    /// The new variable is named according to the name parameter and
+    /// has the specified shape. The variable is trainable, its gradient
+    /// will be tracked.
+    /// The variable uses a float tensor initialized randomly with an orthogonal
+    /// matrix as described in *Exact solutions to the nonlinear dynamics
+    /// of learning in deep linear neural networks* - Saxe, A. et. al. (2013).
+    /// The input tensor must have at least 2 dimensions, and for tensors
+    /// with more than 2 dimensions the trailing dimensions are flattened.
+    pub fn orthogonal(&self, name: &str, dims: &[i64], gain: f64) -> Tensor {
+        self.f_orthogonal(name, dims, gain).unwrap()
+    }
+
     /// Creates a new variable initialized by copying an existing tensor.
     ///
     /// The new variable is named according to the name parameter and
@@ -684,7 +809,17 @@ impl<'a> Entry<'a> {
 
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
-        self.or_var(dims, Init::KaimingUniform)
+        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
+    }
+
+    /// Returns the existing entry if, otherwise create a new variable.
+    pub fn or_kaiming_normal(self, dims: &[i64]) -> Tensor {
+        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
+    }
+
+    /// Returns the existing entry if, otherwise create a new variable.
+    pub fn or_orthogonal(self, dims: &[i64], gain: f64) -> Tensor {
+        self.or_var(dims, Init::Orthogonal { gain })
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -738,6 +873,17 @@ where
 }
 
 impl<'a, T> Div<T> for &Path<'a>
+where
+    T: std::string::ToString,
+{
+    type Output = Path<'a>;
+
+    fn div(self, rhs: T) -> Self::Output {
+        self.sub(rhs.to_string())
+    }
+}
+
+impl<'a, T> Div<T> for Path<'a>
 where
     T: std::string::ToString,
 {

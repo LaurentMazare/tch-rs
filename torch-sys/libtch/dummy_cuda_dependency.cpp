@@ -22,6 +22,8 @@ void dummy_cuda_dependency() {
     at::cuda::warp_size();
   }
   catch (std::exception &e) {
-    std::cerr << "error initializing cuda: " << e.what() << std::endl;
+    if (getenv("TCH_PRINT_CUDA_INIT_ERROR") != nullptr) {
+      std::cerr << "error initializing cuda: " << e.what() << std::endl;
+    }
   }
 }

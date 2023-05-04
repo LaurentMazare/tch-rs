@@ -1,7 +1,8 @@
 //! Numpy support for tensors.
 //!
-//! Format spec:
-//! https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html
+//! This module implements the support for reading and writing `.npy` and `.npz` files. The file
+//! format spec can be found at:
+//! <https://docs.scipy.org/doc/numpy-1.14.2/neps/npy-format.html>.
 use crate::{Kind, TchError, Tensor};
 use std::collections::HashMap;
 use std::fs::File;
@@ -11,26 +12,24 @@ use std::path::Path;
 const NPY_MAGIC_STRING: &[u8] = b"\x93NUMPY";
 const NPY_SUFFIX: &str = ".npy";
 
-fn read_header<R: Read>(buf_reader: &mut BufReader<R>) -> Result<String, TchError> {
+fn read_header<R: Read>(reader: &mut R) -> Result<String, TchError> {
     let mut magic_string = vec![0u8; NPY_MAGIC_STRING.len()];
-    buf_reader.read_exact(&mut magic_string)?;
+    reader.read_exact(&mut magic_string)?;
     if magic_string != NPY_MAGIC_STRING {
         return Err(TchError::FileFormat("magic string mismatch".to_string()));
     }
     let mut version = [0u8; 2];
-    buf_reader.read_exact(&mut version)?;
+    reader.read_exact(&mut version)?;
     let header_len_len = match version[0] {
         1 => 2,
         2 => 4,
-        otherwise => {
-            return Err(TchError::FileFormat(format!("unsupported version {}", otherwise)))
-        }
+        otherwise => return Err(TchError::FileFormat(format!("unsupported version {otherwise}"))),
     };
     let mut header_len = vec![0u8; header_len_len];
-    buf_reader.read_exact(&mut header_len)?;
+    reader.read_exact(&mut header_len)?;
     let header_len = header_len.iter().rev().fold(0_usize, |acc, &v| 256 * acc + v as usize);
     let mut header = vec![0u8; header_len];
-    buf_reader.read_exact(&mut header)?;
+    reader.read_exact(&mut header)?;
     Ok(String::from_utf8_lossy(&header).to_string())
 }
 
@@ -54,14 +53,13 @@ impl Header {
             Kind::Int16 => "i2",
             Kind::Int8 => "i1",
             Kind::Uint8 => "u1",
-            descr => return Err(TchError::FileFormat(format!("unsupported kind {:?}", descr))),
+            descr => return Err(TchError::FileFormat(format!("unsupported kind {descr:?}"))),
         };
         if !shape.is_empty() {
             shape.push(',')
         }
         Ok(format!(
-            "{{'descr': '<{}', 'fortran_order': {}, 'shape': ({}), }}",
-            descr, fortran_order, shape
+            "{{'descr': '<{descr}', 'fortran_order': {fortran_order}, 'shape': ({shape}), }}"
         ))
     }
 
@@ -100,8 +98,7 @@ impl Header {
                     }
                     _ => {
                         return Err(TchError::FileFormat(format!(
-                            "unable to parse header {}",
-                            header
+                            "unable to parse header {header}"
                         )))
                     }
                 }
@@ -114,8 +111,7 @@ impl Header {
                 "True" => true,
                 _ => {
                     return Err(TchError::FileFormat(format!(
-                        "unknown fortran_order {}",
-                        fortran_order
+                        "unknown fortran_order {fortran_order}"
                     )))
                 }
             },
@@ -127,7 +123,7 @@ impl Header {
                     return Err(TchError::FileFormat("empty descr".to_string()));
                 }
                 if descr.starts_with('>') {
-                    return Err(TchError::FileFormat(format!("little-endian descr {}", descr)));
+                    return Err(TchError::FileFormat(format!("little-endian descr {descr}")));
                 }
                 // the only supported types in tensor are:
                 //     float64, float32, float16,
@@ -147,7 +143,7 @@ impl Header {
                     "F" | "F4" => Kind::ComplexFloat,
                     "D" | "F8" => Kind::ComplexDouble,
                     descr => {
-                        return Err(TchError::FileFormat(format!("unrecognized descr {}", descr)))
+                        return Err(TchError::FileFormat(format!("unrecognized descr {descr}")))
                     }
                 }
             }
@@ -173,14 +169,14 @@ impl Header {
 impl crate::Tensor {
     /// Reads a npy file and return the stored tensor.
     pub fn read_npy<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
-        let mut buf_reader = BufReader::new(File::open(path.as_ref())?);
-        let header = read_header(&mut buf_reader)?;
+        let mut reader = File::open(path.as_ref())?;
+        let header = read_header(&mut reader)?;
         let header = Header::parse(&header)?;
         if header.fortran_order {
             return Err(TchError::FileFormat("fortran order not supported".to_string()));
         }
         let mut data: Vec<u8> = vec![];
-        buf_reader.read_to_end(&mut data)?;
+        reader.read_to_end(&mut data)?;
         Tensor::f_of_data_size(&data, &header.shape, header.descr)
     }
 
@@ -190,19 +186,18 @@ impl crate::Tensor {
         let mut zip = zip::ZipArchive::new(zip_reader)?;
         let mut result = vec![];
         for i in 0..zip.len() {
-            let file = zip.by_index(i).unwrap();
+            let mut reader = zip.by_index(i).unwrap();
             let name = {
-                let name = file.name();
+                let name = reader.name();
                 name.strip_suffix(NPY_SUFFIX).unwrap_or(name).to_owned()
             };
-            let mut buf_reader = BufReader::new(file);
-            let header = read_header(&mut buf_reader)?;
+            let header = read_header(&mut reader)?;
             let header = Header::parse(&header)?;
             if header.fortran_order {
                 return Err(TchError::FileFormat("fortran order not supported".to_string()));
             }
             let mut data: Vec<u8> = vec![];
-            buf_reader.read_to_end(&mut data)?;
+            reader.read_to_end(&mut data)?;
             let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
             result.push((name, tensor))
         }
@@ -223,7 +218,7 @@ impl crate::Tensor {
         f.write_all(&[(header.len() % 256) as u8, (header.len() / 256) as u8])?;
         f.write_all(header.as_bytes())?;
         let numel = self.numel();
-        let mut content = vec![0u8; (numel * kind.elt_size_in_bytes()) as usize];
+        let mut content = vec![0u8; numel * kind.elt_size_in_bytes()];
         self.f_copy_data_u8(&mut content, numel)?;
         f.write_all(&content)?;
         Ok(())

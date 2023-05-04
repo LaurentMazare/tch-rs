@@ -14,13 +14,29 @@ impl std::fmt::Debug for COptimizer {
 }
 
 impl COptimizer {
-    pub fn adam(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Result<COptimizer, TchError> {
-        let c_optimizer = unsafe_torch_err!(torch_sys::ato_adam(lr, beta1, beta2, wd));
+    pub fn adam(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> Result<COptimizer, TchError> {
+        let c_optimizer =
+            unsafe_torch_err!(torch_sys::ato_adam(lr, beta1, beta2, wd, eps, amsgrad));
         Ok(COptimizer { c_optimizer })
     }
 
-    pub fn adamw(lr: f64, beta1: f64, beta2: f64, wd: f64) -> Result<COptimizer, TchError> {
-        let c_optimizer = unsafe_torch_err!(torch_sys::ato_adamw(lr, beta1, beta2, wd));
+    pub fn adamw(
+        lr: f64,
+        beta1: f64,
+        beta2: f64,
+        wd: f64,
+        eps: f64,
+        amsgrad: bool,
+    ) -> Result<COptimizer, TchError> {
+        let c_optimizer =
+            unsafe_torch_err!(torch_sys::ato_adamw(lr, beta1, beta2, wd, eps, amsgrad));
         Ok(COptimizer { c_optimizer })
     }
 
@@ -33,7 +49,7 @@ impl COptimizer {
         momentum: f64,
         centered: bool,
     ) -> Result<COptimizer, TchError> {
-        let centered = if centered { 1 } else { 0 };
+        let centered = i32::from(centered);
         let c_optimizer =
             unsafe_torch_err!(torch_sys::ato_rms_prop(lr, alpha, eps, wd, momentum, centered));
         Ok(COptimizer { c_optimizer })
@@ -46,7 +62,7 @@ impl COptimizer {
         wd: f64,
         nesterov: bool,
     ) -> Result<COptimizer, TchError> {
-        let nesterov = if nesterov { 1 } else { 0 };
+        let nesterov = i32::from(nesterov);
         let c_optimizer =
             unsafe_torch_err!(torch_sys::ato_sgd(lr, momentum, dampening, wd, nesterov));
         Ok(COptimizer { c_optimizer })

@@ -23,7 +23,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
     let mut last_label = 0i64;
     let mut result = String::new();
     for _index in 0..SAMPLING_LEN {
-        let input = Tensor::zeros(&[1, labels], (Kind::Float, device));
+        let input = Tensor::zeros([1, labels], (Kind::Float, device));
         let _ = input.narrow(1, last_label, 1).fill_(1.0);
         state = lstm.step(&input, &state);
         let sampled_y = linear
@@ -31,7 +31,7 @@ fn sample(data: &TextData, lstm: &LSTM, linear: &Linear, device: Device) -> Stri
             .squeeze_dim(0)
             .softmax(-1, Kind::Float)
             .multinomial(1, false);
-        last_label = i64::from(sampled_y);
+        last_label = i64::try_from(sampled_y).unwrap();
         result.push(data.label_to_char(last_label))
     }
     result
@@ -42,9 +42,9 @@ pub fn main() -> Result<()> {
     let vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
-    println!("Dataset loaded, {} labels.", labels);
-    let lstm = nn::lstm(&vs.root(), labels, HIDDEN_SIZE, Default::default());
-    let linear = nn::linear(&vs.root(), HIDDEN_SIZE, labels, Default::default());
+    println!("Dataset loaded, {labels} labels.");
+    let lstm = nn::lstm(vs.root(), labels, HIDDEN_SIZE, Default::default());
+    let linear = nn::linear(vs.root(), HIDDEN_SIZE, labels, Default::default());
     let mut opt = nn::Adam::default().build(&vs, LEARNING_RATE)?;
     for epoch in 1..(1 + EPOCHS) {
         let mut sum_loss = 0.;
@@ -58,7 +58,7 @@ pub fn main() -> Result<()> {
                 .view([BATCH_SIZE * SEQ_LEN, labels])
                 .cross_entropy_for_logits(&ys.to_device(device).view([BATCH_SIZE * SEQ_LEN]));
             opt.backward_step_clip(&loss, 0.5);
-            sum_loss += f64::from(loss);
+            sum_loss += f64::try_from(loss)?;
             cnt_loss += 1.0;
         }
         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);

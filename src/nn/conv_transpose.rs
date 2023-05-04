@@ -29,7 +29,7 @@ impl Default for ConvTransposeConfig {
             dilation: 1,
             groups: 1,
             bias: true,
-            ws_init: super::Init::KaimingUniform,
+            ws_init: super::init::DEFAULT_KAIMING_UNIFORM,
             bs_init: super::Init::Const(0.),
         }
     }
@@ -149,11 +149,11 @@ impl super::module::Module for ConvTranspose1D {
             xs,
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.output_padding,
+            self.config.stride,
+            self.config.padding,
+            self.config.output_padding,
             self.config.groups,
-            &self.config.dilation,
+            self.config.dilation,
         )
     }
 }
@@ -164,11 +164,11 @@ impl super::module::Module for ConvTranspose2D {
             xs,
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.output_padding,
+            self.config.stride,
+            self.config.padding,
+            self.config.output_padding,
             self.config.groups,
-            &self.config.dilation,
+            self.config.dilation,
         )
     }
 }
@@ -179,11 +179,11 @@ impl super::module::Module for ConvTranspose3D {
             xs,
             &self.ws,
             self.bs.as_ref(),
-            &self.config.stride,
-            &self.config.padding,
-            &self.config.output_padding,
+            self.config.stride,
+            self.config.padding,
+            self.config.output_padding,
             self.config.groups,
-            &self.config.dilation,
+            self.config.dilation,
         )
     }
 }
