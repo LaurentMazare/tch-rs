@@ -2,7 +2,7 @@ pub mod cuda;
 pub mod io;
 mod traits;
 
-use libc::{c_char, c_int, c_long, c_uchar, c_void, size_t};
+use libc::{c_char, c_int, c_uchar, c_void, size_t};
 pub use traits::{DoubleList, IntList, IntListOption};
 
 #[repr(C)]
@@ -155,8 +155,8 @@ extern "C" {
     pub fn at_context_has_lazy() -> bool;
     pub fn at_context_has_mps() -> bool;
     pub fn at_context_has_ort() -> bool;
-    pub fn at_context_version_cudnn() -> c_long;
-    pub fn at_context_version_cudart() -> c_long;
+    pub fn at_context_version_cudnn() -> i64;
+    pub fn at_context_version_cudart() -> i64;
 }
 
 pub mod c_generated;

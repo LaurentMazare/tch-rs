@@ -1044,14 +1044,14 @@ bool at_context_has_cudnn() {
   return 0;
 }
 
-long at_context_version_cudnn() {
+int64_t at_context_version_cudnn() {
   PROTECT (
   return at::globalContext().versionCuDNN();
   )
   return 0;
 }
 
-long at_context_version_cudart() {
+int64_t at_context_version_cudart() {
   PROTECT (
   return at::globalContext().versionCUDART();
   )
