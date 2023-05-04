@@ -43,11 +43,13 @@ struct PyPiPackageUrl {
     url: String,
     filename: String,
 }
+
 #[cfg(feature = "download-libtorch")]
 #[derive(serde::Deserialize, Debug)]
 struct PyPiPackage {
     urls: Vec<PyPiPackageUrl>,
 }
+
 #[cfg(feature = "download-libtorch")]
 fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
     let pypi_url = format!("https://pypi.org/pypi/torch/{TORCH_VERSION}/json");
@@ -76,7 +78,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         #[allow(deprecated)]
-        let outpath = outpath.as_ref().join(file.sanitized_name());
+            let outpath = outpath.as_ref().join(file.sanitized_name());
         if !file.name().ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
@@ -213,7 +215,7 @@ fn prepare_libtorch_dir() -> PathBuf {
                     } else {
                         format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
                     }
-                },
+                }
                 "windows" => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
@@ -324,27 +326,32 @@ fn main() {
         // only option to start with.
         // https://github.com/rust-lang/cargo/blob/master/CHANGELOG.md
         let use_cuda = libtorch.join("lib").join("libtorch_cuda.so").exists()
-            || libtorch.join("lib").join("torch_cuda.dll").exists();
+            || libtorch.join("lib").join("torch_cuda.dll").exists()
+            || libtorch.join("lib").join("libtorch_cuda.dylib").exists();
         let use_cuda_cu = libtorch.join("lib").join("libtorch_cuda_cu.so").exists()
-            || libtorch.join("lib").join("torch_cuda_cu.dll").exists();
+            || libtorch.join("lib").join("torch_cuda_cu.dll").exists()
+            || libtorch.join("lib").join("libtorch_cuda_cu.dylib").exists();
         let use_cuda_cpp = libtorch.join("lib").join("libtorch_cuda_cpp.so").exists()
-            || libtorch.join("lib").join("torch_cuda_cpp.dll").exists();
+            || libtorch.join("lib").join("torch_cuda_cpp.dll").exists()
+            || libtorch.join("lib").join("libtorch_cuda_cpp.dylib").exists();
         let use_hip = libtorch.join("lib").join("libtorch_hip.so").exists()
-            || libtorch.join("lib").join("torch_hip.dll").exists();
+            || libtorch.join("lib").join("torch_hip.dll").exists()
+            || libtorch.join("lib").join("libtorch_hip.dylib").exists();
 
         let use_python = cfg!(feature = "python");
         if use_python
             && !libtorch.join("lib").join("libtorch_python.so").exists()
             && !libtorch.join("lib").join("torch_python.dll").exists()
+            && !libtorch.join("lib").join("libtorch_python.dylib").exists()
         {
-            panic!("libtorch_python.so or torch_python.dll not found");
+            panic!("libtorch_python.so or torch_python.dll or libtorch_python.dylib not found in {}", libtorch.join("lib").display());
         }
 
         println!("cargo:rustc-link-search=native={}", libtorch.join("lib").display());
 
         make(&libtorch, use_cuda, use_hip, use_python);
 
-        let link_type = if use_python { "dylib" } else { "static" };
+        let link_type = if true { "dylib" } else { "static" };
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
