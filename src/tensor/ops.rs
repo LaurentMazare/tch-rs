@@ -297,7 +297,10 @@ impl PartialEq for Tensor {
             Err(_) => false,
             Ok(v) => match v.f_all() {
                 Err(_) => false,
-                Ok(v) => i64::from(v) > 0,
+                Ok(v) => match i64::try_from(v) {
+                    Err(_) => false,
+                    Ok(v) => v > 0,
+                },
             },
         }
     }

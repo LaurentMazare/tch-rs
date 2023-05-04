@@ -40,6 +40,7 @@ void *at_data_ptr(tensor);
 int at_defined(tensor);
 int at_is_mkldnn(tensor);
 int at_is_sparse(tensor);
+int at_is_contiguous(tensor);
 int at_device(tensor);
 size_t at_dim(tensor);
 void at_shape(tensor, int64_t *);
@@ -87,6 +88,8 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
 /* [at_load_multi_] takes as input an array of allocation [tensors]. */
 void at_load_multi_(tensor *tensors, char **tensor_names, int ntensors, char *filename);
 
+void at_loadz_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
+void at_loadz_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor));
 void at_load_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id);
 void at_load_from_stream_callback(void *stream_ptr, void *data, void (*f)(void *, char *, tensor), bool enable_device_id, int device_id);
@@ -114,11 +117,15 @@ void at_run_backward(tensor *tensors,
 optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay);
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad);
 optimizer ato_adamw(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay);
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad);
 optimizer ato_rms_prop(double learning_rate,
                        double alpha,
                        double eps,
@@ -148,9 +155,44 @@ double ats_to_float(scalar);
 char *ats_to_string(scalar);
 void ats_free(scalar);
 
+bool at_context_has_openmp();
+bool at_context_has_mkl();
+bool at_context_has_lapack();
+bool at_context_has_mkldnn();
+bool at_context_has_magma();
+bool at_context_has_cuda();
+bool at_context_has_cudart();
+bool at_context_has_cudnn();
+long at_context_version_cudnn();
+long at_context_version_cudart();
+bool at_context_has_cusolver();
+bool at_context_has_hip();
+bool at_context_has_ipu();
+bool at_context_has_xla();
+bool at_context_has_lazy();
+bool at_context_has_mps();
+bool at_context_has_ort();
+
+
+/// Returns the number of CUDA devices available.
 int atc_cuda_device_count();
+
+/// Returns true if at least one CUDA device is available.
 int atc_cuda_is_available();
+
+/// Returns true if CUDA is available, and CuDNN is available.
 int atc_cudnn_is_available();
+
+/// Sets the seed for the current GPU.
+void atc_manual_seed(uint64_t seed);
+
+/// Sets the seed for all available GPUs.
+void atc_manual_seed_all(uint64_t seed);
+
+/// Waits for all kernels in all streams on a CUDA device to complete.
+void atc_synchronize(int64_t device_index);
+
+
 int atc_user_enabled_cudnn();
 void atc_set_user_enabled_cudnn(int b);
 void atc_set_benchmark_cudnn(int b);
@@ -218,6 +260,9 @@ void ati_to_double_list(ivalue, double *, int);
 void ati_to_bool_list(ivalue, char *, int);
 void ati_to_tensor_list(ivalue, tensor *, int);
 
+void atm_set_tensor_expr_fuser_enabled(int);
+bool atm_get_tensor_expr_fuser_enabled();
+
 int ati_tag(ivalue);
 
 ivalue ati_object_method_(ivalue i, char *method_name, ivalue *ivalues, int nivalues);
@@ -226,6 +271,7 @@ ivalue ati_object_getattr_(ivalue i, char *attr_name);
 ivalue ati_clone(ivalue);
 void ati_free(ivalue);
 
+/// Enables or disables the graph executor optimizer for the current thread.
 void at_set_graph_executor_optimize(bool);
 
 // for internal use

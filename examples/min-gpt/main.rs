@@ -69,7 +69,7 @@ fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
     let value = linear(p / "value", cfg.n_embd, cfg.n_embd);
     let proj = linear(p / "proj", cfg.n_embd, cfg.n_embd);
     let mask_init =
-        Tensor::ones(&[cfg.block_size, cfg.block_size], (Kind::Float, p.device())).tril(0);
+        Tensor::ones([cfg.block_size, cfg.block_size], (Kind::Float, p.device())).tril(0);
     let mask_init = mask_init.view([1, 1, cfg.block_size, cfg.block_size]);
     // let mask = p.var_copy("mask", &mask_init);
     let mask = mask_init;
@@ -130,7 +130,7 @@ fn sample(data: &TextData, gpt: &impl ModuleT, input: Tensor) -> String {
     for _index in 0..SAMPLING_LEN {
         let logits = input.apply_t(gpt, false).i((0, -1, ..));
         let sampled_y = logits.softmax(-1, Kind::Float).multinomial(1, true);
-        let last_label = i64::from(&sampled_y);
+        let last_label = i64::try_from(&sampled_y).unwrap();
         result.push(data.label_to_char(last_label));
         input = Tensor::cat(&[input, sampled_y.view([1, 1])], 1).narrow(1, 1, BLOCK_SIZE);
     }
@@ -142,7 +142,7 @@ pub fn main() -> Result<()> {
     let mut vs = nn::VarStore::new(device);
     let data = TextData::new("data/input.txt")?;
     let labels = data.labels();
-    println!("Dataset loaded, {} labels.", labels);
+    println!("Dataset loaded, {labels} labels.");
     let cfg = Config {
         vocab_size: labels,
         n_embd: 512,
@@ -175,15 +175,15 @@ pub fn main() -> Result<()> {
                         .view([BATCH_SIZE * BLOCK_SIZE, labels])
                         .cross_entropy_for_logits(&ys.view([BATCH_SIZE * BLOCK_SIZE]));
                     opt.backward_step_clip(&loss, 0.5);
-                    sum_loss += f64::from(loss);
+                    sum_loss += f64::try_from(loss)?;
                     cnt_loss += 1.0;
                     idx += 1;
                     if idx % 10000 == 0 {
                         println!("Epoch: {}   loss: {:5.3}", epoch, sum_loss / cnt_loss);
-                        let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+                        let input = Tensor::zeros([1, BLOCK_SIZE], (Kind::Int64, device));
                         println!("Sample: {}", sample(&data, &gpt, input));
-                        if let Err(err) = vs.save(format!("gpt{}.ot", idx)) {
-                            println!("error while saving {}", err);
+                        if let Err(err) = vs.save(format!("gpt{idx}.ot")) {
+                            println!("error while saving {err}");
                         }
                         sum_loss = 0.;
                         cnt_loss = 0.;
@@ -194,7 +194,7 @@ pub fn main() -> Result<()> {
         "predict" => {
             vs.load(args[2].as_str())?;
             let seqstart = args[3].as_str();
-            let input = Tensor::zeros(&[1, BLOCK_SIZE], (Kind::Int64, device));
+            let input = Tensor::zeros([1, BLOCK_SIZE], (Kind::Int64, device));
             for (idx, c) in seqstart.chars().rev().enumerate() {
                 let idx = idx as i64;
                 if idx >= BLOCK_SIZE {

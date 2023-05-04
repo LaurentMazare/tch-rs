@@ -1,12 +1,12 @@
 //! ResNet implementation.
 //!
 //! See "Deep Residual Learning for Image Recognition" He et al. 2015
-//! https://arxiv.org/abs/1512.03385
+//! <https://arxiv.org/abs/1512.03385>
 use crate::{nn, nn::Conv2D, nn::FuncT, nn::ModuleT};
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: i64) -> Conv2D {
     let conv2d_cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
-    nn::conv2d(&p, c_in, c_out, ksize, conv2d_cfg)
+    nn::conv2d(p, c_in, c_out, ksize, conv2d_cfg)
 }
 
 fn downsample(p: nn::Path, c_in: i64, c_out: i64, stride: i64) -> impl ModuleT {
@@ -60,12 +60,12 @@ fn resnet(
         xs.apply(&conv1)
             .apply_t(&bn1, train)
             .relu()
-            .max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false)
+            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)
             .apply_t(&layer1, train)
             .apply_t(&layer2, train)
             .apply_t(&layer3, train)
             .apply_t(&layer4, train)
-            .adaptive_avg_pool2d(&[1, 1])
+            .adaptive_avg_pool2d([1, 1])
             .flat_view()
             .apply_opt(&fc)
     })
@@ -74,7 +74,7 @@ fn resnet(
 /// Creates a ResNet-18 model.
 ///
 /// Pre-trained weights can be downloaded at the following link:
-/// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot
+/// <https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet18.ot>
 pub fn resnet18(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
     resnet(p, Some(num_classes), 2, 2, 2, 2)
 }
@@ -86,7 +86,7 @@ pub fn resnet18_no_final_layer(p: &nn::Path) -> FuncT<'static> {
 /// Creates a ResNet-34 model.
 ///
 /// Pre-trained weights can be downloaded at the following link:
-/// https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot
+/// <https://github.com/LaurentMazare/tch-rs/releases/download/untagged-eb220e5c19f9bb250bd1/resnet34.ot>
 pub fn resnet34(p: &nn::Path, num_classes: i64) -> FuncT<'static> {
     resnet(p, Some(num_classes), 3, 4, 6, 3)
 }
@@ -147,12 +147,12 @@ fn bottleneck_resnet(
         xs.apply(&conv1)
             .apply_t(&bn1, train)
             .relu()
-            .max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false)
+            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)
             .apply_t(&layer1, train)
             .apply_t(&layer2, train)
             .apply_t(&layer3, train)
             .apply_t(&layer4, train)
-            .adaptive_avg_pool2d(&[1, 1])
+            .adaptive_avg_pool2d([1, 1])
             .flat_view()
             .apply_opt(&fc)
     })

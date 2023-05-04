@@ -61,10 +61,14 @@ impl std::fmt::Debug for Tensor {
                         | Kind::ComplexDouble => (false, false),
                     };
                     match (self.size().as_slice(), is_int, is_float) {
-                        ([], true, false) => write!(f, "[{}]", i64::from(self)),
-                        ([s], true, false) if *s < 10 => write!(f, "{:?}", Vec::<i64>::from(self)),
-                        ([], false, true) => write!(f, "[{}]", f64::from(self)),
-                        ([s], false, true) if *s < 10 => write!(f, "{:?}", Vec::<f64>::from(self)),
+                        ([], true, false) => write!(f, "[{}]", i64::try_from(self).unwrap()),
+                        ([s], true, false) if *s < 10 => {
+                            write!(f, "{:?}", Vec::<i64>::try_from(self).unwrap())
+                        }
+                        ([], false, true) => write!(f, "[{}]", f64::try_from(self).unwrap()),
+                        ([s], false, true) if *s < 10 => {
+                            write!(f, "{:?}", Vec::<f64>::try_from(self).unwrap())
+                        }
                         _ => write!(f, "Tensor[{:?}, {:?}]", self.size(), kind),
                     }
                 }
@@ -259,11 +263,11 @@ impl FloatFormatter {
         // Rather than containing all values, this should only include
         // values that end up being displayed according to [threshold].
         let nonzero_finite_vals = {
-            let t = t.reshape(&[-1]);
+            let t = t.reshape([-1]);
             t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
         };
 
-        let values = Vec::<f64>::from(&nonzero_finite_vals);
+        let values = Vec::<f64>::try_from(&nonzero_finite_vals).unwrap();
         if nonzero_finite_vals.numel() > 0 {
             let nonzero_finite_abs = nonzero_finite_vals.abs();
             let nonzero_finite_min = nonzero_finite_abs.min().double_value(&[]);
@@ -299,7 +303,7 @@ impl TensorFormatter for FloatFormatter {
             if v.is_finite() {
                 write!(f, "{v:width$.0}.", v = v, width = max_w - 1)
             } else {
-                write!(f, "{v:width$.0}", v = v, width = max_w)
+                write!(f, "{v:max_w$.0}")
             }
         } else {
             write!(f, "{v:width$.prec$}", v = v, width = max_w, prec = self.precision)
@@ -311,7 +315,7 @@ impl TensorFormatter for FloatFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
@@ -321,7 +325,7 @@ impl TensorFormatter for IntFormatter {
     type Elem = i64;
 
     fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
-        write!(f, "{v:width$}", width = max_w)
+        write!(f, "{v:max_w$}")
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
@@ -329,7 +333,7 @@ impl TensorFormatter for IntFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
@@ -340,7 +344,7 @@ impl TensorFormatter for BoolFormatter {
 
     fn fmt<T: std::fmt::Write>(&self, v: Self::Elem, max_w: usize, f: &mut T) -> std::fmt::Result {
         let v = if v { "true" } else { "false" };
-        write!(f, "{v:width$}", width = max_w)
+        write!(f, "{v:max_w$}")
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
@@ -348,7 +352,7 @@ impl TensorFormatter for BoolFormatter {
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::from(tensor)
+        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
     }
 }
 
@@ -357,7 +361,7 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
     if size.is_empty() {
         t.shallow_clone()
     } else if size.len() == 1 {
-        if size[0] > 2 * edge_items as i64 {
+        if size[0] > 2 * edge_items {
             Tensor::cat(
                 &[t.slice(0, None, Some(edge_items), 1), t.slice(0, Some(-edge_items), None, 1)],
                 0,
@@ -365,7 +369,7 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
         } else {
             t.shallow_clone()
         }
-    } else if size[0] > 2 * edge_items as i64 {
+    } else if size[0] > 2 * edge_items {
         let mut vs: Vec<_> =
             (0..edge_items).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
         for i in (size[0] - edge_items)..size[0] {
@@ -411,8 +415,8 @@ impl std::fmt::Display for Tensor {
                 BasicKind::Complex => {}
             };
             let kind = match self.f_kind() {
-                Ok(kind) => format!("{:?}", kind),
-                Err(err) => format!("{:?}", err),
+                Ok(kind) => format!("{kind:?}"),
+                Err(err) => format!("{err:?}"),
             };
             write!(f, "Tensor[{:?}, {}]", self.size(), kind)
         } else {

@@ -63,8 +63,8 @@ pub fn main() -> Result<()> {
         let loss = style_loss * STYLE_WEIGHT + content_loss;
         opt.backward_step(&loss);
         if step_idx % 1000 == 0 {
-            println!("{} {}", step_idx, f64::from(loss));
-            imagenet::save_image(&input_var, &format!("out{}.jpg", step_idx))?;
+            println!("{} {}", step_idx, f64::try_from(loss)?);
+            imagenet::save_image(&input_var, format!("out{step_idx}.jpg"))?;
         }
     }
 

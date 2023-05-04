@@ -28,13 +28,13 @@ impl Dataset {
 pub fn random_flip(t: &Tensor) -> Tensor {
     let size = t.size();
     if size.len() != 4 {
-        panic!("unexpected shape for tensor {:?}", t)
+        panic!("unexpected shape for tensor {t:?}")
     }
     let output = t.zeros_like();
     for batch_index in 0..size[0] {
         let mut output_view = output.i(batch_index);
         let t_view = t.i(batch_index);
-        let src = if rand::random() { t_view } else { t_view.flip(&[2]) };
+        let src = if rand::random() { t_view } else { t_view.flip([2]) };
         output_view.copy_(&src)
     }
     output
@@ -46,11 +46,11 @@ pub fn random_flip(t: &Tensor) -> Tensor {
 pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
     let size = t.size();
     if size.len() != 4 {
-        panic!("unexpected shape for tensor {:?}", t)
+        panic!("unexpected shape for tensor {t:?}")
     }
     let sz_h = size[2];
     let sz_w = size[3];
-    let padded = t.reflection_pad2d(&[pad, pad, pad, pad]);
+    let padded = t.reflection_pad2d([pad, pad, pad, pad]);
     let output = t.zeros_like();
     for bindex in 0..size[0] {
         let mut output_view = output.i(bindex);
@@ -63,11 +63,11 @@ pub fn random_crop(t: &Tensor, pad: i64) -> Tensor {
 }
 
 /// Applies cutout: randomly remove some square areas in the original images.
-/// https://arxiv.org/abs/1708.04552
+/// <https://arxiv.org/abs/1708.04552>
 pub fn random_cutout(t: &Tensor, sz: i64) -> Tensor {
     let size = t.size();
     if size.len() != 4 || sz > size[2] || sz > size[3] {
-        panic!("unexpected shape for tensor {:?} {}", t, sz)
+        panic!("unexpected shape for tensor {t:?} {sz}")
     }
     let mut output = t.zeros_like();
     output.copy_(t);

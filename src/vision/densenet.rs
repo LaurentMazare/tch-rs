@@ -1,15 +1,15 @@
 //! DenseNet implementation.
 //!
 //! See "Densely Connected Convolutional Networks", Huang et al 2016.
-//! https://arxiv.org/abs/1608.06993
+//! <https://arxiv.org/abs/1608.06993>
 //!
 //! Pre-trained weights for the densenet-121 variants can be found here:
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/densenet121.ot
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/densenet121.ot>
 use crate::{nn, nn::Conv2D, nn::ModuleT, Tensor};
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: i64) -> Conv2D {
     let conv2d_cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
-    nn::conv2d(&p, c_in, c_out, ksize, conv2d_cfg)
+    nn::conv2d(p, c_in, c_out, ksize, conv2d_cfg)
 }
 
 fn dense_layer(p: nn::Path, c_in: i64, bn_size: i64, growth: i64) -> impl ModuleT {
@@ -58,7 +58,7 @@ fn densenet(
     let mut seq = nn::seq_t()
         .add(conv2d(&fp / "conv0", 3, c_in, 7, 3, 2))
         .add(nn::batch_norm2d(&fp / "norm0", c_in, Default::default()))
-        .add_fn(|xs| xs.relu().max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false));
+        .add_fn(|xs| xs.relu().max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false));
     let mut nfeat = c_in;
     for (i, &nlayers) in block_config.iter().enumerate() {
         seq = seq.add(dense_block(
@@ -75,7 +75,7 @@ fn densenet(
         }
     }
     seq.add(nn::batch_norm2d(&fp / "norm5", nfeat, Default::default()))
-        .add_fn(|xs| xs.relu().avg_pool2d(&[7, 7], &[1, 1], &[0, 0], false, true, 1).flat_view())
+        .add_fn(|xs| xs.relu().avg_pool2d([7, 7], [1, 1], [0, 0], false, true, 1).flat_view())
         .add(nn::linear(p / "classifier", nfeat, c_out, Default::default()))
 }
 

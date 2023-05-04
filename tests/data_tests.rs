@@ -1,6 +1,9 @@
 use std::io::Write;
 use tch::{data, IndexOp, Tensor};
 
+mod test_utils;
+use test_utils::*;
+
 #[test]
 fn iter2() {
     let bsize: usize = 4;
@@ -8,8 +11,8 @@ fn iter2() {
     let xs = Tensor::of_slice(&vs);
     let ys = Tensor::of_slice(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
     for (batch_xs, batch_ys) in data::Iter2::new(&xs, &ys, bsize as i64) {
-        let xs = Vec::<i64>::from(&batch_xs);
-        let ys = Vec::<i64>::from(&batch_ys);
+        let xs = vec_i64_from(&batch_xs);
+        let ys = vec_i64_from(&batch_ys);
         assert_eq!(xs.len(), bsize);
         assert_eq!(ys.len(), bsize);
         for i in 0..bsize {
@@ -21,8 +24,8 @@ fn iter2() {
     }
     let mut all_in_order = true;
     for (batch_xs, batch_ys) in data::Iter2::new(&xs, &ys, bsize as i64).shuffle() {
-        let xs = Vec::<i64>::from(&batch_xs);
-        let ys = Vec::<i64>::from(&batch_ys);
+        let xs = vec_i64_from(&batch_xs);
+        let ys = vec_i64_from(&batch_ys);
         assert_eq!(xs.len(), bsize);
         assert_eq!(ys.len(), bsize);
         for i in 0..bsize {
@@ -32,7 +35,7 @@ fn iter2() {
             }
         }
     }
-    assert_eq!(all_in_order, false)
+    assert!(!all_in_order)
 }
 
 #[test]
@@ -49,8 +52,8 @@ fn text() {
     for xs in text_data.iter_shuffle(2, 5) {
         let first_column_plus_one = (xs.i((.., ..1)) + 1).fmod(10);
         let second_column = xs.i((.., 1..=1));
-        let err = i64::from(
-            (first_column_plus_one - second_column).pow_tensor_scalar(2).sum(tch::Kind::Float),
+        let err: i64 = from(
+            &(first_column_plus_one - second_column).pow_tensor_scalar(2).sum(tch::Kind::Float),
         );
         assert_eq!(err, 0)
     }

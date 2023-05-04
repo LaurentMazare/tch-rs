@@ -37,7 +37,7 @@ fn fast_resnet(vs: &nn::Path) -> SequentialT {
         .add_fn(|x| x.max_pool2d_default(2))
         .add(layer(&vs.sub("layer2"), 256, 512))
         .add_fn(|x| x.max_pool2d_default(4).flat_view())
-        .add(nn::linear(&vs.sub("linear"), 512, 10, Default::default()))
+        .add(nn::linear(vs.sub("linear"), 512, 10, Default::default()))
         .add_fn(|x| x * 0.125)
 }
 

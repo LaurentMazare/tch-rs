@@ -38,8 +38,8 @@ pub fn run() -> Result<()> {
         println!(
             "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
             epoch,
-            f64::from(&loss),
-            100. * f64::from(&test_accuracy),
+            f64::try_from(&loss)?,
+            100. * f64::try_from(&test_accuracy)?,
         );
     }
     Ok(())

@@ -66,22 +66,51 @@ pub struct Adam {
     pub beta1: f64,
     pub beta2: f64,
     pub wd: f64,
+    pub eps: f64,
+    pub amsgrad: bool,
 }
 
 impl Default for Adam {
     fn default() -> Self {
-        Adam { beta1: 0.9, beta2: 0.999, wd: 0. }
+        Adam { beta1: 0.9, beta2: 0.999, wd: 0., eps: 1e-8, amsgrad: false }
     }
 }
 
 /// Creates the configuration for the Adam optimizer.
 pub fn adam(beta1: f64, beta2: f64, wd: f64) -> Adam {
-    Adam { beta1, beta2, wd }
+    Adam { beta1, beta2, wd, eps: 1e-8, amsgrad: false }
+}
+
+impl Adam {
+    pub fn beta1(mut self, b: f64) -> Self {
+        self.beta1 = b;
+        self
+    }
+
+    pub fn beta2(mut self, b: f64) -> Self {
+        self.beta2 = b;
+        self
+    }
+
+    pub fn wd(mut self, w: f64) -> Self {
+        self.wd = w;
+        self
+    }
+
+    pub fn eps(mut self, e: f64) -> Self {
+        self.eps = e;
+        self
+    }
+
+    pub fn amsgrad(mut self, a: bool) -> Self {
+        self.amsgrad = a;
+        self
+    }
 }
 
 impl OptimizerConfig for Adam {
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
-        COptimizer::adam(lr, self.beta1, self.beta2, self.wd)
+        COptimizer::adam(lr, self.beta1, self.beta2, self.wd, self.eps, self.amsgrad)
     }
 }
 
@@ -91,22 +120,51 @@ pub struct AdamW {
     pub beta1: f64,
     pub beta2: f64,
     pub wd: f64,
+    pub eps: f64,
+    pub amsgrad: bool,
 }
 
 impl Default for AdamW {
     fn default() -> Self {
-        AdamW { beta1: 0.9, beta2: 0.999, wd: 0.01 }
+        AdamW { beta1: 0.9, beta2: 0.999, wd: 0.01, eps: 1e-8, amsgrad: false }
     }
 }
 
 /// Creates the configuration for the AdamW optimizer.
 pub fn adamw(beta1: f64, beta2: f64, wd: f64) -> AdamW {
-    AdamW { beta1, beta2, wd }
+    AdamW { beta1, beta2, wd, eps: 1e-8, amsgrad: false }
+}
+
+impl AdamW {
+    pub fn beta1(mut self, b: f64) -> Self {
+        self.beta1 = b;
+        self
+    }
+
+    pub fn beta2(mut self, b: f64) -> Self {
+        self.beta2 = b;
+        self
+    }
+
+    pub fn wd(mut self, w: f64) -> Self {
+        self.wd = w;
+        self
+    }
+
+    pub fn eps(mut self, e: f64) -> Self {
+        self.eps = e;
+        self
+    }
+
+    pub fn amsgrad(mut self, a: bool) -> Self {
+        self.amsgrad = a;
+        self
+    }
 }
 
 impl OptimizerConfig for AdamW {
     fn build_copt(&self, lr: f64) -> Result<COptimizer, TchError> {
-        COptimizer::adamw(lr, self.beta1, self.beta2, self.wd)
+        COptimizer::adamw(lr, self.beta1, self.beta2, self.wd, self.eps, self.amsgrad)
     }
 }
 
@@ -173,7 +231,7 @@ impl Optimizer {
             for var in v.trainable_variables.iter() {
                 norms.push(var.tensor.grad().norm());
             }
-            let total_norm = f64::from(Tensor::stack(&norms, 0).norm());
+            let total_norm = f64::try_from(Tensor::stack(&norms, 0).norm()).unwrap();
             let clip_coef = max / (total_norm + 1e-6);
             if clip_coef < 1.0 {
                 for var in v.trainable_variables.iter() {

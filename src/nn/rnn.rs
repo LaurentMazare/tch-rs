@@ -1,5 +1,5 @@
 //! Recurrent Neural Networks
-use crate::{Device, Kind, Tensor};
+use crate::{Device, Tensor};
 use std::borrow::Borrow;
 
 /// Trait for Recurrent Neural Networks.
@@ -97,12 +97,12 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
             let in_dim = if layer_idx == 0 { in_dim } else { hidden_dim * num_directions };
             let suffix = if direction_idx == 1 { "_reverse" } else { "" };
             let w_ih = vs.var(
-                &format!("weight_ih_l{}{}", layer_idx, suffix),
+                &format!("weight_ih_l{layer_idx}{suffix}"),
                 &[gate_dim, in_dim],
                 c.w_ih_init,
             );
             let w_hh = vs.var(
-                &format!("weight_hh_l{}{}", layer_idx, suffix),
+                &format!("weight_hh_l{layer_idx}{suffix}"),
                 &[gate_dim, hidden_dim],
                 c.w_hh_init,
             );
@@ -110,12 +110,12 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
             flat_weights.push(w_hh);
             if c.has_biases {
                 let b_ih = vs.var(
-                    &format!("bias_ih_l{}{}", layer_idx, suffix),
+                    &format!("bias_ih_l{layer_idx}{suffix}"),
                     &[gate_dim],
                     c.b_ih_init.unwrap(),
                 );
                 let b_hh = vs.var(
-                    &format!("bias_hh_l{}{}", layer_idx, suffix),
+                    &format!("bias_hh_l{layer_idx}{suffix}"),
                     &[gate_dim],
                     c.b_hh_init.unwrap(),
                 );
@@ -129,7 +129,7 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
 
 /// A Long Short-Term Memory (LSTM) layer.
 ///
-/// https://en.wikipedia.org/wiki/Long_short-term_memory
+/// <https://en.wikipedia.org/wiki/Long_short-term_memory>
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct LSTM {
@@ -174,7 +174,7 @@ impl RNN for LSTM {
         let num_directions = if self.config.bidirectional { 2 } else { 1 };
         let layer_dim = self.config.num_layers * num_directions;
         let shape = [layer_dim, batch_dim, self.hidden_dim];
-        let zeros = Tensor::zeros(&shape, (Kind::Float, self.device));
+        let zeros = Tensor::zeros(shape, (self.flat_weights[0].kind(), self.device));
         LSTMState((zeros.shallow_clone(), zeros.shallow_clone()))
     }
 
@@ -214,7 +214,7 @@ impl GRUState {
 
 /// A Gated Recurrent Unit (GRU) layer.
 ///
-/// https://en.wikipedia.org/wiki/Gated_recurrent_unit
+/// <https://en.wikipedia.org/wiki/Gated_recurrent_unit>
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct GRU {
@@ -259,7 +259,7 @@ impl RNN for GRU {
         let num_directions = if self.config.bidirectional { 2 } else { 1 };
         let layer_dim = self.config.num_layers * num_directions;
         let shape = [layer_dim, batch_dim, self.hidden_dim];
-        GRUState(Tensor::zeros(&shape, (Kind::Float, self.device)))
+        GRUState(Tensor::zeros(shape, (self.flat_weights[0].kind(), self.device)))
     }
 
     fn step(&self, input: &Tensor, in_state: &GRUState) -> GRUState {

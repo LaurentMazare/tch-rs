@@ -1,7 +1,7 @@
 //! ConvMixer implementation.
 //!
 //! See "Patches Are All You Need?", submitted to ICLR'21
-//! https://openreview.net/forum?id=TVHS5Y4dNvM
+//! <https://openreview.net/forum?id=TVHS5Y4dNvM>
 use crate::nn;
 
 fn block(p: nn::Path, dim: i64, kernel_size: i64) -> impl nn::ModuleT {
@@ -18,8 +18,8 @@ fn block(p: nn::Path, dim: i64, kernel_size: i64) -> impl nn::ModuleT {
     })
 }
 
-fn convmixer<'a>(
-    p: &'a nn::Path,
+fn convmixer(
+    p: &nn::Path,
     nclasses: i64,
     dim: i64,
     depth: i64,
@@ -36,14 +36,14 @@ fn convmixer<'a>(
         for block in blocks.iter() {
             xs = xs.apply_t(block, train)
         }
-        xs.adaptive_avg_pool2d(&[1, 1]).flat_view().apply(&fc)
+        xs.adaptive_avg_pool2d([1, 1]).flat_view().apply(&fc)
     })
 }
 
-pub fn c1536_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1536_20(p: &nn::Path, nclasses: i64) -> nn::FuncT<'static> {
     convmixer(p, nclasses, 1536, 20, 9, 7)
 }
 
-pub fn c1024_20<'a>(p: &'a nn::Path, nclasses: i64) -> nn::FuncT<'static> {
+pub fn c1024_20(p: &nn::Path, nclasses: i64) -> nn::FuncT<'static> {
     convmixer(p, nclasses, 1024, 20, 9, 14)
 }

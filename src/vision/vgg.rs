@@ -1,9 +1,9 @@
 //! VGG models.
 //!
 //! Pre-trained weights for the vgg-13/16/19 models can be found here:
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg13.ot
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot
-//! https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg19.ot
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg13.ot>
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot>
+//! <https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg19.ot>
 use crate::{nn, nn::Conv2D, nn::SequentialT};
 
 // Each list element contains multiple convolutions with some specified number
@@ -36,7 +36,7 @@ fn layers_e() -> Vec<Vec<i64>> {
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64) -> Conv2D {
     let conv2d_cfg = nn::ConvConfig { stride: 1, padding: 1, ..Default::default() };
-    nn::conv2d(&p, c_in, c_out, 3, conv2d_cfg)
+    nn::conv2d(p, c_in, c_out, 3, conv2d_cfg)
 }
 
 fn vgg(p: &nn::Path, cfg: Vec<Vec<i64>>, nclasses: i64, batch_norm: bool) -> SequentialT {

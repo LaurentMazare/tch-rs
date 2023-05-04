@@ -46,7 +46,7 @@ struct FrameStack {
 
 impl FrameStack {
     fn new(nprocs: i64, nstack: i64) -> FrameStack {
-        FrameStack { data: Tensor::zeros(&[nprocs, nstack, 84, 84], FLOAT_CPU), nprocs, nstack }
+        FrameStack { data: Tensor::zeros([nprocs, nstack, 84, 84], FLOAT_CPU), nprocs, nstack }
     }
 
     fn update<'a>(&'a mut self, img: &Tensor, masks: Option<&Tensor>) -> &'a Tensor {
@@ -73,28 +73,28 @@ pub fn train() -> cpython::PyResult<()> {
     let model = model(&vs.root(), env.action_space());
     let mut opt = nn::Adam::default().build(&vs, 1e-4).unwrap();
 
-    let mut sum_rewards = Tensor::zeros(&[NPROCS], FLOAT_CPU);
+    let mut sum_rewards = Tensor::zeros([NPROCS], FLOAT_CPU);
     let mut total_rewards = 0f64;
     let mut total_episodes = 0f64;
 
     let mut frame_stack = FrameStack::new(NPROCS, NSTACK);
     let _ = frame_stack.update(&env.reset()?, None);
-    let s_states = Tensor::zeros(&[NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
+    let s_states = Tensor::zeros([NSTEPS + 1, NPROCS, NSTACK, 84, 84], FLOAT_CPU);
     for update_index in 0..UPDATES {
         s_states.get(0).copy_(&s_states.get(-1));
-        let s_values = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-        let s_rewards = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
-        let s_actions = Tensor::zeros(&[NSTEPS, NPROCS], INT64_CPU);
-        let s_masks = Tensor::zeros(&[NSTEPS, NPROCS], FLOAT_CPU);
+        let s_values = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
+        let s_rewards = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
+        let s_actions = Tensor::zeros([NSTEPS, NPROCS], INT64_CPU);
+        let s_masks = Tensor::zeros([NSTEPS, NPROCS], FLOAT_CPU);
         for s in 0..NSTEPS {
             let (critic, actor) = tch::no_grad(|| model(&s_states.get(s)));
             let probs = actor.softmax(-1, Float);
             let actions = probs.multinomial(1, true).squeeze_dim(-1);
-            let step = env.step(Vec::<i64>::from(&actions))?;
+            let step = env.step(Vec::<i64>::try_from(&actions).unwrap())?;
 
             sum_rewards += &step.reward;
-            total_rewards += f64::from((&sum_rewards * &step.is_done).sum(Float));
-            total_episodes += f64::from(step.is_done.sum(Float));
+            total_rewards += f64::try_from((&sum_rewards * &step.is_done).sum(Float)).unwrap();
+            total_episodes += f64::try_from(step.is_done.sum(Float)).unwrap();
 
             let masks = Tensor::from(1f32) - step.is_done;
             sum_rewards *= &masks;
@@ -106,7 +106,7 @@ pub fn train() -> cpython::PyResult<()> {
             s_masks.get(s).copy_(&masks);
         }
         let s_returns = {
-            let r = Tensor::zeros(&[NSTEPS + 1, NPROCS], FLOAT_CPU);
+            let r = Tensor::zeros([NSTEPS + 1, NPROCS], FLOAT_CPU);
             let critic = tch::no_grad(|| model(&s_states.get(-1)).0);
             r.get(-1).copy_(&critic.view([NPROCS]));
             for s in (0..NSTEPS).rev() {
@@ -125,8 +125,7 @@ pub fn train() -> cpython::PyResult<()> {
             let index = s_actions.unsqueeze(-1).to_device(device);
             log_probs.gather(2, &index, false).squeeze_dim(-1)
         };
-        let dist_entropy =
-            (-log_probs * probs).sum_dim_intlist(Some([-1].as_slice()), false, Float).mean(Float);
+        let dist_entropy = (-log_probs * probs).sum_dim_intlist(-1, false, Float).mean(Float);
         let advantages = s_returns.narrow(0, 0, NSTEPS).to_device(device) - critic;
         let value_loss = (&advantages * &advantages).mean(Float);
         let action_loss = (-advantages.detach() * action_log_probs).mean(Float);
@@ -138,8 +137,8 @@ pub fn train() -> cpython::PyResult<()> {
             total_episodes = 0.;
         }
         if update_index > 0 && update_index % 10000 == 0 {
-            if let Err(err) = vs.save(format!("a2c{}.ot", update_index)) {
-                println!("error while saving {}", err)
+            if let Err(err) = vs.save(format!("a2c{update_index}.ot")) {
+                println!("error while saving {err}")
             }
         }
     }
@@ -163,7 +162,7 @@ pub fn sample<T: AsRef<std::path::Path>>(weight_file: T) -> cpython::PyResult<()
         let (_critic, actor) = tch::no_grad(|| model(obs));
         let probs = actor.softmax(-1, Float);
         let actions = probs.multinomial(1, true).squeeze_dim(-1);
-        let step = env.step(Vec::<i64>::from(&actions))?;
+        let step = env.step(Vec::<i64>::try_from(&actions).unwrap())?;
 
         let masks = Tensor::from(1f32) - step.is_done;
         obs = frame_stack.update(&step.obs, Some(&masks));

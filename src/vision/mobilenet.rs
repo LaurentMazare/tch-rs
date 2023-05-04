@@ -1,5 +1,5 @@
 //! MobileNet V2 implementation.
-//! https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.html
+//! <https://ai.googleblog.com/2018/04/mobilenetv2-next-generation-of-on.htmla>
 use crate::nn::{self, ModuleT};
 
 #[allow(clippy::identity_op)]

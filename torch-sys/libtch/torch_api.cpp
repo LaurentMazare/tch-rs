@@ -4,12 +4,14 @@
 #endif
 #include<torch/csrc/jit/frontend/tracer.h>
 #include<torch/csrc/jit/runtime/graph_executor.h>
-#include <torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
-#include <torch/csrc/jit/passes/normalize_ops.h>
+#include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
+#include<torch/csrc/jit/passes/normalize_ops.h>
+#include<torch/csrc/jit/mobile/import_data.h>
 #include <torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
+#include <torch/csrc/jit/passes/tensorexpr_fuser.h>
 #include<stdexcept>
 #include<vector>
 #include "torch_api.h"
@@ -124,6 +126,11 @@ int at_is_mkldnn(tensor t) {
 
 int at_is_sparse(tensor t) {
   PROTECT(return t->is_sparse();)
+  return -1;
+}
+
+int at_is_contiguous(tensor t) {
+  PROTECT(return t->is_contiguous();)
   return -1;
 }
 
@@ -408,6 +415,24 @@ void at_load_multi(tensor *tensors, char **tensor_names, int ntensors, char *fil
   )
 }
 
+void at_loadz_callback(char *filename, void *data, void (*f)(void *, char *, tensor)) {
+  PROTECT(
+    auto params = torch::jit::_load_parameters(filename);
+    for (const auto &p : params) {
+      f(data, (char*)p.first.c_str(), new torch::Tensor(p.second));
+    }
+  )
+}
+
+void at_loadz_callback_with_device(char *filename, void *data, void (*f)(void *, char *, tensor), int device_id) {
+  PROTECT(
+    auto params = torch::jit::_load_parameters(filename, device_of_int(device_id));
+    for (const auto &p : params) {
+      f(data, (char*)p.first.c_str(), new torch::Tensor(p.second));
+    }
+  )
+}
+
 void at_load_callback(char *filename, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
     auto module = torch::jit::load(filename);
@@ -639,12 +664,16 @@ void at_run_backward(tensor *tensors,
 optimizer ato_adam(double learning_rate,
                    double beta1,
                    double beta2,
-                   double weight_decay) {
+                   double weight_decay,
+                   double eps,
+                   bool amsgrad) {
   PROTECT(
     auto options =
       torch::optim::AdamOptions(learning_rate)
         .betas(std::tuple<double, double>(beta1, beta2))
-        .weight_decay(weight_decay);
+        .weight_decay(weight_decay)
+        .eps(eps)
+        .amsgrad(amsgrad);
     return new torch::optim::Adam(vector<torch::Tensor>(), options);
   )
   return nullptr;
@@ -653,12 +682,16 @@ optimizer ato_adam(double learning_rate,
 optimizer ato_adamw(double learning_rate,
                     double beta1,
                     double beta2,
-                    double weight_decay) {
+                    double weight_decay,
+                    double eps,
+                    bool amsgrad) {
   PROTECT(
     auto options =
       torch::optim::AdamWOptions(learning_rate)
         .betas(std::tuple<double, double>(beta1, beta2))
-        .weight_decay(weight_decay);
+        .weight_decay(weight_decay)
+        .eps(eps)
+        .amsgrad(amsgrad);
     return new torch::optim::AdamW(vector<torch::Tensor>(), options);
   )
   return nullptr;
@@ -929,17 +962,152 @@ int atc_cudnn_is_available() {
   return -1;
 }
 
+void atc_manual_seed(uint64_t seed) {
+  PROTECT(return torch::cuda::manual_seed(seed);)
+}
+
+void atc_manual_seed_all(uint64_t seed) {
+  PROTECT(return torch::cuda::manual_seed_all(seed);)
+}
+
+void atc_synchronize(int64_t device_index) {
+  PROTECT(return torch::cuda::synchronize(device_index);)
+}
+
 int atc_user_enabled_cudnn() {
   PROTECT(return at::globalContext().userEnabledCuDNN();)
   return -1;
 }
 
 void atc_set_user_enabled_cudnn(int b) {
+  PROTECT(
   at::globalContext().setUserEnabledCuDNN(b);
+  )
 }
 
 void atc_set_benchmark_cudnn(int b) {
+  PROTECT(
   at::globalContext().setBenchmarkCuDNN(b);
+  )
+}
+
+bool at_context_has_openmp() {
+  PROTECT (
+  return at::globalContext().hasOpenMP();
+  )
+  return 0;
+}
+
+bool at_context_has_mkl() {
+  PROTECT (
+  return at::globalContext().hasMKL();
+  )
+  return 0;
+}
+
+bool at_context_has_lapack() {
+  PROTECT (
+  return at::globalContext().hasLAPACK();
+  )
+  return 0;
+}
+
+bool at_context_has_mkldnn() {
+  PROTECT (
+  return at::globalContext().hasMKLDNN();
+  )
+  return 0;
+}
+
+bool at_context_has_magma() {
+  PROTECT (
+  return at::globalContext().hasMAGMA();
+  )
+  return 0;
+}
+
+bool at_context_has_cuda() {
+  PROTECT (
+  return at::globalContext().hasCUDA();
+  )
+  return 0;
+}
+
+bool at_context_has_cudart() {
+  PROTECT (
+  return at::globalContext().hasCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cudnn() {
+  PROTECT (
+  return at::globalContext().hasCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudnn() {
+  PROTECT (
+  return at::globalContext().versionCuDNN();
+  )
+  return 0;
+}
+
+long at_context_version_cudart() {
+  PROTECT (
+  return at::globalContext().versionCUDART();
+  )
+  return 0;
+}
+
+bool at_context_has_cusolver() {
+  PROTECT (
+  return at::globalContext().hasCuSOLVER();
+  )
+  return 0;
+}
+
+bool at_context_has_hip() {
+  PROTECT (
+  return at::globalContext().hasHIP();
+  )
+  return 0;
+}
+
+bool at_context_has_ipu() {
+  PROTECT (
+  return at::globalContext().hasIPU();
+  )
+  return 0;
+}
+
+bool at_context_has_xla() {
+  PROTECT (
+  return at::globalContext().hasXLA();
+  )
+  return 0;
+}
+
+bool at_context_has_lazy() {
+  PROTECT (
+  return at::globalContext().hasLazy();
+  )
+  return 0;
+}
+
+bool at_context_has_mps() {
+  PROTECT (
+  return at::globalContext().hasMPS();
+  )
+  return 0;
+}
+
+bool at_context_has_ort() {
+  PROTECT (
+  return at::globalContext().hasORT();
+  )
+  return 0;
 }
 
 module atm_load(char *filename) {
@@ -1070,6 +1238,19 @@ int atm_get_profiling_mode() {
   return 0;
 }
 
+void atm_set_tensor_expr_fuser_enabled(int enabled) {
+  PROTECT(
+    torch::jit::setTensorExprFuserEnabled((bool)enabled);
+  )
+}
+
+bool atm_get_tensor_expr_fuser_enabled() {
+  PROTECT(
+    return torch::jit::tensorExprFuserEnabled();
+  )
+  return false;
+}
+
 void atm_set_profiling_mode(int b) {
   PROTECT(
     torch::jit::getProfilingMode() = (bool)b;
@@ -1113,6 +1294,7 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
     m->type()->addMethod(fn);
   )
 }
+
 
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
@@ -1184,11 +1366,27 @@ ivalue ati_generic_list(ivalue *is, int nvalues) {
   return nullptr;
 }
 
+using generic_dict = c10::Dict<torch::jit::IValue, torch::jit::IValue>;
+
 ivalue ati_generic_dict(ivalue *is, int nvalues) {
-  c10::Dict<torch::jit::IValue, torch::jit::IValue> dict(c10::AnyType::get(), c10::AnyType::get());
   PROTECT(
-    for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
-    return new torch::jit::IValue(dict);
+    bool all_keys_are_str = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i]->isString()) all_keys_are_str = false;
+    }
+    bool all_values_are_tensor = true;
+    for (int i = 0; i < nvalues; ++i) {
+        if (!is[2*i+1]->isTensor()) all_values_are_tensor = false;
+    }
+    if (all_keys_are_str && all_values_are_tensor) {
+      generic_dict dict(c10::StringType::get(), c10::TensorType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), is[2*i+1]->toTensor());
+      return new torch::jit::IValue(dict);
+    } else {
+      generic_dict dict(c10::AnyType::get(), c10::AnyType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
+      return new torch::jit::IValue(dict);
+    }
   )
   return nullptr;
 }
