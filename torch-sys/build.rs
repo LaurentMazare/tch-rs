@@ -77,8 +77,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     let mut archive = zip::ZipArchive::new(buf)?;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        #[allow(deprecated)]
-            let outpath = outpath.as_ref().join(file.sanitized_name());
+        let outpath = outpath.as_ref().join(file.mangled_name());
         if !file.name().ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
@@ -96,7 +95,7 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
         }
     }
 
-    // This is is if we're unzipping a python wheel.
+    // This is if we're unzipping a python wheel.
     if outpath.as_ref().join("torch").exists() {
         fs::rename(outpath.as_ref().join("torch"), outpath.as_ref().join("libtorch"))?;
     }
