@@ -123,13 +123,11 @@ pub fn has_mps() -> bool {
 pub fn has_ort() -> bool {
     unsafe_torch!(torch_sys::at_context_has_ort())
 }
-#[allow(clippy::unnecessary_cast)]
 pub fn version_cudnn() -> i64 {
-    unsafe_torch!(torch_sys::at_context_version_cudnn() as i64)
+    unsafe_torch!(torch_sys::at_context_version_cudnn())
 }
-#[allow(clippy::unnecessary_cast)]
 pub fn version_cudart() -> i64 {
-    unsafe_torch!(torch_sys::at_context_version_cudart() as i64)
+    unsafe_torch!(torch_sys::at_context_version_cudart())
 }
 
 /// Quantization engines
