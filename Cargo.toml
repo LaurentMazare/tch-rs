@@ -36,7 +36,7 @@ pyo3 = { version = "0.18.3", optional = true }
 anyhow = "1"
 
 [workspace]
-members = ["torch-sys", "examples/python-entropy"]
+members = ["torch-sys"]
 
 [features]
 default = ["torch-sys/download-libtorch"]
@@ -46,7 +46,7 @@ doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
 
 [package.metadata.docs.rs]
-features = [ "doc-only" ]
+features = ["doc-only"]
 
 [[example]]
 name = "reinforcement-learning"
