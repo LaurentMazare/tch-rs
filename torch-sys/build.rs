@@ -217,7 +217,7 @@ fn make<P: AsRef<Path>>(libtorch: P, use_cuda: bool, use_hip: bool) {
     println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
     println!("cargo:rerun-if-changed=libtch/stb_image.h");
     match os.as_str() {
-        "linux" | "macos" => {
+        "linux" | "macos" | "ios" => {
             let libtorch_cxx11_abi =
                 env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned());
             cc::Build::new()
@@ -296,11 +296,18 @@ fn main() {
         println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=c10");
+
         if use_hip {
             println!("cargo:rustc-link-lib=c10_hip");
         }
 
         let target = env::var("TARGET").unwrap();
+
+        if target.contains("ios") {
+            println!("cargo:rustc-link-lib=cpuinfo");
+            println!("cargo:rustc-link-lib=clog");
+            println!("cargo:rustc-link-lib=pthreadpool");
+        }
 
         if !target.contains("msvc") && !target.contains("apple") {
             println!("cargo:rustc-link-lib=gomp");
