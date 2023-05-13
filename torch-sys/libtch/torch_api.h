@@ -3,7 +3,7 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
-thread_local char *torch_last_err = nullptr;
+extern thread_local char *torch_last_err;
 
 extern "C" {
 typedef torch::Tensor *tensor;

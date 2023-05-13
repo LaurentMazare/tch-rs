@@ -35,7 +35,7 @@ image = { version = "0.24.5", optional = true }
 anyhow = "1"
 
 [workspace]
-members = ["torch-sys"]
+members = ["torch-sys", "examples/python-extension"]
 
 [features]
 default = ["torch-sys/download-libtorch"]

@@ -1,0 +1,13 @@
+[package]
+name = "tch_ext"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[lib]
+name = "tch_ext"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.18.3", features = ["extension-module"] }
+tch = { path = "../..", features = ["python-extension"] }
