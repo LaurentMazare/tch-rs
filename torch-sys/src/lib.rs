@@ -1,5 +1,7 @@
 pub mod cuda;
 pub mod io;
+#[cfg(feature = "python-extension")]
+pub mod python;
 mod traits;
 
 use libc::{c_char, c_int, c_uchar, c_void, size_t};

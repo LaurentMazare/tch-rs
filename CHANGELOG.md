@@ -4,6 +4,15 @@ This documents the main changes to the `tch` crate.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.13.0 - unreleased yet
+### Added
+- Expose some functions so that Python extensions that operates on PyTorch
+  tensors can be written with `tch`,
+  [704](https://github.com/LaurentMazare/tch-rs/pull/704).
+- Rework the torch-sys build script making it easier to leverage a Python
+  PyTorch install as a source for libtorch,
+  [703](https://github.com/LaurentMazare/tch-rs/pull/703).
+
 ## v0.12.0 - 2023-05-10
 ### Changed
 - EfficientNet models have been reworked, pre-trained models used `safetensors`

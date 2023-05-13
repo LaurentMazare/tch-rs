@@ -12,6 +12,8 @@ pub mod jit;
 pub mod kind;
 pub(crate) mod layout;
 pub(crate) mod optimizer;
+#[cfg(feature = "python-extension")]
+pub mod python;
 pub(crate) mod scalar;
 pub(crate) mod stream;
 pub(crate) mod tensor;
