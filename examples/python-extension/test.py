@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 
 # Copy the shared library to the current directory and rename it
 # so that it's easy to import.
@@ -10,9 +9,6 @@ TMP_LIB = "./tch_ext.so"
 if os.path.exists(TMP_LIB):
     os.remove(TMP_LIB)
 shutil.copy(SHARED_LIB, TMP_LIB)
-
-# Ensure that the current directory is in the lookup path
-sys.path.insert(0, ".")
 
 import torch
 import tch_ext
