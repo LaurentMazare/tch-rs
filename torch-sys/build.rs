@@ -14,6 +14,7 @@ const TORCH_VERSION: &str = "2.0.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
+print('LIBTORCH_VERSION:', torch.__version__.split('+')[0])
 print('LIBTORCH_CXX11:', torch._C._GLIBCXX_USE_CXX11_ABI)
 for include_path in cpp_extension.include_paths():
   print('LIBTORCH_INCLUDE:', include_path)
@@ -161,6 +162,13 @@ impl SystemInfo {
                 .unwrap();
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
+                if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
+                    if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_err()
+                        && version != TORCH_VERSION
+                    {
+                        panic!("this tch version expects PyTorch {TORCH_VERSION}, got {version}")
+                    }
+                }
                 match line.strip_prefix("LIBTORCH_CXX11: ") {
                     Some("True") => cxx11_abi = Some("1".to_owned()),
                     Some("False") => cxx11_abi = Some("0".to_owned()),
