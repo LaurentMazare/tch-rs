@@ -39,7 +39,8 @@ members = ["torch-sys"]
 
 [features]
 default = ["torch-sys/download-libtorch"]
-python = ["cpython"]
+python-libtorch = ["torch-sys/python-libtorch"]
+rl_python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
 
@@ -48,7 +49,7 @@ features = [ "doc-only" ]
 
 [[example]]
 name = "reinforcement-learning"
-required-features = ["python"]
+required-features = ["rl_python"]
 
 [[example]]
 name = "stable-diffusion"
