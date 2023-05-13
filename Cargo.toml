@@ -39,7 +39,7 @@ members = ["torch-sys"]
 
 [features]
 default = ["torch-sys/download-libtorch"]
-python-libtorch = ["torch-sys/python-libtorch"]
+python-extension = ["torch-sys/python-extension"]
 rl_python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []

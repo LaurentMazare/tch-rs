@@ -6,7 +6,7 @@
 // On Linux, the TORCH_CUDA_VERSION environment variable can be used,
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
-use anyhow::Context;
+use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs, io};
 
@@ -20,6 +20,11 @@ for include_path in cpp_extension.include_paths():
   print('LIBTORCH_INCLUDE:', include_path)
 for library_path in cpp_extension.library_paths():
   print('LIBTORCH_LIB:', library_path)
+";
+
+const PYTHON_PRINT_INCLUDE_PATH: &str = r"
+import sysconfig
+print('PYTHON_INCLUDE:', sysconfig.get_path('include'))
 ";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -132,12 +137,12 @@ fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
 }
 
 impl SystemInfo {
-    fn new() -> Self {
+    fn new() -> Result<Self> {
         let os = match env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS").as_str() {
             "linux" => Os::Linux,
             "windows" => Os::Windows,
             "macos" => Os::Macos,
-            os => panic!("unsupported TARGET_OS '{os}'"),
+            os => anyhow::bail!("unsupported TARGET_OS '{os}'"),
         };
         // Locate the currently active Python binary, similar to:
         // https://github.com/PyO3/maturin/blob/243b8ec91d07113f97a6fe74d9b2dcb88086e0eb/src/target.rs#L547
@@ -152,21 +157,34 @@ impl SystemInfo {
             }
         };
         let mut libtorch_include_dirs = vec![];
+        if cfg!(feature = "python-extension") {
+            let output = std::process::Command::new(&python_interpreter)
+                .arg("-c")
+                .arg(PYTHON_PRINT_INCLUDE_PATH)
+                .output()
+                .with_context(|| format!("error running {python_interpreter:?}"))?;
+            for line in String::from_utf8_lossy(&output.stdout).lines() {
+                if let Some(path) = line.strip_prefix("PYTHON_INCLUDE: ") {
+                    libtorch_include_dirs.push(PathBuf::from(path))
+                }
+            }
+        }
         let mut libtorch_lib_dir = None;
         let cxx11_abi = if env_var_rerun("LIBTORCH_USE_PYTORCH").is_ok() {
             let output = std::process::Command::new(&python_interpreter)
                 .arg("-c")
                 .arg(PYTHON_PRINT_PYTORCH_DETAILS)
                 .output()
-                .map_err(|err| format!("error running {python_interpreter:?}: {err:?}"))
-                .unwrap();
+                .with_context(|| format!("error running {python_interpreter:?}"))?;
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
                     if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_err()
                         && version != TORCH_VERSION
                     {
-                        panic!("this tch version expects PyTorch {TORCH_VERSION}, got {version}")
+                        anyhow::bail!(
+                            "this tch version expects PyTorch {TORCH_VERSION}, got {version}"
+                        )
                     }
                 }
                 match line.strip_prefix("LIBTORCH_CXX11: ") {
@@ -183,10 +201,10 @@ impl SystemInfo {
             }
             match cxx11_abi {
                 Some(cxx11_abi) => cxx11_abi,
-                None => panic!("no cxx11 abi returned by python {output:?}"),
+                None => anyhow::bail!("no cxx11 abi returned by python {output:?}"),
             }
         } else {
-            let libtorch = Self::prepare_libtorch_dir(os);
+            let libtorch = Self::prepare_libtorch_dir(os)?;
             let includes = env_var_rerun("LIBTORCH_INCLUDE")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| libtorch.clone());
@@ -199,7 +217,7 @@ impl SystemInfo {
             env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned())
         };
         let libtorch_lib_dir = libtorch_lib_dir.expect("no libtorch lib dir found");
-        Self { os, python_interpreter, cxx11_abi, libtorch_include_dirs, libtorch_lib_dir }
+        Ok(Self { os, python_interpreter, cxx11_abi, libtorch_include_dirs, libtorch_lib_dir })
     }
 
     fn check_system_location(os: Os) -> Option<PathBuf> {
@@ -209,11 +227,11 @@ impl SystemInfo {
         }
     }
 
-    fn prepare_libtorch_dir(os: Os) -> PathBuf {
+    fn prepare_libtorch_dir(os: Os) -> Result<PathBuf> {
         if let Ok(libtorch) = env_var_rerun("LIBTORCH") {
-            PathBuf::from(libtorch)
+            Ok(PathBuf::from(libtorch))
         } else if let Some(pathbuf) = Self::check_system_location(os) {
-            pathbuf
+            Ok(pathbuf)
         } else {
             let device = match env_var_rerun("TORCH_CUDA_VERSION") {
                 Ok(cuda_env) => match os {
@@ -227,7 +245,7 @@ impl SystemInfo {
                             acc += curr;
                             acc
                         }),
-                    os => panic!(
+                    os => anyhow::bail!(
                         "CUDA was specified with `TORCH_CUDA_VERSION`, but pre-built \
                  binaries with CUDA are only available for Linux and Windows, not: {os:?}.",
                     ),
@@ -235,7 +253,9 @@ impl SystemInfo {
                 Err(_) => "cpu".to_owned(),
             };
 
-            let libtorch_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtorch");
+            let libtorch_dir =
+                PathBuf::from(env::var("OUT_DIR").context("OUT_DIR variable not set")?)
+                    .join("libtorch");
             if !libtorch_dir.exists() {
                 fs::create_dir(&libtorch_dir).unwrap_or_default();
                 let libtorch_url = match os {
@@ -248,7 +268,7 @@ impl SystemInfo {
                         "cu116" => "%2Bcu116",
                         "cu117" => "%2Bcu117",
                         "cu118" => "%2Bcu118",
-                        _ => panic!("unsupported device {}, TORCH_CUDA_VERSION may be set incorrectly?", device),
+                        _ => anyhow::bail!("unsupported device {device}, TORCH_CUDA_VERSION may be set incorrectly?"),
                     }
                 ),
                 Os::Macos => {
@@ -279,10 +299,10 @@ impl SystemInfo {
             };
 
                 let filename = libtorch_dir.join(format!("v{TORCH_VERSION}.zip"));
-                download(&libtorch_url, &filename).unwrap();
-                extract(&filename, &libtorch_dir).unwrap();
+                download(&libtorch_url, &filename)?;
+                extract(&filename, &libtorch_dir)?;
             }
-            libtorch_dir.join("libtorch")
+            Ok(libtorch_dir.join("libtorch"))
         }
     }
 
@@ -293,6 +313,8 @@ impl SystemInfo {
             "libtch/fake_cuda_dependency.cpp"
         };
         println!("cargo:rerun-if-changed={}", cuda_dependency);
+        println!("cargo:rerun-if-changed=libtch/torch_python.cpp");
+        println!("cargo:rerun-if-changed=libtch/torch_python.h");
         println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
         println!("cargo:rerun-if-changed=libtch/torch_api.h");
         println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
@@ -300,6 +322,11 @@ impl SystemInfo {
         println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
         println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
         println!("cargo:rerun-if-changed=libtch/stb_image.h");
+        let mut c_files = vec!["libtch/torch_api.cpp", cuda_dependency];
+        if cfg!(feature = "python-extension") {
+            c_files.push("libtch/torch_python.cpp")
+        }
+
         match self.os {
             Os::Linux | Os::Macos => {
                 // Pass the libtorch lib dir to crates that use torch-sys. This will be available
@@ -314,8 +341,7 @@ impl SystemInfo {
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++14")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
-                    .file("libtch/torch_api.cpp")
-                    .file(cuda_dependency)
+                    .files(&c_files)
                     .compile("tch");
             }
             Os::Windows => {
@@ -327,17 +353,16 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
-                    .file("libtch/torch_api.cpp")
-                    .file(cuda_dependency)
+                    .files(&c_files)
                     .compile("tch");
             }
         };
     }
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     if !cfg!(feature = "doc-only") {
-        let system_info = SystemInfo::new();
+        let system_info = SystemInfo::new()?;
         // use_cuda is a hacky way to detect whether cuda is available and
         // if it's the case link to it by explicitly depending on a symbol
         // from the torch_cuda library.
@@ -378,6 +403,9 @@ fn main() {
         if use_hip {
             println!("cargo:rustc-link-lib=torch_hip");
         }
+        if cfg!(feature = "python-extension") {
+            println!("cargo:rustc-link-lib=torch_python");
+        }
         println!("cargo:rustc-link-lib=torch_cpu");
         println!("cargo:rustc-link-lib=torch");
         println!("cargo:rustc-link-lib=c10");
@@ -385,10 +413,11 @@ fn main() {
             println!("cargo:rustc-link-lib=c10_hip");
         }
 
-        let target = env::var("TARGET").unwrap();
+        let target = env::var("TARGET").context("TARGET variable not set")?;
 
         if !target.contains("msvc") && !target.contains("apple") {
             println!("cargo:rustc-link-lib=gomp");
         }
     }
+    Ok(())
 }
