@@ -1,26 +1,44 @@
 use pyo3::prelude::*;
-use pyo3::{exceptions::PyValueError, AsPyPointer};
+use pyo3::{
+    exceptions::{PyTypeError, PyValueError},
+    AsPyPointer,
+};
 
-use tch;
+struct PyTensor(tch::Tensor);
 
 fn wrap_tch_err(err: tch::TchError) -> PyErr {
     PyErr::new::<PyValueError, _>(format!("{err:?}"))
 }
 
+impl<'source> FromPyObject<'source> for PyTensor {
+    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+        let ptr = ob.as_ptr() as *mut tch::python::CPyObject;
+        let tensor = unsafe { tch::Tensor::pyobject_unpack(ptr) };
+        tensor
+            .map_err(wrap_tch_err)?
+            .ok_or_else(|| {
+                let type_ = ob.get_type();
+                PyErr::new::<PyTypeError, _>(format!("expected a torch.Tensor, got {type_}"))
+            })
+            .map(PyTensor)
+    }
+}
+
+impl IntoPy<PyObject> for PyTensor {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        // There is no fallible alternative to ToPyObject/IntoPy at the moment so we return
+        // None on errors. https://github.com/PyO3/pyo3/issues/1813
+        self.0.pyobject_wrap().map_or_else(
+            |_| py.None(),
+            |ptr| unsafe { PyObject::from_owned_ptr(py, ptr as *mut pyo3::ffi::PyObject) },
+        )
+    }
+}
+
 #[pyfunction]
-fn add_one(t: PyObject) -> PyResult<PyObject> {
-    let tensor = unsafe { tch::Tensor::pyobject_unpack(t.as_ptr() as *mut tch::python::CPyObject) };
-    let tensor = tensor.map_err(wrap_tch_err)?;
-    let tensor = match tensor {
-        Some(tensor) => tensor,
-        None => Err(PyErr::new::<PyValueError, _>("t is not a PyTorch tensor object"))?,
-    };
-    let tensor = tensor + 1.0;
-    let tensor_ptr = tensor.pyobject_wrap().map_err(wrap_tch_err)?;
-    let pyobject = Python::with_gil(|py| unsafe {
-        PyObject::from_owned_ptr(py, tensor_ptr as *mut pyo3::ffi::PyObject)
-    });
-    Ok(pyobject)
+fn add_one(tensor: PyTensor) -> PyResult<PyTensor> {
+    let tensor = tensor.0.f_add_scalar(1.0).map_err(wrap_tch_err)?;
+    Ok(PyTensor(tensor))
 }
 
 /// A Python module implemented in Rust using tch to manipulate PyTorch
