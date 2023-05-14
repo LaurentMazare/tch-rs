@@ -20,6 +20,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --features download-libtorch
 
   test:
     name: Test Suite
