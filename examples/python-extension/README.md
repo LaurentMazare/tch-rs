@@ -7,12 +7,11 @@ This is currently experimental hence requires some unsafe code until this has
 been stabilized.
 
 In order to build the extension and test the plugin, run the following in a
-Python environment that has torch installed.
+Python environment that has torch installed from the root of the github repo.
 
 ```bash
-cd examples/python-extension
-LIBTORCH_USE_PYTORCH=1 cargo build
-python main.py
+LIBTORCH_USE_PYTORCH=1 cargo build -p tch_ext && cp -f target/debug/libtch_ext.so tch_ext.so
+python examples/python-extension/main.py
 ```
 
 It is recommended to run the build with `LIBTORCH_USE_PYTORCH` set, this will
