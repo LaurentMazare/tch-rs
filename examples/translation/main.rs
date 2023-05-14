@@ -106,7 +106,7 @@ impl Model {
         Model {
             encoder: Encoder::new(&vs / "enc", ilang.len(), hidden_dim),
             decoder: Decoder::new(&vs / "dec", hidden_dim, olang.len()),
-            decoder_start: Tensor::of_slice(&[olang.sos_token() as i64]).to_device(vs.device()),
+            decoder_start: Tensor::from_slice(&[olang.sos_token() as i64]).to_device(vs.device()),
             decoder_eos: olang.eos_token(),
             device: vs.device(),
         }
@@ -117,7 +117,7 @@ impl Model {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
         for &s in input_.iter() {
-            let s = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            let s = Tensor::from_slice(&[s as i64]).to_device(self.device);
             let (out, state_) = self.encoder.forward(&s, &state);
             enc_outputs.push(out);
             state = state_;
@@ -129,7 +129,7 @@ impl Model {
         for &s in target.iter() {
             let (output, state_) = self.decoder.forward(&prev, &state, &enc_outputs, true);
             state = state_;
-            let target_tensor = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            let target_tensor = Tensor::from_slice(&[s as i64]).to_device(self.device);
             loss = loss + output.nll_loss(&target_tensor);
             let (_, output) = output.topk(1, -1, true, true);
             if self.decoder_eos == i64::try_from(&output).unwrap() as usize {
@@ -144,7 +144,7 @@ impl Model {
         let mut state = self.encoder.gru.zero_state(1);
         let mut enc_outputs = vec![];
         for &s in input_.iter() {
-            let s = Tensor::of_slice(&[s as i64]).to_device(self.device);
+            let s = Tensor::from_slice(&[s as i64]).to_device(self.device);
             let (out, state_) = self.encoder.forward(&s, &state);
             enc_outputs.push(out);
             state = state_;

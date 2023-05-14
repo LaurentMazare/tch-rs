@@ -68,9 +68,9 @@ pub fn run() -> cpython::PyResult<()> {
         // Train the model via policy gradient on the rollout data.
         let batch_size = steps.len() as i64;
         let actions: Vec<i64> = steps.iter().map(|s| s.action).collect();
-        let actions = Tensor::of_slice(&actions).unsqueeze(1);
+        let actions = Tensor::from_slice(&actions).unsqueeze(1);
         let rewards = accumulate_rewards(&steps);
-        let rewards = Tensor::of_slice(&rewards).to_kind(Float);
+        let rewards = Tensor::from_slice(&rewards).to_kind(Float);
         let action_mask =
             Tensor::zeros([batch_size, 2], tch::kind::FLOAT_CPU).scatter_value(1, &actions, 1.0);
         let obs: Vec<Tensor> = steps.into_iter().map(|s| s.obs).collect();

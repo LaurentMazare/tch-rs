@@ -89,7 +89,7 @@ impl Device {
         }
     }
 
-    pub(super) fn of_c_int(v: libc::c_int) -> Self {
+    pub(super) fn from_c_int(v: libc::c_int) -> Self {
         match v {
             -1 => Device::Cpu,
             -2 => Device::Mps,

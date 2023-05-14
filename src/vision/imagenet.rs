@@ -7,9 +7,9 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref IMAGENET_MEAN: Mutex<Tensor> =
-        Mutex::new(Tensor::of_slice(&[0.485f32, 0.456, 0.406]).view((3, 1, 1)));
+        Mutex::new(Tensor::from_slice(&[0.485f32, 0.456, 0.406]).view((3, 1, 1)));
     static ref IMAGENET_STD: Mutex<Tensor> =
-        Mutex::new(Tensor::of_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1)));
+        Mutex::new(Tensor::from_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1)));
 }
 
 pub fn normalize(tensor: &Tensor) -> Result<Tensor, TchError> {

@@ -32,7 +32,7 @@ fn read_labels_(filename: &std::path::Path) -> Result<Tensor> {
     let samples = read_u32(&mut buf_reader)?;
     let mut data = vec![0u8; samples as usize];
     buf_reader.read_exact(&mut data)?;
-    Ok(Tensor::of_slice(&data).to_kind(Kind::Int64))
+    Ok(Tensor::from_slice(&data).to_kind(Kind::Int64))
 }
 
 fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
@@ -44,7 +44,7 @@ fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
     let data_len = samples * rows * cols;
     let mut data = vec![0u8; data_len as usize];
     buf_reader.read_exact(&mut data)?;
-    let tensor = Tensor::of_slice(&data)
+    let tensor = Tensor::from_slice(&data)
         .view((i64::from(samples), i64::from(rows * cols)))
         .to_kind(Kind::Float);
     Ok(tensor / 255.)

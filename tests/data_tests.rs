@@ -8,8 +8,8 @@ use test_utils::*;
 fn iter2() {
     let bsize: usize = 4;
     let vs: Vec<i64> = (0..1337).collect();
-    let xs = Tensor::of_slice(&vs);
-    let ys = Tensor::of_slice(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
+    let xs = Tensor::from_slice(&vs);
+    let ys = Tensor::from_slice(&vs.iter().map(|x| x * 2).collect::<Vec<_>>());
     for (batch_xs, batch_ys) in data::Iter2::new(&xs, &ys, bsize as i64) {
         let xs = vec_i64_from(&batch_xs);
         let ys = vec_i64_from(&batch_ys);

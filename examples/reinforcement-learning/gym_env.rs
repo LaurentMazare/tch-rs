@@ -50,7 +50,7 @@ impl GymEnv {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let obs = self.env.call_method(py, "reset", NoArgs, None)?;
-        Ok(Tensor::of_slice(&obs.extract::<Vec<f32>>(py)?))
+        Ok(Tensor::from_slice(&obs.extract::<Vec<f32>>(py)?))
     }
 
     /// Applies an environment step using the specified action.
@@ -59,7 +59,7 @@ impl GymEnv {
         let py = gil.python();
         let step = self.env.call_method(py, "step", (action,), None)?;
         Ok(Step {
-            obs: Tensor::of_slice(&step.get_item(py, 0)?.extract::<Vec<f32>>(py)?),
+            obs: Tensor::from_slice(&step.get_item(py, 0)?.extract::<Vec<f32>>(py)?),
             reward: step.get_item(py, 1)?.extract(py)?,
             is_done: step.get_item(py, 2)?.extract(py)?,
             action,

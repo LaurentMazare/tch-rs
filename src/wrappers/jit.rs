@@ -308,7 +308,7 @@ impl IValue {
     }
 
     // This consumes the pointer and frees the associated memory (unless it is an Object).
-    pub(super) fn of_c(c_ivalue: *mut CIValue) -> Result<Self, TchError> {
+    pub(super) fn from_c(c_ivalue: *mut CIValue) -> Result<Self, TchError> {
         let mut free = true;
         let tag = unsafe_torch_err!(ati_tag(c_ivalue));
         let v = match tag {
@@ -332,7 +332,7 @@ impl IValue {
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_tuple(c_ivalue, c_ivalues.as_mut_ptr(), len));
                 let vec: Result<Vec<_>, _> =
-                    c_ivalues.iter().map(|&c_ivalue| (Self::of_c(c_ivalue))).collect();
+                    c_ivalues.iter().map(|&c_ivalue| (Self::from_c(c_ivalue))).collect();
                 IValue::Tuple(vec?)
             }
             6 => {
@@ -376,7 +376,7 @@ impl IValue {
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_generic_list(c_ivalue, c_ivalues.as_mut_ptr(), len));
                 let vec: Result<Vec<_>, _> =
-                    c_ivalues.iter().map(|&c_ivalue| (Self::of_c(c_ivalue))).collect();
+                    c_ivalues.iter().map(|&c_ivalue| (Self::from_c(c_ivalue))).collect();
                 IValue::GenericList(vec?)
             }
             13 => {
@@ -386,8 +386,8 @@ impl IValue {
                 unsafe_torch_err!(ati_to_generic_dict(c_ivalue, c_ivalues.as_mut_ptr(), len));
                 let mut res: Vec<(IValue, IValue)> = vec![];
                 for i in 0..(len as usize) {
-                    let key = Self::of_c(c_ivalues[2 * i])?;
-                    let value = Self::of_c(c_ivalues[2 * i + 1])?;
+                    let key = Self::from_c(c_ivalues[2 * i])?;
+                    let value = Self::from_c(c_ivalues[2 * i + 1])?;
                     res.push((key, value))
                 }
                 IValue::GenericDict(res)
@@ -488,7 +488,7 @@ impl CModule {
         for x in ts {
             unsafe { ati_free(x) }
         }
-        IValue::of_c(c_ivalue)
+        IValue::from_c(c_ivalue)
     }
 
     /// Runs a specified entry point for a model on some given tensor inputs.
@@ -525,7 +525,7 @@ impl CModule {
         for x in ts {
             unsafe { ati_free(x) }
         }
-        IValue::of_c(c_ivalue)
+        IValue::from_c(c_ivalue)
     }
 
     /// Create a specified custom JIT class object with the given class name, eg: `__torch__.foo.Bar`
@@ -545,7 +545,7 @@ impl CModule {
         for x in ts {
             unsafe { ati_free(x) }
         }
-        IValue::of_c(c_ivalue)
+        IValue::from_c(c_ivalue)
     }
 
     /// Switches the module to evaluation mode.
@@ -799,7 +799,7 @@ impl Object {
         for x in ts {
             unsafe { ati_free(x) }
         }
-        IValue::of_c(c_ivalue)
+        IValue::from_c(c_ivalue)
     }
 
     /// Retrieves the specified attribute from an object as an ivalue.
@@ -812,7 +812,7 @@ impl Object {
                 "Object.getattr(\"{attr_name}\") returned CIValue nullptr"
             )));
         }
-        IValue::of_c(c_ivalue)
+        IValue::from_c(c_ivalue)
     }
 }
 
@@ -829,7 +829,7 @@ mod tests {
 
     fn round_trip<T: Into<IValue>>(t: T) {
         let ivalue: IValue = t.into();
-        let ivalue2 = IValue::of_c(ivalue.to_c().unwrap()).unwrap();
+        let ivalue2 = IValue::from_c(ivalue.to_c().unwrap()).unwrap();
         assert_eq!(ivalue, ivalue2);
     }
     #[test]

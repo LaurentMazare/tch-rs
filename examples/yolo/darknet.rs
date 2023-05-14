@@ -222,7 +222,7 @@ fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)
         .flat_map(|&(x, y)| vec![x as f32 / stride as f32, y as f32 / stride as f32].into_iter())
         .collect();
     let anchors =
-        Tensor::of_slice(&anchors).view((-1, 2)).repeat([grid_size * grid_size, 1]).unsqueeze(0);
+        Tensor::from_slice(&anchors).view((-1, 2)).repeat([grid_size * grid_size, 1]).unsqueeze(0);
     slice_apply_and_set(&mut xs, 0, 2, |xs| xs.sigmoid() + xy_offset);
     slice_apply_and_set(&mut xs, 4, 1 + classes, Tensor::sigmoid);
     slice_apply_and_set(&mut xs, 2, 2, |xs| xs.exp() * anchors);

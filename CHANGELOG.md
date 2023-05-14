@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.13.0 - unreleased yet
 ### Added
+- Rename the `of_...` conversion functions to `from_...` so as to be closer to
+  the Rust best practices,
+  [706](https://github.com/LaurentMazare/tch-rs/pull/706). This is a breaking
+  change and will require modifying calls such as `of_slice` to be `from_slice`
+  instead.
 - Expose some functions so that Python extensions that operates on PyTorch
   tensors can be written with `tch`,
   [704](https://github.com/LaurentMazare/tch-rs/pull/704).

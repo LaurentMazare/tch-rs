@@ -177,7 +177,7 @@ impl crate::Tensor {
         }
         let mut data: Vec<u8> = vec![];
         reader.read_to_end(&mut data)?;
-        Tensor::f_of_data_size(&data, &header.shape, header.descr)
+        Tensor::f_from_data_size(&data, &header.shape, header.descr)
     }
 
     /// Reads a npz file and returns some named tensors.
@@ -198,7 +198,7 @@ impl crate::Tensor {
             }
             let mut data: Vec<u8> = vec![];
             reader.read_to_end(&mut data)?;
-            let tensor = Tensor::f_of_data_size(&data, &header.shape, header.descr)?;
+            let tensor = Tensor::f_from_data_size(&data, &header.shape, header.descr)?;
             result.push((name, tensor))
         }
         Ok(result)
