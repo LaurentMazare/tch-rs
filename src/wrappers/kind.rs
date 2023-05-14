@@ -47,7 +47,7 @@ impl Kind {
         }
     }
 
-    pub(super) fn of_c_int(v: libc::c_int) -> Result<Kind, crate::TchError> {
+    pub(super) fn from_c_int(v: libc::c_int) -> Result<Kind, crate::TchError> {
         match v {
             0 => Ok(Kind::Uint8),
             1 => Ok(Kind::Int8),

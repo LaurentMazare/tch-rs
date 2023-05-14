@@ -143,7 +143,7 @@ impl TextData {
             })
         }
 
-        Ok(TextData { data: Tensor::of_slice(&buffer), char_for_label, label_for_char })
+        Ok(TextData { data: Tensor::from_slice(&buffer), char_for_label, label_for_char })
     }
 
     /// Returns the number of different characters/labels used by the dataset.

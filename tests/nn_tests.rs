@@ -9,7 +9,7 @@ use test_utils::*;
 fn optimizer_test() {
     tch::manual_seed(42);
     // Create some linear data.
-    let xs = Tensor::of_slice(&(1..15).collect::<Vec<_>>()).to_kind(Kind::Float).view([-1, 1]);
+    let xs = Tensor::from_slice(&(1..15).collect::<Vec<_>>()).to_kind(Kind::Float).view([-1, 1]);
     let ys = &xs * 0.42 + 1.337;
 
     // Fit a linear model (with deterministic initialization) on the data.
@@ -181,7 +181,7 @@ fn group_norm_test() {
 fn layer_norm_parameters_test() {
     tch::manual_seed(42);
     // Create some linear data.
-    let xs = Tensor::of_slice(&[42.0, 42.0, 42.0, 24.0]).to_kind(Kind::Float).view([-1, 2]);
+    let xs = Tensor::from_slice(&[42.0, 42.0, 42.0, 24.0]).to_kind(Kind::Float).view([-1, 2]);
     let ys = &xs * 0.42 + 1.337;
 
     // Fit a layer normalization layer (with deterministic initialization) on the data.
@@ -299,7 +299,7 @@ fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     } else {
         embedding_config.padding_idx
     };
-    let input = Tensor::of_slice(&[padding_idx]);
+    let input = Tensor::from_slice(&[padding_idx]);
     let output = embeddings.forward(&input);
     assert_eq!(output.size(), [1, output_dim]);
     assert_eq!(output.get(0), embeddings.ws.get(padding_idx));
@@ -349,15 +349,15 @@ fn linear() {
 
 #[test]
 fn pad() {
-    let xs = Tensor::of_slice(&[1., 2., 3.]);
+    let xs = Tensor::from_slice(&[1., 2., 3.]);
     let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
     assert_eq!(vec_f32_from(&padded), [0., 1., 2., 3., 0.]);
 
-    let xs = Tensor::of_slice(&[1., 2., 3.]).view([1, 3]);
+    let xs = Tensor::from_slice(&[1., 2., 3.]).view([1, 3]);
     let padded = nn::PaddingMode::Zeros.pad(&xs, &[1, 1]);
     assert_eq!(vec_f32_from(&padded.reshape(-1)), [0., 1., 2., 3., 0.]);
 
-    let xs = Tensor::of_slice(&[1., 2., 3., 4.]).view([1, 2, 2]);
+    let xs = Tensor::from_slice(&[1., 2., 3., 4.]).view([1, 2, 2]);
     let padded = nn::PaddingMode::Reflect.pad(&xs, &[1, 1, 1, 1]);
     assert_eq!(
         vec_f32_from(&padded.reshape(-1)),
@@ -387,7 +387,7 @@ fn apply_conv(xs: &Tensor, padding_mode: nn::PaddingMode) -> Tensor {
 
 #[test]
 fn conv() {
-    let xs = Tensor::of_slice(&[1f32, 2., 3., 4.]).view([1, 1, 2, 2]); // NCHW
+    let xs = Tensor::from_slice(&[1f32, 2., 3., 4.]).view([1, 1, 2, 2]); // NCHW
 
     let conved = apply_conv(&xs, nn::PaddingMode::Zeros);
     assert_eq!(vec_f32_from(&conved.reshape(-1)), &[10.0, 10.0, 10.0, 10.0]);

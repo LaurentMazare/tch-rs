@@ -23,10 +23,10 @@ fn display_scalar() {
 
 #[test]
 fn display_vector() {
-    let t = Tensor::of_slice::<i64>(&[]);
+    let t = Tensor::from_slice::<i64>(&[]);
     let s = format!("{t}");
     assert_eq!(&s, "[]\nTensor[[0], Int64]");
-    let t = Tensor::of_slice(&[0.1234567, 1.0, -1.2, 4.1, f64::NAN]);
+    let t = Tensor::from_slice(&[0.1234567, 1.0, -1.2, 4.1, f64::NAN]);
     let s = format!("{t}");
     assert_eq!(&s, "[ 0.1235,  1.0000, -1.2000,  4.1000,     NaN]\nTensor[[5], Double]");
     let t = Tensor::ones([50], kind::FLOAT_CPU) * 42;

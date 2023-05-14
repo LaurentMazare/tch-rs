@@ -55,7 +55,7 @@ impl<'a> TryFrom<TensorView<'a>> for Tensor {
     fn try_from(view: TensorView<'a>) -> Result<Self, Self::Error> {
         let size: Vec<i64> = view.shape().iter().map(|&x| x as i64).collect();
         let kind: Kind = view.dtype().try_into()?;
-        Tensor::f_of_data_size(view.data(), &size, kind)
+        Tensor::f_from_data_size(view.data(), &size, kind)
     }
 }
 

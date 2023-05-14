@@ -145,7 +145,7 @@ where
         let slice = value
             .as_slice()
             .ok_or_else(|| TchError::Convert("cannot convert to slice".to_string()))?;
-        let tn = Self::f_of_slice(slice)?;
+        let tn = Self::f_from_slice(slice)?;
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
         tn.f_reshape(shape)
     }
@@ -168,7 +168,7 @@ impl<T: Element> TryFrom<&Vec<T>> for Tensor {
     type Error = TchError;
 
     fn try_from(value: &Vec<T>) -> Result<Self, Self::Error> {
-        Self::f_of_slice(value.as_slice())
+        Self::f_from_slice(value.as_slice())
     }
 }
 

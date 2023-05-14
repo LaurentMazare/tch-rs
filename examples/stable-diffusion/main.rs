@@ -2470,10 +2470,10 @@ fn main() -> anyhow::Result<()> {
     let str = tokenizer.decode(&tokens);
     println!("Str: {str}");
     let tokens: Vec<i64> = tokens.iter().map(|x| *x as i64).collect();
-    let tokens = Tensor::of_slice(&tokens).view((1, -1)).to(device);
+    let tokens = Tensor::from_slice(&tokens).view((1, -1)).to(device);
     let uncond_tokens = tokenizer.encode("", Some(MAX_POSITION_EMBEDDINGS))?;
     let uncond_tokens: Vec<i64> = uncond_tokens.iter().map(|x| *x as i64).collect();
-    let uncond_tokens = Tensor::of_slice(&uncond_tokens).view((1, -1)).to(device);
+    let uncond_tokens = Tensor::from_slice(&uncond_tokens).view((1, -1)).to(device);
     println!("Tokens: {tokens:?}");
 
     let no_grad_guard = tch::no_grad_guard();

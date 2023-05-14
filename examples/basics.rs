@@ -18,13 +18,13 @@ fn main() {
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     let device = tch::Device::cuda_if_available();
-    let t = Tensor::of_slice(&[3, 1, 4, 1, 5]).to(device);
+    let t = Tensor::from_slice(&[3, 1, 4, 1, 5]).to(device);
     t.print();
     let t = Tensor::randn([5, 4], kind::FLOAT_CPU);
     t.print();
     (&t + 1.5).print();
     (&t + 2.5).print();
-    let mut t = Tensor::of_slice(&[1.1f32, 2.1, 3.1]);
+    let mut t = Tensor::from_slice(&[1.1f32, 2.1, 3.1]);
     t += 42;
     t.print();
     println!("{:?} {}", t.size(), t.double_value(&[1]));

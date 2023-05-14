@@ -9,7 +9,7 @@
 //!
 //! ```ignore
 //! use crate::tch::{IndexOp, Tensor};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+//! let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i(1);
 //! let t = tensor.i((.., -2));
 //! ```
@@ -18,7 +18,7 @@
 //!
 //! ```ignore
 //! use crate::tch::{IndexOp, Tensor};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+//! let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i((.., 1..));
 //! assert_eq!(t.size(), [2, 2]);
 //! assert_eq!(Vec::<i64>::from(t.contiguous().view(-1)), [2, 3, 5, 6]);
@@ -37,7 +37,7 @@
 //!
 //! ```ignore
 //! use crate::tch::{IndexOp, NewAxis, Tensor};
-//! let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+//! let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
 //! let t = tensor.i((NewAxis,));
 //! assert_eq!(t.size(), &[1, 2, 3]);
 //! let t = tensor.i((.., .., NewAxis));
@@ -89,7 +89,7 @@ impl From<&[i64]> for TensorIndexer {
 
 impl From<Vec<i64>> for TensorIndexer {
     fn from(index: Vec<i64>) -> Self {
-        let tensor = Tensor::of_slice(&index);
+        let tensor = Tensor::from_slice(&index);
         TensorIndexer::IndexSelect(tensor)
     }
 }

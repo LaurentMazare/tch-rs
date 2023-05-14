@@ -124,7 +124,7 @@ fn complex_index() {
 #[test]
 fn index_3d() {
     let values: Vec<i64> = (0..24).collect();
-    let tensor = tch::Tensor::of_slice(&values).view((2, 3, 4));
+    let tensor = tch::Tensor::from_slice(&values).view((2, 3, 4));
     assert_eq!(vec_i64_from(&tensor.i((0, 0, 0))), &[0]);
     assert_eq!(vec_i64_from(&tensor.i((1, 0, 0))), &[12]);
     assert_eq!(vec_i64_from(&tensor.i((0..2, 0, 0))), &[0, 12]);
@@ -133,8 +133,8 @@ fn index_3d() {
 #[test]
 fn tensor_index() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
-    let rows_select = Tensor::of_slice(&[0i64, 1, 0]);
-    let column_select = Tensor::of_slice(&[1i64, 2, 2]);
+    let rows_select = Tensor::from_slice(&[0i64, 1, 0]);
+    let column_select = Tensor::from_slice(&[1i64, 2, 2]);
 
     let selected = t.index(&[Some(rows_select), Some(column_select)]);
     assert_eq!(selected.size(), &[3]);
@@ -148,8 +148,8 @@ fn tensor_index2() {
     let selected = t.index(&[
         Some(Tensor::from(0i64)),
         Some(Tensor::from(1i64)),
-        Some(Tensor::of_slice(&[1i64, 2, 3])),
-        Some(Tensor::of_slice(&[5i64, 6, 7])),
+        Some(Tensor::from_slice(&[1i64, 2, 3])),
+        Some(Tensor::from_slice(&[5i64, 6, 7])),
     ]);
     assert_eq!(selected.size(), &[3]);
     // 115 = 0 * 200 + 1 * 100 + 1 * 10 + 5
@@ -162,8 +162,8 @@ fn tensor_index2() {
 fn tensor_multi_index() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
 
-    let select_1 = Tensor::of_slice(&[0i64, 1, 0]);
-    let select_2 = Tensor::of_slice(&[1i64, 0, 0]);
+    let select_1 = Tensor::from_slice(&[0i64, 1, 0]);
+    let select_2 = Tensor::from_slice(&[1i64, 0, 0]);
     let select_final = Tensor::stack(&[select_1, select_2], 0);
     assert_eq!(select_final.size(), &[2, 3]);
 
@@ -176,9 +176,9 @@ fn tensor_multi_index() {
 #[test]
 fn tensor_put() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
-    let rows_select = Tensor::of_slice(&[0i64, 1, 0]);
-    let column_select = Tensor::of_slice(&[1i64, 2, 2]);
-    let values = Tensor::of_slice(&[10i64, 12, 24]);
+    let rows_select = Tensor::from_slice(&[0i64, 1, 0]);
+    let column_select = Tensor::from_slice(&[1i64, 2, 2]);
+    let values = Tensor::from_slice(&[10i64, 12, 24]);
 
     let updated = t.index_put(&[Some(rows_select), Some(column_select)], &values, false);
     assert_eq!(vec_i64_from(&updated), &[0i64, 10, 24, 3, 4, 12]); // after flattening
@@ -186,13 +186,13 @@ fn tensor_put() {
 
 #[test]
 fn indexing_doc() {
-    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
     let t = tensor.i(1);
     assert_eq!(vec_i64_from(&t), [4, 5, 6]);
     let t = tensor.i((.., -2));
     assert_eq!(vec_i64_from(&t), [2, 5]);
 
-    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
     let t = tensor.i((.., 1..));
     assert_eq!(t.size(), [2, 2]);
     assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [2, 3, 5, 6]);
@@ -206,7 +206,7 @@ fn indexing_doc() {
     assert_eq!(t.size(), [2, 2]);
     assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [2, 3, 5, 6]);
 
-    let tensor = Tensor::of_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
     let t = tensor.i((NewAxis,));
     assert_eq!(t.size(), &[1, 2, 3]);
     let t = tensor.i((.., .., NewAxis));

@@ -137,13 +137,13 @@ impl Tensor {
 
 impl<T: crate::kind::Element> From<&[T]> for Tensor {
     fn from(v: &[T]) -> Tensor {
-        Tensor::of_slice(v)
+        Tensor::from_slice(v)
     }
 }
 
 impl<T: crate::kind::Element> From<T> for Tensor {
     fn from(v: T) -> Tensor {
-        Tensor::of_slice(&[v]).view(())
+        Tensor::from_slice(&[v]).view(())
     }
 }
 impl Tensor {
@@ -238,12 +238,13 @@ impl Tensor {
         result
     }
 
-    pub fn of_slice2<T, U>(v: &[U]) -> Tensor
+    /// Copies the data from a two dimensional slice in a tensor object.
+    pub fn from_slice2<T, U>(v: &[U]) -> Tensor
     where
         T: crate::kind::Element,
         U: AsRef<[T]>,
     {
-        let inner: Vec<Tensor> = v.iter().map(|v| Tensor::of_slice(v.as_ref())).collect();
+        let inner: Vec<Tensor> = v.iter().map(|v| Tensor::from_slice(v.as_ref())).collect();
         Tensor::stack(&inner, 0)
     }
 

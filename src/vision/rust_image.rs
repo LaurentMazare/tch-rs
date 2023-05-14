@@ -31,7 +31,7 @@ impl<'i> TryFrom<&'i GrayImage> for Tensor {
     ///  `h * w` => `1 * 1 * h * w`
     fn try_from(gray: &'i GrayImage) -> Result<Self, Self::Error> {
         let size = &[gray.height() as i64, gray.width() as i64, 1];
-        let tensor = Tensor::f_of_data_size(gray.as_bytes(), size, Kind::Uint8)?;
+        let tensor = Tensor::f_from_data_size(gray.as_bytes(), size, Kind::Uint8)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
@@ -42,7 +42,7 @@ impl<'i> TryFrom<&'i GrayAlphaImage> for Tensor {
     ///  `2 * h * w` => `1 * 2 * h * w`
     fn try_from(gray: &'i GrayAlphaImage) -> Result<Self, Self::Error> {
         let size = &[gray.height() as i64, gray.width() as i64, 2];
-        let tensor = Tensor::f_of_data_size(gray.as_bytes(), size, Kind::Uint8)?;
+        let tensor = Tensor::f_from_data_size(gray.as_bytes(), size, Kind::Uint8)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
@@ -53,7 +53,7 @@ impl<'i> TryFrom<&'i RgbImage> for Tensor {
     /// `h * w * 3` => `1 * 3 * h * w`
     fn try_from(rgb: &'i RgbImage) -> Result<Self, Self::Error> {
         let size = &[rgb.height() as i64, rgb.width() as i64, 3];
-        let tensor = Tensor::f_of_data_size(rgb.as_raw(), size, Kind::Uint8)?;
+        let tensor = Tensor::f_from_data_size(rgb.as_raw(), size, Kind::Uint8)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
@@ -65,7 +65,7 @@ impl<'i> TryFrom<&'i RgbaImage> for Tensor {
     fn try_from(rgb: &'i RgbaImage) -> Result<Self, Self::Error> {
         let kind = Kind::Uint8;
         let size = &[rgb.height() as i64, rgb.width() as i64, 4];
-        let tensor = Tensor::f_of_data_size(rgb.as_raw(), size, kind)?;
+        let tensor = Tensor::f_from_data_size(rgb.as_raw(), size, kind)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
@@ -93,7 +93,7 @@ impl<'i> TryFrom<&'i Rgb32FImage> for Tensor {
     fn try_from(rgb: &'i Rgb32FImage) -> Result<Self, Self::Error> {
         let kind = Kind::Float;
         let size = &[rgb.height() as i64, rgb.width() as i64, 3];
-        let tensor = Tensor::f_of_data_size(rgb.as_bytes(), size, kind)?;
+        let tensor = Tensor::f_from_data_size(rgb.as_bytes(), size, kind)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
@@ -105,7 +105,7 @@ impl<'i> TryFrom<&'i Rgba32FImage> for Tensor {
     fn try_from(rgb: &'i Rgba32FImage) -> Result<Self, Self::Error> {
         let kind = Kind::Float;
         let size = &[rgb.height() as i64, rgb.width() as i64, 4];
-        let tensor = Tensor::f_of_data_size(rgb.as_bytes(), size, kind)?;
+        let tensor = Tensor::f_from_data_size(rgb.as_bytes(), size, kind)?;
         Ok(hwc_to_chw(&tensor))
     }
 }
