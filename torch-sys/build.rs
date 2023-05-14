@@ -27,6 +27,16 @@ import sysconfig
 print('PYTHON_INCLUDE:', sysconfig.get_path('include'))
 ";
 
+const NO_DOWNLOAD_ERROR_MESSAGE: &str = r"
+Cannot find a libtorch install, you can either:
+- Install libtorch manually and set the LIBTORCH environment variable to appropriate path.
+- Use a system wide install in /usr/lib/libtorch.so.
+- Use a Python environment with PyTorch installed by setting LIBTORCH_USE_PYTORCH=1
+
+See the readme for more details:
+https://github.com/LaurentMazare/tch-rs/blob/main/README.md
+";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Os {
     Linux,
@@ -233,6 +243,10 @@ impl SystemInfo {
         } else if let Some(pathbuf) = Self::check_system_location(os) {
             Ok(pathbuf)
         } else {
+            if !cfg!(feature = "download-libtorch") {
+                anyhow::bail!(NO_DOWNLOAD_ERROR_MESSAGE)
+            }
+
             let device = match env_var_rerun("TORCH_CUDA_VERSION") {
                 Ok(cuda_env) => match os {
                     Os::Linux | Os::Windows => cuda_env
