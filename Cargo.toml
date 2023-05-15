@@ -38,9 +38,9 @@ anyhow = "1"
 members = ["torch-sys", "examples/python-extension"]
 
 [features]
-default = ["torch-sys/download-libtorch"]
+download-libtorch = ["torch-sys/download-libtorch"]
 python-extension = ["torch-sys/python-extension"]
-rl_python = ["cpython"]
+rl-python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
 
@@ -49,7 +49,7 @@ features = [ "doc-only" ]
 
 [[example]]
 name = "reinforcement-learning"
-required-features = ["rl_python"]
+required-features = ["rl-python"]
 
 [[example]]
 name = "stable-diffusion"

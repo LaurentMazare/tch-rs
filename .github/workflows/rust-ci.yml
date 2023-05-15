@@ -20,6 +20,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --features download-libtorch
 
   test:
     name: Test Suite
@@ -38,6 +39,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --features download-libtorch
 
   fmt:
     name: Rustfmt
