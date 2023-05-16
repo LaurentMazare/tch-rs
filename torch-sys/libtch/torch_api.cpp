@@ -1646,5 +1646,3 @@ void ati_free(ivalue i) {
 void at_set_graph_executor_optimize(bool o) {
   torch::jit::setGraphExecutorOptimize(o);
 }
-
-#include "torch_api_generated.cpp.h"
