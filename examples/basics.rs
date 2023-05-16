@@ -30,6 +30,7 @@ fn main() {
     println!("{:?} {}", t.size(), t.double_value(&[1]));
     grad_example();
     println!("has_mps: {}", tch::utils::has_mps());
+    println!("has_vulkan: {}", tch::utils::has_vulkan());
     println!("version_cudnn: {}", tch::utils::version_cudnn());
     println!("version_cudart: {}", tch::utils::version_cudart());
 }
