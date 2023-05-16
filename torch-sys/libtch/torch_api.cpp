@@ -22,7 +22,6 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
 
-using namespace std;
 thread_local char *torch_last_err = nullptr;
 
 char *get_and_reset_last_err() {

@@ -3,6 +3,9 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
+#include<torch/torch.h>
+#include<stdexcept>
+using namespace std;
 extern thread_local char *torch_last_err;
 
 extern "C" {

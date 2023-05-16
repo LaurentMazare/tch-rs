@@ -1,8 +1,4 @@
-#include<torch/torch.h>
-#include<stdexcept>
 #include "torch_python.h"
-
-using namespace std;
 
 bool thp_variable_check(PyObject* pyobj) {
   PROTECT(
