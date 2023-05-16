@@ -130,6 +130,13 @@ pub fn version_cudart() -> i64 {
     unsafe_torch!(torch_sys::at_context_version_cudart())
 }
 
+/// Check whether the vulkan backend is available. None that this
+/// backend is not included by default as of PyTorch 2.0.0.
+/// https://pytorch.org/tutorials/prototype/vulkan_workflow.html#building-pytorch-with-vulkan-backend
+pub fn has_vulkan() -> bool {
+    crate::Tensor::is_vulkan_available()
+}
+
 /// Quantization engines
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
