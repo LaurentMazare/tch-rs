@@ -3,6 +3,9 @@
 #include<stdint.h>
 
 #ifdef __cplusplus
+#include<torch/torch.h>
+#include<stdexcept>
+using namespace std;
 extern thread_local char *torch_last_err;
 
 extern "C" {
@@ -280,10 +283,11 @@ bool tch_read_stream_seek_start(void *stream_ptr, uint64_t pos, uint64_t *new_po
 bool tch_read_stream_seek_end(void *stream_ptr, int64_t pos, uint64_t *new_pos);
 bool tch_read_stream_read(void *stream_ptr, uint8_t *buf, size_t size, size_t *new_pos);
 
-#include "torch_api_generated.h"
-
 #ifdef __cplusplus
 };
-#endif
 
+std::vector<torch::Tensor> of_carray_tensor(torch::Tensor **vs, int len);
+at::Device device_of_int(int d);
+c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs, int len);
+#endif
 #endif

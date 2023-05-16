@@ -329,14 +329,15 @@ impl SystemInfo {
         println!("cargo:rerun-if-changed={}", cuda_dependency);
         println!("cargo:rerun-if-changed=libtch/torch_python.cpp");
         println!("cargo:rerun-if-changed=libtch/torch_python.h");
+        println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp");
+        println!("cargo:rerun-if-changed=libtch/torch_api_generated.h");
         println!("cargo:rerun-if-changed=libtch/torch_api.cpp");
         println!("cargo:rerun-if-changed=libtch/torch_api.h");
-        println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp.h");
-        println!("cargo:rerun-if-changed=libtch/torch_api_generated.h");
         println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
         println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
         println!("cargo:rerun-if-changed=libtch/stb_image.h");
-        let mut c_files = vec!["libtch/torch_api.cpp", cuda_dependency];
+        let mut c_files =
+            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", cuda_dependency];
         if cfg!(feature = "python-extension") {
             c_files.push("libtch/torch_python.cpp")
         }

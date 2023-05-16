@@ -22,7 +22,6 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
 
-using namespace std;
 thread_local char *torch_last_err = nullptr;
 
 char *get_and_reset_last_err() {
@@ -1646,5 +1645,3 @@ void ati_free(ivalue i) {
 void at_set_graph_executor_optimize(bool o) {
   torch::jit::setGraphExecutorOptimize(o);
 }
-
-#include "torch_api_generated.cpp.h"
