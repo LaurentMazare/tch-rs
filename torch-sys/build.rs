@@ -38,6 +38,12 @@ https://github.com/LaurentMazare/tch-rs/blob/main/README.md
 ";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LinkType {
+    Dynamic,
+    Static,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Os {
     Linux,
     Macos,
@@ -52,6 +58,7 @@ struct SystemInfo {
     cxx11_abi: String,
     libtorch_include_dirs: Vec<PathBuf>,
     libtorch_lib_dir: PathBuf,
+    link_type: LinkType,
 }
 
 #[cfg(feature = "ureq")]
@@ -227,7 +234,18 @@ impl SystemInfo {
             env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned())
         };
         let libtorch_lib_dir = libtorch_lib_dir.expect("no libtorch lib dir found");
-        Ok(Self { os, python_interpreter, cxx11_abi, libtorch_include_dirs, libtorch_lib_dir })
+        let link_type = match env_var_rerun("LIBTORCH_STATIC").as_deref() {
+            Err(_) | Ok("0") | Ok("false") | Ok("FALSE") => LinkType::Dynamic,
+            Ok(_) => LinkType::Static,
+        };
+        Ok(Self {
+            os,
+            python_interpreter,
+            cxx11_abi,
+            libtorch_include_dirs,
+            libtorch_lib_dir,
+            link_type,
+        })
     }
 
     fn check_system_location(os: Os) -> Option<PathBuf> {
@@ -373,6 +391,16 @@ impl SystemInfo {
             }
         };
     }
+
+    fn link(&self, lib_name: &str) {
+        match self.link_type {
+            LinkType::Dynamic => println!("cargo:rustc-link-lib={lib_name}"),
+            LinkType::Static => {
+                // TODO: whole-archive might only be necessary for libtorch_cpu?
+                println!("cargo:rustc-link-lib=static:+whole-archive,-bundle={lib_name}")
+            }
+        }
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -392,6 +420,12 @@ fn main() -> anyhow::Result<()> {
         // This will be available starting from cargo 1.50 but will be a nightly
         // only option to start with.
         // https://github.com/rust-lang/cargo/blob/master/CHANGELOG.md
+        //
+        // Update: The above doesn't seem to propagate to the downstream binaries
+        // so doesn't really help, the comment has been kept though to keep track
+        // if this issue.
+        // TODO: Try out the as-needed native link modifier when it lands.
+        // https://github.com/rust-lang/rust/issues/99424
         let si_lib = &system_info.libtorch_lib_dir;
         let use_cuda =
             si_lib.join("libtorch_cuda.so").exists() || si_lib.join("torch_cuda.dll").exists();
@@ -407,25 +441,47 @@ fn main() -> anyhow::Result<()> {
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
-            println!("cargo:rustc-link-lib=torch_cuda");
+            system_info.link("torch_cuda")
         }
         if use_cuda_cu {
-            println!("cargo:rustc-link-lib=torch_cuda_cu");
+            system_info.link("torch_cuda_cu")
         }
         if use_cuda_cpp {
-            println!("cargo:rustc-link-lib=torch_cuda_cpp");
+            system_info.link("torch_cuda_cpp")
         }
         if use_hip {
-            println!("cargo:rustc-link-lib=torch_hip");
+            system_info.link("torch_hip")
         }
         if cfg!(feature = "python-extension") {
-            println!("cargo:rustc-link-lib=torch_python");
+            system_info.link("torch_python")
         }
-        println!("cargo:rustc-link-lib=torch_cpu");
-        println!("cargo:rustc-link-lib=torch");
-        println!("cargo:rustc-link-lib=c10");
+        if system_info.link_type == LinkType::Static {
+            // TODO: this has only be tried out on the cpu version. Check that it works
+            // with cuda too and maybe just try linking all available files?
+            system_info.link("asmjit");
+            system_info.link("clog");
+            system_info.link("cpuinfo");
+            system_info.link("dnnl");
+            system_info.link("dnnl_graph");
+            system_info.link("fbgemm");
+            system_info.link("gloo");
+            system_info.link("kineto");
+            system_info.link("nnpack");
+            system_info.link("onnx");
+            system_info.link("onnx_proto");
+            system_info.link("protobuf");
+            system_info.link("pthreadpool");
+            system_info.link("pytorch_qnnpack");
+            system_info.link("sleef");
+            system_info.link("tensorpipe");
+            system_info.link("tensorpipe_uv");
+            system_info.link("XNNPACK");
+        }
+        system_info.link("torch_cpu");
+        system_info.link("torch");
+        system_info.link("c10");
         if use_hip {
-            println!("cargo:rustc-link-lib=c10_hip");
+            system_info.link("c10_hip");
         }
 
         let target = env::var("TARGET").context("TARGET variable not set")?;
