@@ -78,6 +78,20 @@ As per [the pytorch docs](https://pytorch.org/cppdocs/installing.html) the Windo
 
 It is recommended to use the MSVC Rust toolchain (e.g. by installing `stable-x86_64-pc-windows-msvc` via rustup) rather than a MinGW based one as PyTorch has compatibilities issues with MinGW.
 
+### Static Linking
+
+When setting environment variable `LIBTORCH_STATIC=1", `libtorch` is statically
+linked rather than using the dynamic libraries. The pre-compiled artifacts don't
+seem to include `libtorch.a` by default so this would have to be compiled
+manually, e.g. via the following:
+
+```bash
+git clone -b v2.0.0 --recurse-submodule https://github.com/pytorch/pytorch.git pytorch-static --depth 1
+cd pytorch-static
+USE_CUDA=OFF BUILD_SHARED_LIBS=OFF python setup.py build
+# export LIBTORCH to point at the build directory in pytorch-static.
+```
+
 ## Examples
 
 ### Basic Tensor Operations

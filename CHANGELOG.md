@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.13.0 - unreleased yet
 ### Added
+- Support static linking in the build script,
+  [712](https://github.com/LaurentMazare/tch-rs/pull/712).
 - Make the libtorch download opt-in rather than a default behavior. The libtorch
   library download can still be triggered by enabling the `download-libtorch`
   feature, [707](https://github.com/LaurentMazare/tch-rs/pull/707).
