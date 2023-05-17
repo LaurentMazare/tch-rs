@@ -401,3 +401,12 @@ fn conv() {
     let conved = apply_conv(&xs, nn::PaddingMode::Replicate);
     assert_eq!(vec_f32_from(&conved.reshape(-1)), &[18.0, 21.0, 24.0, 27.0]);
 }
+
+#[test]
+fn seq() {
+    let s = nn::seq().add_fn(|xs| xs.shallow_clone().relu_());
+    let xs = Tensor::from_slice(&[1.0, -1.0, 2.0]);
+    let ys = xs.apply(&s);
+    assert_eq!(vec_f32_from(&xs), [1., 0., 2.]);
+    assert_eq!(vec_f32_from(&ys), [1., 0., 2.]);
+}
