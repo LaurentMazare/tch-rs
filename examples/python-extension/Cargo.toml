@@ -11,4 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.18.3", features = ["extension-module"] }
 tch = { path = "../..", features = ["python-extension"], version = "0.13.0" }
-torch-sys = { path = "../../torch-sys", features = ["python-extension"] }
+torch-sys = { path = "../../torch-sys", features = ["python-extension"], version = "0.13.0" }
