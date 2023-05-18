@@ -1,8 +1,16 @@
 [package]
 name = "tch-ext"
 version = "0.1.0"
+authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
+
+description = "Sample Python extension using tch to interact with PyTorch."
+repository = "https://github.com/LaurentMazare/tch-rs"
+keywords = ["pytorch", "deep-learning", "machine-learning"]
+categories = ["science"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
 
 [lib]
 name = "tch_ext"
@@ -11,4 +19,4 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.18.3", features = ["extension-module"] }
 tch = { path = "../..", features = ["python-extension"], version = "0.13.0" }
-torch-sys = { path = "../../torch-sys", features = ["python-extension"] }
+torch-sys = { path = "../../torch-sys", features = ["python-extension"], version = "0.13.0" }
