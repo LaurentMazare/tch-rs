@@ -13,7 +13,7 @@ enum BasicKind {
 
 impl BasicKind {
     fn for_tensor(t: &Tensor) -> BasicKind {
-        match t.f_kind() {
+        match t.kind() {
             Err(_) => BasicKind::Complex,
             Ok(kind) => match kind {
                 Kind::Int | Kind::Int8 | Kind::Uint8 | Kind::Int16 | Kind::Int64 => BasicKind::Int,
@@ -41,7 +41,7 @@ impl BasicKind {
 impl std::fmt::Debug for Tensor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.defined() {
-            match self.f_kind() {
+            match self.kind() {
                 Err(err) => write!(f, "Tensor[{:?}, {:?}]", self.size(), err),
                 Ok(kind) => {
                     let (is_int, is_float) = match kind {
@@ -169,12 +169,12 @@ trait TensorFormatter {
         match size.as_slice() {
             [] => self.fmt(Self::value(t), max_w, f)?,
             [v] if summarize && *v > 2 * edge_items => {
-                for v in Self::values(&t.slice(0, None, Some(edge_items), 1)).into_iter() {
+                for v in Self::values(&t.f_slice(0, None, Some(edge_items), 1)).into_iter() {
                     self.fmt(v, max_w, f)?;
                     write!(f, ", ")?;
                 }
                 write!(f, "...")?;
-                for v in Self::values(&t.slice(0, Some(-edge_items), None, 1)).into_iter() {
+                for v in Self::values(&t.f_slice(0, Some(-edge_items), None, 1)).into_iter() {
                     write!(f, ", ")?;
                     self.fmt(v, max_w, f)?
                 }
@@ -196,14 +196,14 @@ trait TensorFormatter {
             _ => {
                 if summarize && size[0] > 2 * edge_items {
                     for i in 0..edge_items {
-                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        self.fmt_tensor(&t.f_get(i), indent + 1, max_w, summarize, po, f)?;
                         write!(f, ",")?;
                         Self::write_newline_indent(indent, f)?
                     }
                     write!(f, "...")?;
                     Self::write_newline_indent(indent, f)?;
                     for i in size[0] - edge_items..size[0] {
-                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        self.fmt_tensor(&t.f_get(i), indent + 1, max_w, summarize, po, f)?;
                         if i + 1 != size[0] {
                             write!(f, ",")?;
                             Self::write_newline_indent(indent, f)?
@@ -211,7 +211,7 @@ trait TensorFormatter {
                     }
                 } else {
                     for i in 0..size[0] {
-                        self.fmt_tensor(&t.get(i), indent + 1, max_w, summarize, po, f)?;
+                        self.fmt_tensor(&t.f_get(i), indent + 1, max_w, summarize, po, f)?;
                         if i + 1 != size[0] {
                             write!(f, ",")?;
                             Self::write_newline_indent(indent, f)?
@@ -258,20 +258,20 @@ impl FloatFormatter {
         let mut sci_mode = false;
 
         let _guard = crate::no_grad_guard();
-        let t = t.to_device(crate::Device::Cpu);
+        let t = t.f_to_device(crate::Device::Cpu);
 
         // Rather than containing all values, this should only include
         // values that end up being displayed according to [threshold].
         let nonzero_finite_vals = {
-            let t = t.reshape([-1]);
-            t.masked_select(&t.isfinite().logical_and(&t.ne(0.)))
+            let t = t.f_reshape([-1]);
+            t.f_masked_select(&t.f_isfinite().f_logical_and(&t.f_ne(0.)))
         };
 
         let values = Vec::<f64>::try_from(&nonzero_finite_vals).unwrap();
         if nonzero_finite_vals.numel() > 0 {
-            let nonzero_finite_abs = nonzero_finite_vals.abs();
-            let nonzero_finite_min = nonzero_finite_abs.min().double_value(&[]);
-            let nonzero_finite_max = nonzero_finite_abs.max().double_value(&[]);
+            let nonzero_finite_abs = nonzero_finite_vals.f_abs();
+            let nonzero_finite_min = nonzero_finite_abs.f_min().f_double_value(&[]);
+            let nonzero_finite_max = nonzero_finite_abs.f_max().f_double_value(&[]);
 
             for &value in values.iter() {
                 if value.ceil() != value {
@@ -311,11 +311,11 @@ impl TensorFormatter for FloatFormatter {
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
-        tensor.double_value(&[])
+        tensor.f_double_value(&[])
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
+        Vec::<Self::Elem>::try_from(tensor.f_reshape(-1)).unwrap()
     }
 }
 
@@ -329,11 +329,11 @@ impl TensorFormatter for IntFormatter {
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
-        tensor.int64_value(&[])
+        tensor.f_int64_value(&[])
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
+        Vec::<Self::Elem>::try_from(tensor.f_reshape(-1)).unwrap()
     }
 }
 
@@ -348,11 +348,11 @@ impl TensorFormatter for BoolFormatter {
     }
 
     fn value(tensor: &Tensor) -> Self::Elem {
-        tensor.int64_value(&[]) != 0
+        tensor.f_int64_value(&[]) != 0
     }
 
     fn values(tensor: &Tensor) -> Vec<Self::Elem> {
-        Vec::<Self::Elem>::try_from(tensor.reshape(-1)).unwrap()
+        Vec::<Self::Elem>::try_from(tensor.f_reshape(-1)).unwrap()
     }
 }
 
@@ -362,8 +362,11 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
         t.shallow_clone()
     } else if size.len() == 1 {
         if size[0] > 2 * edge_items {
-            Tensor::cat(
-                &[t.slice(0, None, Some(edge_items), 1), t.slice(0, Some(-edge_items), None, 1)],
+            Tensor::f_cat(
+                &[
+                    t.f_slice(0, None, Some(edge_items), 1),
+                    t.f_slice(0, Some(-edge_items), None, 1),
+                ],
                 0,
             )
         } else {
@@ -371,14 +374,15 @@ fn get_summarized_data(t: &Tensor, edge_items: i64) -> Tensor {
         }
     } else if size[0] > 2 * edge_items {
         let mut vs: Vec<_> =
-            (0..edge_items).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
+            (0..edge_items).map(|i| get_summarized_data(&t.f_get(i), edge_items)).collect();
         for i in (size[0] - edge_items)..size[0] {
-            vs.push(get_summarized_data(&t.get(i), edge_items))
+            vs.push(get_summarized_data(&t.f_get(i), edge_items))
         }
-        Tensor::stack(&vs, 0)
+        Tensor::f_stack(&vs, 0)
     } else {
-        let vs: Vec<_> = (0..size[0]).map(|i| get_summarized_data(&t.get(i), edge_items)).collect();
-        Tensor::stack(&vs, 0)
+        let vs: Vec<_> =
+            (0..size[0]).map(|i| get_summarized_data(&t.f_get(i), edge_items)).collect();
+        Tensor::f_stack(&vs, 0)
     }
 }
 
@@ -414,7 +418,7 @@ impl std::fmt::Display for Tensor {
                 }
                 BasicKind::Complex => {}
             };
-            let kind = match self.f_kind() {
+            let kind = match self.kind() {
                 Ok(kind) => format!("{kind:?}"),
                 Err(err) => format!("{err:?}"),
             };

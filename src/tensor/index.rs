@@ -89,7 +89,7 @@ impl From<&[i64]> for TensorIndexer {
 
 impl From<Vec<i64>> for TensorIndexer {
     fn from(index: Vec<i64>) -> Self {
-        let tensor = Tensor::from_slice(&index);
+        let tensor = Tensor::f_from_slice(&index);
         TensorIndexer::IndexSelect(tensor)
     }
 }
@@ -132,6 +132,7 @@ impl_from_range!(RangeTo<i64>);
 impl_from_range!(RangeToInclusive<i64>);
 
 pub trait IndexOp<T> {
+    // Maybe this should be converted to returning a Result<Tensor> instead.
     fn i(&self, index: T) -> Tensor;
 }
 
@@ -140,7 +141,7 @@ where
     A: Into<TensorIndexer>,
 {
     fn i(&self, index: A) -> Tensor {
-        self.indexer(&[index.into()])
+        self.f_indexer(&[index.into()])
     }
 }
 
@@ -150,7 +151,7 @@ where
 {
     fn i(&self, index: (A,)) -> Tensor {
         let idx_a = index.0.into();
-        self.indexer(&[idx_a])
+        self.f_indexer(&[idx_a])
     }
 }
 
@@ -162,7 +163,7 @@ where
     fn i(&self, index: (A, B)) -> Tensor {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
-        self.indexer(&[idx_a, idx_b])
+        self.f_indexer(&[idx_a, idx_b])
     }
 }
 
@@ -176,7 +177,7 @@ where
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
-        self.indexer(&[idx_a, idx_b, idx_c])
+        self.f_indexer(&[idx_a, idx_b, idx_c])
     }
 }
 
@@ -192,7 +193,7 @@ where
         let idx_b = index.1.into();
         let idx_c = index.2.into();
         let idx_d = index.3.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d])
     }
 }
 
@@ -210,7 +211,7 @@ where
         let idx_c = index.2.into();
         let idx_d = index.3.into();
         let idx_e = index.4.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e])
     }
 }
 
@@ -230,7 +231,7 @@ where
         let idx_d = index.3.into();
         let idx_e = index.4.into();
         let idx_f = index.5.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f])
     }
 }
 
@@ -252,12 +253,12 @@ where
         let idx_e = index.4.into();
         let idx_f = index.5.into();
         let idx_g = index.6.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f, idx_g])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f, idx_g])
     }
 }
 
 impl Tensor {
-    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Result<Tensor, TchError> {
+    fn indexer(&self, index_spec: &[TensorIndexer]) -> Result<Tensor, TchError> {
         use std::ops::Bound::*;
         use TensorIndexer::*;
 
@@ -280,7 +281,7 @@ impl Tensor {
                         "Multi-dimensional tensor is not supported for indexing".to_string(),
                     ));
                 }
-                match tensor.f_kind()? {
+                match tensor.kind()? {
                     Int64 => {}
                     Int16 => {}
                     Int8 => {}
@@ -298,41 +299,41 @@ impl Tensor {
 
         for spec in index_spec.iter() {
             let (next_tensor, next_idx) = match spec {
-                InsertNewAxis => (curr_tensor.unsqueeze(curr_idx), curr_idx + 1),
+                InsertNewAxis => (curr_tensor.f_unsqueeze(curr_idx), curr_idx + 1),
                 Select(index) => (
-                    curr_tensor.select(curr_idx, *index),
+                    curr_tensor.f_select(curr_idx, *index),
                     curr_idx, // not advanced because select() squeezes dimension
                 ),
                 Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
                 Narrow(Included(start), Unbounded) => {
                     let dim_len = curr_tensor.size()[curr_idx as usize];
-                    (curr_tensor.narrow(curr_idx, *start, dim_len - *start), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start, dim_len - *start), curr_idx + 1)
                 }
                 Narrow(Excluded(start), Unbounded) => {
                     let dim_len = curr_tensor.size()[curr_idx as usize];
-                    (curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start + 1, dim_len - *start - 1), curr_idx + 1)
                 }
                 Narrow(Unbounded, Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, 0, *end + 1), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, 0, *end + 1), curr_idx + 1)
                 }
                 Narrow(Unbounded, Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, 0, *end), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, 0, *end), curr_idx + 1)
                 }
                 Narrow(Included(start), Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start, *end - *start + 1), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start, *end - *start + 1), curr_idx + 1)
                 }
                 Narrow(Included(start), Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start, *end - *start), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start, *end - *start), curr_idx + 1)
                 }
                 Narrow(Excluded(start), Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start + 1, *end - *start), curr_idx + 1)
                 }
                 Narrow(Excluded(start), Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start - 1), curr_idx + 1)
+                    (curr_tensor.f_narrow(curr_idx, *start + 1, *end - *start - 1), curr_idx + 1)
                 }
                 IndexSelect(index_tensor) => {
-                    let index_tensor = index_tensor.to_device(curr_tensor.device());
-                    (curr_tensor.index_select(curr_idx, &index_tensor), curr_idx + 1)
+                    let index_tensor = index_tensor.f_to_device(curr_tensor.device());
+                    (curr_tensor.f_index_select(curr_idx, &index_tensor), curr_idx + 1)
                 }
             };
 
@@ -343,7 +344,7 @@ impl Tensor {
         Ok(curr_tensor)
     }
 
-    fn indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
-        self.f_indexer(index_spec).unwrap()
+    fn f_indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
+        self.indexer(index_spec).unwrap()
     }
 }

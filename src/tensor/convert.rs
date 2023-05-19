@@ -16,7 +16,7 @@ impl<T: Element + Copy> TryFrom<&Tensor> for Vec<T> {
         }
         let numel = size[0] as usize;
         let mut vec = vec![T::ZERO; numel];
-        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut vec, numel)?;
+        tensor.to_kind(T::KIND)?.copy_data(&mut vec, numel)?;
         Ok(vec)
     }
 }
@@ -30,7 +30,7 @@ impl<T: Element + Copy> TryFrom<&Tensor> for Vec<Vec<T>> {
         let num_elem = s1 * s2;
         // TODO: Try to remove this intermediary copy.
         let mut all_elems = vec![T::ZERO; num_elem];
-        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut all_elems, num_elem)?;
+        tensor.to_kind(T::KIND)?.copy_data(&mut all_elems, num_elem)?;
         let out = (0..s1).map(|i1| (0..s2).map(|i2| all_elems[i1 * s2 + i2]).collect()).collect();
         Ok(out)
     }
@@ -46,7 +46,7 @@ impl<T: Element + Copy> TryFrom<&Tensor> for Vec<Vec<Vec<T>>> {
         let num_elem = s1 * s2 * s3;
         // TODO: Try to remove this intermediary copy.
         let mut all_elems = vec![T::ZERO; num_elem];
-        tensor.f_to_kind(T::KIND)?.f_copy_data(&mut all_elems, num_elem)?;
+        tensor.to_kind(T::KIND)?.copy_data(&mut all_elems, num_elem)?;
         let out = (0..s1)
             .map(|i1| {
                 (0..s2)
@@ -94,9 +94,9 @@ macro_rules! from_tensor {
                 }
                 let mut vec = [$typ::ZERO; 1];
                 tensor
-                    .f_to_device(crate::Device::Cpu)?
-                    .f_to_kind($typ::KIND)?
-                    .f_copy_data(&mut vec, numel)?;
+                    .to_device(crate::Device::Cpu)?
+                    .to_kind($typ::KIND)?
+                    .copy_data(&mut vec, numel)?;
                 Ok(vec[0])
             }
         }
@@ -127,7 +127,7 @@ impl<T: Element + Copy> TryInto<ndarray::ArrayD<T>> for &Tensor {
     fn try_into(self) -> Result<ndarray::ArrayD<T>, Self::Error> {
         let num_elem = self.numel();
         let mut vec = vec![T::ZERO; num_elem];
-        self.f_to_kind(T::KIND)?.f_copy_data(&mut vec, num_elem)?;
+        self.to_kind(T::KIND)?.copy_data(&mut vec, num_elem)?;
         let shape: Vec<usize> = self.size().iter().map(|s| *s as usize).collect();
         Ok(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&shape), vec)?)
     }
@@ -145,9 +145,9 @@ where
         let slice = value
             .as_slice()
             .ok_or_else(|| TchError::Convert("cannot convert to slice".to_string()))?;
-        let tn = Self::f_from_slice(slice)?;
+        let tn = Self::from_slice(slice)?;
         let shape: Vec<i64> = value.shape().iter().map(|s| *s as i64).collect();
-        tn.f_reshape(shape)
+        tn.reshape(shape)
     }
 }
 
@@ -168,7 +168,7 @@ impl<T: Element> TryFrom<&Vec<T>> for Tensor {
     type Error = TchError;
 
     fn try_from(value: &Vec<T>) -> Result<Self, Self::Error> {
-        Self::f_from_slice(value.as_slice())
+        Self::from_slice(value.as_slice())
     }
 }
 

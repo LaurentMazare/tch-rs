@@ -1,5 +1,5 @@
 //! A layer-normalization layer.
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
 
 /// Layer-normalization config.
@@ -52,7 +52,7 @@ pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for LayerNorm {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::layer_norm(
             xs,
             self.normalized_shape.as_slice(),

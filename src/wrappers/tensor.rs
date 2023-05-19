@@ -193,15 +193,15 @@ impl Tensor {
 
     /// Returns the kind of elements stored in the input tensor. Returns
     /// an error on undefined tensors and unsupported data types.
-    pub fn f_kind(&self) -> Result<Kind, TchError> {
+    pub fn kind(&self) -> Result<Kind, TchError> {
         let kind = unsafe_torch!(at_scalar_type(self.c_tensor));
         Kind::from_c_int(kind)
     }
 
     /// Returns the kind of elements stored in the input tensor. Panics
     /// an error on undefined tensors and unsupported data types.
-    pub fn kind(&self) -> Kind {
-        self.f_kind().unwrap()
+    pub fn f_kind(&self) -> Kind {
+        self.kind().unwrap()
     }
 
     /// Returns the device on which the input tensor is located.
@@ -220,7 +220,7 @@ impl Tensor {
 
     /// Returns a double value on tensors holding a single element. An error is
     /// returned otherwise.
-    pub fn f_double_value(&self, idx: &[i64]) -> Result<f64, TchError> {
+    pub fn double_value(&self, idx: &[i64]) -> Result<f64, TchError> {
         Ok(unsafe_torch_err!({
             at_double_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
@@ -228,20 +228,20 @@ impl Tensor {
 
     /// Returns an int value on tensors holding a single element. An error is
     /// returned otherwise.
-    pub fn f_int64_value(&self, idx: &[i64]) -> Result<i64, TchError> {
+    pub fn int64_value(&self, idx: &[i64]) -> Result<i64, TchError> {
         Ok(unsafe_torch_err!({
             at_int64_value_at_indexes(self.c_tensor, idx.as_ptr(), idx.len() as i32)
         }))
     }
 
     /// Returns a double value on tensors holding a single element. Panics otherwise.
-    pub fn double_value(&self, idx: &[i64]) -> f64 {
-        self.f_double_value(idx).unwrap()
+    pub fn f_double_value(&self, idx: &[i64]) -> f64 {
+        self.double_value(idx).unwrap()
     }
 
     /// Returns an int value on tensors holding a single element. Panics otherwise.
-    pub fn int64_value(&self, idx: &[i64]) -> i64 {
-        self.f_int64_value(idx).unwrap()
+    pub fn f_int64_value(&self, idx: &[i64]) -> i64 {
+        self.int64_value(idx).unwrap()
     }
 
     /// Returns true if gradient are currently tracked for this tensor.
@@ -275,18 +275,19 @@ impl Tensor {
     }
 
     /// Zeroes the gradient tensor attached to this tensor if defined.
-    pub fn zero_grad(&mut self) {
-        let mut grad = self.grad();
+    pub fn zero_grad(&mut self) -> Result<(), TchError> {
+        let mut grad = self.grad()?;
         if grad.defined() {
-            let _ = grad.detach_().zero_();
+            let _ = grad.detach_()?.zero_();
         }
+        Ok(())
     }
 
     /// Runs the backward pass, populating the gradient tensors for tensors
     /// which gradients are tracked.
     ///
     /// Gradients tracking can be turned on via `set_requires_grad`.
-    pub fn f_backward(&self) -> Result<(), TchError> {
+    pub fn backward(&self) -> Result<(), TchError> {
         unsafe_torch_err!(at_backward(self.c_tensor, 0, 0));
         Ok(())
     }
@@ -296,11 +297,11 @@ impl Tensor {
     ///
     /// Gradients tracking can be turned on via `set_requires_grad`.
     /// Panics if the C++ api returns an exception.
-    pub fn backward(&self) {
-        self.f_backward().unwrap()
+    pub fn f_backward(&self) {
+        self.backward().unwrap()
     }
 
-    pub fn f_run_backward<T1, T2>(
+    pub fn run_backward<T1, T2>(
         tensors: &[T1],
         inputs: &[T2],
         keep_graph: bool,
@@ -325,7 +326,7 @@ impl Tensor {
         Ok(outputs.into_iter().map(|c_tensor| Tensor { c_tensor }).collect())
     }
 
-    pub fn run_backward<T1, T2>(
+    pub fn f_run_backward<T1, T2>(
         tensors: &[T1],
         inputs: &[T2],
         keep_graph: bool,
@@ -335,12 +336,12 @@ impl Tensor {
         T1: Borrow<Tensor>,
         T2: Borrow<Tensor>,
     {
-        Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
+        Tensor::run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Result<(), TchError> {
-        let elt_size_in_bytes = self.f_kind()?.elt_size_in_bytes();
+    pub fn copy_data_u8(&self, dst: &mut [u8], numel: usize) -> Result<(), TchError> {
+        let elt_size_in_bytes = self.kind()?.elt_size_in_bytes();
         if dst.len() < numel * elt_size_in_bytes {
             return Err(TchError::Shape(format!("slice len < {numel}")));
         }
@@ -359,7 +360,7 @@ impl Tensor {
     /// presence of infinite values. `inv_scale` is a scalar containing
     /// the inverse scaling factor. This method is only available
     /// for CUDA tensors.
-    pub fn f_internal_amp_non_finite_check_and_unscale(
+    pub fn internal_amp_non_finite_check_and_unscale(
         &mut self,
         found_inf: &mut Tensor,
         inv_scale: &Tensor,
@@ -379,26 +380,22 @@ impl Tensor {
     /// presence of infinite values. `inv_scale` is a scalar containing
     /// the inverse scaling factor. This method is only available
     /// for CUDA tensors.
-    pub fn internal_amp_non_finite_check_and_unscale(
+    pub fn f_internal_amp_non_finite_check_and_unscale(
         &mut self,
         found_inf: &mut Tensor,
         inv_scale: &Tensor,
     ) {
-        self.f_internal_amp_non_finite_check_and_unscale(found_inf, inv_scale).unwrap()
+        self.internal_amp_non_finite_check_and_unscale(found_inf, inv_scale).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn copy_data_u8(&self, dst: &mut [u8], numel: usize) {
-        self.f_copy_data_u8(dst, numel).unwrap()
+    pub fn f_copy_data_u8(&self, dst: &mut [u8], numel: usize) {
+        self.copy_data_u8(dst, numel).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn f_copy_data<T: kind::Element>(
-        &self,
-        dst: &mut [T],
-        numel: usize,
-    ) -> Result<(), TchError> {
-        if T::KIND != self.f_kind()? {
+    pub fn copy_data<T: kind::Element>(&self, dst: &mut [T], numel: usize) -> Result<(), TchError> {
+        if T::KIND != self.kind()? {
             return Err(TchError::Kind(format!(
                 "incoherent elt kind, {:?} != {:?}",
                 self.f_kind(),
@@ -418,8 +415,8 @@ impl Tensor {
     }
 
     /// Copies `numel` elements from `self` to `dst`.
-    pub fn copy_data<T: kind::Element>(&self, dst: &mut [T], numel: usize) {
-        self.f_copy_data(dst, numel).unwrap()
+    pub fn f_copy_data<T: kind::Element>(&self, dst: &mut [T], numel: usize) {
+        self.copy_data(dst, numel).unwrap()
     }
 
     /// Returns the total number of elements stored in a tensor.
@@ -429,7 +426,7 @@ impl Tensor {
 
     // This is similar to vec_... but faster as it directly blits the data.
     /// Converts a slice to a tensor.
-    pub fn f_from_slice<T: kind::Element>(data: &[T]) -> Result<Tensor, TchError> {
+    pub fn from_slice<T: kind::Element>(data: &[T]) -> Result<Tensor, TchError> {
         let data_len = data.len();
         let data = data.as_ptr() as *const c_void;
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
@@ -443,12 +440,12 @@ impl Tensor {
     }
 
     /// Converts a slice to a tensor.
-    pub fn from_slice<T: kind::Element>(data: &[T]) -> Tensor {
-        Self::f_from_slice(data).unwrap()
+    pub fn f_from_slice<T: kind::Element>(data: &[T]) -> Tensor {
+        Self::from_slice(data).unwrap()
     }
 
     /// Converts some byte data to a tensor with some specified kind and shape.
-    pub fn f_from_data_size(data: &[u8], size: &[i64], kind: Kind) -> Result<Tensor, TchError> {
+    pub fn from_data_size(data: &[u8], size: &[i64], kind: Kind) -> Result<Tensor, TchError> {
         let data = data.as_ptr() as *const c_void;
         let elt_size_in_bytes = kind.elt_size_in_bytes();
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
@@ -465,7 +462,7 @@ impl Tensor {
     /// Resize operations are now allowed on this tensor without copying the data first.
     /// # Safety
     ///   This will panic if `data` points to invalid data.
-    pub unsafe fn f_from_blob(
+    pub unsafe fn from_blob(
         data: *const u8,
         size: &[i64],
         strides: &[i64],
@@ -490,19 +487,19 @@ impl Tensor {
     /// Resize operations are now allowed on this tensor without copying the data first.
     /// # Safety
     ///   This will panic if `data` points to invalid data.
-    pub unsafe fn from_blob(
+    pub unsafe fn f_from_blob(
         data: *const u8,
         size: &[i64],
         strides: &[i64],
         kind: Kind,
         device: Device,
     ) -> Tensor {
-        Self::f_from_blob(data, size, strides, kind, device).unwrap()
+        Self::from_blob(data, size, strides, kind, device).unwrap()
     }
 
     /// Converts some byte data to a tensor with some specified kind and shape.
-    pub fn from_data_size(data: &[u8], size: &[i64], kind: Kind) -> Tensor {
-        Self::f_from_data_size(data, size, kind).unwrap()
+    pub fn f_from_data_size(data: &[u8], size: &[i64], kind: Kind) -> Tensor {
+        Self::from_data_size(data, size, kind).unwrap()
     }
 
     /// Returns a new tensor that share storage with the input tensor.
@@ -512,25 +509,25 @@ impl Tensor {
     }
 
     /// Gets the sub-tensor at the given index.
-    pub fn f_get(&self, index: i64) -> Result<Tensor, TchError> {
+    pub fn get(&self, index: i64) -> Result<Tensor, TchError> {
         let c_tensor = unsafe_torch_err!(at_get(self.c_tensor, index as c_int));
         Ok(Tensor { c_tensor })
     }
 
     /// Gets the sub-tensor at the given index.
-    pub fn get(&self, index: i64) -> Tensor {
-        self.f_get(index).unwrap()
+    pub fn f_get(&self, index: i64) -> Tensor {
+        self.get(index).unwrap()
     }
 
     /// Copies values from the argument tensor to the input tensor.
-    pub fn f_copy_(&mut self, src: &Tensor) -> Result<(), TchError> {
+    pub fn copy_(&mut self, src: &Tensor) -> Result<(), TchError> {
         unsafe_torch_err!(at_copy_(self.c_tensor, src.c_tensor));
         Ok(())
     }
 
     /// Copies values from the argument tensor to the input tensor.
-    pub fn copy_(&mut self, src: &Tensor) {
-        self.f_copy_(src).unwrap()
+    pub fn f_copy_(&mut self, src: &Tensor) {
+        self.copy_(src).unwrap()
     }
 
     /// Loads a tensor from a file.

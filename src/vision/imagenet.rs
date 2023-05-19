@@ -7,28 +7,28 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref IMAGENET_MEAN: Mutex<Tensor> =
-        Mutex::new(Tensor::from_slice(&[0.485f32, 0.456, 0.406]).view((3, 1, 1)));
+        Mutex::new(Tensor::f_from_slice(&[0.485f32, 0.456, 0.406]).f_view((3, 1, 1)));
     static ref IMAGENET_STD: Mutex<Tensor> =
-        Mutex::new(Tensor::from_slice(&[0.229f32, 0.224, 0.225]).view((3, 1, 1)));
+        Mutex::new(Tensor::f_from_slice(&[0.229f32, 0.224, 0.225]).f_view((3, 1, 1)));
 }
 
 pub fn normalize(tensor: &Tensor) -> Result<Tensor, TchError> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
-    (tensor.to_kind(Kind::Float) / 255.0).f_sub(&mean)?.f_div(&std)
+    ((tensor.to_kind(Kind::Float)? / 255.0)? - &mean)? / &std
 }
 
 pub fn unnormalize(tensor: &Tensor) -> Result<Tensor, TchError> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
-    let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0).clamp(0., 255.0).to_kind(Kind::Uint8);
+    let tensor = (((tensor * &std)? + &mean)? * 255.0)?.clamp(0., 255.0)?.to_kind(Kind::Uint8)?;
     Ok(tensor)
 }
 
 /// Saves an image to a path.
 /// This unapplies the ImageNet normalization.
 pub fn save_image<T: AsRef<Path>>(tensor: &Tensor, path: T) -> Result<(), TchError> {
-    super::image::save(&unnormalize(&tensor.to_device(Device::Cpu))?, path)
+    super::image::save(&unnormalize(&tensor.to_device(Device::Cpu)?)?, path)
 }
 
 /// Loads an image from a file and applies the ImageNet normalization.
@@ -104,7 +104,7 @@ fn load_images_from_dir(dir: std::path::PathBuf) -> Result<Tensor, TchError> {
             format!("no image found in {dir:?}"),
         )));
     }
-    Tensor::f_stack(&images, 0)
+    Tensor::stack(&images, 0)
 }
 
 /// Loads a dataset from a directory.
@@ -131,17 +131,17 @@ pub fn load_from_dir<T: AsRef<Path>>(dir: T) -> Result<Dataset, TchError> {
         let images = load_images_from_dir(train_path.join(label_dir))?;
         let nimages = images.size()[0];
         train_images.push(images);
-        train_labels.push(Tensor::ones([nimages], kind::INT64_CPU) * label_index);
+        train_labels.push((Tensor::ones([nimages], kind::INT64_CPU)? * label_index)?);
         let images = load_images_from_dir(valid_path.join(label_dir))?;
         let nimages = images.size()[0];
         test_images.push(images);
-        test_labels.push(Tensor::ones([nimages], kind::INT64_CPU) * label_index);
+        test_labels.push((Tensor::ones([nimages], kind::INT64_CPU)? * label_index)?);
     }
     Ok(Dataset {
-        train_images: Tensor::f_cat(&train_images, 0)?,
-        train_labels: Tensor::f_cat(&train_labels, 0)?,
-        test_images: Tensor::f_cat(&test_images, 0)?,
-        test_labels: Tensor::f_cat(&test_labels, 0)?,
+        train_images: Tensor::cat(&train_images, 0)?,
+        train_labels: Tensor::cat(&train_labels, 0)?,
+        test_images: Tensor::cat(&test_images, 0)?,
+        test_labels: Tensor::cat(&test_labels, 0)?,
         labels: classes.len() as i64,
     })
 }
@@ -1152,19 +1152,20 @@ pub const CLASSES: [&str; 1000] = [
 ];
 
 /// Returns the top k classes as well as the associated scores.
-pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
+pub fn top(tensor: &Tensor, k: i64) -> Result<Vec<(f64, String)>, TchError> {
     let tensor = match tensor.size().as_slice() {
         [CLASS_COUNT] => tensor.shallow_clone(),
-        [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
-        [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
+        [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,))?,
+        [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,))?,
         _ => panic!("unexpected tensor shape {tensor:?}"),
     };
-    let (values, indexes) = tensor.topk(k, 0, true, true);
+    let (values, indexes) = tensor.topk(k, 0, true, true)?;
     let values = Vec::<f64>::try_from(values).unwrap();
     let indexes = Vec::<i64>::try_from(indexes).unwrap();
-    values
+    let values = values
         .iter()
         .zip(indexes.iter())
         .map(|(&value, &index)| (value, CLASSES[index as usize].to_owned()))
-        .collect()
+        .collect();
+    Ok(values)
 }

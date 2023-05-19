@@ -1,6 +1,6 @@
 //! A two dimension transposed convolution layer.
 use super::Path;
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
 
 /// A generic transposed convolution configuration.
@@ -144,7 +144,7 @@ pub fn conv_transpose3d<'a, T: Borrow<Path<'a>>>(
 }
 
 impl super::module::Module for ConvTranspose1D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::conv_transpose1d(
             xs,
             &self.ws,
@@ -159,7 +159,7 @@ impl super::module::Module for ConvTranspose1D {
 }
 
 impl super::module::Module for ConvTranspose2D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::conv_transpose2d(
             xs,
             &self.ws,
@@ -174,7 +174,7 @@ impl super::module::Module for ConvTranspose2D {
 }
 
 impl super::module::Module for ConvTranspose3D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::conv_transpose3d(
             xs,
             &self.ws,

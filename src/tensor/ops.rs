@@ -1,5 +1,5 @@
 //! Implement various ops traits for tensors
-use super::Tensor;
+use super::{TchError, Tensor};
 use crate::Scalar;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
@@ -7,18 +7,18 @@ fn id<T>(v: T) -> T {
     v
 }
 
-fn neg(t: Tensor) -> Tensor {
+fn neg(t: Tensor) -> Result<Tensor, TchError> {
     t.neg()
 }
 
-fn inv(t: Tensor) -> Tensor {
+fn inv(t: Tensor) -> Result<Tensor, TchError> {
     t.pow_tensor_scalar(-1)
 }
 
 macro_rules! impl_op {
     ($trait:ident, $func:ident, $op:ident) => {
         impl $trait<Tensor> for Tensor {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$op(&rhs)
@@ -26,7 +26,7 @@ macro_rules! impl_op {
         }
 
         impl $trait<&Tensor> for Tensor {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 self.$op(rhs)
@@ -34,7 +34,7 @@ macro_rules! impl_op {
         }
 
         impl<'a> $trait<&Tensor> for &'a Tensor {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 self.$op(rhs)
@@ -42,7 +42,7 @@ macro_rules! impl_op {
         }
 
         impl $trait<Tensor> for &Tensor {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$op(&rhs)
@@ -55,7 +55,7 @@ impl<S> Add<S> for &Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn add(self, rhs: S) -> Self::Output {
         self.g_add_scalar(rhs)
@@ -66,7 +66,7 @@ impl<S> Add<S> for Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn add(self, rhs: S) -> Self::Output {
         (&self).add(rhs)
@@ -77,7 +77,7 @@ impl<S> Sub<S> for &Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn sub(self, rhs: S) -> Self::Output {
         self.g_sub_scalar(rhs)
@@ -88,7 +88,7 @@ impl<S> Sub<S> for Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn sub(self, rhs: S) -> Self::Output {
         (&self).sub(rhs)
@@ -99,7 +99,7 @@ impl<S> Mul<S> for &Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn mul(self, rhs: S) -> Self::Output {
         self.g_mul_scalar(rhs)
@@ -110,7 +110,7 @@ impl<S> Mul<S> for Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn mul(self, rhs: S) -> Self::Output {
         (&self).mul(rhs)
@@ -121,7 +121,7 @@ impl<S> Div<S> for &Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn div(self, rhs: S) -> Self::Output {
         self.g_div_scalar(rhs)
@@ -132,7 +132,7 @@ impl<S> Div<S> for Tensor
 where
     S: Into<Scalar>,
 {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
     fn div(self, rhs: S) -> Self::Output {
         (&self).div(rhs)
@@ -143,7 +143,7 @@ macro_rules! impl_op_basic {
     /* rev such that rev(op(b, a)) = op(a, b) */
     ($trait:ident, $func:ident, $op:ident, $rev:ident) => {
         impl $trait<Tensor> for i32 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$func(&rhs)
@@ -151,7 +151,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<Tensor> for i64 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$func(&rhs)
@@ -159,7 +159,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<Tensor> for f32 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$func(&rhs)
@@ -167,7 +167,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<Tensor> for f64 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: Tensor) -> Self::Output {
                 self.$func(&rhs)
@@ -175,7 +175,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<&Tensor> for i32 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 $rev(rhs.$op(self as i64))
@@ -183,7 +183,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<&Tensor> for i64 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 $rev(rhs.$op(self))
@@ -191,7 +191,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<&Tensor> for f32 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 $rev(rhs.$op(self as f64))
@@ -199,7 +199,7 @@ macro_rules! impl_op_basic {
         }
 
         impl $trait<&Tensor> for f64 {
-            type Output = Tensor;
+            type Output = Result<Tensor, TchError>;
 
             fn $func(self, rhs: &Tensor) -> Self::Output {
                 $rev(rhs.$op(self))
@@ -273,18 +273,18 @@ impl_op_assign!(SubAssign, sub_assign, g_sub_);
 impl_op_assign_basic!(SubAssign, sub_assign, g_sub_scalar_);
 
 impl Neg for Tensor {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
-    fn neg(self) -> Tensor {
-        self.f_neg().unwrap()
+    fn neg(self) -> Result<Tensor, TchError> {
+        self.neg()
     }
 }
 
 impl Neg for &Tensor {
-    type Output = Tensor;
+    type Output = Result<Tensor, TchError>;
 
-    fn neg(self) -> Tensor {
-        self.f_neg().unwrap()
+    fn neg(self) -> Result<Tensor, TchError> {
+        self.neg()
     }
 }
 

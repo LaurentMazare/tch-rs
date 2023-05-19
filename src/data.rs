@@ -32,7 +32,7 @@ impl Iter2 {
     /// * `xs` - the features to be used by the model.
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
-    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Result<Iter2, TchError> {
+    pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Result<Iter2, TchError> {
         let total_size = xs.size()[0];
         if ys.size()[0] != total_size {
             return Err(TchError::Shape(format!(
@@ -62,8 +62,8 @@ impl Iter2 {
     /// * `xs` - the features to be used by the model.
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
-    pub fn new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Iter2 {
-        Iter2::f_new(xs, ys, batch_size).unwrap()
+    pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Iter2 {
+        Iter2::new(xs, ys, batch_size).unwrap()
     }
 
     /// Shuffles the dataset.
@@ -71,9 +71,9 @@ impl Iter2 {
     /// The iterator would still run over the whole dataset but the order in
     /// which elements are grouped in mini-batches is randomized.
     pub fn shuffle(&mut self) -> &mut Iter2 {
-        let index = Tensor::randperm(self.total_size, (Kind::Int64, self.device));
-        self.xs = self.xs.index_select(0, &index);
-        self.ys = self.ys.index_select(0, &index);
+        let index = Tensor::f_randperm(self.total_size, (Kind::Int64, self.device));
+        self.xs = self.xs.f_index_select(0, &index);
+        self.ys = self.ys.f_index_select(0, &index);
         self
     }
 
@@ -102,8 +102,8 @@ impl Iterator for Iter2 {
         } else {
             self.batch_index += 1;
             Some((
-                self.xs.i(start..start + size).to_device(self.device),
-                self.ys.i(start..start + size).to_device(self.device),
+                self.xs.i(start..start + size).f_to_device(self.device),
+                self.ys.i(start..start + size).f_to_device(self.device),
             ))
         }
     }
@@ -143,7 +143,7 @@ impl TextData {
             })
         }
 
-        Ok(TextData { data: Tensor::from_slice(&buffer), char_for_label, label_for_char })
+        Ok(TextData { data: Tensor::from_slice(&buffer)?, char_for_label, label_for_char })
     }
 
     /// Returns the number of different characters/labels used by the dataset.
@@ -169,16 +169,16 @@ impl TextData {
 
     /// Returns a batch iterator over the dataset.
     /// Each sample is made of seq_len characters.
-    pub fn iter_shuffle(&self, seq_len: i64, batch_size: i64) -> TextDataIter {
+    pub fn iter_shuffle(&self, seq_len: i64, batch_size: i64) -> Result<TextDataIter, TchError> {
         let indexes_len = self.data.size()[0] - seq_len + 1;
-        TextDataIter {
+        Ok(TextDataIter {
             data: self.data.shallow_clone(),
             seq_len,
             batch_index: 0,
             batch_size,
-            indexes: Tensor::randperm(indexes_len, kind::INT64_CPU),
+            indexes: Tensor::randperm(indexes_len, kind::INT64_CPU)?,
             indexes_len,
-        }
+        })
     }
 }
 
@@ -195,7 +195,7 @@ impl Iterator for TextDataIter {
             let indexes = Vec::<i64>::try_from(&self.indexes.i(start..start + size)).unwrap();
             let batch: Vec<_> = indexes.iter().map(|&i| self.data.i(i..i + self.seq_len)).collect();
             let batch: Vec<_> = batch.iter().collect();
-            Some(Tensor::stack(&batch, 0))
+            Some(Tensor::f_stack(&batch, 0))
         }
     }
 }

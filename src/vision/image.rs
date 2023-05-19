@@ -4,11 +4,11 @@ use crate::{Device, TchError, Tensor};
 use std::io;
 use std::path::Path;
 
-pub(crate) fn hwc_to_chw(tensor: &Tensor) -> Tensor {
+pub(crate) fn hwc_to_chw(tensor: &Tensor) -> Result<Tensor, TchError> {
     tensor.permute([2, 0, 1])
 }
 
-pub(crate) fn chw_to_hwc(tensor: &Tensor) -> Tensor {
+pub(crate) fn chw_to_hwc(tensor: &Tensor) -> Result<Tensor, TchError> {
     tensor.permute([1, 2, 0])
 }
 
@@ -17,7 +17,7 @@ pub(crate) fn chw_to_hwc(tensor: &Tensor) -> Tensor {
 /// On success returns a tensor of shape [channel, height, width].
 pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
     let tensor = load_hwc(path)?;
-    Ok(hwc_to_chw(&tensor))
+    hwc_to_chw(&tensor)
 }
 
 /// Loads an image from memory.
@@ -25,7 +25,7 @@ pub fn load<T: AsRef<Path>>(path: T) -> Result<Tensor, TchError> {
 /// On success returns a tensor of shape [channel, height, width].
 pub fn load_from_memory(img_data: &[u8]) -> Result<Tensor, TchError> {
     let tensor = load_hwc_from_mem(img_data)?;
-    Ok(hwc_to_chw(&tensor))
+    hwc_to_chw(&tensor)
 }
 
 /// Saves an image to a file.
@@ -36,10 +36,10 @@ pub fn load_from_memory(img_data: &[u8]) -> Result<Tensor, TchError> {
 /// The tensor input should be of kind UInt8 with values ranging from
 /// 0 to 255.
 pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
-    let t = t.to_kind(crate::Kind::Uint8);
+    let t = t.to_kind(crate::Kind::Uint8)?;
     match t.size().as_slice() {
-        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze_dim(0)).to_device(Device::Cpu), path),
-        [_, _, _] => save_hwc(&chw_to_hwc(&t).to_device(Device::Cpu), path),
+        [1, _, _, _] => save_hwc(&chw_to_hwc(&t.squeeze_dim(0)?)?.to_device(Device::Cpu)?, path),
+        [_, _, _] => save_hwc(&chw_to_hwc(&t)?.to_device(Device::Cpu)?, path),
         sz => Err(TchError::FileFormat(format!("unexpected size for image tensor {sz:?}"))),
     }
 }
@@ -49,7 +49,7 @@ pub fn save<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
 /// This expects as input a tensor of shape [channel, height, width] and returns
 /// a tensor of shape [channel, out_h, out_w].
 pub fn resize(t: &Tensor, out_w: i64, out_h: i64) -> Result<Tensor, TchError> {
-    Ok(hwc_to_chw(&resize_hwc(&chw_to_hwc(t), out_w, out_h)?))
+    hwc_to_chw(&resize_hwc(&chw_to_hwc(t)?, out_w, out_h)?)
 }
 
 pub fn resize_preserve_aspect_ratio_hwc(
@@ -60,7 +60,7 @@ pub fn resize_preserve_aspect_ratio_hwc(
     let tensor_size = t.size();
     let (w, h) = (tensor_size[0], tensor_size[1]);
     if w * out_h == h * out_w {
-        Ok(hwc_to_chw(&resize_hwc(t, out_w, out_h)?))
+        hwc_to_chw(&resize_hwc(t, out_w, out_h)?)
     } else {
         let (resize_w, resize_h) = {
             let ratio_w = out_w as f64 / w as f64;
@@ -70,9 +70,9 @@ pub fn resize_preserve_aspect_ratio_hwc(
         };
         let resize_w = i64::max(resize_w, out_w);
         let resize_h = i64::max(resize_h, out_h);
-        let t = hwc_to_chw(&resize_hwc(t, resize_w, resize_h)?);
-        let t = if resize_w == out_w { t } else { t.f_narrow(2, (resize_w - out_w) / 2, out_w)? };
-        let t = if resize_h == out_h { t } else { t.f_narrow(1, (resize_h - out_h) / 2, out_h)? };
+        let t = hwc_to_chw(&resize_hwc(t, resize_w, resize_h)?)?;
+        let t = if resize_w == out_w { t } else { t.narrow(2, (resize_w - out_w) / 2, out_w)? };
+        let t = if resize_h == out_h { t } else { t.narrow(1, (resize_h - out_h) / 2, out_h)? };
         Ok(t)
     }
 }
@@ -85,7 +85,7 @@ pub fn resize_preserve_aspect_ratio(
     out_w: i64,
     out_h: i64,
 ) -> Result<Tensor, TchError> {
-    resize_preserve_aspect_ratio_hwc(&chw_to_hwc(t), out_w, out_h)
+    resize_preserve_aspect_ratio_hwc(&chw_to_hwc(t)?, out_w, out_h)
 }
 
 /// Loads and resize an image, preserve the aspect ratio by taking a center crop.
@@ -142,5 +142,5 @@ pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tenso
         // Silently discard image errors.
         .filter_map(|x| load_and_resize(x.path(), out_w, out_h).ok())
         .collect();
-    Ok(Tensor::stack(&v, 0))
+    Tensor::stack(&v, 0)
 }

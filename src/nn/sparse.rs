@@ -1,5 +1,5 @@
 //! Sparse Layers
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
 
 /// Configuration option for an embedding layer.
@@ -43,7 +43,7 @@ pub fn embedding<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for Embedding {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::embedding(
             &self.ws,
             xs,

@@ -50,20 +50,22 @@ pub use optimizer::{
 #[derive(Debug)]
 pub struct Id();
 
+use crate::{TchError, Tensor};
+
 impl ModuleT for Id {
-    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
-        xs.shallow_clone()
+    fn forward_t(&self, xs: &Tensor, _train: bool) -> Result<Tensor, TchError> {
+        Ok(xs.shallow_clone())
     }
 }
 
 impl Module for crate::CModule {
-    fn forward(&self, xs: &crate::Tensor) -> crate::Tensor {
-        self.forward_ts(&[xs]).unwrap()
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
+        self.forward_ts(&[xs])
     }
 }
 
 impl ModuleT for crate::TrainableCModule {
-    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
-        self.inner.forward_ts(&[xs]).unwrap()
+    fn forward_t(&self, xs: &Tensor, _train: bool) -> Result<Tensor, TchError> {
+        self.inner.forward_ts(&[xs])
     }
 }

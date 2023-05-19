@@ -1,5 +1,5 @@
 //! A batch-normalization layer.
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
 
 /// Batch-normalization config.
@@ -98,7 +98,7 @@ pub fn batch_norm3d<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::ModuleT for BatchNorm {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+    fn forward_t(&self, xs: &Tensor, train: bool) -> Result<Tensor, TchError> {
         let dim = xs.dim();
         if self.nd == 1 && dim != 2 && dim != 3 {
             panic!(

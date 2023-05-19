@@ -1,6 +1,6 @@
 //! A group-normalization layer.
 //! Group Normalization <https://arxiv.org/abs/1803.0849>
-use crate::Tensor;
+use crate::{TchError, Tensor};
 use std::borrow::Borrow;
 
 /// Group-normalization config.
@@ -53,7 +53,7 @@ pub fn group_norm<'a, T: Borrow<super::Path<'a>>>(
 }
 
 impl super::module::Module for GroupNorm {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         Tensor::group_norm(
             xs,
             self.num_groups,

@@ -1,6 +1,6 @@
 //! EfficientNet implementation.
 use crate::nn::{self, ConvConfig, Module, ModuleT};
-use crate::Tensor;
+use crate::{TchError, Tensor};
 
 const BATCH_NORM_MOMENTUM: f64 = 0.99;
 const BATCH_NORM_EPSILON: f64 = 1e-3;
@@ -96,7 +96,7 @@ impl Conv2DSame {
 }
 
 impl Module for Conv2DSame {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         let s = self.s;
         let k = self.k;
         let size = xs.size();
@@ -107,7 +107,7 @@ impl Module for Conv2DSame {
         let pad_h = i64::max((oh - 1) * s + k - ih, 0);
         let pad_w = i64::max((ow - 1) * s + k - iw, 0);
         if pad_h > 0 || pad_w > 0 {
-            xs.zero_pad2d(pad_w / 2, pad_w - pad_w / 2, pad_h / 2, pad_h - pad_h / 2)
+            xs.zero_pad2d(pad_w / 2, pad_w - pad_w / 2, pad_h / 2, pad_h - pad_h / 2)?
                 .apply(&self.conv2d)
         } else {
             xs.apply(&self.conv2d)
@@ -140,10 +140,10 @@ impl ConvNormActivation {
 }
 
 impl ModuleT for ConvNormActivation {
-    fn forward_t(&self, xs: &Tensor, t: bool) -> Tensor {
-        let xs = xs.apply(&self.conv2d).apply_t(&self.bn2d, t);
+    fn forward_t(&self, xs: &Tensor, t: bool) -> Result<Tensor, TchError> {
+        let xs = xs.apply(&self.conv2d)?.apply_t(&self.bn2d, t);
         if self.activation {
-            xs.swish()
+            xs?.swish()
         } else {
             xs
         }
@@ -165,13 +165,13 @@ impl SqueezeExcitation {
 }
 
 impl ModuleT for SqueezeExcitation {
-    fn forward_t(&self, xs: &Tensor, t: bool) -> Tensor {
+    fn forward_t(&self, xs: &Tensor, t: bool) -> Result<Tensor, TchError> {
         let scale = xs
-            .adaptive_avg_pool2d([1, 1])
-            .apply_t(&self.fc1, t)
-            .swish()
-            .apply_t(&self.fc2, t)
-            .sigmoid();
+            .adaptive_avg_pool2d([1, 1])?
+            .apply_t(&self.fc1, t)?
+            .swish()?
+            .apply_t(&self.fc2, t)?
+            .sigmoid()?;
         scale * xs
     }
 }
@@ -208,28 +208,28 @@ impl MBConv {
 }
 
 impl ModuleT for MBConv {
-    fn forward_t(&self, xs: &Tensor, t: bool) -> Tensor {
+    fn forward_t(&self, xs: &Tensor, t: bool) -> Result<Tensor, TchError> {
         let use_res_connect =
             self.config.stride == 1 && self.config.input_channels == self.config.out_channels;
         let ys = match &self.expand_cna {
-            Some(expand_cna) => xs.apply_t(expand_cna, t),
+            Some(expand_cna) => xs.apply_t(expand_cna, t)?,
             None => xs.shallow_clone(),
         };
         let ys = ys
-            .apply_t(&self.depthwise_cna, t)
-            .apply_t(&self.squeeze_excitation, t)
-            .apply_t(&self.project_cna, t);
+            .apply_t(&self.depthwise_cna, t)?
+            .apply_t(&self.squeeze_excitation, t)?
+            .apply_t(&self.project_cna, t)?;
         if use_res_connect {
             ys + xs
         } else {
-            ys
+            Ok(ys)
         }
     }
 }
 
 impl Tensor {
-    fn swish(&self) -> Tensor {
-        self * self.sigmoid()
+    fn swish(&self) -> Result<Tensor, TchError> {
+        self * self.sigmoid()?
     }
 }
 
@@ -270,15 +270,15 @@ impl EfficientNet {
 }
 
 impl ModuleT for EfficientNet {
-    fn forward_t(&self, xs: &Tensor, t: bool) -> Tensor {
-        let mut xs = xs.apply_t(&self.init_cna, t);
+    fn forward_t(&self, xs: &Tensor, t: bool) -> Result<Tensor, TchError> {
+        let mut xs = xs.apply_t(&self.init_cna, t)?;
         for block in self.blocks.iter() {
-            xs = xs.apply_t(block, t)
+            xs = xs.apply_t(block, t)?
         }
-        xs.apply_t(&self.final_cna, t)
-            .adaptive_avg_pool2d([1, 1])
-            .squeeze_dim(-1)
-            .squeeze_dim(-1)
+        xs.apply_t(&self.final_cna, t)?
+            .adaptive_avg_pool2d([1, 1])?
+            .squeeze_dim(-1)?
+            .squeeze_dim(-1)?
             .apply(&self.classifier)
     }
 }
@@ -321,7 +321,8 @@ pub fn conv2d_same(vs: nn::Path, i: i64, o: i64, k: i64, c: ConvConfig) -> impl 
         let pad_h = i64::max((oh - 1) * s + k - ih, 0);
         let pad_w = i64::max((ow - 1) * s + k - iw, 0);
         if pad_h > 0 || pad_w > 0 {
-            xs.zero_pad2d(pad_w / 2, pad_w - pad_w / 2, pad_h / 2, pad_h - pad_h / 2).apply(&conv2d)
+            xs.zero_pad2d(pad_w / 2, pad_w - pad_w / 2, pad_h / 2, pad_h - pad_h / 2)?
+                .apply(&conv2d)
         } else {
             xs.apply(&conv2d)
         }

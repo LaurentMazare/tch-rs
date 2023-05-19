@@ -177,7 +177,7 @@ impl crate::Tensor {
         }
         let mut data: Vec<u8> = vec![];
         reader.read_to_end(&mut data)?;
-        Tensor::f_from_data_size(&data, &header.shape, header.descr)
+        Tensor::from_data_size(&data, &header.shape, header.descr)
     }
 
     /// Reads a npz file and returns some named tensors.
@@ -198,7 +198,7 @@ impl crate::Tensor {
             }
             let mut data: Vec<u8> = vec![];
             reader.read_to_end(&mut data)?;
-            let tensor = Tensor::f_from_data_size(&data, &header.shape, header.descr)?;
+            let tensor = Tensor::from_data_size(&data, &header.shape, header.descr)?;
             result.push((name, tensor))
         }
         Ok(result)
@@ -207,7 +207,7 @@ impl crate::Tensor {
     fn write<T: Write>(&self, f: &mut T) -> Result<(), TchError> {
         f.write_all(NPY_MAGIC_STRING)?;
         f.write_all(&[1u8, 0u8])?;
-        let kind = self.f_kind()?;
+        let kind = self.kind()?;
         let header = Header { descr: kind, fortran_order: false, shape: self.size() };
         let mut header = header.to_string()?;
         let pad = 16 - (NPY_MAGIC_STRING.len() + 5 + header.len()) % 16;
@@ -219,7 +219,7 @@ impl crate::Tensor {
         f.write_all(header.as_bytes())?;
         let numel = self.numel();
         let mut content = vec![0u8; numel * kind.elt_size_in_bytes()];
-        self.f_copy_data_u8(&mut content, numel)?;
+        self.copy_data_u8(&mut content, numel)?;
         f.write_all(&content)?;
         Ok(())
     }

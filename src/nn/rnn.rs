@@ -174,12 +174,12 @@ impl RNN for LSTM {
         let num_directions = if self.config.bidirectional { 2 } else { 1 };
         let layer_dim = self.config.num_layers * num_directions;
         let shape = [layer_dim, batch_dim, self.hidden_dim];
-        let zeros = Tensor::zeros(shape, (self.flat_weights[0].kind(), self.device));
+        let zeros = Tensor::f_zeros(shape, (self.flat_weights[0].f_kind(), self.device));
         LSTMState((zeros.shallow_clone(), zeros.shallow_clone()))
     }
 
     fn step(&self, input: &Tensor, in_state: &LSTMState) -> LSTMState {
-        let input = input.unsqueeze(1);
+        let input = input.f_unsqueeze(1);
         let (_output, state) = self.seq_init(&input, in_state);
         state
     }
@@ -187,7 +187,7 @@ impl RNN for LSTM {
     fn seq_init(&self, input: &Tensor, in_state: &LSTMState) -> (Tensor, LSTMState) {
         let LSTMState((h, c)) = in_state;
         let flat_weights = self.flat_weights.iter().collect::<Vec<_>>();
-        let (output, h, c) = input.lstm(
+        let (output, h, c) = input.f_lstm(
             &[h, c],
             &flat_weights,
             self.config.has_biases,

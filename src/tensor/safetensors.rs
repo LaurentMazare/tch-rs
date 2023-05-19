@@ -55,7 +55,7 @@ impl<'a> TryFrom<TensorView<'a>> for Tensor {
     fn try_from(view: TensorView<'a>) -> Result<Self, Self::Error> {
         let size: Vec<i64> = view.shape().iter().map(|&x| x as i64).collect();
         let kind: Kind = view.dtype().try_into()?;
-        Tensor::f_from_data_size(view.data(), &size, kind)
+        Tensor::from_data_size(view.data(), &size, kind)
     }
 }
 
@@ -77,7 +77,7 @@ impl<'a> TryFrom<&'a Tensor> for SafeView<'a> {
             return Err(TchError::Convert("Cannot save non contiguous tensors".to_string()));
         }
 
-        let dtype = tensor.kind().try_into()?;
+        let dtype = tensor.kind()?.try_into()?;
         let shape = tensor.size().iter().map(|&x| x as usize).collect();
         Ok(Self { tensor, shape, dtype })
     }
@@ -94,12 +94,12 @@ impl<'a> View for SafeView<'a> {
     fn data(&self) -> std::borrow::Cow<[u8]> {
         let mut data = vec![0; self.data_len()];
         let numel = self.tensor.numel();
-        self.tensor.f_copy_data_u8(&mut data, numel).unwrap();
+        self.tensor.copy_data_u8(&mut data, numel).unwrap();
         data.into()
     }
 
     fn data_len(&self) -> usize {
-        self.tensor.numel() * self.tensor.kind().elt_size_in_bytes()
+        self.tensor.numel() * self.tensor.f_kind().elt_size_in_bytes()
     }
 }
 
@@ -140,7 +140,7 @@ impl VarStore {
         for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
             let view = safetensors.tensor(name).map_err(|e| wrap_err(&path, e))?;
             let data: Tensor = view.try_into()?;
-            tensor.f_copy_(&data)?
+            tensor.copy_(&data)?
         }
         Ok(())
     }
@@ -148,7 +148,7 @@ impl VarStore {
     pub fn fill_safetensors<P: AsRef<Path>>(&self, path: P) -> Result<(), TchError> {
         for (name, tensor) in Tensor::read_safetensors(path)? {
             if let Some(s) = self.variables_.lock().unwrap().named_variables.get_mut(&name) {
-                s.f_copy_(&tensor)?
+                s.copy_(&tensor)?
             }
         }
         Ok(())

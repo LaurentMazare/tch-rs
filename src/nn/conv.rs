@@ -26,16 +26,16 @@ impl PaddingMode {
         }
     }
 
-    pub fn f_pad(
+    pub fn pad(
         self,
         xs: &Tensor,
         reversed_padding_repeated_twice: &[i64],
     ) -> Result<Tensor, TchError> {
-        xs.f_pad(reversed_padding_repeated_twice, self.to_string(), None)
+        xs.pad(reversed_padding_repeated_twice, self.to_string(), None)
     }
 
-    pub fn pad(self, xs: &Tensor, reversed_padding_repeated_twice: &[i64]) -> Tensor {
-        xs.pad(reversed_padding_repeated_twice, self.to_string(), None)
+    pub fn f_pad(self, xs: &Tensor, reversed_padding_repeated_twice: &[i64]) -> Tensor {
+        xs.f_pad(reversed_padding_repeated_twice, self.to_string(), None)
     }
 }
 
@@ -191,10 +191,10 @@ pub fn conv3d<'a, T: Borrow<Path<'a>>>(vs: T, i: i64, o: i64, k: i64, c: ConvCon
 }
 
 impl super::module::Module for Conv1D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         let (xs, padding) = match self.config.padding_mode {
             PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
-            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0]),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice)?, [0]),
         };
         xs.conv1d(
             &self.ws,
@@ -208,10 +208,10 @@ impl super::module::Module for Conv1D {
 }
 
 impl super::module::Module for Conv2D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         let (xs, padding) = match self.config.padding_mode {
             PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
-            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0, 0]),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice)?, [0, 0]),
         };
         xs.conv2d(
             &self.ws,
@@ -225,10 +225,10 @@ impl super::module::Module for Conv2D {
 }
 
 impl super::module::Module for Conv3D {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         let (xs, padding) = match self.config.padding_mode {
             PaddingMode::Zeros => (xs.shallow_clone(), self.config.padding),
-            p => (p.pad(xs, &self.reversed_padding_repeated_twice), [0, 0, 0]),
+            p => (p.pad(xs, &self.reversed_padding_repeated_twice)?, [0, 0, 0]),
         };
         xs.conv3d(
             &self.ws,

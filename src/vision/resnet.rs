@@ -28,8 +28,9 @@ fn basic_block(p: nn::Path, c_in: i64, c_out: i64, stride: i64) -> impl ModuleT 
     let bn2 = nn::batch_norm2d(&p / "bn2", c_out, Default::default());
     let downsample = downsample(&p / "downsample", c_in, c_out, stride);
     nn::func_t(move |xs, train| {
-        let ys = xs.apply(&conv1).apply_t(&bn1, train).relu().apply(&conv2).apply_t(&bn2, train);
-        (xs.apply_t(&downsample, train) + ys).relu()
+        let ys =
+            xs.apply(&conv1)?.apply_t(&bn1, train)?.relu()?.apply(&conv2)?.apply_t(&bn2, train)?;
+        (xs.apply_t(&downsample, train)? + ys)?.relu()
     })
 }
 
@@ -57,16 +58,16 @@ fn resnet(
     let layer4 = basic_layer(p / "layer4", 256, 512, 2, c4);
     let fc = nclasses.map(|n| nn::linear(p / "fc", 512, n, Default::default()));
     nn::func_t(move |xs, train| {
-        xs.apply(&conv1)
-            .apply_t(&bn1, train)
-            .relu()
-            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)
-            .apply_t(&layer1, train)
-            .apply_t(&layer2, train)
-            .apply_t(&layer3, train)
-            .apply_t(&layer4, train)
-            .adaptive_avg_pool2d([1, 1])
-            .flat_view()
+        xs.apply(&conv1)?
+            .apply_t(&bn1, train)?
+            .relu()?
+            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)?
+            .apply_t(&layer1, train)?
+            .apply_t(&layer2, train)?
+            .apply_t(&layer3, train)?
+            .apply_t(&layer4, train)?
+            .adaptive_avg_pool2d([1, 1])?
+            .flat_view()?
             .apply_opt(&fc)
     })
 }
@@ -108,15 +109,15 @@ fn bottleneck_block(p: nn::Path, c_in: i64, c_out: i64, stride: i64, e: i64) -> 
     let downsample = downsample(&p / "downsample", c_in, e_dim, stride);
     nn::func_t(move |xs, train| {
         let ys = xs
-            .apply(&conv1)
-            .apply_t(&bn1, train)
-            .relu()
-            .apply(&conv2)
-            .apply_t(&bn2, train)
-            .relu()
-            .apply(&conv3)
-            .apply_t(&bn3, train);
-        (xs.apply_t(&downsample, train) + ys).relu()
+            .apply(&conv1)?
+            .apply_t(&bn1, train)?
+            .relu()?
+            .apply(&conv2)?
+            .apply_t(&bn2, train)?
+            .relu()?
+            .apply(&conv3)?
+            .apply_t(&bn3, train)?;
+        (xs.apply_t(&downsample, train)? + ys)?.relu()
     })
 }
 
@@ -144,16 +145,16 @@ fn bottleneck_resnet(
     let layer4 = bottleneck_layer(p / "layer4", 4 * 256, 512, 2, c4);
     let fc = nclasses.map(|n| nn::linear(p / "fc", 4 * 512, n, Default::default()));
     nn::func_t(move |xs, train| {
-        xs.apply(&conv1)
-            .apply_t(&bn1, train)
-            .relu()
-            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)
-            .apply_t(&layer1, train)
-            .apply_t(&layer2, train)
-            .apply_t(&layer3, train)
-            .apply_t(&layer4, train)
-            .adaptive_avg_pool2d([1, 1])
-            .flat_view()
+        xs.apply(&conv1)?
+            .apply_t(&bn1, train)?
+            .relu()?
+            .max_pool2d([3, 3], [2, 2], [1, 1], [1, 1], false)?
+            .apply_t(&layer1, train)?
+            .apply_t(&layer2, train)?
+            .apply_t(&layer3, train)?
+            .apply_t(&layer4, train)?
+            .adaptive_avg_pool2d([1, 1])?
+            .flat_view()?
             .apply_opt(&fc)
     })
 }

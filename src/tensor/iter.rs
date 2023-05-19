@@ -25,7 +25,7 @@ impl std::iter::Iterator for Iter<i64> {
         if self.index >= self.len {
             return None;
         }
-        let v = self.content.int64_value(&[self.index]);
+        let v = self.content.f_int64_value(&[self.index]);
         self.index += 1;
         Some(v)
     }
@@ -37,7 +37,7 @@ impl std::iter::Iterator for Iter<f64> {
         if self.index >= self.len {
             return None;
         }
-        let v = self.content.double_value(&[self.index]);
+        let v = self.content.f_double_value(&[self.index]);
         self.index += 1;
         Some(v)
     }
@@ -47,7 +47,7 @@ impl std::iter::Sum for Tensor {
     fn sum<I: Iterator<Item = Tensor>>(mut iter: I) -> Tensor {
         match iter.next() {
             None => Tensor::from(0.),
-            Some(t) => iter.fold(t, |acc, x| x + acc),
+            Some(t) => iter.fold(t, |acc, x| (x + acc).unwrap()),
         }
     }
 }
@@ -56,7 +56,7 @@ impl<'a> std::iter::Sum<&'a Tensor> for Tensor {
     fn sum<I: Iterator<Item = &'a Tensor>>(mut iter: I) -> Tensor {
         match iter.next() {
             None => Tensor::from(0.),
-            Some(t) => iter.fold(t.shallow_clone(), |acc, x| x + acc),
+            Some(t) => iter.fold(t.shallow_clone(), |acc, x| (x + acc).unwrap()),
         }
     }
 }

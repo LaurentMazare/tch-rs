@@ -678,9 +678,12 @@ let write_fallible_wrapper funcs filename =
     pm "impl Tensor {";
     Map.iteri funcs ~f:(fun ~key:exported_name ~data:(func : Func.t) ->
       let rust_name = Func.rust_name exported_name in
+      let fallible_rust_name =
+        if Set.mem prefixed_functions func.name then "g_" ^ rust_name else rust_name
+      in
       let self, rust_args_list = Func.rust_typed_args_list func in
       pm "";
-      pm "    pub fn f_%s%s(" rust_name (Func.type_parameters func);
+      pm "    pub fn %s%s(" fallible_rust_name (Func.type_parameters func);
       pm "        %s" rust_args_list;
       pm "    )%s {" (Func.rust_return_type func ~fallible:true);
       List.iter func.args ~f:(fun arg ->
@@ -756,7 +759,7 @@ let write_wrapper funcs filename =
     pm "impl Tensor {";
     Map.iteri funcs ~f:(fun ~key:exported_name ~data:(func : Func.t) ->
       let rust_name = Func.rust_name exported_name in
-      let rust_name, fallible_rust_name =
+      let fallible_rust_name, rust_name =
         if Set.mem prefixed_functions func.name
         then "g_" ^ rust_name, "f_" ^ rust_name
         else rust_name, "f_" ^ rust_name

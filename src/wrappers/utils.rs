@@ -134,7 +134,7 @@ pub fn version_cudart() -> i64 {
 /// backend is not included by default as of PyTorch 2.0.0.
 /// https://pytorch.org/tutorials/prototype/vulkan_workflow.html#building-pytorch-with-vulkan-backend
 pub fn has_vulkan() -> bool {
-    crate::Tensor::is_vulkan_available()
+    crate::Tensor::is_vulkan_available().unwrap_or(false)
 }
 
 /// Quantization engines

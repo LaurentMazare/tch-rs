@@ -3,11 +3,11 @@
 //! The files can be obtained from the following link:
 //! <http://yann.lecun.com/exdb/mnist/>
 use super::dataset::Dataset;
-use crate::{Kind, Tensor};
+use crate::{Kind, TchError, Tensor};
 use std::fs::File;
-use std::io::{self, BufReader, Read, Result};
+use std::io::{self, BufReader, Read};
 
-fn read_u32<T: Read>(reader: &mut T) -> Result<u32> {
+fn read_u32<T: Read>(reader: &mut T) -> std::io::Result<u32> {
     let mut b = vec![0u8; 4];
     reader.read_exact(&mut b)?;
     let (result, _) =
@@ -15,7 +15,7 @@ fn read_u32<T: Read>(reader: &mut T) -> Result<u32> {
     Ok(result as u32)
 }
 
-fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> Result<()> {
+fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> std::io::Result<()> {
     let magic_number = read_u32(reader)?;
     if magic_number != expected {
         return Err(io::Error::new(
@@ -26,16 +26,16 @@ fn check_magic_number<T: Read>(reader: &mut T, expected: u32) -> Result<()> {
     Ok(())
 }
 
-fn read_labels_(filename: &std::path::Path) -> Result<Tensor> {
+fn read_labels_(filename: &std::path::Path) -> Result<Tensor, TchError> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     check_magic_number(&mut buf_reader, 2049)?;
     let samples = read_u32(&mut buf_reader)?;
     let mut data = vec![0u8; samples as usize];
     buf_reader.read_exact(&mut data)?;
-    Ok(Tensor::from_slice(&data).to_kind(Kind::Int64))
+    Ok(Tensor::from_slice(&data)?.to_kind(Kind::Int64)?)
 }
 
-fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
+fn read_images_(filename: &std::path::Path) -> Result<Tensor, TchError> {
     let mut buf_reader = BufReader::new(File::open(filename)?);
     check_magic_number(&mut buf_reader, 2051)?;
     let samples = read_u32(&mut buf_reader)?;
@@ -44,23 +44,23 @@ fn read_images_(filename: &std::path::Path) -> Result<Tensor> {
     let data_len = samples * rows * cols;
     let mut data = vec![0u8; data_len as usize];
     buf_reader.read_exact(&mut data)?;
-    let tensor = Tensor::from_slice(&data)
-        .view((i64::from(samples), i64::from(rows * cols)))
-        .to_kind(Kind::Float);
-    Ok(tensor / 255.)
+    let tensor = Tensor::from_slice(&data)?
+        .view((i64::from(samples), i64::from(rows * cols)))?
+        .to_kind(Kind::Float)?;
+    tensor / 255.
 }
 
-fn read_labels(filename: &std::path::Path) -> Result<Tensor> {
+fn read_labels(filename: &std::path::Path) -> Result<Tensor, TchError> {
     read_labels_(filename)
         .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
 }
 
-fn read_images(filename: &std::path::Path) -> Result<Tensor> {
+fn read_images(filename: &std::path::Path) -> Result<Tensor, TchError> {
     read_images_(filename)
         .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
 }
 
-pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset> {
+pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset, TchError> {
     let dir = dir.as_ref();
     let train_images = read_images(&dir.join("train-images-idx3-ubyte"))?;
     let train_labels = read_labels(&dir.join("train-labels-idx1-ubyte"))?;

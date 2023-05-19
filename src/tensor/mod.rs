@@ -92,29 +92,29 @@ impl Shape for (i64, i64, i64, i64) {
 }
 
 impl Tensor {
-    pub fn f_view<T: Shape>(&self, s: T) -> Result<Tensor, TchError> {
-        self.f_view_(&s.to_shape())
-    }
-
-    pub fn view<T: Shape>(&self, s: T) -> Tensor {
+    pub fn view<T: Shape>(&self, s: T) -> Result<Tensor, TchError> {
         self.view_(&s.to_shape())
     }
 
-    pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Result<Tensor, TchError> {
+    pub fn f_view<T: Shape>(&self, s: T) -> Tensor {
+        self.f_view_(&s.to_shape())
+    }
+
+    pub fn zero_pad1d(&self, left: i64, right: i64) -> Result<Tensor, TchError> {
         if self.dim() != 3 {
             return Err(TchError::Shape(format!(
                 "expected a 3 dimension tensor, got {:?}",
                 self.size()
             )));
         }
-        self.f_constant_pad_nd([left, right])
+        self.constant_pad_nd([left, right])
     }
 
-    pub fn zero_pad1d(&self, left: i64, right: i64) -> Tensor {
-        self.f_zero_pad1d(left, right).unwrap()
+    pub fn f_zero_pad1d(&self, left: i64, right: i64) -> Tensor {
+        self.zero_pad1d(left, right).unwrap()
     }
 
-    pub fn f_zero_pad2d(
+    pub fn zero_pad2d(
         &self,
         left: i64,
         right: i64,
@@ -127,59 +127,62 @@ impl Tensor {
                 self.size()
             )));
         }
-        self.f_constant_pad_nd([left, right, top, bottom])
+        self.constant_pad_nd([left, right, top, bottom])
     }
 
-    pub fn zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Tensor {
-        self.f_zero_pad2d(left, right, top, bottom).unwrap()
+    pub fn f_zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Tensor {
+        self.zero_pad2d(left, right, top, bottom).unwrap()
     }
 }
 
 impl<T: crate::kind::Element> From<&[T]> for Tensor {
     fn from(v: &[T]) -> Tensor {
-        Tensor::from_slice(v)
+        Tensor::f_from_slice(v)
     }
 }
 
 impl<T: crate::kind::Element> From<T> for Tensor {
     fn from(v: T) -> Tensor {
-        Tensor::from_slice(&[v]).view(())
+        Tensor::f_from_slice(&[v]).f_view(())
     }
 }
 impl Tensor {
     /// Casts a tensor to a specified kind.
-    pub fn to_kind(&self, kind: Kind) -> Tensor {
-        self.totype(kind)
-    }
-
-    pub fn f_to_kind(&self, kind: Kind) -> Result<Tensor, TchError> {
+    pub fn f_to_kind(&self, kind: Kind) -> Tensor {
         self.f_totype(kind)
     }
 
-    pub fn nll_loss(&self, targets: &Tensor) -> Tensor {
+    /// Casts a tensor to a specified kind.
+    pub fn to_kind(&self, kind: Kind) -> Result<Tensor, TchError> {
+        self.totype(kind)
+    }
+
+    pub fn nll_loss(&self, targets: &Tensor) -> Result<Tensor, TchError> {
         self.g_nll_loss::<Tensor>(targets, None, Reduction::Mean, -100)
     }
-}
 
-impl Tensor {
     /// Computes the cross-entropy loss based on some logits and targets.
-    pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.log_softmax(-1, Kind::Float).nll_loss(targets)
+    pub fn cross_entropy_for_logits(&self, targets: &Tensor) -> Result<Tensor, TchError> {
+        self.log_softmax(-1, Kind::Float)?.nll_loss(targets)
     }
 
     /// Returns the average accuracy for some given logits assuming that
     /// targets represent ground-truth.
-    pub fn accuracy_for_logits(&self, targets: &Tensor) -> Tensor {
-        self.argmax(-1, false).eq_tensor(targets).to_kind(Kind::Float).mean(Kind::Float)
+    pub fn accuracy_for_logits(&self, targets: &Tensor) -> Result<Tensor, TchError> {
+        self.argmax(-1, false)?.eq_tensor(targets)?.to_kind(Kind::Float)?.mean(Kind::Float)
     }
 
-    pub fn random_batch(&self, batch_size: i64) -> Tensor {
+    pub fn random_batch(&self, batch_size: i64) -> Result<Tensor, TchError> {
         let len: i64 = self.size()[0];
-        let index = Tensor::randint(len, [batch_size], (Kind::Int64, self.device()));
+        let index = Tensor::randint(len, [batch_size], (Kind::Int64, self.device()))?;
         self.index_select(0, &index)
     }
 
-    pub fn random_batch2(t1: &Tensor, t2: &Tensor, batch_size: i64) -> (Tensor, Tensor) {
+    pub fn random_batch2(
+        t1: &Tensor,
+        t2: &Tensor,
+        batch_size: i64,
+    ) -> Result<(Tensor, Tensor), TchError> {
         let len1: i64 = t1.size()[0];
         let len2: i64 = t2.size()[0];
         if len1 != len2 {
@@ -190,26 +193,26 @@ impl Tensor {
         if device1 != device2 {
             panic!("random_batch2: device mismatch {device1:?} {device2:?}")
         }
-        let index = Tensor::randint(len1, [batch_size], (Kind::Int64, device1));
-        let batch1 = t1.index_select(0, &index);
-        let batch2 = t2.index_select(0, &index);
-        (batch1, batch2)
+        let index = Tensor::randint(len1, [batch_size], (Kind::Int64, device1))?;
+        let batch1 = t1.index_select(0, &index)?;
+        let batch2 = t2.index_select(0, &index)?;
+        Ok((batch1, batch2))
     }
 
     /// Moves a tensor to a specified device.
-    pub fn to_device(&self, device: Device) -> Tensor {
+    pub fn to_device(&self, device: Device) -> Result<Tensor, TchError> {
         self.to(device)
     }
 
-    pub fn f_to_device(&self, device: Device) -> Result<Tensor, TchError> {
+    pub fn f_to_device(&self, device: Device) -> Tensor {
         self.f_to(device)
     }
 
-    pub fn avg_pool2d_default(&self, ksize: i64) -> Tensor {
+    pub fn avg_pool2d_default(&self, ksize: i64) -> Result<Tensor, TchError> {
         self.avg_pool2d([ksize, ksize], [ksize, ksize], [0, 0], false, true, 1)
     }
 
-    pub fn max_pool2d_default(&self, ksize: i64) -> Tensor {
+    pub fn max_pool2d_default(&self, ksize: i64) -> Result<Tensor, TchError> {
         self.max_pool2d([ksize, ksize], [ksize, ksize], [0, 0], [1, 1], false)
     }
 
@@ -217,7 +220,7 @@ impl Tensor {
     ///
     /// This returns a flattened version of the given tensor. The first dimension
     /// is preserved as it is assumed to be the mini-batch dimension.
-    pub fn flat_view(&self) -> Tensor {
+    pub fn flat_view(&self) -> Result<Tensor, TchError> {
         self.view((self.size()[0], -1))
     }
 
@@ -226,30 +229,31 @@ impl Tensor {
     /// If the input has a size [N1, N2, ..., Nk], the returned tensor has a size
     /// [N1, ..., Nk, labels]. The returned tensor uses float values.
     /// Elements of the input vector are expected to be between 0 and labels-1.
-    pub fn onehot(&self, labels: i64) -> Tensor {
-        Tensor::zeros([self.size(), vec![labels]].concat(), crate::wrappers::kind::FLOAT_CPU)
-            .scatter_value_(-1, &self.unsqueeze(-1).to_kind(Kind::Int64), 1.0)
+    pub fn onehot(&self, labels: i64) -> Result<Tensor, TchError> {
+        Tensor::zeros([self.size(), vec![labels]].concat(), crate::wrappers::kind::FLOAT_CPU)?
+            .scatter_value_(-1, &self.unsqueeze(-1)?.to_kind(Kind::Int64)?, 1.0)
     }
 
     /// Copies a tensor to a newly allocated tensor using the same shape and device.
     pub fn copy(&self) -> Tensor {
-        let mut result = self.zeros_like();
-        result.copy_(self);
+        let mut result = self.f_zeros_like();
+        result.f_copy_(self);
         result
     }
 
     /// Copies the data from a two dimensional slice in a tensor object.
-    pub fn from_slice2<T, U>(v: &[U]) -> Tensor
+    pub fn from_slice2<T, U>(v: &[U]) -> Result<Tensor, TchError>
     where
         T: crate::kind::Element,
         U: AsRef<[T]>,
     {
-        let inner: Vec<Tensor> = v.iter().map(|v| Tensor::from_slice(v.as_ref())).collect();
+        let inner: Vec<Tensor> =
+            v.iter().map(|v| Tensor::from_slice(v.as_ref())).collect::<Result<_, _>>()?;
         Tensor::stack(&inner, 0)
     }
 
-    pub fn to_mkldnn(&self) -> Tensor {
-        self.g_to_mkldnn(self.kind())
+    pub fn to_mkldnn(&self) -> Result<Tensor, TchError> {
+        self.g_to_mkldnn(self.kind()?)
     }
 }
 

@@ -1,6 +1,6 @@
 //! A sequential layer used to chain multiple layers and closures.
 use super::{Module, ModuleT};
-use crate::Tensor;
+use crate::{TchError, Tensor};
 
 /// A sequential layer combining multiple other layers.
 #[derive(Debug)]
@@ -26,12 +26,15 @@ impl Sequential {
 }
 
 impl Module for Sequential {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    fn forward(&self, xs: &Tensor) -> Result<Tensor, TchError> {
         if self.layers.is_empty() {
-            xs.shallow_clone()
+            Ok(xs.shallow_clone())
         } else {
-            let xs = self.layers[0].forward(xs);
-            self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward(&xs))
+            let mut xs = self.layers[0].forward(xs)?;
+            for layer in self.layers.iter().skip(1) {
+                xs = layer.forward(&xs)?
+            }
+            Ok(xs)
         }
     }
 }
@@ -53,20 +56,20 @@ impl Sequential {
     }
 
     /// Applies the forward pass and returns the output for each layer.
-    pub fn forward_all(&self, xs: &Tensor, n: Option<usize>) -> Vec<Tensor> {
+    pub fn forward_all(&self, xs: &Tensor, n: Option<usize>) -> Result<Vec<Tensor>, TchError> {
         if self.layers.is_empty() {
-            vec![xs.shallow_clone()]
+            Ok(vec![xs.shallow_clone()])
         } else {
             let n = n.unwrap_or(self.layers.len());
             let xs = self.layers[0].forward(xs);
             let mut vec = vec![];
             let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
-                let out = layer.forward(&xs);
+                let out = layer.forward(&xs)?;
                 vec.push(xs);
-                out
+                Ok(out)
             });
             vec.push(out);
-            vec
+            Ok(vec)
         }
     }
 }
@@ -95,9 +98,9 @@ impl SequentialT {
 }
 
 impl ModuleT for SequentialT {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+    fn forward_t(&self, xs: &Tensor, train: bool) -> Result<Tensor, TchError> {
         if self.layers.is_empty() {
-            xs.shallow_clone()
+            Ok(xs.shallow_clone())
         } else {
             let xs = self.layers[0].forward_t(xs, train);
             self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward_t(&xs, train))
@@ -116,7 +119,7 @@ impl SequentialT {
     /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
-        F: 'static + Fn(&Tensor) -> Tensor + Send,
+        F: 'static + Fn(&Tensor) -> Result<Tensor, TchError> + Send,
     {
         self.add(super::func(f))
     }
@@ -124,26 +127,31 @@ impl SequentialT {
     /// Appends a closure after all the current layers.
     pub fn add_fn_t<F>(self, f: F) -> Self
     where
-        F: 'static + Fn(&Tensor, bool) -> Tensor + Send,
+        F: 'static + Fn(&Tensor, bool) -> Result<Tensor, TchError> + Send,
     {
         self.add(super::func_t(f))
     }
 
     /// Applies the forward pass and returns the output for each layer.
-    pub fn forward_all_t(&self, xs: &Tensor, train: bool, n: Option<usize>) -> Vec<Tensor> {
+    pub fn forward_all_t(
+        &self,
+        xs: &Tensor,
+        train: bool,
+        n: Option<usize>,
+    ) -> Result<Vec<Tensor>, TchError> {
         if self.layers.is_empty() {
-            vec![xs.shallow_clone()]
+            Ok(vec![xs.shallow_clone()])
         } else {
             let n = n.unwrap_or(self.layers.len());
             let xs = self.layers[0].forward_t(xs, train);
             let mut vec = vec![];
             let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
-                let out = layer.forward_t(&xs, train);
+                let out = layer.forward_t(&xs, train)?;
                 vec.push(xs);
-                out
+                Ok(out)
             });
             vec.push(out);
-            vec
+            Ok(vec)
         }
     }
 }
