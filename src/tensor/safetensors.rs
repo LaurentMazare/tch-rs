@@ -103,17 +103,15 @@ impl<'a> View for SafeView<'a> {
     }
 }
 
+fn wrap_err<P: AsRef<Path>>(path: P, err: safetensors::SafeTensorError) -> TchError {
+    TchError::SafeTensorError { path: path.as_ref().to_string_lossy().to_string(), err }
+}
+
 impl crate::Tensor {
     /// Reads a safetensors file and returns some named tensors.
     pub fn read_safetensors<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
-        let file = std::fs::read(&path)?;
-        let safetensors = match SafeTensors::deserialize(&file) {
-            Ok(value) => value,
-            Err(err) => Err(TchError::SafeTensorError {
-                path: path.as_ref().to_string_lossy().to_string(),
-                err,
-            })?,
-        };
+        let file = std::fs::read(&path).map_err(|e| wrap_err(&path, e.into()))?;
+        let safetensors = SafeTensors::deserialize(&file).map_err(|e| wrap_err(&path, e))?;
         safetensors.tensors().into_iter().map(|(name, view)| Ok((name, view.try_into()?))).collect()
     }
 
@@ -128,9 +126,8 @@ impl crate::Tensor {
                 Ok::<(&str, SafeView), TchError>((name.as_ref(), tensor.as_ref().try_into()?))
             })
             .collect::<Result<Vec<_>, _>>()?;
-        safetensors::tensor::serialize_to_file(views, &None, path.as_ref()).map_err(|err| {
-            TchError::SafeTensorError { path: path.as_ref().to_string_lossy().to_string(), err }
-        })?;
+        safetensors::tensor::serialize_to_file(views, &None, path.as_ref())
+            .map_err(|e| wrap_err(path, e))?;
         Ok(())
     }
 }
@@ -138,19 +135,10 @@ impl crate::Tensor {
 impl VarStore {
     /// Read data from safe tensor file, missing tensors will raise a error.
     pub fn read_safetensors<T: AsRef<Path>>(&self, path: T) -> Result<(), TchError> {
-        let file = std::fs::read(&path)?;
-        let safetensors = match SafeTensors::deserialize(&file) {
-            Ok(value) => value,
-            Err(err) => Err(TchError::SafeTensorError {
-                path: path.as_ref().to_string_lossy().to_string(),
-                err,
-            })?,
-        };
+        let file = std::fs::read(&path).map_err(|e| wrap_err(&path, e.into()))?;
+        let safetensors = SafeTensors::deserialize(&file).map_err(|e| wrap_err(&path, e))?;
         for (name, tensor) in self.variables_.lock().unwrap().named_variables.iter_mut() {
-            let view = safetensors.tensor(name).map_err(|err| TchError::SafeTensorError {
-                path: path.as_ref().to_string_lossy().to_string(),
-                err,
-            })?;
+            let view = safetensors.tensor(name).map_err(|e| wrap_err(&path, e))?;
             let data: Tensor = view.try_into()?;
             tensor.f_copy_(&data)?
         }
