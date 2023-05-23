@@ -283,6 +283,11 @@ See this [issue](https://github.com/LaurentMazare/tch-rs/issues/596), this could
 be caused by rust-analyzer not knowing about the proper environment variables
 like `LIBTORCH` and `LD_LIBRARY_PATH`.
 
+### Using Rust/tch code from Python.
+It is possible to call Rust/tch code from Python via PyO3,
+[tch-ext](https://github.com/LaurentMazare/tch-ext) provides an example of such
+a Python extension.
+
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
 and the Apache license (version 2.0), at your option.
