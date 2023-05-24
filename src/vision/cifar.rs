@@ -35,8 +35,7 @@ fn read_file_(filename: &std::path::Path) -> Result<(Tensor, Tensor), TchError> 
 }
 
 fn read_file(filename: &std::path::Path) -> Result<(Tensor, Tensor), TchError> {
-    read_file_(filename)
-        .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
+    read_file_(filename).map_err(|e| e.io_path_context(filename))
 }
 
 pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset, TchError> {

@@ -81,15 +81,15 @@ pub fn random_cutout(t: &Tensor, sz: i64) -> Result<Tensor, TchError> {
 }
 
 pub fn augmentation(t: &Tensor, flip: bool, crop: i64, cutout: i64) -> Result<Tensor, TchError> {
-    let mut t = Ok(t.shallow_clone());
+    let mut t = t.shallow_clone();
     if flip {
-        t = random_flip(&t?)?;
+        t = random_flip(&t)?;
     }
     if crop > 0 {
-        t = random_crop(&t?, crop);
+        t = random_crop(&t, crop)?;
     }
     if cutout > 0 {
-        t = random_cutout(&t?, cutout);
+        t = random_cutout(&t, cutout)?;
     }
-    t
+    Ok(t)
 }

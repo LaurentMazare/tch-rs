@@ -50,7 +50,7 @@ impl Sequential {
     /// Appends a closure after all the current layers.
     pub fn add_fn<F>(self, f: F) -> Self
     where
-        F: 'static + Fn(&Tensor) -> Tensor + Send,
+        F: 'static + Fn(&Tensor) -> Result<Tensor, TchError> + Send,
     {
         self.add(super::func(f))
     }
@@ -64,10 +64,11 @@ impl Sequential {
             let xs = self.layers[0].forward(xs);
             let mut vec = vec![];
             let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
+                let xs = xs?;
                 let out = layer.forward(&xs)?;
                 vec.push(xs);
                 Ok(out)
-            });
+            })?;
             vec.push(out);
             Ok(vec)
         }
@@ -103,7 +104,10 @@ impl ModuleT for SequentialT {
             Ok(xs.shallow_clone())
         } else {
             let xs = self.layers[0].forward_t(xs, train);
-            self.layers.iter().skip(1).fold(xs, |xs, layer| layer.forward_t(&xs, train))
+            self.layers.iter().skip(1).fold(xs, |xs, layer| {
+                let xs = xs?;
+                layer.forward_t(&xs, train)
+            })
         }
     }
 }
@@ -146,10 +150,11 @@ impl SequentialT {
             let xs = self.layers[0].forward_t(xs, train);
             let mut vec = vec![];
             let out = self.layers.iter().take(n).skip(1).fold(xs, |xs, layer| {
+                let xs = xs?;
                 let out = layer.forward_t(&xs, train)?;
                 vec.push(xs);
                 Ok(out)
-            });
+            })?;
             vec.push(out);
             Ok(vec)
         }

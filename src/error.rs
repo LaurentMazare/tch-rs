@@ -65,10 +65,18 @@ pub enum TchError {
 }
 
 impl TchError {
+    /// Annotate an error with the related var-store path.
     pub fn path_context(&self, path_name: &str) -> Self {
         match self {
             TchError::Torch(error) => TchError::Torch(format!("{path_name}: {error}")),
             _ => unimplemented!(),
+        }
+    }
+
+    pub(crate) fn io_path_context(self, path: &std::path::Path) -> Self {
+        match self {
+            Self::Io(err) => Self::Io(std::io::Error::new(err.kind(), format!("{path:?} {err}"))),
+            otherwise => otherwise,
         }
     }
 }

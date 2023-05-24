@@ -213,31 +213,33 @@ impl Optimizer {
     }
 
     /// Clips gradient value at some specified maximum value.
-    pub fn clip_grad_value(&self, max: f64) {
+    pub fn clip_grad_value(&self, max: f64) -> Result<(), TchError> {
         let v = self.variables.lock().unwrap();
         for var in v.trainable_variables.iter() {
-            let _t = var.tensor.grad().clamp_(-max, max);
+            let _t = var.tensor.grad()?.clamp_(-max, max)?;
         }
+        Ok(())
     }
 
     /// Clips gradient L2 norm over all trainable parameters.
     ///
     /// The norm is computed over all gradients together, as if they were
     /// concatenated into a single vector.
-    pub fn clip_grad_norm(&self, max: f64) {
+    pub fn clip_grad_norm(&self, max: f64) -> Result<(), TchError> {
         crate::no_grad(|| {
             let v = self.variables.lock().unwrap();
             let mut norms = vec![];
             for var in v.trainable_variables.iter() {
-                norms.push(var.tensor.grad().norm());
+                norms.push(var.tensor.grad()?.norm()?);
             }
-            let total_norm = f64::try_from(Tensor::stack(&norms, 0).norm()).unwrap();
+            let total_norm = f64::try_from(Tensor::stack(&norms, 0)?.norm()?)?;
             let clip_coef = max / (total_norm + 1e-6);
             if clip_coef < 1.0 {
                 for var in v.trainable_variables.iter() {
-                    let _t = var.tensor.grad().g_mul_scalar_(clip_coef);
+                    let _t = var.tensor.grad()?.g_mul_scalar_(clip_coef)?;
                 }
             }
+            Ok(())
         })
     }
 

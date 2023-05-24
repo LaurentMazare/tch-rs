@@ -37,18 +37,18 @@ pub fn layer_norm<'a, T: Borrow<super::Path<'a>>>(
     vs: T,
     normalized_shape: Vec<i64>,
     config: LayerNormConfig,
-) -> LayerNorm {
+) -> Result<LayerNorm, TchError> {
     let vs = vs.borrow();
 
     let (ws, bs) = if config.elementwise_affine {
-        let ws = vs.var("weight", normalized_shape.as_slice(), config.ws_init);
-        let bs = vs.var("bias", normalized_shape.as_slice(), config.bs_init);
+        let ws = vs.var("weight", normalized_shape.as_slice(), config.ws_init)?;
+        let bs = vs.var("bias", normalized_shape.as_slice(), config.bs_init)?;
         (Some(ws), Some(bs))
     } else {
         (None, None)
     };
 
-    LayerNorm { config, ws, bs, normalized_shape }
+    Ok(LayerNorm { config, ws, bs, normalized_shape })
 }
 
 impl super::module::Module for LayerNorm {

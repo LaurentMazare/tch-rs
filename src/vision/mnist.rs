@@ -51,13 +51,11 @@ fn read_images_(filename: &std::path::Path) -> Result<Tensor, TchError> {
 }
 
 fn read_labels(filename: &std::path::Path) -> Result<Tensor, TchError> {
-    read_labels_(filename)
-        .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
+    read_labels_(filename).map_err(|e| e.io_path_context(filename))
 }
 
 fn read_images(filename: &std::path::Path) -> Result<Tensor, TchError> {
-    read_images_(filename)
-        .map_err(|err| std::io::Error::new(err.kind(), format!("{filename:?} {err}")))
+    read_images_(filename).map_err(|e| e.io_path_context(filename))
 }
 
 pub fn load_dir<T: AsRef<std::path::Path>>(dir: T) -> Result<Dataset, TchError> {
