@@ -113,7 +113,7 @@ impl RmsNorm {
 
 impl Module for RmsNorm {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        let norm_xs = (xs * xs).mean_dim(-1, true, Kind::Half);
+        let norm_xs = (xs * xs).mean_dim(-1, true, Kind::Float);
         let xs_normed = xs * (norm_xs + 1e-5).rsqrt();
         let scale = self.scale.reshape([1, 1, self.size]);
         scale * xs_normed
@@ -199,9 +199,9 @@ impl CausalSelfAttention {
         let k = self.apply_rotary_emb(&k, freqs_cis);
         let k_shape = k.size();
         let att: Tensor = q.matmul(&k.transpose(-2, -1)) / (*k_shape.last().unwrap() as f64).sqrt();
-        let mask = Tensor::ones([t, t], (Kind::Half, self.device)).tril(0).reshape([1, 1, t, t]);
+        let mask = Tensor::ones([t, t], (Kind::Float, self.device)).tril(0).reshape([1, 1, t, t]);
         let att = att.masked_fill(&mask.eq(0.), f64::NEG_INFINITY);
-        let y = att.softmax(-1, Kind::Half).matmul(&v);
+        let y = att.softmax(-1, Kind::Float).matmul(&v);
         let y = y.transpose(1, 2).reshape([b, t, c]);
         self.c_proj.forward(&y)
     }
@@ -289,7 +289,7 @@ fn llama(vs: nn::Path, args: Args) -> impl Module {
     let freqs_cis = precompute_freqs_cis(&config).to_device(vs.device());
     let llama = Llama::new(vs, &config);
     nn::func(move |xs| {
-        let logits = llama.forward(xs, &freqs_cis).to_kind(Kind::Float);
+        let logits = llama.forward(xs, &freqs_cis);
         (logits / args.temperature).softmax(-1, Kind::Float)
     })
 }
@@ -325,12 +325,14 @@ fn main() -> Result<()> {
     let start_load = std::time::Instant::now();
     vs.load("llama.safetensors")?;
     println!("loaded weights in {:?}", start_load.elapsed());
+    vs.set_kind(Kind::Float);
+    println!("switched back to float");
     for index in 0..args.sample_len {
         let ctxt: Vec<_> =
             tokens[tokens.len().saturating_sub(CONTEXT_SIZE)..].iter().map(|c| *c as i64).collect();
-        let ctxt = Tensor::from_slice(&ctxt);
+        let ctxt = Tensor::from_slice(&ctxt).reshape([1, -1]);
         let logits = llama.forward(&ctxt);
-        let sampled_y = logits.multinomial(1, true);
+        let sampled_y = logits.get(0).get(0).multinomial(1, true);
         let next_token = i64::try_from(&sampled_y)? as usize;
         tokens.push(next_token);
         new_tokens.push(next_token);
