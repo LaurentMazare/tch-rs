@@ -114,7 +114,7 @@ impl RmsNorm {
 
 impl Module for RmsNorm {
     fn forward(&self, xs: &Tensor) -> Tensor {
-        let norm_xs = (xs * xs).mean_dim(-1, true, Kind::Float);
+        let norm_xs = (xs * xs).mean_dim(-1, true, Kind::Half);
         let xs_normed = xs * (norm_xs + 1e-5).rsqrt();
         let scale = self.scale.reshape([1, 1, self.size]);
         scale * xs_normed
@@ -200,9 +200,9 @@ impl CausalSelfAttention {
         let k = self.apply_rotary_emb(&k, freqs_cis);
         let k_shape = k.size();
         let att: Tensor = q.matmul(&k.transpose(-2, -1)) / (*k_shape.last().unwrap() as f64).sqrt();
-        let mask = Tensor::ones([t, t], (Kind::Float, self.device)).tril(0).reshape([1, 1, t, t]);
+        let mask = Tensor::ones([t, t], (Kind::Half, self.device)).tril(0).reshape([1, 1, t, t]);
         let att = att.masked_fill(&mask.eq(0.), f64::NEG_INFINITY);
-        let y = att.softmax(-1, Kind::Float).matmul(&v);
+        let y = att.softmax(-1, Kind::Half).matmul(&v);
         let y = y.transpose(1, 2).reshape([b, t, c]);
         self.c_proj.forward(&y)
     }
@@ -278,7 +278,7 @@ fn precompute_freqs_cis(config: &Config) -> Tensor {
     let arange: Vec<_> = (0..seq_len).map(|c| c as f32).collect();
     let theta = Tensor::from_slice(&theta);
     let arange = Tensor::from_slice(&arange);
-    let idx_theta = arange.dot(&theta);
+    let idx_theta = arange.outer(&theta);
     let shape = [1, 1, seq_len as i64, n_elem as i64 / 2, 1];
     let idx_theta_cos = idx_theta.cos().reshape(shape);
     let idx_theta_sin = idx_theta.sin().reshape(shape);
@@ -319,6 +319,7 @@ fn main() -> Result<()> {
     let start_build = std::time::Instant::now();
     let device = if args.cpu { Device::Cpu } else { Device::Cuda(0) };
     let mut vs = nn::VarStore::new(device);
+    vs.set_kind(Kind::Half);
     let llama = llama(vs.root(), args);
     println!("generated the model in {:?}", start_build.elapsed());
     let start_load = std::time::Instant::now();
