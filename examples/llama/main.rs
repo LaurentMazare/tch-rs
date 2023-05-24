@@ -319,8 +319,8 @@ fn main() -> Result<()> {
     let start_build = std::time::Instant::now();
     let device = if args.cpu { Device::Cpu } else { Device::Cuda(0) };
     let mut vs = nn::VarStore::new(device);
-    vs.set_kind(Kind::Half);
     let llama = llama(vs.root(), args);
+    vs.set_kind(Kind::Half);
     println!("generated the model in {:?}", start_build.elapsed());
     let start_load = std::time::Instant::now();
     vs.load("llama.safetensors")?;
