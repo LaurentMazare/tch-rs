@@ -1,18 +1,18 @@
 # Adapted from https://github.com/Lightning-AI/lit-llama/blob/main/scripts/convert_checkpoint.py
 import sys
 import torch
-import numpy as np
 from typing import Dict
 from pathlib import Path
+from safetensors.torch import save_file
 
 def tr(v):
-    return np.ascontiguousarray(np.transpose(v))
+    return v.transpose(0, 1).contiguous()
 
 def convert_state_dict(state_dict: Dict[str, torch.Tensor], dtype: torch.dtype = torch.float16) -> Dict[str, torch.Tensor]:
     print("start conv")
 
     def get_and_remove(key, transpose=False):
-        v = state_dict[key].to(dtype).numpy()
+        v = state_dict[key].to(dtype)
         if transpose:
             v = tr(v)
         del state_dict[key]
@@ -28,12 +28,12 @@ def convert_state_dict(state_dict: Dict[str, torch.Tensor], dtype: torch.dtype =
 
         # attention
         # the wq, wk, wv from the FB model are stacked in our model as c_attn
-        converted[f"transformer.h.{layer_idx}.attn.c_attn.weight"] = tr(np.concatenate(
+        converted[f"transformer.h.{layer_idx}.attn.c_attn.weight"] = tr(torch.cat(
             (
                 get_and_remove(f"layers.{layer_idx}.attention.wq.weight"),
                 get_and_remove(f"layers.{layer_idx}.attention.wk.weight"),
                 get_and_remove(f"layers.{layer_idx}.attention.wv.weight"),
-            )
+                )
         ))
         converted[f"transformer.h.{layer_idx}.attn.c_proj.weight"] = tr(get_and_remove(
             f"layers.{layer_idx}.attention.wo.weight"
@@ -53,14 +53,14 @@ def convert_state_dict(state_dict: Dict[str, torch.Tensor], dtype: torch.dtype =
         converted[f"transformer.h.{layer_idx}.rms_2.scale"] = get_and_remove(f"layers.{layer_idx}.ffn_norm.weight")
     return converted
 
-def convert_weights(llama_ckpt, *, output_npz: Path = Path("llama.npz"), dtype: str = "float16") -> None:
+def convert_weights(llama_ckpt, *, output_st: Path = Path("llama.safetensors"), dtype: str = "float16") -> None:
     dt = getattr(torch, dtype, None)
     if not isinstance(dt, torch.dtype):
         raise ValueError(f"{dtype} is not a valid dtype.")
     checkpoint = torch.load(llama_ckpt, map_location="cpu")
     converted = convert_state_dict(checkpoint, dtype=dt)
     del checkpoint
-    np.savez(output_npz, **converted)
+    save_file(converted, output_st)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

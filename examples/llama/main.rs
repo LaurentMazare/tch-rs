@@ -7,8 +7,7 @@
 // The tokenizer config can be retrieved from:
 // https://huggingface.co/hf-internal-testing/llama-tokenizer/blob/main/tokenizer.json
 //
-// TODO: Switch to safetensors rather than npz.
-// In order to convert the llama weights to a .npz file, run:
+// In order to convert the llama weights to a .safetensors file, run:
 // python examples/llama/convert_checkpoint.py ..../LLaMA/7B/consolidated.00.pth
 use anyhow::Result;
 use clap::Parser;
@@ -312,6 +311,7 @@ struct Args {
 }
 
 fn main() -> Result<()> {
+    let _no_grad = tch::no_grad_guard();
     let args = Args::parse();
     let tokenizer = Tokenizer::from_file("llama-tokenizer.json")?;
     let mut tokens = tokenizer.encode(START_PROMPT)?;
@@ -323,7 +323,7 @@ fn main() -> Result<()> {
     let llama = llama(vs.root(), args);
     println!("generated the model in {:?}", start_build.elapsed());
     let start_load = std::time::Instant::now();
-    vs.load("llama.npz")?;
+    vs.load("llama.safetensors")?;
     println!("loaded weights in {:?}", start_load.elapsed());
     for index in 0..args.sample_len {
         let ctxt: Vec<_> =

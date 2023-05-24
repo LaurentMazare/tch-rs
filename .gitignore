@@ -16,3 +16,4 @@ __pycache__
 *.safetensors
 *.so
 *.dylib
+llama-tokenizer.json
