@@ -351,11 +351,28 @@ fn main() -> Result<()> {
     // format.
     vs.set_kind(Kind::Half);
     println!("generated the model in {:?}", start_build.elapsed());
+
     let start_load = std::time::Instant::now();
-    vs.load("llama.safetensors")?;
+    // Instead of the standard `VarStore::load`, we use a mmap version that
+    // should improve memory efficiency.
+    {
+        let file = std::fs::File::open("llama.safetensors")?;
+        let content = unsafe { memmap2::MmapOptions::new().map(&file)? };
+        let safetensors = safetensors::SafeTensors::deserialize(&content)?;
+
+        let mut variables = vs.variables_.lock().unwrap();
+        for (name, var) in variables.named_variables.iter_mut() {
+            let src_tensor_view = safetensors.tensor(name)?;
+            // TODO: Avoid this intermediate copy.
+            let src_tensor: Tensor = src_tensor_view.try_into()?;
+            var.f_copy_(&src_tensor)?;
+        }
+    }
     println!("loaded weights in {:?}", start_load.elapsed());
+
     vs.set_kind(args.kind.to_kind());
     println!("switched back to float");
+
     for index in 0..args.sample_len {
         let ctxt: Vec<_> =
             tokens[tokens.len().saturating_sub(CONTEXT_SIZE)..].iter().map(|c| *c as i64).collect();
