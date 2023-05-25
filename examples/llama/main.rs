@@ -294,12 +294,33 @@ fn llama(vs: nn::Path, args: Args) -> impl Module {
     })
 }
 
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+enum CompKind {
+    Float,
+    Half,
+    BFloat16,
+}
+
+impl CompKind {
+    fn to_kind(self) -> Kind {
+        match self {
+            Self::Float => Kind::Float,
+            Self::Half => Kind::Half,
+            Self::BFloat16 => Kind::BFloat16,
+        }
+    }
+}
+
 #[derive(clap::Parser, Debug, Clone, Copy)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Run on CPU rather than on GPU.
     #[arg(long)]
     cpu: bool,
+
+    /// Use this type of float for computations, float/half/bfloat16
+    #[arg(long, value_enum, default_value = "float")]
+    kind: CompKind,
 
     /// The temperature used to generate samples.
     #[arg(long, default_value_t = 1.0)]
@@ -317,15 +338,23 @@ fn main() -> Result<()> {
     let mut tokens = tokenizer.encode(START_PROMPT)?;
     let mut new_tokens = vec![];
     let start_build = std::time::Instant::now();
-    let device = if args.cpu { Device::Cpu } else { Device::Cuda(0) };
+    let device = if args.cpu {
+        Device::Cpu
+    } else if tch::utils::has_mps() {
+        Device::Mps
+    } else {
+        Device::Cuda(0)
+    };
     let mut vs = nn::VarStore::new(device);
     let llama = llama(vs.root(), args);
+    // When loading the weights, assume that they are in the float16
+    // format.
     vs.set_kind(Kind::Half);
     println!("generated the model in {:?}", start_build.elapsed());
     let start_load = std::time::Instant::now();
     vs.load("llama.safetensors")?;
     println!("loaded weights in {:?}", start_load.elapsed());
-    vs.set_kind(Kind::Float);
+    vs.set_kind(args.kind.to_kind());
     println!("switched back to float");
     for index in 0..args.sample_len {
         let ctxt: Vec<_> =
