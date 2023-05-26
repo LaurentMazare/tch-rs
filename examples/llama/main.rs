@@ -186,6 +186,7 @@ impl CausalSelfAttention {
 
     fn forward(&self, x: &Tensor, freqs_cis: &Tensor) -> Tensor {
         let (b, t, c) = x.size3().unwrap();
+        let kind = x.kind();
         let qkv = self.c_attn.forward(x);
         let n_embd = self.n_embd;
         let q = qkv.slice(2, 0, n_embd, 1);
@@ -199,9 +200,9 @@ impl CausalSelfAttention {
         let k = self.apply_rotary_emb(&k, freqs_cis);
         let k_shape = k.size();
         let att: Tensor = q.matmul(&k.transpose(-2, -1)) / (*k_shape.last().unwrap() as f64).sqrt();
-        let mask = Tensor::ones([t, t], (Kind::Float, self.device)).tril(0).reshape([1, 1, t, t]);
+        let mask = Tensor::ones([t, t], (kind, self.device)).tril(0).reshape([1, 1, t, t]);
         let att = att.masked_fill(&mask.eq(0.), f64::NEG_INFINITY);
-        let y = att.softmax(-1, Kind::Float).matmul(&v);
+        let y = att.softmax(-1, kind).matmul(&v);
         let y = y.transpose(1, 2).reshape([b, t, c]);
         self.c_proj.forward(&y)
     }
@@ -298,7 +299,10 @@ fn llama(vs: nn::Path, args: Args) -> impl Module {
 enum CompKind {
     Float,
     Half,
+    #[clap(name = "bfloat16")]
     BFloat16,
+    #[clap(name = "qint8")]
+    QInt8,
 }
 
 impl CompKind {
@@ -307,6 +311,7 @@ impl CompKind {
             Self::Float => Kind::Float,
             Self::Half => Kind::Half,
             Self::BFloat16 => Kind::BFloat16,
+            Self::QInt8 => Kind::QInt8,
         }
     }
 }
@@ -318,7 +323,7 @@ struct Args {
     #[arg(long)]
     cpu: bool,
 
-    /// Use this type of float for computations, float/half/bfloat16
+    /// Use this type of float for computations, float/half/bfloat16/...
     #[arg(long, value_enum, default_value = "float")]
     kind: CompKind,
 
@@ -371,7 +376,7 @@ fn main() -> Result<()> {
     println!("loaded weights in {:?}", start_load.elapsed());
 
     vs.set_kind(args.kind.to_kind());
-    println!("switched back to float");
+    println!("switched to {:?}", args.kind);
 
     for index in 0..args.sample_len {
         let ctxt: Vec<_> =
