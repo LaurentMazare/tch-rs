@@ -462,9 +462,10 @@ impl Tensor {
     }
 
     /// Creates a tensor from data that is assumed to be initialized.
-    /// Resize operations are now allowed on this tensor without copying the data first.
+    /// Resize operations are not allowed on this tensor without copying the data first.
+    /// An empty strides slice will result in using the default strides.
     /// # Safety
-    ///   This will panic if `data` points to invalid data.
+    ///   Behavior is undefined if `data` points to invalid data.
     pub unsafe fn f_from_blob(
         data: *const u8,
         size: &[i64],
@@ -487,9 +488,10 @@ impl Tensor {
     }
 
     /// Creates a tensor from data that is assumed to be initialized.
-    /// Resize operations are now allowed on this tensor without copying the data first.
+    /// Resize operations are not allowed on this tensor without copying the data first.
+    /// An empty strides slice will result in using the default strides.
     /// # Safety
-    ///   This will panic if `data` points to invalid data.
+    ///   Behavior is undefined if `data` points to invalid data.
     pub unsafe fn from_blob(
         data: *const u8,
         size: &[i64],
