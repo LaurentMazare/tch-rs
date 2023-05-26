@@ -367,9 +367,12 @@ fn main() -> Result<()> {
 
         let mut variables = vs.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
-            let src_tensor_view = safetensors.tensor(name)?;
-            // TODO: Avoid this intermediate copy.
-            let src_tensor: Tensor = src_tensor_view.try_into()?;
+            let view = safetensors.tensor(name)?;
+            let size: Vec<i64> = view.shape().iter().map(|&x| x as i64).collect();
+            let kind: Kind = view.dtype().try_into()?;
+            // Using from_blob here instead of from_data_size avoids some unnecessary copy.
+            let src_tensor =
+                unsafe { Tensor::from_blob(view.data().as_ptr(), &size, &[], kind, Device::Cpu) };
             var.f_copy_(&src_tensor)?;
         }
     }
