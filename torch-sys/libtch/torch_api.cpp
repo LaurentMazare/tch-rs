@@ -4,11 +4,12 @@
 #include<torch/csrc/jit/passes/fixup_trace_scope_blocks.h>
 #include<torch/csrc/jit/passes/normalize_ops.h>
 #include<torch/csrc/jit/mobile/import_data.h>
-#include <torch/csrc/jit/runtime/graph_executor.h>
+#include<torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
 #include<torch/script.h>
-#include <torch/csrc/jit/passes/tensorexpr_fuser.h>
+#include<torch/csrc/jit/passes/tensorexpr_fuser.h>
+#include<torch/csrc/jit/codegen/cuda/interface.h>
 #include<stdexcept>
 #include<vector>
 #include "torch_api.h"
@@ -1260,6 +1261,19 @@ void atm_set_profiling_mode(int b) {
   PROTECT(
     torch::jit::getProfilingMode() = (bool)b;
   )
+}
+
+void atm_fuser_cuda_set_enabled(bool b) {
+  PROTECT(
+    torch::jit::fuser::cuda::setEnabled(b);
+  )
+}
+
+bool atm_fuser_cuda_is_enabled() {
+  PROTECT(
+    return torch::jit::fuser::cuda::isEnabled();
+  )
+  return false;
 }
 
 module atm_create_for_tracing(

@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- Expose the cuda fuser enabled flag,
+  [728](https://github.com/LaurentMazare/tch-rs/pull/728).
 - Improved the safetensor error wrapping,
   [720](https://github.com/LaurentMazare/tch-rs/pull/720).
 

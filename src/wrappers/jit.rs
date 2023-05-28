@@ -734,6 +734,24 @@ pub fn set_profiling_mode(b: bool) {
     f_set_profiling_mode(b).unwrap()
 }
 
+pub fn f_fuser_cuda_set_enabled(enabled: bool) -> Result<(), TchError> {
+    unsafe_torch_err!(atm_fuser_cuda_set_enabled(enabled));
+    Ok(())
+}
+
+pub fn fuser_cuda_set_enabled(enabled: bool) {
+    f_fuser_cuda_set_enabled(enabled).unwrap()
+}
+
+pub fn f_fuser_cuda_is_enabled() -> Result<bool, TchError> {
+    let b = unsafe_torch_err!(atm_fuser_cuda_is_enabled());
+    Ok(b)
+}
+
+pub fn fuser_cuda_is_enabled() -> bool {
+    f_fuser_cuda_is_enabled().unwrap()
+}
+
 pub fn f_set_tensor_expr_fuser_enabled(b: bool) -> Result<(), TchError> {
     unsafe_torch_err!(atm_set_tensor_expr_fuser_enabled(b as c_int));
     Ok(())
