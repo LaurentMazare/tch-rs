@@ -224,6 +224,8 @@ void atm_to(module m, int device, int dtype, bool non_blocking);
 void atm_save(module m, char*);
 int atm_get_profiling_mode();
 void atm_set_profiling_mode(int);
+void atm_fuser_cuda_set_enabled(bool);
+bool atm_fuser_cuda_is_enabled();
 void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor));
 
 // This function has to be followed by a call to atm_end_tracing.
