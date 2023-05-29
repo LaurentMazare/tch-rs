@@ -38,7 +38,11 @@ memmap2 = { version = "0.6.1", optional = true }
 anyhow = "1"
 
 [workspace]
-members = ["torch-sys", "examples/python-extension"]
+members = [
+  "torch-sys",
+  "pyo3-tch",
+  "examples/python-extension",
+]
 
 [features]
 download-libtorch = ["torch-sys/download-libtorch"]

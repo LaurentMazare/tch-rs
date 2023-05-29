@@ -1,0 +1,17 @@
+[package]
+name = "pyo3-tch"
+version = "0.13.0"
+authors = ["Laurent Mazare <lmazare@gmail.com>"]
+edition = "2021"
+build = "build.rs"
+
+description = "Manipulate PyTorch tensors from a Python extension via PyO3/tch."
+repository = "https://github.com/LaurentMazare/tch-rs"
+keywords = ["pytorch", "deep-learning", "machine-learning"]
+categories = ["science"]
+license = "MIT/Apache-2.0"
+
+[dependencies]
+tch = { path = "..", features = ["python-extension"], version = "0.13.0" }
+torch-sys = { path = "../torch-sys", features = ["python-extension"], version = "0.13.0" }
+pyo3 = { version = "0.18.3", features = ["extension-module"] }
