@@ -131,7 +131,9 @@ pub struct TextDataIter {
 impl TextData {
     /// Creates a text dataset from a file.
     pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData, TchError> {
-        let mut buffer = std::fs::read(filename)?;
+        let mut buffer = std::fs::read(&filename).map_err(|err| {
+            std::io::Error::new(err.kind(), format!("{:?} {err}", filename.as_ref()))
+        })?;
 
         let mut label_for_char = HashMap::<u8, u8>::new();
         let mut char_for_label = Vec::<char>::new();
