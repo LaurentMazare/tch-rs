@@ -227,7 +227,7 @@ impl Tensor {
     /// [N1, ..., Nk, labels]. The returned tensor uses float values.
     /// Elements of the input vector are expected to be between 0 and labels-1.
     pub fn onehot(&self, labels: i64) -> Tensor {
-        Tensor::zeros([self.size(), vec![labels]].concat(), crate::wrappers::kind::FLOAT_CPU)
+        Tensor::zeros([self.size(), vec![labels]].concat(), (self.kind(), self.device()))
             .scatter_value_(-1, &self.unsqueeze(-1).to_kind(Kind::Int64), 1.0)
     }
 
