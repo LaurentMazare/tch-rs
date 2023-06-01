@@ -13,6 +13,17 @@ pub enum Device {
     Vulkan,
 }
 
+/// Mps related helper function
+
+pub enum Mps {}
+impl Mps {
+    /// Returns true if MPS device is available
+    pub fn is_available() -> bool {
+        tch::utils::has_mps()
+    }
+}
+
+
 /// Cuda related helper functions.
 pub enum Cuda {}
 impl Cuda {
@@ -111,10 +122,27 @@ impl Device {
         }
     }
 
+    /// Returns a MPS device if available, else default to CPU.
+    pub fn mps_if_available() -> Device {
+        if Mps::is_available() {
+            Device::Mps
+        } else {
+            Device::Cpu
+        }
+    }
+    /// Returns true if the device is Cuda
     pub fn is_cuda(self) -> bool {
         match self {
             Device::Cuda(_) => true,
             Device::Cpu | Device::Mps | Device::Vulkan => false,
         }
+
+    /// Returns true if the device is MPS
+    pub fn is_mps(self) -> bool {
+        match self {
+            Device::Mps(_) => true,
+            Device::Cpu | Device::Cuda(_) | Device::Vulkan => false,
+        }
+
     }
 }
