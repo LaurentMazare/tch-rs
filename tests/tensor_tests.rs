@@ -138,6 +138,7 @@ fn onehot() {
         vec_f64_from(&onehot),
         vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     );
+    assert_eq!(onehot.device(), xs.device());
     assert_eq!(onehot.size(), vec![4, 4])
 }
 
