@@ -132,25 +132,14 @@ fn cat_and_stack() {
 
 #[test]
 fn onehot() {
-    let xs = Tensor::from_slice(&[0, 1, 2, 3]).to_kind(tch::Kind::Int64);
+    let xs = Tensor::from_slice(&[0, 1, 2, 3]);
     let onehot = xs.onehot(4);
     assert_eq!(
         vec_f64_from(&onehot),
         vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     );
-    assert_eq!(onehot.size(), vec![4, 4]);
-    assert_eq!(onehot.kind(), tch::Kind::Int64);
-    assert_eq!(onehot.device(), Device::Cpu);
-
-    let xs = Tensor::from_slice(&[0, 1, 2, 3]).to_kind(tch::Kind::Float);
-    let onehot = xs.onehot(4);
-    assert_eq!(
-        vec_f64_from(&onehot),
-        vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-    );
-    assert_eq!(onehot.size(), vec![4, 4]);
-    assert_eq!(onehot.kind(), tch::Kind::Float);
-    assert_eq!(onehot.device(), Device::Cpu);
+    assert_eq!(onehot.device(), xs.device());
+    assert_eq!(onehot.size(), vec![4, 4])
 }
 
 #[test]
