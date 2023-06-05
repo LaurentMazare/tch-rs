@@ -116,6 +116,7 @@ from_tensor!(f32);
 from_tensor!(f16);
 from_tensor!(i64);
 from_tensor!(i32);
+from_tensor!(i16);
 from_tensor!(i8);
 from_tensor!(u8);
 from_tensor!(bool);
