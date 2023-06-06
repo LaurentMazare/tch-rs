@@ -46,11 +46,12 @@ This version is then linked against.
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
 the content of the zip file.
-- For Linux users, add the following to your `.bashrc` or equivalent, where `/path/to/libtorch`
+- For Linux and Mac users, add the following to your `.bashrc` or equivalent, where `/path/to/libtorch`
 is the path to the directory that was created when unzipping the file.
 ```bash
 export LIBTORCH=/path/to/libtorch
-export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH # for Linux
+export DYLD_LIBRARY_PATH=${LIBTORCH}/lib:$DYLD_LIBRARY_PATH # for Mac
 ```
 The header files location can also be specified separately from the shared library via
 the following:
@@ -80,7 +81,7 @@ It is recommended to use the MSVC Rust toolchain (e.g. by installing `stable-x86
 
 ### Static Linking
 
-When setting environment variable `LIBTORCH_STATIC=1", `libtorch` is statically
+When setting environment variable `LIBTORCH_STATIC=1`, `libtorch` is statically
 linked rather than using the dynamic libraries. The pre-compiled artifacts don't
 seem to include `libtorch.a` by default so this would have to be compiled
 manually, e.g. via the following:
