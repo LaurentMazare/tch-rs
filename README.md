@@ -355,7 +355,7 @@ a Python extension.
 If you get an error about not finding some shared libraries when running the generated binaries
 (e.g. 
 ` error while loading shared libraries: libtorch_cpu.so: cannot open shared object file: No such file or directory`).
-You can try adding the following to your `bashrc` where `/path/to/libtorch` is the path to your
+You can try adding the following to your `.bashrc` where `/path/to/libtorch` is the path to your
 libtorch install.
 ```
 # For Linux
