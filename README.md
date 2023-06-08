@@ -46,11 +46,10 @@ This version is then linked against.
 - Get `libtorch` from the
 [PyTorch website download section](https://pytorch.org/get-started/locally/) and extract
 the content of the zip file.
-- For Linux users, add the following to your `.bashrc` or equivalent, where `/path/to/libtorch`
+- For Linux and macOS users, add the following to your `.bashrc` or equivalent, where `/path/to/libtorch`
 is the path to the directory that was created when unzipping the file.
 ```bash
 export LIBTORCH=/path/to/libtorch
-export LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
 ```
 The header files location can also be specified separately from the shared library via
 the following:
@@ -80,7 +79,7 @@ It is recommended to use the MSVC Rust toolchain (e.g. by installing `stable-x86
 
 ### Static Linking
 
-When setting environment variable `LIBTORCH_STATIC=1", `libtorch` is statically
+When setting environment variable `LIBTORCH_STATIC=1`, `libtorch` is statically
 linked rather than using the dynamic libraries. The pre-compiled artifacts don't
 seem to include `libtorch.a` by default so this would have to be compiled
 manually, e.g. via the following:
@@ -350,6 +349,20 @@ like `LIBTORCH` and `LD_LIBRARY_PATH`.
 It is possible to call Rust/tch code from Python via PyO3,
 [tch-ext](https://github.com/LaurentMazare/tch-ext) provides an example of such
 a Python extension.
+
+### Error loading shared libraries. 
+
+If you get an error about not finding some shared libraries when running the generated binaries
+(e.g. 
+` error while loading shared libraries: libtorch_cpu.so: cannot open shared object file: No such file or directory`).
+You can try adding the following to your `.bashrc` where `/path/to/libtorch` is the path to your
+libtorch install.
+```
+# For Linux
+export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
+# For macOS
+export DYLD_LIBRARY_PATH=/path/to/libtorch/lib:$DYLD_LIBRARY_PATH
+```
 
 ## License
 `tch-rs` is distributed under the terms of both the MIT license
