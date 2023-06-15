@@ -334,9 +334,11 @@ fn copy_overflow() {
 
 #[test]
 fn mkldnn() {
-    let t = Tensor::randn([5, 5, 5], (tch::Kind::Float, Device::Cpu));
-    assert!(!t.is_mkldnn());
-    assert!(t.to_mkldnn().is_mkldnn());
+    if tch::utils::has_mkldnn() {
+        let t = Tensor::randn([5, 5, 5], (tch::Kind::Float, Device::Cpu));
+        assert!(!t.is_mkldnn());
+        assert!(t.to_mkldnn().is_mkldnn());
+    }
 }
 
 #[test]
