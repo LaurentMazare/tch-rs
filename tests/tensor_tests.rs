@@ -487,3 +487,12 @@ fn convert_ndarray() {
     let array_3d: ndarray::ArrayD<i64> = t_3d.as_ref().try_into().unwrap();
     assert_eq!(array_3d.as_slice(), ndarray::array![[[0, 1], [2, 3]], [[4, 5], [6, 7]]].as_slice());
 }
+
+#[test]
+fn convert_dlpack() {
+    let t1: Tensor = Tensor::from_slice(&[0, 1, 2, 3]);
+    let dlpack = t1.to_dlpack();
+    let t2 = Tensor::from_dlpack(dlpack);
+    assert!(t1.allclose(&t2, 1e-5, 1e-5, false));
+    assert_eq!(t1.data_ptr(), t2.data_ptr());
+}

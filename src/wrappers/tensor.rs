@@ -6,6 +6,7 @@ use super::{
     kind::Kind,
 };
 use crate::TchError;
+use dlpark::ffi::DLManagedTensor;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::io::{Read, Seek, Write};
@@ -336,6 +337,24 @@ impl Tensor {
         T2: Borrow<Tensor>,
     {
         Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
+    }
+
+    pub fn f_to_dlpack(&self) -> Result<&DLManagedTensor, TchError> {
+        let ptr = unsafe_torch_err!(at_to_dlpack(self.c_tensor));
+        Ok(unsafe { &*ptr })
+    }
+
+    pub fn to_dlpack(&self) -> &DLManagedTensor {
+        self.f_to_dlpack().unwrap()
+    }
+
+    pub fn f_from_dlpack(src: &DLManagedTensor) -> Result<Self, TchError> {
+        let ptr = unsafe_torch_err!(at_from_dlpack(src as *const _ as *mut _));
+        Ok(unsafe { Self::from_ptr(ptr) })
+    }
+
+    pub fn from_dlpack(src: &DLManagedTensor) -> Self {
+        Self::f_from_dlpack(src).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
