@@ -1,4 +1,5 @@
 use anyhow::Result;
+use dlpark::ffi::DLManagedTensor;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
@@ -495,4 +496,16 @@ fn convert_dlpack() {
     let t2 = Tensor::from_dlpack(dlpack);
     assert!(t1.allclose(&t2, 1e-5, 1e-5, false));
     assert_eq!(t1.data_ptr(), t2.data_ptr());
+}
+
+#[test]
+fn from_vec_as_dlpack() {
+    let v: Vec<i64> = vec![0, 1, 2, 3, 4];
+    let v_ptr = v.as_ptr();
+    let dlpack: DLManagedTensor = dlpark::tensor::ManagerCtx::from(v).into();
+    let t1 = Tensor::from_dlpack(&dlpack);
+    let t2 = Tensor::arange(5, tch::kind::INT64_CPU);
+    assert!(t1.allclose(&t2, 1e-5, 1e-5, false));
+    // Check if zero copy
+    assert_eq!(t1.data_ptr(), v_ptr as *const std::ffi::c_void as *mut std::ffi::c_void);
 }
