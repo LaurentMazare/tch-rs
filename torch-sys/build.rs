@@ -229,7 +229,7 @@ impl SystemInfo {
             let lib = env_var_rerun("LIBTORCH_LIB")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| libtorch.clone());
-            let mut version_file = libtorch.clone();
+            let mut version_file = libtorch;
             version_file.push("build-version");
             if version_file.exists() {
                 if let Ok(version) = std::fs::read_to_string(&version_file) {
