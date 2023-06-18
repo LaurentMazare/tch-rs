@@ -154,7 +154,16 @@ fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
 }
 
 fn version_check(version: &str) -> Result<()> {
-    if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_err() && version.trim() != TORCH_VERSION {
+    if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_ok() {
+        return Ok(());
+    }
+    let version = version.trim();
+    // Typical version number is 2.0.0+cpu or 2.0.0+cu117
+    let version = match version.split_once('+') {
+        None => version,
+        Some((version, _)) => version,
+    };
+    if version != TORCH_VERSION {
         anyhow::bail!("this tch version expects PyTorch {TORCH_VERSION}, got {version}, this check can be bypassed by setting the LIBTORCH_BYPASS_VERSION_CHECK environment variable")
     }
     Ok(())
@@ -233,7 +242,6 @@ impl SystemInfo {
             version_file.push("build-version");
             if version_file.exists() {
                 if let Ok(version) = std::fs::read_to_string(&version_file) {
-                    // TODO: trim the potential +cpu suffix.
                     version_check(&version)?
                 }
             }
