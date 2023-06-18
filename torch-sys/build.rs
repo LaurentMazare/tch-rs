@@ -153,6 +153,13 @@ fn env_var_rerun(name: &str) -> Result<String, env::VarError> {
     env::var(name)
 }
 
+fn version_check(version: &str) -> Result<()> {
+    if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_err() && version.trim() != TORCH_VERSION {
+        anyhow::bail!("this tch version expects PyTorch {TORCH_VERSION}, got {version}, this check can be bypassed by setting the LIBTORCH_BYPASS_VERSION_CHECK environment variable")
+    }
+    Ok(())
+}
+
 impl SystemInfo {
     fn new() -> Result<Self> {
         let os = match env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS").as_str() {
@@ -196,13 +203,7 @@ impl SystemInfo {
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
-                    if env_var_rerun("LIBTORCH_BYPASS_VERSION_CHECK").is_err()
-                        && version != TORCH_VERSION
-                    {
-                        anyhow::bail!(
-                            "this tch version expects PyTorch {TORCH_VERSION}, got {version}"
-                        )
-                    }
+                    version_check(version)?
                 }
                 match line.strip_prefix("LIBTORCH_CXX11: ") {
                     Some("True") => cxx11_abi = Some("1".to_owned()),
@@ -228,6 +229,14 @@ impl SystemInfo {
             let lib = env_var_rerun("LIBTORCH_LIB")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| libtorch.clone());
+            let mut version_file = libtorch.clone();
+            version_file.push("build-version");
+            if version_file.exists() {
+                if let Ok(version) = std::fs::read_to_string(&version_file) {
+                    // TODO: trim the potential +cpu suffix.
+                    version_check(&version)?
+                }
+            }
             libtorch_include_dirs.push(includes.join("include"));
             libtorch_include_dirs.push(includes.join("include/torch/csrc/api/include"));
             libtorch_lib_dir = Some(lib.join("lib"));
