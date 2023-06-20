@@ -180,7 +180,7 @@ impl Init {
                 let _ = tensor.uniform_(lo, up);
             }
             Init::Kaiming { dist, fan, non_linearity } => {
-                let fan = fan.for_weight_dims(&tensor.size());
+                let fan = fan.for_weight_dims(tensor.size());
                 let gain = non_linearity.gain();
                 let std = gain / (fan as f64).sqrt();
                 match dist {
@@ -197,7 +197,7 @@ impl Init {
                 tensor.copy_(&(tensor.randn_like() * stdev + mean));
             }
             Init::Orthogonal { gain } => {
-                let q = f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device()).unwrap();
+                let q = f_init(Init::Orthogonal { gain }, tensor.size(), tensor.device()).unwrap();
                 crate::no_grad(|| tensor.view_as(&q).copy_(&q));
             }
         }
