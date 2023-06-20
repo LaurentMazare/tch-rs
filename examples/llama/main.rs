@@ -164,7 +164,7 @@ impl CausalSelfAttention {
     }
 
     fn apply_rotary_emb(&self, x: &Tensor, freqs_cis: &Tensor) -> Tensor {
-        let mut dims = x.size();
+        let mut dims = x.size().to_vec();
         let v = dims.pop().unwrap();
         dims.push(v / 2);
         dims.push(2);
@@ -177,7 +177,7 @@ impl CausalSelfAttention {
         let im = &re_x * &im_f + &im_x * &re_f;
         let rope = Tensor::cat(&[&re, &im], -1);
         // TODO: Add the flatten op.
-        let mut dims = rope.size();
+        let mut dims = rope.size().to_vec();
         let v1 = dims.pop().unwrap();
         let v2 = dims.pop().unwrap();
         dims.push(v1 * v2);
