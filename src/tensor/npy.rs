@@ -208,7 +208,7 @@ impl crate::Tensor {
         f.write_all(NPY_MAGIC_STRING)?;
         f.write_all(&[1u8, 0u8])?;
         let kind = self.f_kind()?;
-        let header = Header { descr: kind, fortran_order: false, shape: self.size() };
+        let header = Header { descr: kind, fortran_order: false, shape: self.size().to_vec() };
         let mut header = header.to_string()?;
         let pad = 16 - (NPY_MAGIC_STRING.len() + 5 + header.len()) % 16;
         for _ in 0..pad % 16 {
