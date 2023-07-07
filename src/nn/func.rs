@@ -3,7 +3,7 @@ use crate::Tensor;
 
 /// A layer defined by a simple closure.
 pub struct Func<'a> {
-    f: Box<dyn 'a + Fn(&Tensor) -> Tensor + Send>,
+    f: Box<dyn 'a + Fn(&Tensor) -> Tensor + Send + Sync>,
 }
 
 impl<'a> std::fmt::Debug for Func<'a> {
@@ -14,7 +14,7 @@ impl<'a> std::fmt::Debug for Func<'a> {
 
 pub fn func<'a, F>(f: F) -> Func<'a>
 where
-    F: 'a + Fn(&Tensor) -> Tensor + Send,
+    F: 'a + Fn(&Tensor) -> Tensor + Send + Sync,
 {
     Func { f: Box::new(f) }
 }
@@ -28,7 +28,7 @@ impl<'a> super::module::Module for Func<'a> {
 /// A layer defined by a closure with an additional training parameter.
 #[allow(clippy::type_complexity)]
 pub struct FuncT<'a> {
-    f: Box<dyn 'a + Fn(&Tensor, bool) -> Tensor + Send>,
+    f: Box<dyn 'a + Fn(&Tensor, bool) -> Tensor + Send + Sync>,
 }
 
 impl<'a> std::fmt::Debug for FuncT<'a> {
@@ -39,7 +39,7 @@ impl<'a> std::fmt::Debug for FuncT<'a> {
 
 pub fn func_t<'a, F>(f: F) -> FuncT<'a>
 where
-    F: 'a + Fn(&Tensor, bool) -> Tensor + Send,
+    F: 'a + Fn(&Tensor, bool) -> Tensor + Send + Sync,
 {
     FuncT { f: Box::new(f) }
 }

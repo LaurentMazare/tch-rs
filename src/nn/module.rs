@@ -2,7 +2,7 @@
 use crate::{data::Iter2, Device, Tensor};
 
 /// The simplest module trait, defining a forward function.
-pub trait Module: std::fmt::Debug + Send {
+pub trait Module: std::fmt::Debug + Send + Sync {
     fn forward(&self, xs: &Tensor) -> Tensor;
 }
 
@@ -10,7 +10,7 @@ pub trait Module: std::fmt::Debug + Send {
 ///
 /// The train parameter is commonly used to have different behavior between training
 /// and evaluation, e.g. when using dropout or batch-normalization.
-pub trait ModuleT: std::fmt::Debug + Send {
+pub trait ModuleT: std::fmt::Debug + Send + Sync {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor;
 
     fn batch_accuracy_for_logits(
