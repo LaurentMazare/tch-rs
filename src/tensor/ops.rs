@@ -3,6 +3,8 @@ use super::Tensor;
 use crate::Scalar;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use num_traits::One;
+
 fn id<T>(v: T) -> T {
     v
 }
@@ -49,22 +51,55 @@ macro_rules! impl_op {
             }
         }
     };
+    ($trait:ident, $func:ident, $op:ident, $($x:expr),*) => {
+        impl $trait<Tensor> for Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$op(&rhs, $($x),*)
+            }
+        }
+
+        impl $trait<&Tensor> for Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                self.$op(rhs, $($x),*)
+            }
+        }
+
+        impl<'a> $trait<&Tensor> for &'a Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                self.$op(rhs, $($x),*)
+            }
+        }
+
+        impl $trait<Tensor> for &Tensor {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$op(&rhs, $($x),*)
+            }
+        }
+    };
 }
 
 impl<S> Add<S> for &Tensor
 where
-    S: Into<Scalar>,
+    S: Into<Scalar> + One,
 {
     type Output = Tensor;
 
     fn add(self, rhs: S) -> Self::Output {
-        self.g_add_scalar(rhs)
+        self.g_add_scalar(rhs, S::one())
     }
 }
 
 impl<S> Add<S> for Tensor
 where
-    S: Into<Scalar>,
+    S: Into<Scalar> + One,
 {
     type Output = Tensor;
 
@@ -75,18 +110,18 @@ where
 
 impl<S> Sub<S> for &Tensor
 where
-    S: Into<Scalar>,
+    S: Into<Scalar> + One,
 {
     type Output = Tensor;
 
     fn sub(self, rhs: S) -> Self::Output {
-        self.g_sub_scalar(rhs)
+        self.g_sub_scalar(rhs, S::one())
     }
 }
 
 impl<S> Sub<S> for Tensor
 where
-    S: Into<Scalar>,
+    S: Into<Scalar> + One,
 {
     type Output = Tensor;
 
@@ -206,6 +241,71 @@ macro_rules! impl_op_basic {
             }
         }
     };
+    ($trait:ident, $func:ident, $op:ident, $rev:ident, $($x:expr),*) => {
+        impl $trait<Tensor> for i32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<Tensor> for i64 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<Tensor> for f32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<Tensor> for f64 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: Tensor) -> Self::Output {
+                self.$func(&rhs)
+            }
+        }
+
+        impl $trait<&Tensor> for i32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self as i64, $($x as i64),*))
+            }
+        }
+
+        impl $trait<&Tensor> for i64 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self, $($x as i64),*))
+            }
+        }
+
+        impl $trait<&Tensor> for f32 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self as f64, $($x as f64),*))
+            }
+        }
+
+        impl $trait<&Tensor> for f64 {
+            type Output = Tensor;
+
+            fn $func(self, rhs: &Tensor) -> Self::Output {
+                $rev(rhs.$op(self, $($x as f64),*))
+            }
+        }
+    };
 }
 
 macro_rules! impl_op_assign {
@@ -252,8 +352,8 @@ macro_rules! impl_op_assign_basic {
     };
 }
 
-impl_op!(Add, add, g_add);
-impl_op_basic!(Add, add, g_add_scalar, id);
+impl_op!(Add, add, g_add, 1);
+impl_op_basic!(Add, add, g_add_scalar, id, 1);
 impl_op_assign!(AddAssign, add_assign, g_add_);
 impl_op_assign_basic!(AddAssign, add_assign, g_add_scalar_);
 
@@ -267,8 +367,8 @@ impl_op_basic!(Div, div, g_div_scalar, inv);
 impl_op_assign!(DivAssign, div_assign, g_div_);
 impl_op_assign_basic!(DivAssign, div_assign, g_div_scalar_);
 
-impl_op!(Sub, sub, g_sub);
-impl_op_basic!(Sub, sub, g_sub_scalar, neg);
+impl_op!(Sub, sub, g_sub, 1);
+impl_op_basic!(Sub, sub, g_sub_scalar, neg, 1);
 impl_op_assign!(SubAssign, sub_assign, g_sub_);
 impl_op_assign_basic!(SubAssign, sub_assign, g_sub_scalar_);
 

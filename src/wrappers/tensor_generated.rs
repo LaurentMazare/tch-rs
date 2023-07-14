@@ -5883,8 +5883,8 @@ impl Tensor {
         self.f_adaptive_max_pool3d_out(out, indices, output_size).unwrap()
     }
 
-    pub fn g_add(&self, other: &Tensor) -> Tensor {
-        self.f_add(other).unwrap()
+    pub fn g_add<S: Into<Scalar>>(&self, other: &Tensor, alpha: S) -> Tensor {
+        self.f_add(other, alpha).unwrap()
     }
 
     pub fn g_add_(&mut self, other: &Tensor) -> Tensor {
@@ -5895,8 +5895,8 @@ impl Tensor {
         self.f_add_out(out, other).unwrap()
     }
 
-    pub fn g_add_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_add_scalar(other).unwrap()
+    pub fn g_add_scalar<S: Into<Scalar>>(&self, other: S, alpha: S) -> Tensor {
+        self.f_add_scalar(other, alpha).unwrap()
     }
 
     pub fn g_add_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {
@@ -5943,16 +5943,29 @@ impl Tensor {
         self.f_addcmul_out(out, tensor1, tensor2).unwrap()
     }
 
-    pub fn addmm(&self, mat1: &Tensor, mat2: &Tensor) -> Tensor {
-        self.f_addmm(mat1, mat2).unwrap()
+    pub fn addmm<S: Into<Scalar>>(
+        &self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        beta: S,
+        alpha: S,
+    ) -> Tensor {
+        self.f_addmm(mat1, mat2, beta, alpha).unwrap()
     }
 
     pub fn addmm_(&mut self, mat1: &Tensor, mat2: &Tensor) -> Tensor {
         self.f_addmm_(mat1, mat2).unwrap()
     }
 
-    pub fn addmm_dtype(&self, mat1: &Tensor, mat2: &Tensor, out_dtype: Kind) -> Tensor {
-        self.f_addmm_dtype(mat1, mat2, out_dtype).unwrap()
+    pub fn addmm_dtype<S: Into<Scalar>>(
+        &self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        out_dtype: Kind,
+        beta: S,
+        alpha: S,
+    ) -> Tensor {
+        self.f_addmm_dtype(mat1, mat2, out_dtype, beta, alpha).unwrap()
     }
 
     pub fn addmm_dtype_out(
@@ -18418,8 +18431,8 @@ impl Tensor {
         self.f_storage_offset().unwrap()
     }
 
-    pub fn g_sub(&self, other: &Tensor) -> Tensor {
-        self.f_sub(other).unwrap()
+    pub fn g_sub<S: Into<Scalar>>(&self, other: &Tensor, alpha: S) -> Tensor {
+        self.f_sub(other, alpha).unwrap()
     }
 
     pub fn g_sub_(&mut self, other: &Tensor) -> Tensor {
@@ -18430,8 +18443,8 @@ impl Tensor {
         self.f_sub_out(out, other).unwrap()
     }
 
-    pub fn g_sub_scalar<S: Into<Scalar>>(&self, other: S) -> Tensor {
-        self.f_sub_scalar(other).unwrap()
+    pub fn g_sub_scalar<S: Into<Scalar>>(&self, other: S, alpha: S) -> Tensor {
+        self.f_sub_scalar(other, alpha).unwrap()
     }
 
     pub fn g_sub_scalar_<S: Into<Scalar>>(&mut self, other: S) -> Tensor {

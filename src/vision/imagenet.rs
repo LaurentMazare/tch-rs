@@ -15,13 +15,14 @@ lazy_static! {
 pub fn normalize(tensor: &Tensor) -> Result<Tensor, TchError> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
-    (tensor.to_kind(Kind::Float) / 255.0).f_sub(&mean)?.f_div(&std)
+    (tensor.to_kind(Kind::Float) / 255.0).f_sub(&mean, 1.0)?.f_div(&std)
 }
 
 pub fn unnormalize(tensor: &Tensor) -> Result<Tensor, TchError> {
     let mean = IMAGENET_MEAN.lock().unwrap();
     let std = IMAGENET_STD.lock().unwrap();
-    let tensor = (tensor.f_mul(&std)?.f_add(&mean)? * 255.0).clamp(0., 255.0).to_kind(Kind::Uint8);
+    let tensor =
+        (tensor.f_mul(&std)?.f_add(&mean, 1.0)? * 255.0).clamp(0., 255.0).to_kind(Kind::Uint8);
     Ok(tensor)
 }
 

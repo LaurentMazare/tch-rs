@@ -4081,9 +4081,9 @@ void atg_adaptive_max_pool3d_out(tensor *out__, tensor out, tensor indices, tens
   )
 }
 
-void atg_add(tensor *out__, tensor self, tensor other) {
+void atg_add(tensor *out__, tensor self, tensor other, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::add(*self, *other);
+    auto outputs__ = torch::add(*self, *other, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4102,9 +4102,9 @@ void atg_add_out(tensor *out__, tensor out, tensor self, tensor other) {
   )
 }
 
-void atg_add_scalar(tensor *out__, tensor self, scalar other) {
+void atg_add_scalar(tensor *out__, tensor self, scalar other, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::add(*self, *other);
+    auto outputs__ = torch::add(*self, *other, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4186,9 +4186,9 @@ void atg_addcmul_out(tensor *out__, tensor out, tensor self, tensor tensor1, ten
   )
 }
 
-void atg_addmm(tensor *out__, tensor self, tensor mat1, tensor mat2) {
+void atg_addmm(tensor *out__, tensor self, tensor mat1, tensor mat2, scalar beta, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::addmm(*self, *mat1, *mat2);
+    auto outputs__ = torch::addmm(*self, *mat1, *mat2, *beta, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -4200,9 +4200,9 @@ void atg_addmm_(tensor *out__, tensor self, tensor mat1, tensor mat2) {
   )
 }
 
-void atg_addmm_dtype(tensor *out__, tensor self, tensor mat1, tensor mat2, int out_dtype) {
+void atg_addmm_dtype(tensor *out__, tensor self, tensor mat1, tensor mat2, int out_dtype, scalar beta, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::addmm(*self, *mat1, *mat2, at::ScalarType(out_dtype));
+    auto outputs__ = torch::addmm(*self, *mat1, *mat2, at::ScalarType(out_dtype), *beta, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -17524,9 +17524,9 @@ int64_t atg_storage_offset(tensor self) {
   return 0;
 }
 
-void atg_sub(tensor *out__, tensor self, tensor other) {
+void atg_sub(tensor *out__, tensor self, tensor other, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::sub(*self, *other);
+    auto outputs__ = torch::sub(*self, *other, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -17545,9 +17545,9 @@ void atg_sub_out(tensor *out__, tensor out, tensor self, tensor other) {
   )
 }
 
-void atg_sub_scalar(tensor *out__, tensor self, scalar other) {
+void atg_sub_scalar(tensor *out__, tensor self, scalar other, scalar alpha) {
   PROTECT(
-    auto outputs__ = torch::sub(*self, *other);
+    auto outputs__ = torch::sub(*self, *other, *alpha);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
