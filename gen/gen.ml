@@ -81,7 +81,16 @@ let prefixed_functions =
    these scalars arguments are not often overriden.
    Adding function name [foo] in [with_optional_scalar_args] results in having
    explicit scalar arguments even if a default is present. *)
-let with_optional_scalar_args = Set.of_list (module String) [ "arange"; "baddbmm"; "constant_pad_nd" ]
+let with_optional_scalar_args =
+  Set.of_list
+    (module String)
+    [ "arange"
+    ; "baddbmm"
+    ; "add"
+    ; "sub"
+    ; "addmm"
+    ; "constant_pad_nd"
+    ]
 
 let excluded_prefixes =
   [ "_thnn_"
