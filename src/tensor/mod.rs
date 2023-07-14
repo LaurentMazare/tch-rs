@@ -106,7 +106,7 @@ impl Tensor {
                 self.size()
             )));
         }
-        self.f_constant_pad_nd([left, right])
+        self.f_constant_pad_nd([left, right], 0)
     }
 
     pub fn zero_pad1d(&self, left: i64, right: i64) -> Tensor {
@@ -126,7 +126,7 @@ impl Tensor {
                 self.size()
             )));
         }
-        self.f_constant_pad_nd([left, right, top, bottom])
+        self.f_constant_pad_nd([left, right, top, bottom], 0)
     }
 
     pub fn zero_pad2d(&self, left: i64, right: i64, top: i64, bottom: i64) -> Tensor {
