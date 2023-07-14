@@ -5426,9 +5426,9 @@ void atg_conj_physical_out(tensor *out__, tensor out, tensor self) {
   )
 }
 
-void atg_constant_pad_nd(tensor *out__, tensor self, int64_t *pad_data, int pad_len) {
+void atg_constant_pad_nd(tensor *out__, tensor self, int64_t *pad_data, int pad_len, scalar value) {
   PROTECT(
-    auto outputs__ = torch::constant_pad_nd(*self, torch::IntArrayRef(pad_data, pad_len));
+    auto outputs__ = torch::constant_pad_nd(*self, torch::IntArrayRef(pad_data, pad_len), *value);
     out__[0] = new torch::Tensor(outputs__);
   )
 }

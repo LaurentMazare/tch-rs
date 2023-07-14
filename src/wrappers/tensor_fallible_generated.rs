@@ -11851,13 +11851,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_constant_pad_nd(&self, pad: impl IntList) -> Result<Tensor, TchError> {
+    pub fn f_constant_pad_nd<S: Into<Scalar>>(
+        &self,
+        pad: impl IntList,
+        value: S,
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_constant_pad_nd(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             pad.as_ptr(),
-            pad.len_i32()
+            pad.len_i32(),
+            value.into().c_scalar
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

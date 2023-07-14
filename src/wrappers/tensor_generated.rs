@@ -6497,8 +6497,8 @@ impl Tensor {
         self.f_conj_physical_out(out).unwrap()
     }
 
-    pub fn constant_pad_nd(&self, pad: impl IntList) -> Tensor {
-        self.f_constant_pad_nd(pad).unwrap()
+    pub fn constant_pad_nd<S: Into<Scalar>>(&self, pad: impl IntList, value: S) -> Tensor {
+        self.f_constant_pad_nd(pad, value).unwrap()
     }
 
     pub fn constant_pad_nd_out(&self, out: &Tensor, pad: impl IntList) -> Tensor {

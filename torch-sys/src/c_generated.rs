@@ -4857,6 +4857,7 @@ extern "C" {
         self_: *mut C_tensor,
         pad_data: *const i64,
         pad_len: c_int,
+        value_: *mut C_scalar,
     );
     pub fn atg_constant_pad_nd_out(
         out__: *mut *mut C_tensor,

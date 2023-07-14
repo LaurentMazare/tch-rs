@@ -748,7 +748,7 @@ void atg_conj(tensor *, tensor self);
 void atg_conj_physical(tensor *, tensor self);
 void atg_conj_physical_(tensor *, tensor self);
 void atg_conj_physical_out(tensor *, tensor out, tensor self);
-void atg_constant_pad_nd(tensor *, tensor self, int64_t *pad_data, int pad_len);
+void atg_constant_pad_nd(tensor *, tensor self, int64_t *pad_data, int pad_len, scalar value);
 void atg_constant_pad_nd_out(tensor *, tensor out, tensor self, int64_t *pad_data, int pad_len);
 void atg_contiguous(tensor *, tensor self);
 void atg_conv1d(tensor *, tensor input, tensor weight, tensor bias, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int64_t *dilation_data, int dilation_len, int64_t groups);
