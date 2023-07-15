@@ -182,7 +182,10 @@ impl VarStore {
         Ok(named_tensors?.into_iter().collect())
     }
 
-    fn copy_data_with_precision_casting(src: &Tensor, dst: &mut Tensor) -> Result<(), TchError> {
+    /// Copies the data from source tensor to destination
+    ///
+    /// Updates the precision of the destination to match the source
+    fn copy_data_with_precision_update(src: &Tensor, dst: &mut Tensor) -> Result<(), TchError> {
         dst.set_data(&dst.to_kind(src.kind()));
         dst.f_copy_(src)
     }
@@ -193,7 +196,7 @@ impl VarStore {
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| {
-                    Self::copy_data_with_precision_casting(src, var)
+                    Self::copy_data_with_precision_update(src, var)
                         .map_err(|e| e.path_context(name))
                 })?,
                 None => {
@@ -243,7 +246,7 @@ impl VarStore {
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| {
-                    Self::copy_data_with_precision_casting(src, var)
+                    Self::copy_data_with_precision_update(src, var)
                         .map_err(|e| e.path_context(name))
                 })?,
                 None => {
@@ -277,7 +280,7 @@ impl VarStore {
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
                 Some(src) => crate::no_grad(|| {
-                    Self::copy_data_with_precision_casting(src, var)
+                    Self::copy_data_with_precision_update(src, var)
                         .map_err(|e| e.path_context(name))
                 })?,
                 None => {
