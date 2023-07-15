@@ -187,7 +187,10 @@ impl VarStore {
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
+                Some(src) => crate::no_grad(|| {
+                    var.set_data(&var.to_kind(src.kind()));
+                    var.f_copy_(src).map_err(|e| e.path_context(name))
+                })?,
                 None => {
                     return Err(TchError::TensorNameNotFound(
                         name.to_string(),
