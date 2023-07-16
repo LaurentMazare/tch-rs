@@ -10278,6 +10278,13 @@ void atg_linalg_vecdot_out(tensor *out__, tensor out, tensor x, tensor y, int64_
   )
 }
 
+void atg_linalg_vector_norm(tensor *out__, tensor self, scalar ord, int64_t *dim_data, int dim_len, int keepdim, int dtype) {
+  PROTECT(
+    auto outputs__ = torch::linalg_vector_norm(*self, *ord, dim_data == nullptr ? c10::nullopt : c10::optional<torch::IntArrayRef>(torch::IntArrayRef(dim_data, dim_len)), (bool)keepdim, dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(dtype)));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_linear(tensor *out__, tensor input, tensor weight, tensor bias) {
   PROTECT(
     auto outputs__ = torch::linear(*input, *weight, (bias ? *bias : torch::Tensor()));

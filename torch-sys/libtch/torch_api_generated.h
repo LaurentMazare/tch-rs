@@ -1425,6 +1425,7 @@ void atg_linalg_tensorsolve_out(tensor *, tensor out, tensor self, tensor other,
 void atg_linalg_vander(tensor *, tensor x, int64_t n_v, uint8_t n_null);
 void atg_linalg_vecdot(tensor *, tensor x, tensor y, int64_t dim);
 void atg_linalg_vecdot_out(tensor *, tensor out, tensor x, tensor y, int64_t dim);
+void atg_linalg_vector_norm(tensor *, tensor self, scalar ord, int64_t *dim_data, int dim_len, int keepdim, int dtype);
 void atg_linear(tensor *, tensor input, tensor weight, tensor bias);
 void atg_linear_out(tensor *, tensor out, tensor input, tensor weight, tensor bias);
 void atg_linspace(tensor *, scalar start, scalar end, int64_t steps, int options_kind, int options_device);

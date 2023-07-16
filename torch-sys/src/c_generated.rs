@@ -8647,6 +8647,15 @@ extern "C" {
         y_: *mut C_tensor,
         dim_: i64,
     );
+    pub fn atg_linalg_vector_norm(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        ord_: *mut C_scalar,
+        dim_data: *const i64,
+        dim_len: c_int,
+        keepdim_: c_int,
+        dtype_: c_int,
+    );
     pub fn atg_linear(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,

@@ -10861,6 +10861,16 @@ impl Tensor {
         Tensor::f_linalg_vecdot_out(out, x, y, dim).unwrap()
     }
 
+    pub fn linalg_vector_norm<S: Into<Scalar>>(
+        &self,
+        ord: S,
+        dim: impl IntListOption,
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
+        self.f_linalg_vector_norm(ord, dim, keepdim, dtype).unwrap()
+    }
+
     pub fn linear<T: Borrow<Tensor>>(&self, weight: &Tensor, bias: Option<T>) -> Tensor {
         self.f_linear(weight, bias).unwrap()
     }
