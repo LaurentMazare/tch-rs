@@ -182,12 +182,23 @@ impl VarStore {
         Ok(named_tensors?.into_iter().collect())
     }
 
+    /// Copies the data from source tensor to destination
+    ///
+    /// Updates the precision of the destination to match the source
+    fn copy_data_with_precision_update(src: &Tensor, dst: &mut Tensor) -> Result<(), TchError> {
+        dst.set_data(&dst.to_kind(src.kind()));
+        dst.f_copy_(src)
+    }
+
     fn load_internal<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
         let named_tensors = self.named_tensors(&path)?;
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
+                Some(src) => crate::no_grad(|| {
+                    Self::copy_data_with_precision_update(src, var)
+                        .map_err(|e| e.path_context(name))
+                })?,
                 None => {
                     return Err(TchError::TensorNameNotFound(
                         name.to_string(),
@@ -234,7 +245,10 @@ impl VarStore {
         let mut variables = self.variables_.lock().unwrap();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
+                Some(src) => crate::no_grad(|| {
+                    Self::copy_data_with_precision_update(src, var)
+                        .map_err(|e| e.path_context(name))
+                })?,
                 None => {
                     return Err(TchError::TensorNameNotFound(
                         name.to_string(),
@@ -265,7 +279,10 @@ impl VarStore {
         let mut missing_variables = Vec::new();
         for (name, var) in variables.named_variables.iter_mut() {
             match named_tensors.get(name) {
-                Some(src) => crate::no_grad(|| var.f_copy_(src).map_err(|e| e.path_context(name)))?,
+                Some(src) => crate::no_grad(|| {
+                    Self::copy_data_with_precision_update(src, var)
+                        .map_err(|e| e.path_context(name))
+                })?,
                 None => {
                     missing_variables.push(name.to_owned());
                 }

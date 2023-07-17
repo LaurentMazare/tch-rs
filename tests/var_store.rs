@@ -37,9 +37,9 @@ fn save_and_load_var_store() {
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let vs1 = VarStore::new(Device::Cpu);
-    let mut vs2 = VarStore::new(Device::Cpu);
+    let mut vs1 = VarStore::new(Device::Cpu);
     let (mut u1, mut v1) = add(&vs1.root());
+    let mut vs2 = VarStore::new(Device::Cpu);
     let (u2, v2) = add(&vs2.root());
     tch::no_grad(|| {
         u1 += 42.0;
@@ -54,6 +54,18 @@ fn save_and_load_var_store() {
     assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
+    fs::remove_file(&filename).unwrap();
+
+    // Save and reload in half-precision
+    vs1.half();
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (u2, v2) = add(&vs2.root());
+    vs1.save(&filename).unwrap();
+    vs2.load(&filename).unwrap();
+    assert_eq!(u2.kind(), Kind::Half);
+    assert_eq!(v2.kind(), Kind::Half);
+    assert_eq!(f64_from(&u2.mean(Kind::Half)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Half)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -68,7 +80,7 @@ fn save_to_stream_and_load_var_store() {
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let vs1 = VarStore::new(Device::Cpu);
+    let mut vs1 = VarStore::new(Device::Cpu);
     let mut vs2 = VarStore::new(Device::Cpu);
     let (mut u1, mut v1) = add(&vs1.root());
     let (u2, v2) = add(&vs2.root());
@@ -85,6 +97,18 @@ fn save_to_stream_and_load_var_store() {
     assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
+    fs::remove_file(&filename).unwrap();
+
+    // Save and reload in half-precision
+    vs1.half();
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (u2, v2) = add(&vs2.root());
+    vs1.save_to_stream(std::fs::File::create(&filename).unwrap()).unwrap();
+    vs2.load(&filename).unwrap();
+    assert_eq!(u2.kind(), Kind::Half);
+    assert_eq!(v2.kind(), Kind::Half);
+    assert_eq!(f64_from(&u2.mean(Kind::Half)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Half)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -99,7 +123,7 @@ fn save_and_load_from_stream_var_store() {
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let vs1 = VarStore::new(Device::Cpu);
+    let mut vs1 = VarStore::new(Device::Cpu);
     let mut vs2 = VarStore::new(Device::Cpu);
     let (mut u1, mut v1) = add(&vs1.root());
     let (u2, v2) = add(&vs2.root());
@@ -116,6 +140,18 @@ fn save_and_load_from_stream_var_store() {
     assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
+    fs::remove_file(&filename).unwrap();
+
+    // Save and reload in half-precision
+    vs1.half();
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (u2, v2) = add(&vs2.root());
+    vs1.save(&filename).unwrap();
+    vs2.load_from_stream(std::fs::File::open(&filename).unwrap()).unwrap();
+    assert_eq!(u2.kind(), Kind::Half);
+    assert_eq!(v2.kind(), Kind::Half);
+    assert_eq!(f64_from(&u2.mean(Kind::Half)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Half)), 2.0);
     fs::remove_file(filename).unwrap();
 }
 
@@ -130,7 +166,7 @@ fn save_and_load_partial_var_store() {
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let vs1 = VarStore::new(Device::Cpu);
+    let mut vs1 = VarStore::new(Device::Cpu);
     let mut vs2 = VarStore::new(Device::Cpu);
     let (mut u1, mut v1) = add(&vs1.root());
     let (u2, v2) = add(&vs2.root());
@@ -147,6 +183,19 @@ fn save_and_load_partial_var_store() {
     assert_eq!(f64_from(&u1.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&v2.mean(Kind::Float)), 2.0);
+    assert!(missing_variables.is_empty());
+    fs::remove_file(&filename).unwrap();
+
+    // Save and reload in half-precision
+    vs1.half();
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (u2, v2) = add(&vs2.root());
+    vs1.save(&filename).unwrap();
+    let missing_variables = vs2.load_partial(&filename).unwrap();
+    assert_eq!(u2.kind(), Kind::Half);
+    assert_eq!(v2.kind(), Kind::Half);
+    assert_eq!(f64_from(&u2.mean(Kind::Half)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Half)), 2.0);
     assert!(missing_variables.is_empty());
     fs::remove_file(filename).unwrap();
 }
@@ -200,7 +249,7 @@ fn save_and_load_partial_var_store_incomplete_file() {
         let _w = vs.sub("a").sub("b").sub("ccc").ones("t123", &[3]);
         (u, v)
     };
-    let vs1 = VarStore::new(Device::Cpu);
+    let mut vs1 = VarStore::new(Device::Cpu);
     let mut vs2 = VarStore::new(Device::Cpu);
     let mut u1 = add(&vs1.root());
     let (u2, v2) = add_partial(&vs2.root());
@@ -216,7 +265,20 @@ fn save_and_load_partial_var_store_incomplete_file() {
     assert_eq!(f64_from(&u2.mean(Kind::Float)), 42.0);
     assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
     assert_eq!(missing_variables, vec!(String::from("a.b.t2")));
-    fs::remove_file(filename).unwrap();
+    fs::remove_file(&filename).unwrap();
+
+    // Save and reload in half-precision
+    vs1.half();
+    let mut vs2 = VarStore::new(Device::Cpu);
+    let (u2, v2) = add_partial(&vs2.root());
+    vs1.save(&filename).unwrap();
+    let missing_variables = vs2.load_partial(&filename).unwrap();
+    assert_eq!(u2.kind(), Kind::Half);
+    assert_eq!(v2.kind(), Kind::Float);
+    assert_eq!(f64_from(&u2.mean(Kind::Half)), 42.0);
+    assert_eq!(f64_from(&v2.mean(Kind::Float)), 1.0);
+    assert_eq!(missing_variables, vec!(String::from("a.b.t2")));
+    fs::remove_file(&filename).unwrap();
 }
 
 #[test]
