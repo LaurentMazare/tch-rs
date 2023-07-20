@@ -9,7 +9,7 @@ description = "Manipulate PyTorch tensors from a Python extension via PyO3/tch."
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
 categories = ["science"]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 tch = { path = "..", features = ["python-extension"], version = "0.13.0" }
