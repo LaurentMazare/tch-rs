@@ -216,7 +216,10 @@ impl Optimizer {
     pub fn clip_grad_value(&self, max: f64) {
         let v = self.variables.lock().unwrap();
         for var in v.trainable_variables.iter() {
-            let _t = var.tensor.grad().clamp_(-max, max);
+            let mut grad = var.tensor.grad();
+            if grad.defined() {
+                let _t = grad.clamp_(-max, max);
+            }
         }
     }
 
@@ -229,13 +232,19 @@ impl Optimizer {
             let v = self.variables.lock().unwrap();
             let mut norms = vec![];
             for var in v.trainable_variables.iter() {
-                norms.push(var.tensor.grad().norm());
+                let grad = var.tensor.grad();
+                if grad.defined() {
+                    norms.push(grad.norm());
+                }
             }
             let total_norm = f64::try_from(Tensor::stack(&norms, 0).norm()).unwrap();
             let clip_coef = max / (total_norm + 1e-6);
             if clip_coef < 1.0 {
                 for var in v.trainable_variables.iter() {
-                    let _t = var.tensor.grad().g_mul_scalar_(clip_coef);
+                    let mut grad = var.tensor.grad();
+                    if grad.defined() {
+                        let _t = grad.g_mul_scalar_(clip_coef);
+                    }
                 }
             }
         })
