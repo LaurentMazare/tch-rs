@@ -68,6 +68,21 @@ fn range_index() {
     let result = tensor.i(..=1);
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[0, 1, 2, 3, 4, 5]);
+
+    // Negative Cases
+    //
+    // Rust considers both `0..0` and `1..0` to be valid, empty ranges.
+    let tensor = Tensor::arange_start(0, 4 * 3, opt).view([4, 3]);
+    let result = tensor.i(0..0);
+    assert_eq!(result.size(), &[0, 3]);
+    assert_eq!(vec_i64_from(&result), &[] as &[i64]);
+
+    // Clippy doesn't like explicitly reversed ranges, so let's pretend the bounds were computed.
+    let (start, end) = (1, 0);
+    let tensor = Tensor::arange_start(0, 4 * 3, opt).view([4, 3]);
+    let result = tensor.i(start..end);
+    assert_eq!(result.size(), &[0, 3]);
+    assert_eq!(vec_i64_from(&result), &[] as &[i64]);
 }
 
 #[test]

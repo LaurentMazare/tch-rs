@@ -303,32 +303,28 @@ impl Tensor {
                     curr_tensor.select(curr_idx, *index),
                     curr_idx, // not advanced because select() squeezes dimension
                 ),
-                Narrow(Unbounded, Unbounded) => (curr_tensor, curr_idx + 1),
-                Narrow(Included(start), Unbounded) => {
-                    let dim_len = curr_tensor.size()[curr_idx as usize];
-                    (curr_tensor.narrow(curr_idx, *start, dim_len - *start), curr_idx + 1)
-                }
-                Narrow(Excluded(start), Unbounded) => {
-                    let dim_len = curr_tensor.size()[curr_idx as usize];
-                    (curr_tensor.narrow(curr_idx, *start + 1, dim_len - *start - 1), curr_idx + 1)
-                }
-                Narrow(Unbounded, Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, 0, *end + 1), curr_idx + 1)
-                }
-                Narrow(Unbounded, Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, 0, *end), curr_idx + 1)
-                }
-                Narrow(Included(start), Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start, *end - *start + 1), curr_idx + 1)
-                }
-                Narrow(Included(start), Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start, *end - *start), curr_idx + 1)
-                }
-                Narrow(Excluded(start), Included(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start), curr_idx + 1)
-                }
-                Narrow(Excluded(start), Excluded(end)) => {
-                    (curr_tensor.narrow(curr_idx, *start + 1, *end - *start - 1), curr_idx + 1)
+                Narrow(start, end) => {
+                    if let Some((start, length)) = match (start, end) {
+                        (Unbounded, Unbounded) => None,
+                        (Included(start), Unbounded) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            Some((*start, dim_len - *start))
+                        }
+                        (Excluded(start), Unbounded) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            Some((*start + 1, dim_len - *start - 1))
+                        }
+                        (Unbounded, Included(end)) => Some((0, *end + 1)),
+                        (Unbounded, Excluded(end)) => Some((0, *end)),
+                        (Included(start), Included(end)) => Some((*start, *end - *start + 1)),
+                        (Included(start), Excluded(end)) => Some((*start, *end - *start)),
+                        (Excluded(start), Included(end)) => Some((*start + 1, *end - *start)),
+                        (Excluded(start), Excluded(end)) => Some((*start + 1, *end - *start - 1)),
+                    } {
+                        (curr_tensor.narrow(curr_idx, start, length.max(0)), curr_idx + 1)
+                    } else {
+                        (curr_tensor, curr_idx + 1)
+                    }
                 }
                 IndexSelect(index_tensor) => {
                     let index_tensor = index_tensor.to_device(curr_tensor.device());
