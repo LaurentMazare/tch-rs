@@ -1,3 +1,4 @@
+use super::scalar::Scalar;
 use super::stream::ReadSeekAdapter;
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{
@@ -500,6 +501,23 @@ impl Tensor {
         device: Device,
     ) -> Tensor {
         Self::f_from_blob(data, size, strides, kind, device).unwrap()
+    }
+
+    /// Creates a wrapped scalar tensor.
+    /// Returned tensor's `is_wrapped_number_` flag is set to true.
+    pub fn f_wrapped_scalar_tensor<S: Into<Scalar>>(
+        s: S,
+        device: Device,
+    ) -> Result<Tensor, TchError> {
+        let c_tensor =
+            unsafe_torch_err!(at_wrapped_scalar_tensor(s.into().c_scalar, device.c_int()));
+        Ok(Tensor { c_tensor })
+    }
+
+    /// Creates a wrapped scalar tensor.
+    /// Returned tensor's `is_wrapped_number_` flag is set to true.
+    pub fn wrapped_scalar_tensor<S: Into<Scalar>>(s: S, device: Device) -> Tensor {
+        Self::f_wrapped_scalar_tensor(s, device).unwrap()
     }
 
     /// Converts some byte data to a tensor with some specified kind and shape.
