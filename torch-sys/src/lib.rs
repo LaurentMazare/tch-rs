@@ -94,6 +94,7 @@ extern "C" {
         kind: c_int,
         device: c_int,
     ) -> *mut C_tensor;
+    pub fn at_wrapped_scalar_tensor(s: *mut C_scalar, device: c_int) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;
     pub fn at_save(arg: *mut C_tensor, filename: *const c_char);
     pub fn at_save_to_stream(arg: *mut C_tensor, stream_ptr: *mut c_void);

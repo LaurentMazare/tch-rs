@@ -1,4 +1,5 @@
 #include "torch_api.h"
+#include <ATen/ScalarOps.h>
 #include <ATen/autocast_mode.h>
 #include <stdexcept>
 #include <torch/csrc/autograd/engine.h>
@@ -94,6 +95,13 @@ tensor at_tensor_of_data(void *vs, int64_t *dims, size_t ndims,
       void *tensor_data = tensor.data_ptr();
       memcpy(tensor_data, vs, tensor.numel() * element_size_in_bytes);
       return new torch::Tensor(tensor);)
+  return nullptr;
+}
+
+tensor at_wrapped_scalar_tensor(scalar s, int device) {
+  PROTECT(auto outputs__ =
+              at::native::wrapped_scalar_tensor(*s, device_of_int(device));
+          return new torch::Tensor(outputs__);)
   return nullptr;
 }
 
