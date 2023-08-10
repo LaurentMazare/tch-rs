@@ -304,22 +304,65 @@ impl Tensor {
                     curr_idx, // not advanced because select() squeezes dimension
                 ),
                 Narrow(start, end) => {
+
+                    let positive_index = |i: &i64, dim_len| {
+                        if *i < 0 { dim_len + *i } else { *i }
+                    };
+
                     if let Some((start, length)) = match (start, end) {
                         (Unbounded, Unbounded) => None,
                         (Included(start), Unbounded) => {
                             let dim_len = curr_tensor.size()[curr_idx as usize];
-                            Some((*start, dim_len - *start))
+                            let start = positive_index(start, dim_len);
+
+                            Some((start, dim_len - start))
                         }
                         (Excluded(start), Unbounded) => {
                             let dim_len = curr_tensor.size()[curr_idx as usize];
-                            Some((*start + 1, dim_len - *start - 1))
+                            let start = positive_index(start, dim_len);
+
+                            Some((start + 1, dim_len - start - 1))
                         }
-                        (Unbounded, Included(end)) => Some((0, *end + 1)),
-                        (Unbounded, Excluded(end)) => Some((0, *end)),
-                        (Included(start), Included(end)) => Some((*start, *end - *start + 1)),
-                        (Included(start), Excluded(end)) => Some((*start, *end - *start)),
-                        (Excluded(start), Included(end)) => Some((*start + 1, *end - *start)),
-                        (Excluded(start), Excluded(end)) => Some((*start + 1, *end - *start - 1)),
+                        (Unbounded, Included(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let end = positive_index(end, dim_len);
+
+                            Some((0, end + 1))
+                        },
+                        (Unbounded, Excluded(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let end = positive_index(end, dim_len);
+
+                            Some((0, end))
+                        },
+                        (Included(start), Included(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let start = positive_index(start, dim_len);
+                            let end   = positive_index(end, dim_len);
+
+                            Some((start, end - start + 1))
+                        },
+                        (Included(start), Excluded(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let start = positive_index(start, dim_len);
+                            let end   = positive_index(end, dim_len);
+
+                            Some((start, end - start))
+                        },
+                        (Excluded(start), Included(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let start = positive_index(start, dim_len);
+                            let end   = positive_index(end, dim_len);
+
+                            Some((start + 1, end - start))
+                        },
+                        (Excluded(start), Excluded(end)) => {
+                            let dim_len = curr_tensor.size()[curr_idx as usize];
+                            let start = positive_index(start, dim_len);
+                            let end   = positive_index(end, dim_len);
+
+                            Some((start + 1, end - start - 1))
+                        },
                     } {
                         (curr_tensor.narrow(curr_idx, start, length.max(0)), curr_idx + 1)
                     } else {
