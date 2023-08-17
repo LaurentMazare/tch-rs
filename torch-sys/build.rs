@@ -56,6 +56,7 @@ enum Os {
     Linux,
     Macos,
     Windows,
+    Ios,
 }
 
 #[allow(dead_code)]
@@ -187,13 +188,14 @@ impl SystemInfo {
             "linux" => Os::Linux,
             "windows" => Os::Windows,
             "macos" => Os::Macos,
+            "ios" => Os::Ios,
             os => anyhow::bail!("unsupported TARGET_OS '{os}'"),
         };
         // Locate the currently active Python binary, similar to:
         // https://github.com/PyO3/maturin/blob/243b8ec91d07113f97a6fe74d9b2dcb88086e0eb/src/target.rs#L547
         let python_interpreter = match os {
             Os::Windows => PathBuf::from("python.exe"),
-            Os::Linux | Os::Macos => {
+            Os::Linux | Os::Ios | Os::Macos => {
                 if env::var_os("VIRTUAL_ENV").is_some() {
                     PathBuf::from("python")
                 } else {
