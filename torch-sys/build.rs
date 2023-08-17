@@ -7,16 +7,16 @@
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
 use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
-use std::{env, fs, io};
 use std::env::var;
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
+use std::path::{Path, PathBuf};
+use std::{env, fs, io};
 
 #[cfg(feature = "mobile")]
-use base64::Engine;
-#[cfg(feature = "mobile")]
 use base64::engine::general_purpose;
+#[cfg(feature = "mobile")]
+use base64::Engine;
 
 const TORCH_VERSION: &str = "2.0.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
@@ -101,8 +101,6 @@ fn download_from_nexus<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyh
     dbg!("End download");
     Ok(())
 }
-
-
 
 #[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
@@ -251,11 +249,10 @@ impl SystemInfo {
                 None => anyhow::bail!("no cxx11 abi returned by python {output:?}"),
             }
         } else {
-            let libtorch =
-                match cfg!(feature = "mobile") {
-                    true => Self::prepare_pytmobile_dir(os)?,
-                    false => Self::prepare_libtorch_dir(os)?,
-                };
+            let libtorch = match cfg!(feature = "mobile") {
+                true => Self::prepare_pytmobile_dir(os)?,
+                false => Self::prepare_libtorch_dir(os)?,
+            };
             let includes = env_var_rerun("LIBTORCH_INCLUDE")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| libtorch.clone());
@@ -268,13 +265,12 @@ impl SystemInfo {
             env_var_rerun("LIBTORCH_CXX11_ABI").unwrap_or_else(|_| "1".to_owned())
         };
         let libtorch_lib_dir = libtorch_lib_dir.expect("no libtorch lib dir found");
-        let link_type =
-            match cfg!(feature = "mobile") {
-                true => LinkType::Static,
-                false => match env_var_rerun("LIBTORCH_STATIC").as_deref() {
-                    Err(_) | Ok("0") | Ok("false") | Ok("FALSE") => LinkType::Dynamic,
-                    Ok(_) => LinkType::Static,
-                }
+        let link_type = match cfg!(feature = "mobile") {
+            true => LinkType::Static,
+            false => match env_var_rerun("LIBTORCH_STATIC").as_deref() {
+                Err(_) | Ok("0") | Ok("false") | Ok("FALSE") => LinkType::Dynamic,
+                Ok(_) => LinkType::Static,
+            },
         };
         Ok(Self {
             os,
@@ -311,8 +307,10 @@ impl SystemInfo {
         dbg!("{}", Path::new(&downloaddir).exists());
         let version = "2.0.1";
         let downloadfile = format!("pytmobile-{}-{}-{}.zip", &version, &target_os, &target_arch);
-        let downloadurl =
-            format!("https://nexus.kenbun.de/repository/pytmobile-raw/{}/{}", &version, &downloadfile);
+        let downloadurl = format!(
+            "https://nexus.kenbun.de/repository/pytmobile-raw/{}/{}",
+            &version, &downloadfile
+        );
         let downloadpath = format!("{}/{}", out_dir, downloadfile);
 
         dbg!("downloadurl={}", &downloadurl);
@@ -368,6 +366,7 @@ impl SystemInfo {
             if !libtorch_dir.exists() {
                 fs::create_dir(&libtorch_dir).unwrap_or_default();
                 let libtorch_url = match os {
+                    Os::Ios => panic!("Can not download pytorch for ios - does not exists"),
                 Os::Linux => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
@@ -438,7 +437,7 @@ impl SystemInfo {
         }
 
         match self.os {
-            Os::Linux | Os::Macos => {
+            Os::Linux | Os::Ios | Os::Macos =>  {
                 // Pass the libtorch lib dir to crates that use torch-sys. This will be available
                 // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
@@ -474,7 +473,8 @@ impl SystemInfo {
             LinkType::Dynamic => println!("cargo:rustc-link-lib={lib_name}"),
             LinkType::Static => {
                 // TODO: whole-archive might only be necessary for libtorch_cpu?
-                let lib_name_stripped = lib_name.strip_suffix(".a").unwrap().strip_prefix("lib").unwrap();
+                let lib_name_stripped =
+                    lib_name.strip_suffix(".a").unwrap().strip_prefix("lib").unwrap();
                 dbg!("Linking with {}", lib_name_stripped.to_string());
                 println!("cargo:rustc-link-lib=static:+whole-archive,-bundle={lib_name_stripped}")
             }
@@ -484,7 +484,6 @@ impl SystemInfo {
 
 fn main() -> anyhow::Result<()> {
     if !cfg!(feature = "doc-only") {
-
         if cfg!(feature = "mobile") {
             let system_info = SystemInfo::new()?;
             let si_lib = &system_info.libtorch_lib_dir;
@@ -494,12 +493,12 @@ fn main() -> anyhow::Result<()> {
             println!("cargo:rustc-link-lib=static=tch");
 
             let files = fs::read_dir(si_lib).unwrap();
-            files.filter_map(Result::ok)
+            files
+                .filter_map(Result::ok)
                 .filter(|d| d.path().extension() == Some(OsStr::from_bytes(b"a")))
                 .for_each(|f| system_info.link(f.file_name().to_str().unwrap()));
 
             //dbg!("files={}", files);
-
         } else {
             let system_info = SystemInfo::new()?;
             // use_cuda is a hacky way to detect whether cuda is available and
