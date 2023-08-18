@@ -18,7 +18,7 @@ if [ -f "libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip" ]; the
 else
   wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip
 fi
-#unzip -o libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip
+unzip -o libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip
 
 LIBTORCH=$(pwd)/libtorch/
 LD_LIBRARY_PATH=$(pwd)/libtorch/lib/
