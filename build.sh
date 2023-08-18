@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -eu
 
 #-e     When this option is on, if a simple command fails for any of the reasons listed in Consequences of
 #       Shell  Errors or returns an exit status value >0, and is not part of the compound list following a
