@@ -444,7 +444,24 @@ impl SystemInfo {
         }
 
         match self.os {
-            Os::Linux | Os::Ios | Os::Macos => {
+            Os::Ios => {
+                // Pass the libtorch lib dir to crates that use torch-sys. This will be available
+                // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
+                // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
+                println!("cargo:libtorch_lib={}", self.libtorch_lib_dir.display());
+                cc::Build::new()
+                    .cpp(true)
+                    .pic(true)
+                    .warnings(false)
+                    .includes(&self.libtorch_include_dirs)
+                    .flag("-mios-version-min=10.0")
+                    .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
+                    .flag("-std=c++14")
+                    .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
+                    .files(&c_files)
+                    .compile("tch");
+            }
+            Os::Linux | Os::Macos => {
                 // Pass the libtorch lib dir to crates that use torch-sys. This will be available
                 // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
