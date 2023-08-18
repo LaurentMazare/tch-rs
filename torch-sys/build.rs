@@ -7,7 +7,7 @@
 // like 9.0, 90, or cu90 to specify the version of CUDA to use for libtorch.
 
 use anyhow::{Context, Result};
-use std::env::var;
+
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -15,6 +15,8 @@ use std::{env, fs, io};
 
 #[cfg(feature = "mobile")]
 use base64::engine::general_purpose;
+#[cfg(feature = "mobile")]
+use std::env::var;
 #[cfg(feature = "mobile")]
 use base64::Engine;
 
@@ -101,6 +103,7 @@ fn download_from_nexus<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyh
     dbg!("End download");
     Ok(())
 }
+
 
 #[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
@@ -289,8 +292,14 @@ impl SystemInfo {
         }
     }
 
+    #[cfg(not(feature = "mobile"))]
+    fn prepare_pytmobile_dir(_os: Os) -> Result<PathBuf> {
+        anyhow::bail!("Can not prepare pytmobile-dir without mobile feature");
+
+    }
+
     #[cfg(feature = "mobile")]
-    fn prepare_pytmobile_dir(os: Os) -> Result<PathBuf> {
+    fn prepare_pytmobile_dir(_os: Os) -> Result<PathBuf> {
         let out_dir = var("OUT_DIR").unwrap();
         let target_os = var("CARGO_CFG_TARGET_OS").unwrap();
         let target_arch = var("CARGO_CFG_TARGET_ARCH").unwrap();
