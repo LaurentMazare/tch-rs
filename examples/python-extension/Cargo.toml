@@ -1,9 +1,10 @@
 [package]
 name = "tch-ext"
-version = "0.1.0"
+version = "2.0.1-1"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
+publish = ["kenbun"]
 
 description = "Sample Python extension using tch to interact with PyTorch."
 repository = "https://github.com/LaurentMazare/tch-rs"

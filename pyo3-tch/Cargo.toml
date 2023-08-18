@@ -4,6 +4,7 @@ version = "2.0.1-1"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
+publish = ["kenbun"]
 
 description = "Manipulate PyTorch tensors from a Python extension via PyO3/tch."
 repository = "https://github.com/LaurentMazare/tch-rs"

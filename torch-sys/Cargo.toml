@@ -5,6 +5,7 @@ authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
 links = "tch"
+publish = ["kenbun"]
 
 description = "Low-level FFI bindings for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"
