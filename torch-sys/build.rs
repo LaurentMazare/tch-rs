@@ -16,9 +16,9 @@ use std::{env, fs, io};
 #[cfg(feature = "mobile")]
 use base64::engine::general_purpose;
 #[cfg(feature = "mobile")]
-use std::env::var;
-#[cfg(feature = "mobile")]
 use base64::Engine;
+#[cfg(feature = "mobile")]
+use std::env::var;
 
 const TORCH_VERSION: &str = "2.0.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
@@ -103,7 +103,6 @@ fn download_from_nexus<P: AsRef<Path>>(source_url: &str, target_file: P) -> anyh
     dbg!("End download");
     Ok(())
 }
-
 
 #[cfg(not(feature = "ureq"))]
 fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Result<()> {
@@ -295,7 +294,6 @@ impl SystemInfo {
     #[cfg(not(feature = "mobile"))]
     fn prepare_pytmobile_dir(_os: Os) -> Result<PathBuf> {
         anyhow::bail!("Can not prepare pytmobile-dir without mobile feature");
-
     }
 
     #[cfg(feature = "mobile")]
@@ -446,7 +444,7 @@ impl SystemInfo {
         }
 
         match self.os {
-            Os::Linux | Os::Ios | Os::Macos =>  {
+            Os::Linux | Os::Ios | Os::Macos => {
                 // Pass the libtorch lib dir to crates that use torch-sys. This will be available
                 // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
