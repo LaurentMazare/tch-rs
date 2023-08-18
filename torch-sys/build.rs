@@ -156,9 +156,9 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
         if !file.name().ends_with('/') {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
-                i.to_string(),
+                i,
                 outpath.as_path().display(),
-                file.size().to_string()
+                file.size()
             );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
@@ -334,7 +334,7 @@ impl SystemInfo {
             std::process::exit(1);
         }
         let installdir = format!("{}/install", downloaddir);
-        return Ok(PathBuf::from(installdir));
+        Ok(PathBuf::from(installdir));
     }
 
     fn prepare_libtorch_dir(os: Os) -> Result<PathBuf> {
