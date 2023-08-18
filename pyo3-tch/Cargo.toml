@@ -9,10 +9,10 @@ publish = ["kenbun"]
 description = "Manipulate PyTorch tensors from a Python extension via PyO3/tch."
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
-categories = ["science"]
+#categories = ["science"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
 tch = { path = "..", features = ["python-extension"], version = "2.0.1-1" }
-torch-sys = { path = "../torch-sys", features = ["python-extension"], version = "2.0.1-1" }
+torch-sys = { path = "../torch-sys", features = ["python-extension"], version = "2.0.1-1", registry = "kenbun"  }
 pyo3 = { version = "0.18.3", features = ["extension-module"] }

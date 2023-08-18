@@ -8,7 +8,7 @@ build = "build.rs"
 description = "Rust wrappers for the PyTorch C++ api (libtorch)."
 repository = "https://github.com/LaurentMazare/tch-rs"
 keywords = ["pytorch", "deep-learning", "machine-learning"]
-categories = ["science"]
+#categories = ["science"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
 
@@ -22,7 +22,7 @@ libc = "0.2.0"
 ndarray = "0.15"
 rand = "0.8"
 thiserror = "1"
-torch-sys = { version = "2.0.1-1", path = "torch-sys" }
+torch-sys = { version = "2.0.1-1", path = "torch-sys" , registry = "kenbun"}
 zip = "0.6"
 half = "2"
 safetensors = "0.3.0"
