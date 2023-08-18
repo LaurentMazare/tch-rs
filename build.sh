@@ -11,6 +11,18 @@ set -eux
 #-x     The  shell shall write to standard error a trace for each command after it expands the command and
 #       before it executes it. It is unspecified whether the command that turns tracing off is traced.
 
+LIBTORCH_VERSION=2.0.1
+
+if [ -f "libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip" ]; then
+    echo "Skipping libtorch download."
+else
+  wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip
+fi
+unzip -o libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip
+
+LIBTORCH=$(pwd)/libtorch/
+LD_LIBRARY_PATH=$(pwd)/libtorch/lib/
+
 
 cargo fmt --all -- --check \
 && cargo clippy --all --all-features -- -D warnings \
