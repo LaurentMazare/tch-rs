@@ -334,7 +334,7 @@ impl SystemInfo {
             std::process::exit(1);
         }
         let installdir = format!("{}/install", downloaddir);
-        Ok(PathBuf::from(installdir));
+        Ok(PathBuf::from(installdir))
     }
 
     fn prepare_libtorch_dir(os: Os) -> Result<PathBuf> {
