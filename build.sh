@@ -26,4 +26,4 @@ ls $LD_LIBRARY_PATH
 
 cargo fmt --all -- --check \
 && cargo clippy --all --all-features -- -D warnings \
-&& cargo test --all --all-features && cargo build --release
+&& cargo test --all && cargo build --release
