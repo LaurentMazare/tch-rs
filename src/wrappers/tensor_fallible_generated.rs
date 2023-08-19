@@ -16705,12 +16705,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_full_like<S: Into<Scalar>>(&self, fill_value: S) -> Result<Tensor, TchError> {
+    pub fn f_full_like<S: Into<Scalar>>(
+        &self,
+        fill_value: S,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_full_like(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            fill_value.into().c_scalar
+            fill_value.into().c_scalar,
+            options.0.c_int(),
+            options.1.c_int()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

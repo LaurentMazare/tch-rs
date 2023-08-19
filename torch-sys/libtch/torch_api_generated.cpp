@@ -7808,9 +7808,9 @@ void atg_full(tensor *out__, int64_t *size_data, int size_len, scalar fill_value
   )
 }
 
-void atg_full_like(tensor *out__, tensor self, scalar fill_value) {
+void atg_full_like(tensor *out__, tensor self, scalar fill_value, int options_kind, int options_device) {
   PROTECT(
-    auto outputs__ = torch::full_like(*self, *fill_value);
+    auto outputs__ = torch::full_like(*self, *fill_value, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)));
     out__[0] = new torch::Tensor(outputs__);
   )
 }

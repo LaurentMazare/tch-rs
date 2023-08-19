@@ -6910,6 +6910,8 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         fill_value_: *mut C_scalar,
+        options_kind: c_int,
+        options_device: c_int,
     );
     pub fn atg_full_like_out(
         out__: *mut *mut C_tensor,

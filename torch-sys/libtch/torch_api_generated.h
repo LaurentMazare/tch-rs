@@ -1081,7 +1081,7 @@ void atg_frobenius_norm_out(tensor *, tensor out, tensor self, int64_t *dim_data
 void atg_from_file(tensor *, char* filename_ptr, int filename_len, int shared, int64_t size_v, uint8_t size_null, int options_kind, int options_device);
 void atg_from_file_out(tensor *, tensor out, char* filename_ptr, int filename_len, int shared, int64_t size_v, uint8_t size_null);
 void atg_full(tensor *, int64_t *size_data, int size_len, scalar fill_value, int options_kind, int options_device);
-void atg_full_like(tensor *, tensor self, scalar fill_value);
+void atg_full_like(tensor *, tensor self, scalar fill_value, int options_kind, int options_device);
 void atg_full_like_out(tensor *, tensor out, tensor self, scalar fill_value);
 void atg_full_out(tensor *, tensor out, int64_t *size_data, int size_len, scalar fill_value);
 void atg_fused_moving_avg_obs_fake_quant(tensor *, tensor self, tensor observer_on, tensor fake_quant_on, tensor running_min, tensor running_max, tensor scale, tensor zero_point, double averaging_const, int64_t quant_min, int64_t quant_max, int64_t ch_axis, int per_row_fake_quant, int symmetric_quant);
