@@ -283,6 +283,111 @@ fn from_slice() -> Result<()> {
 }
 
 #[test]
+fn from_one_dimensional_array() -> Result<()> {
+    assert_eq!(vec_i32_from(&Tensor::try_from([-1_i32, 0, 1])?), vec![-1, 0, 1]);
+    assert_eq!(vec_i64_from(&Tensor::try_from([-1_i64, 0, 1])?), vec![-1, 0, 1]);
+    assert_eq!(
+        vec_f16_from(&Tensor::try_from([
+            f16::from_f64(-1.0),
+            f16::from_f64(0.0),
+            f16::from_f64(1.0)
+        ])?),
+        vec![f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)]
+    );
+    assert_eq!(vec_f32_from(&Tensor::try_from([-1_f32, 0.0, 1.0])?), vec![-1.0, 0.0, 1.0]);
+    assert_eq!(vec_f64_from(&Tensor::try_from([-1_f64, 0.0, 1.0])?), vec![-1.0, 0.0, 1.0]);
+    assert_eq!(vec_bool_from(&Tensor::try_from([true, false])?), vec![true, false]);
+    Ok(())
+}
+
+#[test]
+fn from_two_dimensional_array() -> Result<()> {
+    use ::slice_of_array::prelude::*;
+
+    let array = [[-1_i32, 0, 1], [-2, 0, 2]];
+    assert_eq!(vec_i32_from(&Tensor::try_from(array)?), array.flat());
+
+    let array = [[-1_i64, 0, 1], [-2, 0, 2]];
+    assert_eq!(vec_i64_from(&Tensor::try_from(array)?), array.flat());
+
+    let array = [
+        [f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)],
+        [f16::from_f64(-2.0), f16::from_f64(0.0), f16::from_f64(2.0)],
+    ];
+    assert_eq!(vec_f16_from(&Tensor::try_from(array)?), array.flat());
+
+    let array = [[-1.0_f32, 0.0, 1.0], [-2.0, 0.0, 2.0]];
+    assert_eq!(vec_f32_from(&Tensor::try_from(array)?), array.flat());
+
+    let array = [[-1.0_f64, 0.0, 1.0], [-2.0, 0.0, 2.0]];
+    assert_eq!(vec_f64_from(&Tensor::try_from(array)?), array.flat());
+
+    Ok(())
+}
+
+#[test]
+fn from_three_dimensional_array() -> Result<()> {
+    use ::slice_of_array::prelude::*;
+
+    let array = [[[-1_i32, 0, 1], [-2, 0, 2]], [[-3, 0, 3], [-4, 0, 4]]];
+    assert_eq!(vec_i32_from(&Tensor::try_from(array)?), array.flat().flat());
+
+    let array = [[[-1_i64, 0, 1], [-2, 0, 2]], [[-3, 0, 3], [-4, 0, 4]]];
+    assert_eq!(vec_i64_from(&Tensor::try_from(array)?), array.flat().flat());
+
+    let array = [
+        [
+            [f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)],
+            [f16::from_f64(-2.0), f16::from_f64(0.0), f16::from_f64(2.0)],
+        ],
+        [
+            [f16::from_f64(-3.0), f16::from_f64(0.0), f16::from_f64(3.0)],
+            [f16::from_f64(-4.0), f16::from_f64(0.0), f16::from_f64(4.0)],
+        ],
+    ];
+    assert_eq!(vec_f16_from(&Tensor::try_from(array)?), array.flat().flat());
+
+    let array = [[[-1_f32, 0.0, 1.0], [-2.0, 0.0, 2.0]], [[-3.0, 0.0, 3.0], [-4.0, 0.0, 4.0]]];
+    assert_eq!(vec_f32_from(&Tensor::try_from(array)?), array.flat().flat());
+
+    let array = [[[-1_f64, 0.0, 1.0], [-2.0, 0.0, 2.0]], [[-3.0, 0.0, 3.0], [-4.0, 0.0, 4.0]]];
+    assert_eq!(vec_f64_from(&Tensor::try_from(array)?), array.flat().flat());
+
+    Ok(())
+}
+
+#[test]
+fn from_four_dimensional_array() -> Result<()> {
+    use ::slice_of_array::prelude::*;
+
+    let array = [[[[-1_i32, 0, 1], [-2, 0, 2]], [[-3, 0, 3], [-4, 0, 4]]]];
+    assert_eq!(vec_i32_from(&Tensor::try_from(array)?), array.flat().flat().flat());
+
+    let array = [[[[-1_i64, 0, 1], [-2, 0, 2]], [[-3, 0, 3], [-4, 0, 4]]]];
+    assert_eq!(vec_i64_from(&Tensor::try_from(array)?), array.flat().flat().flat());
+
+    let array = [[
+        [
+            [f16::from_f64(-1.0), f16::from_f64(0.0), f16::from_f64(1.0)],
+            [f16::from_f64(-2.0), f16::from_f64(0.0), f16::from_f64(2.0)],
+        ],
+        [
+            [f16::from_f64(-3.0), f16::from_f64(0.0), f16::from_f64(3.0)],
+            [f16::from_f64(-4.0), f16::from_f64(0.0), f16::from_f64(4.0)],
+        ],
+    ]];
+    assert_eq!(vec_f16_from(&Tensor::try_from(array)?), array.flat().flat().flat());
+
+    let array = [[[[-1_f32, 0.0, 1.0], [-2.0, 0.0, 2.0]], [[-3.0, 0.0, 3.0], [-4.0, 0.0, 4.0]]]];
+    assert_eq!(vec_f32_from(&Tensor::try_from(array)?), array.flat().flat().flat());
+
+    let array = [[[[-1_f64, 0.0, 1.0], [-2.0, 0.0, 2.0]], [[-3.0, 0.0, 3.0], [-4.0, 0.0, 4.0]]]];
+    assert_eq!(vec_f64_from(&Tensor::try_from(array)?), array.flat().flat().flat());
+
+    Ok(())
+}
+
+#[test]
 fn test_device() {
     let x = Tensor::from(1);
     assert_eq!(x.device(), Device::Cpu);
