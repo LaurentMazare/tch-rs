@@ -54,7 +54,6 @@ let no_tensor_options =
     (module String)
     [ "zeros_like"
     ; "empty_like"
-    ; "full_like"
     ; "ones_like"
     ; "rand_like"
     ; "randint_like"

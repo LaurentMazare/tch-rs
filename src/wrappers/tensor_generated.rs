@@ -8839,8 +8839,8 @@ impl Tensor {
         Tensor::f_full(size, fill_value, options).unwrap()
     }
 
-    pub fn full_like<S: Into<Scalar>>(&self, fill_value: S) -> Tensor {
-        self.f_full_like(fill_value).unwrap()
+    pub fn full_like<S: Into<Scalar>>(&self, fill_value: S, options: (Kind, Device)) -> Tensor {
+        self.f_full_like(fill_value, options).unwrap()
     }
 
     pub fn full_like_out<S: Into<Scalar>>(&self, out: &Tensor, fill_value: S) -> Tensor {
