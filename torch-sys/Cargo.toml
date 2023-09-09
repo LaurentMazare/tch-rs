@@ -13,6 +13,7 @@ categories = ["external-ffi-bindings", "science"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
+cfg-if = "1.0.0"
 libc = "0.2.0"
 
 [build-dependencies]
@@ -22,6 +23,7 @@ ureq = { version = "2.6", optional = true, features = ["json"] }
 serde_json = { version = "1.0", optional = true }
 serde = { version = "1.0", optional = true, features = ["derive"] }
 zip = "0.6"
+torch-build = { version = "0.1.0", path = "../torch-build" }
 
 [features]
 download-libtorch = ["ureq", "serde", "serde_json"]
