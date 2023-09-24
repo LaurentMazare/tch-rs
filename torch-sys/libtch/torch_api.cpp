@@ -1401,6 +1401,10 @@ ivalue ati_generic_dict(ivalue *is, int nvalues) {
       generic_dict dict(c10::StringType::get(), c10::TensorType::get());
       for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), is[2*i+1]->toTensor());
       return new torch::jit::IValue(dict);
+    } else if (all_keys_are_str) {
+      generic_dict dict(c10::StringType::get(), c10::AnyType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), *(is[2*i+1]));
+      return new torch::jit::IValue(dict);
     } else {
       generic_dict dict(c10::AnyType::get(), c10::AnyType::get());
       for (int i = 0; i < nvalues; ++i) dict.insert(*(is[2*i]), *(is[2*i+1]));
