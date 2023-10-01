@@ -389,7 +389,7 @@ impl SystemInfo {
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
-                    .flag("-std=c++14")
+                    .flag("-std=c++17")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .files(&c_files)
                     .compile("tch");

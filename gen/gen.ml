@@ -92,6 +92,7 @@ let excluded_prefixes =
   ; "_amp_foreach"
   ; "_nested_tensor"
   ; "_fused_adam"
+  ; "sym_"
   ]
 
 let excluded_suffixes = [ "_forward"; "_forward_out" ]

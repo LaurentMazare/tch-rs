@@ -17233,38 +17233,6 @@ impl Tensor {
         self.f_swapdims_(dim0, dim1).unwrap()
     }
 
-    pub fn sym_constrain_range<S: Into<Scalar>>(
-        size: S,
-        min: impl Into<Option<i64>>,
-        max: impl Into<Option<i64>>,
-    ) {
-        Tensor::f_sym_constrain_range(size, min, max).unwrap()
-    }
-
-    pub fn sym_constrain_range_for_size<S: Into<Scalar>>(
-        size: S,
-        min: impl Into<Option<i64>>,
-        max: impl Into<Option<i64>>,
-    ) {
-        Tensor::f_sym_constrain_range_for_size(size, min, max).unwrap()
-    }
-
-    pub fn sym_numel(&self) -> i64 {
-        self.f_sym_numel().unwrap()
-    }
-
-    pub fn sym_size(&self, dim: i64) -> i64 {
-        self.f_sym_size(dim).unwrap()
-    }
-
-    pub fn sym_storage_offset(&self) -> i64 {
-        self.f_sym_storage_offset().unwrap()
-    }
-
-    pub fn sym_stride(&self, dim: i64) -> i64 {
-        self.f_sym_stride(dim).unwrap()
-    }
-
     pub fn tr(&self) -> Tensor {
         self.f_tr().unwrap()
     }

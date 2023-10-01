@@ -14065,24 +14065,6 @@ extern "C" {
     pub fn atg_swapaxes_(out__: *mut *mut C_tensor, self_: *mut C_tensor, axis0_: i64, axis1_: i64);
     pub fn atg_swapdims(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim0_: i64, dim1_: i64);
     pub fn atg_swapdims_(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim0_: i64, dim1_: i64);
-    pub fn atg_sym_constrain_range(
-        size_: *mut C_scalar,
-        min_v: i64,
-        min_null: i8,
-        max_v: i64,
-        max_null: i8,
-    );
-    pub fn atg_sym_constrain_range_for_size(
-        size_: *mut C_scalar,
-        min_v: i64,
-        min_null: i8,
-        max_v: i64,
-        max_null: i8,
-    );
-    pub fn atg_sym_numel(self_: *mut C_tensor) -> i64;
-    pub fn atg_sym_size(self_: *mut C_tensor, dim_: i64) -> i64;
-    pub fn atg_sym_storage_offset(self_: *mut C_tensor) -> i64;
-    pub fn atg_sym_stride(self_: *mut C_tensor, dim_: i64) -> i64;
     pub fn atg_t(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_t_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_t_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);

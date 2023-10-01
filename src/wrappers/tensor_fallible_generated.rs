@@ -34195,64 +34195,6 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_sym_constrain_range<S: Into<Scalar>>(
-        size: S,
-        min: impl Into<Option<i64>>,
-        max: impl Into<Option<i64>>,
-    ) -> Result<(), TchError> {
-        let min = min.into();
-        let max = max.into();
-        unsafe_torch_err!(atg_sym_constrain_range(
-            size.into().c_scalar,
-            min.unwrap_or(0i64),
-            min.is_none() as i8,
-            max.unwrap_or(0i64),
-            max.is_none() as i8
-        ));
-        Ok(())
-    }
-
-    pub fn f_sym_constrain_range_for_size<S: Into<Scalar>>(
-        size: S,
-        min: impl Into<Option<i64>>,
-        max: impl Into<Option<i64>>,
-    ) -> Result<(), TchError> {
-        let min = min.into();
-        let max = max.into();
-        unsafe_torch_err!(atg_sym_constrain_range_for_size(
-            size.into().c_scalar,
-            min.unwrap_or(0i64),
-            min.is_none() as i8,
-            max.unwrap_or(0i64),
-            max.is_none() as i8
-        ));
-        Ok(())
-    }
-
-    pub fn f_sym_numel(&self) -> Result<i64, TchError> {
-        let return_;
-        unsafe_torch_err!(return_ = atg_sym_numel(self.c_tensor));
-        Ok(return_)
-    }
-
-    pub fn f_sym_size(&self, dim: i64) -> Result<i64, TchError> {
-        let return_;
-        unsafe_torch_err!(return_ = atg_sym_size(self.c_tensor, dim));
-        Ok(return_)
-    }
-
-    pub fn f_sym_storage_offset(&self) -> Result<i64, TchError> {
-        let return_;
-        unsafe_torch_err!(return_ = atg_sym_storage_offset(self.c_tensor));
-        Ok(return_)
-    }
-
-    pub fn f_sym_stride(&self, dim: i64) -> Result<i64, TchError> {
-        let return_;
-        unsafe_torch_err!(return_ = atg_sym_stride(self.c_tensor, dim));
-        Ok(return_)
-    }
-
     pub fn f_tr(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_t(c_tensors.as_mut_ptr(), self.c_tensor));

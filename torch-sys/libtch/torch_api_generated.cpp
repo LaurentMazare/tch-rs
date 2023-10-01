@@ -16907,46 +16907,6 @@ void atg_swapdims_(tensor *out__, tensor self, int64_t dim0, int64_t dim1) {
   )
 }
 
-void atg_sym_constrain_range(scalar size, int64_t min_v, uint8_t min_null, int64_t max_v, uint8_t max_null) {
-  PROTECT(
-    torch::sym_constrain_range(*size, min_null ? c10::nullopt : c10::optional<int64_t>(min_v), max_null ? c10::nullopt : c10::optional<int64_t>(max_v));
-  )
-}
-
-void atg_sym_constrain_range_for_size(scalar size, int64_t min_v, uint8_t min_null, int64_t max_v, uint8_t max_null) {
-  PROTECT(
-    torch::sym_constrain_range_for_size(*size, min_null ? c10::nullopt : c10::optional<int64_t>(min_v), max_null ? c10::nullopt : c10::optional<int64_t>(max_v));
-  )
-}
-
-int64_t atg_sym_numel(tensor self) {
-  PROTECT(
-    return torch::sym_numel(*self);
-  )
-  return 0;
-}
-
-int64_t atg_sym_size(tensor self, int64_t dim) {
-  PROTECT(
-    return torch::sym_size(*self, dim);
-  )
-  return 0;
-}
-
-int64_t atg_sym_storage_offset(tensor self) {
-  PROTECT(
-    return torch::sym_storage_offset(*self);
-  )
-  return 0;
-}
-
-int64_t atg_sym_stride(tensor self, int64_t dim) {
-  PROTECT(
-    return torch::sym_stride(*self, dim);
-  )
-  return 0;
-}
-
 void atg_t(tensor *out__, tensor self) {
   PROTECT(
     auto outputs__ = torch::t(*self);
