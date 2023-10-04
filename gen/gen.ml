@@ -92,6 +92,7 @@ let excluded_prefixes =
   ; "_amp_foreach"
   ; "_nested_tensor"
   ; "_fused_adam"
+  ; "sym_"
   ]
 
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
@@ -877,7 +878,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.0.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.1.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

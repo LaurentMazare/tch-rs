@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs, io};
 
-const TORCH_VERSION: &str = "2.0.0";
+const TORCH_VERSION: &str = "2.1.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
@@ -158,7 +158,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.0.0+cpu or 2.0.0+cu117
+    // Typical version number is 2.1.0+cpu or 2.1.0+cu117
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
@@ -389,7 +389,7 @@ impl SystemInfo {
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
-                    .flag("-std=c++14")
+                    .flag("-std=c++17")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .files(&c_files)
                     .compile("tch");
@@ -403,6 +403,7 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
+                    .flag("/std:c++17")
                     .files(&c_files)
                     .compile("tch");
             }
