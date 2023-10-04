@@ -403,7 +403,7 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
-                    .flag("-std=c++17")
+                    .flag("/std:c++17")
                     .files(&c_files)
                     .compile("tch");
             }
