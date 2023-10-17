@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+
+## v0.14.0
+### Changed
+- PyTorch v2.1 support
+  [803](https://github.com/LaurentMazare/tch-rs/pull/803).
 - Add a `pyo3-tch` crate for interacting with Python via PyO3
   [730](https://github.com/LaurentMazare/tch-rs/pull/730).
 - Expose the cuda fuser enabled flag,
