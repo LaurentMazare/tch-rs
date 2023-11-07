@@ -18224,9 +18224,14 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_hardtanh(&self) -> Result<Tensor, TchError> {
+    pub fn f_hardtanh<S: Into<Scalar>>(&self, min_val: S, max_val: S) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_hardtanh(c_tensors.as_mut_ptr(), self.c_tensor));
+        unsafe_torch_err!(atg_hardtanh(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            min_val.into().c_scalar,
+            max_val.into().c_scalar
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 

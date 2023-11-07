@@ -9472,8 +9472,8 @@ impl Tensor {
         self.f_hardswish_out(out).unwrap()
     }
 
-    pub fn hardtanh(&self) -> Tensor {
-        self.f_hardtanh().unwrap()
+    pub fn hardtanh<S: Into<Scalar>>(&self, min_val: S, max_val: S) -> Tensor {
+        self.f_hardtanh(min_val, max_val).unwrap()
     }
 
     pub fn hardtanh_(&mut self) -> Tensor {

@@ -7546,7 +7546,12 @@ extern "C" {
         self_: *mut C_tensor,
     );
     pub fn atg_hardswish_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
-    pub fn atg_hardtanh(out__: *mut *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_hardtanh(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        min_val_: *mut C_scalar,
+        max_val_: *mut C_scalar,
+    );
     pub fn atg_hardtanh_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_hardtanh_backward(
         out__: *mut *mut C_tensor,

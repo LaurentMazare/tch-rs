@@ -1198,7 +1198,7 @@ void atg_hardswish_(tensor *, tensor self);
 void atg_hardswish_backward(tensor *, tensor grad_output, tensor self);
 void atg_hardswish_backward_out(tensor *, tensor out, tensor grad_output, tensor self);
 void atg_hardswish_out(tensor *, tensor out, tensor self);
-void atg_hardtanh(tensor *, tensor self);
+void atg_hardtanh(tensor *, tensor self, scalar min_val, scalar max_val);
 void atg_hardtanh_(tensor *, tensor self);
 void atg_hardtanh_backward(tensor *, tensor grad_output, tensor self, scalar min_val, scalar max_val);
 void atg_hardtanh_backward_grad_input(tensor *, tensor grad_input, tensor grad_output, tensor self, scalar min_val, scalar max_val);
