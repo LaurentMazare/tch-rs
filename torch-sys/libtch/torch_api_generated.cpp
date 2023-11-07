@@ -8627,9 +8627,9 @@ void atg_hardswish_out(tensor *out__, tensor out, tensor self) {
   )
 }
 
-void atg_hardtanh(tensor *out__, tensor self) {
+void atg_hardtanh(tensor *out__, tensor self, scalar min_val, scalar max_val) {
   PROTECT(
-    auto outputs__ = torch::hardtanh(*self);
+    auto outputs__ = torch::hardtanh(*self, *min_val, *max_val);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
