@@ -8,6 +8,7 @@ use libc::{c_char, c_int, c_uchar, c_void, size_t};
 pub use traits::{DoubleList, IntList, IntListOption};
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct C_scalar {
     _private: [u8; 0],
 }
@@ -22,6 +23,7 @@ extern "C" {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct C_tensor {
     _private: [u8; 0],
 }
