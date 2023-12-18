@@ -14306,7 +14306,7 @@ void atg_scalar_tensor_out(tensor *out__, tensor out, scalar s) {
 
 void atg_scaled_dot_product_attention(tensor *out__, tensor query, tensor key, tensor value, tensor attn_mask, double dropout_p, int is_causal, double scale_v, uint8_t scale_null) {
   PROTECT(
-    auto outputs__ = torch::scaled_dot_product_attention(*query, *key, *value, (attn_mask ? *attn_mask : torch::Tensor()), dropout_p, (bool)is_causal, scale_null ? c10::nullopt : c10::optional<double>(scale_v));
+    auto outputs__ = torch::scaled_dot_product_attention(*query, *key, *value, (attn_mask ? c10::optional<torch::Tensor>(*attn_mask) : c10::nullopt), dropout_p, (bool)is_causal, scale_null ? c10::nullopt : c10::optional<double>(scale_v));
     out__[0] = new torch::Tensor(outputs__);
   )
 }
