@@ -151,6 +151,11 @@ impl VarStore {
     ///
     /// Weight values for all the tensors currently stored in the
     /// var-store are saved in the given file.
+    ///
+    /// If the given path ends with the suffix `.safetensors`, the file will
+    /// be saved in safetensors format. Otherwise, libtorch C++ module format
+    /// will be used. Note that saving in pickle format (`.pt` extension) is
+    /// not supported by the C++ API of Torch.
     pub fn save<T: AsRef<std::path::Path>>(&self, path: T) -> Result<(), TchError> {
         let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
@@ -216,6 +221,11 @@ impl VarStore {
     /// var-store are loaded from the given file. Note that the set of
     /// variables stored in the var-store is not changed, only the values
     /// for these tensors are modified.
+    ///
+    /// The format of the file is deduced from the file extension:
+    /// - `.safetensors`: The file is assumed to be in safetensors format.
+    /// - `.bin` or `.pt`: The file is assumed to be in pickle format.
+    /// - Otherwise, the file is assumed to be in libtorch C++ module format.
     pub fn load<T: AsRef<std::path::Path>>(&mut self, path: T) -> Result<(), TchError> {
         if self.device != Device::Mps {
             self.load_internal(path)
