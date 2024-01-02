@@ -131,120 +131,147 @@ impl_from_range!(RangeInclusive<i64>);
 impl_from_range!(RangeTo<i64>);
 impl_from_range!(RangeToInclusive<i64>);
 
+type IndexResult = Result<Tensor, TchError>;
+
 pub trait IndexOp<T> {
     fn i(&self, index: T) -> Tensor;
+    fn f_i(&self, index: T) -> IndexResult;
 }
 
 impl<A> IndexOp<A> for Tensor
-where
-    A: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
 {
     fn i(&self, index: A) -> Tensor {
         self.indexer(&[index.into()])
     }
+    fn f_i(&self, index: A) -> IndexResult {
+        self.f_indexer(&[index.into()])
+    }
 }
 
-impl<A> IndexOp<(A,)> for Tensor
-where
-    A: Into<TensorIndexer>,
+impl<A> IndexOp<(A, )> for Tensor
+    where
+        A: Into<TensorIndexer>,
 {
-    fn i(&self, index: (A,)) -> Tensor {
+    fn i(&self, index: (A, )) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, )) -> IndexResult {
         let idx_a = index.0.into();
-        self.indexer(&[idx_a])
+        self.f_indexer(&[idx_a])
     }
 }
 
 impl<A, B> IndexOp<(A, B)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
-        self.indexer(&[idx_a, idx_b])
+        self.f_indexer(&[idx_a, idx_b])
     }
 }
 
 impl<A, B, C> IndexOp<(A, B, C)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
-    C: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
+        C: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B, C)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
-        self.indexer(&[idx_a, idx_b, idx_c])
+        self.f_indexer(&[idx_a, idx_b, idx_c])
     }
 }
 
 impl<A, B, C, D> IndexOp<(A, B, C, D)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
-    C: Into<TensorIndexer>,
-    D: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
+        C: Into<TensorIndexer>,
+        D: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B, C, D)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
         let idx_d = index.3.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d])
     }
 }
 
 impl<A, B, C, D, E> IndexOp<(A, B, C, D, E)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
-    C: Into<TensorIndexer>,
-    D: Into<TensorIndexer>,
-    E: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
+        C: Into<TensorIndexer>,
+        D: Into<TensorIndexer>,
+        E: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B, C, D, E)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
         let idx_d = index.3.into();
         let idx_e = index.4.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e])
     }
 }
 
 impl<A, B, C, D, E, F> IndexOp<(A, B, C, D, E, F)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
-    C: Into<TensorIndexer>,
-    D: Into<TensorIndexer>,
-    E: Into<TensorIndexer>,
-    F: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
+        C: Into<TensorIndexer>,
+        D: Into<TensorIndexer>,
+        E: Into<TensorIndexer>,
+        F: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E, F)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B, C, D, E, F)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
         let idx_d = index.3.into();
         let idx_e = index.4.into();
         let idx_f = index.5.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f])
     }
 }
 
 impl<A, B, C, D, E, F, G> IndexOp<(A, B, C, D, E, F, G)> for Tensor
-where
-    A: Into<TensorIndexer>,
-    B: Into<TensorIndexer>,
-    C: Into<TensorIndexer>,
-    D: Into<TensorIndexer>,
-    E: Into<TensorIndexer>,
-    F: Into<TensorIndexer>,
-    G: Into<TensorIndexer>,
+    where
+        A: Into<TensorIndexer>,
+        B: Into<TensorIndexer>,
+        C: Into<TensorIndexer>,
+        D: Into<TensorIndexer>,
+        E: Into<TensorIndexer>,
+        F: Into<TensorIndexer>,
+        G: Into<TensorIndexer>,
 {
     fn i(&self, index: (A, B, C, D, E, F, G)) -> Tensor {
+        self.f_i(index).unwrap()
+    }
+    fn f_i(&self, index: (A, B, C, D, E, F, G)) -> IndexResult {
         let idx_a = index.0.into();
         let idx_b = index.1.into();
         let idx_c = index.2.into();
@@ -252,7 +279,7 @@ where
         let idx_e = index.4.into();
         let idx_f = index.5.into();
         let idx_g = index.6.into();
-        self.indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f, idx_g])
+        self.f_indexer(&[idx_a, idx_b, idx_c, idx_d, idx_e, idx_f, idx_g])
     }
 }
 
@@ -337,9 +364,5 @@ impl Tensor {
         }
 
         Ok(curr_tensor)
-    }
-
-    fn indexer(&self, index_spec: &[TensorIndexer]) -> Tensor {
-        self.f_indexer(index_spec).unwrap()
     }
 }
