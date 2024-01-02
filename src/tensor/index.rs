@@ -131,7 +131,7 @@ impl_from_range!(RangeInclusive<i64>);
 impl_from_range!(RangeTo<i64>);
 impl_from_range!(RangeToInclusive<i64>);
 
-type IndexResult = Result<Tensor, TchError>;
+pub type IndexResult = Result<Tensor, TchError>;
 
 pub trait IndexOp<T> {
     fn i(&self, index: T) -> Tensor;
@@ -143,7 +143,7 @@ impl<A> IndexOp<A> for Tensor
         A: Into<TensorIndexer>,
 {
     fn i(&self, index: A) -> Tensor {
-        self.indexer(&[index.into()])
+        self.f_i(index).unwrap()
     }
     fn f_i(&self, index: A) -> IndexResult {
         self.f_indexer(&[index.into()])
@@ -348,7 +348,7 @@ impl Tensor {
                         (Excluded(start), Included(end)) => Some((*start + 1, *end - *start)),
                         (Excluded(start), Excluded(end)) => Some((*start + 1, *end - *start - 1)),
                     } {
-                        (curr_tensor.narrow(curr_idx, start, length.max(0)), curr_idx + 1)
+                        (curr_tensor.f_narrow(curr_idx, start, length.max(0))?, curr_idx + 1)
                     } else {
                         (curr_tensor, curr_idx + 1)
                     }
