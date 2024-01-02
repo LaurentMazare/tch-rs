@@ -358,11 +358,9 @@ impl Tensor {
                     (curr_tensor.index_select(curr_idx, &index_tensor), curr_idx + 1)
                 }
             };
-
             curr_tensor = next_tensor;
             curr_idx = next_idx;
         }
-
         Ok(curr_tensor)
     }
 }
