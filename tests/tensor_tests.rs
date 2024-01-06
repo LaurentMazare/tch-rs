@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_fallible_conversions)]
 use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
