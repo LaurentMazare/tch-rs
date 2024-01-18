@@ -1054,6 +1054,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_convert_weight_to_int4pack(
+        &self,
+        innerktiles: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__convert_weight_to_int4pack(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            innerktiles
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_convolution<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -1264,6 +1277,8 @@ impl Tensor {
         compressed_a: &Tensor,
         dense_b: &Tensor,
         bias: Option<T>,
+        alpha: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
         transpose_result: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
@@ -1272,6 +1287,8 @@ impl Tensor {
             compressed_a.c_tensor,
             dense_b.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            alpha.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
             if transpose_result { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -1803,8 +1820,8 @@ impl Tensor {
         out: &Tensor,
         cu_seqlens_q: Option<T>,
         cu_seqlens_k: Option<T>,
-        max_seqlen_k: i64,
         max_seqlen_q: i64,
+        max_seqlen_k: i64,
         logsumexp: &Tensor,
         dropout_p: f64,
         philox_seed: &Tensor,
@@ -1827,8 +1844,8 @@ impl Tensor {
             out.c_tensor,
             cu_seqlens_q.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             cu_seqlens_k.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            max_seqlen_k,
             max_seqlen_q,
+            max_seqlen_k,
             logsumexp.c_tensor,
             dropout_p,
             philox_seed.c_tensor,
@@ -3939,6 +3956,26 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_mixed_dtypes_linear<T: Borrow<Tensor>>(
+        &self,
+        weight: &Tensor,
+        scale: &Tensor,
+        bias: Option<T>,
+        activation: &str,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__mixed_dtypes_linear(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            weight.c_tensor,
+            scale.c_tensor,
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            activation.as_ptr(),
+            activation.len() as i32
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_mkldnn_reshape(&self, shape: impl IntList) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__mkldnn_reshape(
@@ -5140,6 +5177,7 @@ impl Tensor {
         scale_a: Option<T>,
         scale_b: Option<T>,
         scale_result: Option<T>,
+        use_fast_accum: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg__scaled_mm(
@@ -5150,7 +5188,8 @@ impl Tensor {
             out_dtype.into().map_or(-1, |s| s.c_int()),
             scale_a.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             scale_b.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            if use_fast_accum { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -5165,6 +5204,7 @@ impl Tensor {
         scale_a: Option<T>,
         scale_b: Option<T>,
         scale_result: Option<T>,
+        use_fast_accum: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg__scaled_mm_out(
@@ -5177,7 +5217,8 @@ impl Tensor {
             out_dtype.into().map_or(-1, |s| s.c_int()),
             scale_a.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             scale_b.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+            scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            if use_fast_accum { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -8102,6 +8143,23 @@ impl Tensor {
         Ok(return_)
     }
 
+    pub fn f_internal_weight_int4pack_mm(
+        &self,
+        mat2: &Tensor,
+        qgroupsize: i64,
+        qscaleandzeros: &Tensor,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__weight_int4pack_mm(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            qgroupsize,
+            qscaleandzeros.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_weight_norm(v: &Tensor, g: &Tensor, dim: i64) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__weight_norm(c_tensors.as_mut_ptr(), v.c_tensor, g.c_tensor, dim));
@@ -8909,6 +8967,36 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_all_dims(&self, dim: impl IntListOption, keepdim: bool) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_all_dims(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_all_dims_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntListOption,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_all_dims_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_all_out(&self, out: &Tensor, dim: i64, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_all_out(
@@ -9091,6 +9179,36 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dim,
+            if keepdim { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_any_dims(&self, dim: impl IntListOption, keepdim: bool) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_any_dims(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_any_dims_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntListOption,
+        keepdim: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_any_dims_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
             if keepdim { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -16670,6 +16788,21 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_floor_divide_scalar_out<S: Into<Scalar>>(
+        &self,
+        out: &Tensor,
+        other: S,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_floor_divide_scalar_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            other.into().c_scalar
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_floor_out(&self, out: &Tensor) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_floor_out(c_tensors.as_mut_ptr(), out.c_tensor, self.c_tensor));
@@ -21547,6 +21680,111 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_linspace_scalar_tensor<S: Into<Scalar>>(
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_scalar_tensor(
+            c_tensors.as_mut_ptr(),
+            start.into().c_scalar,
+            end.c_tensor,
+            steps,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linspace_scalar_tensor_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: S,
+        end: &Tensor,
+        steps: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_scalar_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.into().c_scalar,
+            end.c_tensor,
+            steps
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linspace_tensor_scalar<S: Into<Scalar>>(
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_tensor_scalar(
+            c_tensors.as_mut_ptr(),
+            start.c_tensor,
+            end.into().c_scalar,
+            steps,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linspace_tensor_scalar_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: &Tensor,
+        end: S,
+        steps: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_tensor_scalar_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.c_tensor,
+            end.into().c_scalar,
+            steps
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linspace_tensor_tensor(
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_tensor_tensor(
+            c_tensors.as_mut_ptr(),
+            start.c_tensor,
+            end.c_tensor,
+            steps,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linspace_tensor_tensor_out(
+        out: &Tensor,
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linspace_tensor_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.c_tensor,
+            end.c_tensor,
+            steps
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_log(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_log(c_tensors.as_mut_ptr(), self.c_tensor));
@@ -21979,6 +22217,123 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_logspace_scalar_tensor<S: Into<Scalar>>(
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_scalar_tensor(
+            c_tensors.as_mut_ptr(),
+            start.into().c_scalar,
+            end.c_tensor,
+            steps,
+            base,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_logspace_scalar_tensor_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_scalar_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.into().c_scalar,
+            end.c_tensor,
+            steps,
+            base
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_logspace_tensor_scalar<S: Into<Scalar>>(
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_tensor_scalar(
+            c_tensors.as_mut_ptr(),
+            start.c_tensor,
+            end.into().c_scalar,
+            steps,
+            base,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_logspace_tensor_scalar_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        base: f64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_tensor_scalar_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.c_tensor,
+            end.into().c_scalar,
+            steps,
+            base
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_logspace_tensor_tensor(
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_tensor_tensor(
+            c_tensors.as_mut_ptr(),
+            start.c_tensor,
+            end.c_tensor,
+            steps,
+            base,
+            options.0.c_int(),
+            options.1.c_int()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_logspace_tensor_tensor_out(
+        out: &Tensor,
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_logspace_tensor_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            start.c_tensor,
+            end.c_tensor,
+            steps,
+            base
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_logsumexp(&self, dim: impl IntList, keepdim: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_logsumexp(
@@ -22401,6 +22756,22 @@ impl Tensor {
             self.c_tensor,
             mask.c_tensor,
             source.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_masked_scatter_backward(
+        grad_output: &Tensor,
+        mask: &Tensor,
+        sizes: impl IntList,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_masked_scatter_backward(
+            c_tensors.as_mut_ptr(),
+            grad_output.c_tensor,
+            mask.c_tensor,
+            sizes.as_ptr(),
+            sizes.len_i32()
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

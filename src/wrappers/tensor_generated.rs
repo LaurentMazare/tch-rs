@@ -506,6 +506,10 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_convert_weight_to_int4pack(&self, innerktiles: i64) -> Tensor {
+        self.f_internal_convert_weight_to_int4pack(innerktiles).unwrap()
+    }
+
     pub fn internal_convolution<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -638,9 +642,19 @@ impl Tensor {
         compressed_a: &Tensor,
         dense_b: &Tensor,
         bias: Option<T>,
+        alpha: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
         transpose_result: bool,
     ) -> Tensor {
-        Tensor::f_internal_cslt_sparse_mm(compressed_a, dense_b, bias, transpose_result).unwrap()
+        Tensor::f_internal_cslt_sparse_mm(
+            compressed_a,
+            dense_b,
+            bias,
+            alpha,
+            out_dtype,
+            transpose_result,
+        )
+        .unwrap()
     }
 
     pub fn internal_ctc_loss(
@@ -1065,8 +1079,8 @@ impl Tensor {
         out: &Tensor,
         cu_seqlens_q: Option<T>,
         cu_seqlens_k: Option<T>,
-        max_seqlen_k: i64,
         max_seqlen_q: i64,
+        max_seqlen_k: i64,
         logsumexp: &Tensor,
         dropout_p: f64,
         philox_seed: &Tensor,
@@ -1085,8 +1099,8 @@ impl Tensor {
             out,
             cu_seqlens_q,
             cu_seqlens_k,
-            max_seqlen_k,
             max_seqlen_q,
+            max_seqlen_k,
             logsumexp,
             dropout_p,
             philox_seed,
@@ -2367,6 +2381,16 @@ impl Tensor {
         self.f_internal_masked_softmax_out(out, mask, dim, mask_type).unwrap()
     }
 
+    pub fn internal_mixed_dtypes_linear<T: Borrow<Tensor>>(
+        &self,
+        weight: &Tensor,
+        scale: &Tensor,
+        bias: Option<T>,
+        activation: &str,
+    ) -> Tensor {
+        self.f_internal_mixed_dtypes_linear(weight, scale, bias, activation).unwrap()
+    }
+
     pub fn internal_mkldnn_reshape(&self, shape: impl IntList) -> Tensor {
         self.f_internal_mkldnn_reshape(shape).unwrap()
     }
@@ -3078,8 +3102,18 @@ impl Tensor {
         scale_a: Option<T>,
         scale_b: Option<T>,
         scale_result: Option<T>,
+        use_fast_accum: bool,
     ) -> (Tensor, Tensor) {
-        self.f_internal_scaled_mm(mat2, bias, out_dtype, scale_a, scale_b, scale_result).unwrap()
+        self.f_internal_scaled_mm(
+            mat2,
+            bias,
+            out_dtype,
+            scale_a,
+            scale_b,
+            scale_result,
+            use_fast_accum,
+        )
+        .unwrap()
     }
 
     pub fn internal_scaled_mm_out<T: Borrow<Tensor>>(
@@ -3092,6 +3126,7 @@ impl Tensor {
         scale_a: Option<T>,
         scale_b: Option<T>,
         scale_result: Option<T>,
+        use_fast_accum: bool,
     ) -> (Tensor, Tensor) {
         self.f_internal_scaled_mm_out(
             out,
@@ -3102,6 +3137,7 @@ impl Tensor {
             scale_a,
             scale_b,
             scale_result,
+            use_fast_accum,
         )
         .unwrap()
     }
@@ -4663,6 +4699,15 @@ impl Tensor {
         self.f_internal_version().unwrap()
     }
 
+    pub fn internal_weight_int4pack_mm(
+        &self,
+        mat2: &Tensor,
+        qgroupsize: i64,
+        qscaleandzeros: &Tensor,
+    ) -> Tensor {
+        self.f_internal_weight_int4pack_mm(mat2, qgroupsize, qscaleandzeros).unwrap()
+    }
+
     pub fn internal_weight_norm(v: &Tensor, g: &Tensor, dim: i64) -> Tensor {
         Tensor::f_internal_weight_norm(v, g, dim).unwrap()
     }
@@ -5025,6 +5070,14 @@ impl Tensor {
         self.f_all_dim(dim, keepdim).unwrap()
     }
 
+    pub fn all_dims(&self, dim: impl IntListOption, keepdim: bool) -> Tensor {
+        self.f_all_dims(dim, keepdim).unwrap()
+    }
+
+    pub fn all_dims_out(&self, out: &Tensor, dim: impl IntListOption, keepdim: bool) -> Tensor {
+        self.f_all_dims_out(out, dim, keepdim).unwrap()
+    }
+
     pub fn all_out(&self, out: &Tensor, dim: i64, keepdim: bool) -> Tensor {
         self.f_all_out(out, dim, keepdim).unwrap()
     }
@@ -5089,6 +5142,14 @@ impl Tensor {
 
     pub fn any_dim(&self, dim: i64, keepdim: bool) -> Tensor {
         self.f_any_dim(dim, keepdim).unwrap()
+    }
+
+    pub fn any_dims(&self, dim: impl IntListOption, keepdim: bool) -> Tensor {
+        self.f_any_dims(dim, keepdim).unwrap()
+    }
+
+    pub fn any_dims_out(&self, out: &Tensor, dim: impl IntListOption, keepdim: bool) -> Tensor {
+        self.f_any_dims_out(out, dim, keepdim).unwrap()
     }
 
     pub fn any_out(&self, out: &Tensor, dim: i64, keepdim: bool) -> Tensor {
@@ -8716,6 +8777,10 @@ impl Tensor {
         self.f_floor_divide_scalar_(other).unwrap()
     }
 
+    pub fn floor_divide_scalar_out<S: Into<Scalar>>(&self, out: &Tensor, other: S) -> Tensor {
+        self.f_floor_divide_scalar_out(out, other).unwrap()
+    }
+
     pub fn floor_out(&self, out: &Tensor) -> Tensor {
         self.f_floor_out(out).unwrap()
     }
@@ -10980,6 +11045,60 @@ impl Tensor {
         Tensor::f_linspace_out(out, start, end, steps).unwrap()
     }
 
+    pub fn linspace_scalar_tensor<S: Into<Scalar>>(
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_linspace_scalar_tensor(start, end, steps, options).unwrap()
+    }
+
+    pub fn linspace_scalar_tensor_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: S,
+        end: &Tensor,
+        steps: i64,
+    ) -> Tensor {
+        Tensor::f_linspace_scalar_tensor_out(out, start, end, steps).unwrap()
+    }
+
+    pub fn linspace_tensor_scalar<S: Into<Scalar>>(
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_linspace_tensor_scalar(start, end, steps, options).unwrap()
+    }
+
+    pub fn linspace_tensor_scalar_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: &Tensor,
+        end: S,
+        steps: i64,
+    ) -> Tensor {
+        Tensor::f_linspace_tensor_scalar_out(out, start, end, steps).unwrap()
+    }
+
+    pub fn linspace_tensor_tensor(
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_linspace_tensor_tensor(start, end, steps, options).unwrap()
+    }
+
+    pub fn linspace_tensor_tensor_out(
+        out: &Tensor,
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+    ) -> Tensor {
+        Tensor::f_linspace_tensor_tensor_out(out, start, end, steps).unwrap()
+    }
+
     pub fn log(&self) -> Tensor {
         self.f_log().unwrap()
     }
@@ -11195,6 +11314,66 @@ impl Tensor {
         Tensor::f_logspace_out(out, start, end, steps, base).unwrap()
     }
 
+    pub fn logspace_scalar_tensor<S: Into<Scalar>>(
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_logspace_scalar_tensor(start, end, steps, base, options).unwrap()
+    }
+
+    pub fn logspace_scalar_tensor_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: S,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+    ) -> Tensor {
+        Tensor::f_logspace_scalar_tensor_out(out, start, end, steps, base).unwrap()
+    }
+
+    pub fn logspace_tensor_scalar<S: Into<Scalar>>(
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_logspace_tensor_scalar(start, end, steps, base, options).unwrap()
+    }
+
+    pub fn logspace_tensor_scalar_out<S: Into<Scalar>>(
+        out: &Tensor,
+        start: &Tensor,
+        end: S,
+        steps: i64,
+        base: f64,
+    ) -> Tensor {
+        Tensor::f_logspace_tensor_scalar_out(out, start, end, steps, base).unwrap()
+    }
+
+    pub fn logspace_tensor_tensor(
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_logspace_tensor_tensor(start, end, steps, base, options).unwrap()
+    }
+
+    pub fn logspace_tensor_tensor_out(
+        out: &Tensor,
+        start: &Tensor,
+        end: &Tensor,
+        steps: i64,
+        base: f64,
+    ) -> Tensor {
+        Tensor::f_logspace_tensor_tensor_out(out, start, end, steps, base).unwrap()
+    }
+
     pub fn logsumexp(&self, dim: impl IntList, keepdim: bool) -> Tensor {
         self.f_logsumexp(dim, keepdim).unwrap()
     }
@@ -11394,6 +11573,14 @@ impl Tensor {
 
     pub fn masked_scatter_(&mut self, mask: &Tensor, source: &Tensor) -> Tensor {
         self.f_masked_scatter_(mask, source).unwrap()
+    }
+
+    pub fn masked_scatter_backward(
+        grad_output: &Tensor,
+        mask: &Tensor,
+        sizes: impl IntList,
+    ) -> Tensor {
+        Tensor::f_masked_scatter_backward(grad_output, mask, sizes).unwrap()
     }
 
     pub fn masked_scatter_out(&self, out: &Tensor, mask: &Tensor, source: &Tensor) -> Tensor {
