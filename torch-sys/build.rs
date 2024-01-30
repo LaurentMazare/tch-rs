@@ -312,11 +312,8 @@ impl SystemInfo {
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu102" => "%2Bcu102",
-                        "cu113" => "%2Bcu113",
-                        "cu116" => "%2Bcu116",
-                        "cu117" => "%2Bcu117",
                         "cu118" => "%2Bcu118",
+                        "cu121" => "%2Bcu121",
                         _ => anyhow::bail!("unsupported device {device}, TORCH_CUDA_VERSION may be set incorrectly?"),
                     }
                 ),
@@ -331,18 +328,15 @@ impl SystemInfo {
                             export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
                             ")
                     } else {
-                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
+                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-x86_64-{TORCH_VERSION}.zip")
                     }
                 },
                 Os::Windows => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu102" => "%2Bcu102",
-                        "cu113" => "%2Bcu113",
-                        "cu116" => "%2Bcu116",
-                        "cu117" => "%2Bcu117",
                         "cu118" => "%2Bcu118",
+                        "cu121" => "%2Bcu121",
                         _ => ""
                     }),
             };
