@@ -43,7 +43,6 @@ impl IntoPy<PyObject> for PyTensor {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -58,11 +57,15 @@ mod tests {
             let py_tensor = PyTensor(tensor);
             let py_obj = py_tensor.into_py(py).into_ref(py);
             assert_eq!(py_obj.get_type().name().unwrap(), "Tensor");
-            assert!(
-                py.eval("torch.is_tensor(tensor)",
-                        None,
-                        Some(&[("tensor", py_obj), ("torch", module)].into_py_dict(py))).unwrap()
-                    .extract::<bool>().unwrap());
+            assert!(py
+                .eval(
+                    "torch.is_tensor(tensor)",
+                    None,
+                    Some(&[("tensor", py_obj), ("torch", module)].into_py_dict(py))
+                )
+                .unwrap()
+                .extract::<bool>()
+                .unwrap());
         });
     }
 
@@ -71,9 +74,13 @@ mod tests {
         pyo3::prepare_freethreaded_python();
         Python::with_gil(|py| {
             let module = py.import("torch").unwrap();
-            let py_obj = py.eval("torch.tensor([3, 1, 4, 1, 5])",
-                                 None,
-                                 Some(&[("torch", module)].into_py_dict(py))).unwrap();
+            let py_obj = py
+                .eval(
+                    "torch.tensor([3, 1, 4, 1, 5])",
+                    None,
+                    Some(&[("torch", module)].into_py_dict(py)),
+                )
+                .unwrap();
             let py_tensor = PyTensor::extract(py_obj).unwrap();
             let tensor = py_tensor.0;
             assert_eq!(tensor, tch::Tensor::from_slice(&[3, 1, 4, 1, 5]));
