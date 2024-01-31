@@ -61,7 +61,7 @@ mod tests {
                 .eval(
                     "torch.is_tensor(tensor)",
                     None,
-                    Some(&[("tensor", py_obj), ("torch", module)].into_py_dict(py))
+                    Some([("tensor", py_obj), ("torch", module)].into_py_dict(py))
                 )
                 .unwrap()
                 .extract::<bool>()
@@ -78,7 +78,7 @@ mod tests {
                 .eval(
                     "torch.tensor([3, 1, 4, 1, 5])",
                     None,
-                    Some(&[("torch", module)].into_py_dict(py)),
+                    Some([("torch", module)].into_py_dict(py)),
                 )
                 .unwrap();
             let py_tensor = PyTensor::extract(py_obj).unwrap();
