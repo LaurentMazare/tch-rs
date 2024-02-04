@@ -12,6 +12,9 @@ use std::{env, fs, io};
 
 const TORCH_VERSION: &str = "2.2.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
+import sys
+print('SYS.EXE', sys.executable)
+print('SYS.PATH', sys.path)
 import torch
 from torch.utils import cpp_extension
 print('LIBTORCH_VERSION:', torch.__version__.split('+')[0])
@@ -191,6 +194,7 @@ impl SystemInfo {
         };
         let mut libtorch_include_dirs = vec![];
         if cfg!(feature = "python-extension") {
+            
             let output = std::process::Command::new(&python_interpreter)
                 .arg("-c")
                 .arg(PYTHON_PRINT_INCLUDE_PATH)
@@ -209,6 +213,8 @@ impl SystemInfo {
                 .arg(PYTHON_PRINT_PYTORCH_DETAILS)
                 .output()
                 .with_context(|| format!("error running {python_interpreter:?}"))?;
+            println!("cargo:warning={}", format!("DEBUG - Show Python command output : {}", std::str::from_utf8(&output.stdout).unwrap_or("Unrecognised String")));
+
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
