@@ -45,7 +45,6 @@ LIBTORCH_USE_PYTORCH=1 is detected, but PyTorch Python package has not been foun
 It seems like that the Rust code uses the wrong Python interpreter, without torch installed on it.
 ";
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LinkType {
     Dynamic,
@@ -200,7 +199,6 @@ impl SystemInfo {
         };
         let mut libtorch_include_dirs = vec![];
         if cfg!(feature = "python-extension") {
-            
             let output = std::process::Command::new(&python_interpreter)
                 .arg("-c")
                 .arg(PYTHON_PRINT_INCLUDE_PATH)
