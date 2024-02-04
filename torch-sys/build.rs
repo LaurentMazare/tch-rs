@@ -8,13 +8,11 @@
 
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use std::str::Utf8Error;
 use std::{env, fs, io};
 
 const TORCH_VERSION: &str = "2.2.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
-import sys
-print('SYS.EXE', sys.executable)
-print('SYS.PATH', sys.path)
 import torch
 from torch.utils import cpp_extension
 print('LIBTORCH_VERSION:', torch.__version__.split('+')[0])
@@ -39,6 +37,15 @@ Cannot find a libtorch install, you can either:
 See the readme for more details:
 https://github.com/LaurentMazare/tch-rs/blob/main/README.md
 ";
+
+const NO_PYTORCH_DURING_BUILD_TIME_ERROR_MESSAGE : &str = r"
+LIBTORCH_USE_PYTORCH=1 is detected, but PyTorch Python package has not been found during build time of torch-sys:
+- Check if the PyTorch package is in build dependencies. Example for 'pyproject.toml' : [build-system] requires = ['setuptools', 'torch'].
+- Check if the Python interpreter 'python' (for virtual env.) or 'python3' (for others) has the torch library installed.
+
+It seems like that the Rust code uses the wrong Python interpreter, without torch installed on it.
+";
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LinkType {
@@ -213,7 +220,21 @@ impl SystemInfo {
                 .arg(PYTHON_PRINT_PYTORCH_DETAILS)
                 .output()
                 .with_context(|| format!("error running {python_interpreter:?}"))?;
-            println!("cargo:warning={}", format!("DEBUG - Show Python command output : {}", std::str::from_utf8(&output.stdout).unwrap_or("Unrecognised String")));
+
+            //Check for output.stderr emptiness and try to detect if it's related to torch module's missing
+            let output_stderr  = std::str::from_utf8(&output.stderr)?;
+            if output_stderr.len()>0 {
+                if output_stderr.contains("ModuleNotFoundError: No module named 'torch'") 
+                {
+                    anyhow::bail!(NO_PYTORCH_DURING_BUILD_TIME_ERROR_MESSAGE);
+                }
+                println!(
+                    "cargo:warning={}",
+                    format!("The command output to retrieve PyTorch details during build time has a non empty stderr field : {output_stderr}")
+                );
+            }
+        
+
 
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
