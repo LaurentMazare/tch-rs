@@ -8,7 +8,6 @@
 
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
-use std::str::Utf8Error;
 use std::{env, fs, io};
 
 const TORCH_VERSION: &str = "2.2.0";
@@ -233,9 +232,6 @@ impl SystemInfo {
                     format!("The command output to retrieve PyTorch details during build time has a non empty stderr field : {output_stderr}")
                 );
             }
-        
-
-
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
