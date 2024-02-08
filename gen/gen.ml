@@ -37,7 +37,6 @@ let excluded_functions =
     ; "stride"
     ; "_assert_async"
     ; "gradient"
-    ; "linalg_vector_norm"
     ; "linalg_vector_norm_out"
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
