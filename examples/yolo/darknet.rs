@@ -199,7 +199,7 @@ where
     slice.copy_(&src)
 }
 
-fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
+fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &[(i64, i64)]) -> Tensor {
     let (bsize, _channels, height, _width) = xs.size4().unwrap();
     let stride = image_height / height;
     let grid_size = image_height / stride;
