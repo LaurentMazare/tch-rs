@@ -60,7 +60,7 @@ impl std::fmt::Debug for Tensor {
                         | Kind::ComplexFloat
                         | Kind::ComplexDouble => (false, false),
                     };
-                    match (self.size().as_slice(), is_int, is_float) {
+                    match (self.size(), is_int, is_float) {
                         ([], true, false) => write!(f, "[{}]", i64::try_from(self).unwrap()),
                         ([s], true, false) if *s < 10 => {
                             write!(f, "{:?}", Vec::<i64>::try_from(self).unwrap())
@@ -166,7 +166,7 @@ trait TensorFormatter {
         let size = t.size();
         let edge_items = po.edge_items as i64;
         write!(f, "[")?;
-        match size.as_slice() {
+        match size {
             [] => self.fmt(Self::value(t), max_w, f)?,
             [v] if summarize && *v > 2 * edge_items => {
                 for v in Self::values(&t.slice(0, None, Some(edge_items), 1)).into_iter() {

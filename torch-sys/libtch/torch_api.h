@@ -43,8 +43,8 @@ int at_is_sparse(tensor);
 int at_is_contiguous(tensor);
 int at_device(tensor);
 size_t at_dim(tensor);
-void at_shape(tensor, int64_t *);
-void at_stride(tensor, int64_t *);
+int64_t *at_shape(tensor);
+int64_t *at_stride(tensor);
 int at_scalar_type(tensor);
 
 void at__amp_non_finite_check_and_unscale(tensor, tensor, tensor);
