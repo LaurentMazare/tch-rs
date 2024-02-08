@@ -1,8 +1,6 @@
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::{
-    exceptions::{PyTypeError, PyValueError},
-    AsPyPointer,
-};
+
 pub use tch;
 pub use torch_sys;
 
@@ -36,11 +34,56 @@ impl<'source> FromPyObject<'source> for PyTensor {
 
 impl IntoPy<PyObject> for PyTensor {
     fn into_py(self, py: Python<'_>) -> PyObject {
-        // There is no fallible alternative to ToPyObject/IntoPy at the moment so we return
+        // There is no fallible alternative to ToPyObject/IntoPy at the moment, so we return
         // None on errors. https://github.com/PyO3/pyo3/issues/1813
         self.0.pyobject_wrap().map_or_else(
             |_| py.None(),
             |ptr| unsafe { PyObject::from_owned_ptr(py, ptr as *mut pyo3::ffi::PyObject) },
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pyo3::types::IntoPyDict;
+
+    #[test]
+    fn rust_to_python() {
+        pyo3::prepare_freethreaded_python();
+        Python::with_gil(|py| {
+            let module = py.import("torch").unwrap();
+            let tensor = tch::Tensor::from_slice(&[3, 1, 4, 1, 5]);
+            let py_tensor = PyTensor(tensor);
+            let py_obj = py_tensor.into_py(py).into_ref(py);
+            assert_eq!(py_obj.get_type().name().unwrap(), "Tensor");
+            assert!(py
+                .eval(
+                    "torch.is_tensor(tensor)",
+                    None,
+                    Some([("tensor", py_obj), ("torch", module)].into_py_dict(py))
+                )
+                .unwrap()
+                .extract::<bool>()
+                .unwrap());
+        });
+    }
+
+    #[test]
+    fn python_to_rust() {
+        pyo3::prepare_freethreaded_python();
+        Python::with_gil(|py| {
+            let module = py.import("torch").unwrap();
+            let py_obj = py
+                .eval(
+                    "torch.tensor([3, 1, 4, 1, 5])",
+                    None,
+                    Some([("torch", module)].into_py_dict(py)),
+                )
+                .unwrap();
+            let py_tensor = PyTensor::extract(py_obj).unwrap();
+            let tensor = py_tensor.0;
+            assert_eq!(tensor, tch::Tensor::from_slice(&[3, 1, 4, 1, 5]));
+        });
     }
 }

@@ -17,7 +17,7 @@ name = "tch_ext"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.18.3", features = ["extension-module"] }
+pyo3 = { version = "0.20.2", features = ["extension-module"] }
 pyo3-tch = { path = "../../pyo3-tch", version = "0.15.0" }
 tch = { path = "../..", features = ["python-extension"], version = "0.15.0" }
 torch-sys = { path = "../../torch-sys", features = ["python-extension"], version = "0.15.0" }
