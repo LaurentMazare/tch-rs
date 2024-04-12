@@ -501,12 +501,6 @@ fn main() -> anyhow::Result<()> {
         if use_hip {
             system_info.link("c10_hip");
         }
-
-        let target = env::var("TARGET").context("TARGET variable not set")?;
-
-        if !target.contains("msvc") && !target.contains("apple") {
-            println!("cargo:rustc-link-lib=gomp");
-        }
     }
     Ok(())
 }
