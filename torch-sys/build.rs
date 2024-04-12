@@ -383,7 +383,9 @@ impl SystemInfo {
                 // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
                 println!("cargo:libtorch_lib={}", self.libtorch_lib_dir.display());
-                cc::Build::new()
+
+                let mut build = cc::Build::new();
+                build
                     .cpp(true)
                     .pic(true)
                     .warnings(false)
@@ -391,8 +393,32 @@ impl SystemInfo {
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++17")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
-                    .files(&c_files)
-                    .compile("tch");
+                    .files(&c_files);
+
+                // Libtorch requires libstdc++, but some Clang-based compilers don't support
+                // `-stdlib=libstdc++`. Force GCC instead of the generic `cc` in this case.
+                if build.get_compiler().is_like_clang() {
+                    if build
+                        .clone()
+                        .flag("-Werror=unused-command-line-argument")
+                        .flag("-stdlib=libstdc++")
+                        .cargo_warnings(false)
+                        .try_compile("tch")
+                        .is_ok()
+                    {
+                        return;
+                    }
+
+                    println!(
+                        "cargo:warning=The current compiler doesn't support libstdc++. \
+                                       Falling back to GCC..."
+                    );
+                    let gcc = env_var_rerun("LIBTORCH_GCC_FALLBACK")
+                        .unwrap_or_else(|_| String::from("gcc"));
+                    build.compiler(gcc);
+                }
+
+                build.compile("tch");
             }
             Os::Windows => {
                 // TODO: Pass "/link" "LIBPATH:{}" to cl.exe in order to emulate rpath.
