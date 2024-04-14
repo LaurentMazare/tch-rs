@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 
+## v0.16.0
+### Changed
+- PyTorch v2.3 support
+
 ## v0.15.0
 ### Changed
 - PyTorch v2.2 support
