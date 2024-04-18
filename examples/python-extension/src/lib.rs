@@ -10,8 +10,8 @@ fn add_one(tensor: PyTensor) -> PyResult<PyTensor> {
 /// A Python module implemented in Rust using tch to manipulate PyTorch
 /// objects.
 #[pymodule]
-fn tch_ext(py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    py.import("torch")?;
+fn tch_ext(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    py.import_bound("torch")?;
     m.add_function(wrap_pyfunction!(add_one, m)?)?;
     Ok(())
 }
