@@ -24,7 +24,11 @@ num-traits = "0.2.15"
 rand = "0.8"
 thiserror = "1"
 torch-sys = { version = "0.14.0", path = "torch-sys" }
-zip = "0.6"
+zip = { version = "0.6", default-features = false, features = [
+    # Any other features, in particular `deflate-<backend>` features
+    # may be added by other crates and override the default backend.
+    "deflate",
+] }
 half = "2"
 safetensors = "0.3.0"
 
