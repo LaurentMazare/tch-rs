@@ -618,6 +618,18 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_assert_scalar<S: Into<Scalar>>(
+        self_scalar: S,
+        assert_msg: &str,
+    ) -> Result<(), TchError> {
+        unsafe_torch_err!(atg__assert_scalar(
+            self_scalar.into().c_scalar,
+            assert_msg.as_ptr(),
+            assert_msg.len() as i32
+        ));
+        Ok(())
+    }
+
     pub fn f_internal_assert_tensor_metadata(
         a: &Tensor,
         size: impl IntListOption,
@@ -817,6 +829,40 @@ impl Tensor {
             self.c_tensor,
             a.c_tensor,
             if upper { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_chunk_cat<T: Borrow<Tensor>>(
+        tensors: &[T],
+        dim: i64,
+        num_chunks: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__chunk_cat(
+            c_tensors.as_mut_ptr(),
+            ptr_list(tensors).as_ptr(),
+            tensors.len() as i32,
+            dim,
+            num_chunks
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_chunk_cat_out<T: Borrow<Tensor>>(
+        out: &Tensor,
+        tensors: &[T],
+        dim: i64,
+        num_chunks: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__chunk_cat_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            ptr_list(tensors).as_ptr(),
+            tensors.len() as i32,
+            dim,
+            num_chunks
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -1280,6 +1326,7 @@ impl Tensor {
         alpha: Option<T>,
         out_dtype: impl Into<Option<Kind>>,
         transpose_result: bool,
+        alg_id: i64,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__cslt_sparse_mm(
@@ -1289,9 +1336,32 @@ impl Tensor {
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             alpha.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             out_dtype.into().map_or(-1, |s| s.c_int()),
-            if transpose_result { 1 } else { 0 }
+            if transpose_result { 1 } else { 0 },
+            alg_id
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_cslt_sparse_mm_search<T: Borrow<Tensor>>(
+        compressed_a: &Tensor,
+        dense_b: &Tensor,
+        bias: Option<T>,
+        alpha: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        transpose_result: bool,
+    ) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg__cslt_sparse_mm_search(
+                compressed_a.c_tensor,
+                dense_b.c_tensor,
+                bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                alpha.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+                out_dtype.into().map_or(-1, |s| s.c_int()),
+                if transpose_result { 1 } else { 0 }
+            )
+        );
+        Ok(return_)
     }
 
     pub fn f_internal_ctc_loss(
@@ -2729,6 +2799,22 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_functional_assert_scalar<S: Into<Scalar>>(
+        self_scalar: S,
+        assert_msg: &str,
+        dep_token: &Tensor,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__functional_assert_scalar(
+            c_tensors.as_mut_ptr(),
+            self_scalar.into().c_scalar,
+            assert_msg.as_ptr(),
+            assert_msg.len() as i32,
+            dep_token.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_functional_sym_constrain_range<S: Into<Scalar>>(
         size: S,
         min: impl Into<Option<i64>>,
@@ -3311,6 +3397,12 @@ impl Tensor {
         Ok(return_ != 0)
     }
 
+    pub fn f_internal_lazy_clone(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__lazy_clone(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_linalg_check_errors(
         info: &Tensor,
         api_name: &str,
@@ -3390,6 +3482,12 @@ impl Tensor {
             if compute_v { 1 } else { 0 }
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_internal_linalg_eigvals(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__linalg_eigvals(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_linalg_slogdet(
@@ -4522,6 +4620,52 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_nested_get_jagged_dummy(any: &Tensor) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_jagged_dummy(c_tensors.as_mut_ptr(), any.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_get_lengths(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_lengths(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_get_offsets(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_offsets(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_get_ragged_idx(&self) -> Result<i64, TchError> {
+        let return_;
+        unsafe_torch_err!(return_ = atg__nested_get_ragged_idx(self.c_tensor));
+        Ok(return_)
+    }
+
+    pub fn f_internal_nested_get_values(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_values(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_get_values_copy(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_values_copy(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_get_values_copy_out(&self, out: &Tensor) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_get_values_copy_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_nested_select_backward(
         &self,
         grad_output: &Tensor,
@@ -4606,6 +4750,65 @@ impl Tensor {
             nested_size.c_tensor,
             nested_strides.c_tensor,
             offsets.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_view_from_jagged<T: Borrow<Tensor>>(
+        &self,
+        offsets: &Tensor,
+        dummy: &Tensor,
+        lengths: Option<T>,
+        ragged_idx: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_view_from_jagged(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            offsets.c_tensor,
+            dummy.c_tensor,
+            lengths.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            ragged_idx
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_view_from_jagged_copy<T: Borrow<Tensor>>(
+        &self,
+        offsets: &Tensor,
+        dummy: &Tensor,
+        lengths: Option<T>,
+        ragged_idx: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_view_from_jagged_copy(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            offsets.c_tensor,
+            dummy.c_tensor,
+            lengths.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            ragged_idx
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_view_from_jagged_copy_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        offsets: &Tensor,
+        dummy: &Tensor,
+        lengths: Option<T>,
+        ragged_idx: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_view_from_jagged_copy_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            offsets.c_tensor,
+            dummy.c_tensor,
+            lengths.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            ragged_idx
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4882,6 +5085,11 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
+    pub fn f_internal_print(s: &str) -> Result<(), TchError> {
+        unsafe_torch_err!(atg__print(s.as_ptr(), s.len() as i32));
+        Ok(())
+    }
+
     pub fn f_internal_propagate_xla_data(&self, output: &Tensor) -> Result<(), TchError> {
         unsafe_torch_err!(atg__propagate_xla_data(self.c_tensor, output.c_tensor));
         Ok(())
@@ -5092,6 +5300,36 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
+    pub fn f_internal_scaled_dot_product_cudnn_attention(
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        dropout_p: f64,
+        is_causal: bool,
+        return_debug_mask: bool,
+        scale: impl Into<Option<f64>>,
+    ) -> Result<(Tensor, Tensor, Tensor, Tensor), TchError> {
+        let scale = scale.into();
+        let mut c_tensors = [std::ptr::null_mut(); 4];
+        unsafe_torch_err!(atg__scaled_dot_product_cudnn_attention(
+            c_tensors.as_mut_ptr(),
+            query.c_tensor,
+            key.c_tensor,
+            value.c_tensor,
+            dropout_p,
+            if is_causal { 1 } else { 0 },
+            if return_debug_mask { 1 } else { 0 },
+            scale.unwrap_or(std::f64::NAN),
+            scale.is_none() as i8
+        ));
+        Ok((
+            Tensor { c_tensor: c_tensors[0] },
+            Tensor { c_tensor: c_tensors[1] },
+            Tensor { c_tensor: c_tensors[2] },
+            Tensor { c_tensor: c_tensors[3] },
+        ))
+    }
+
     pub fn f_internal_scaled_dot_product_efficient_attention<T: Borrow<Tensor>>(
         query: &Tensor,
         key: &Tensor,
@@ -5159,6 +5397,66 @@ impl Tensor {
             if is_causal { 1 } else { 0 },
             philox_seed.c_tensor,
             philox_offset.c_tensor,
+            scale.unwrap_or(std::f64::NAN),
+            scale.is_none() as i8
+        ));
+        Ok((
+            Tensor { c_tensor: c_tensors[0] },
+            Tensor { c_tensor: c_tensors[1] },
+            Tensor { c_tensor: c_tensors[2] },
+        ))
+    }
+
+    pub fn f_internal_scaled_dot_product_flash_attention_for_cpu<T: Borrow<Tensor>>(
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        dropout_p: f64,
+        is_causal: bool,
+        attn_mask: Option<T>,
+        scale: impl Into<Option<f64>>,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let scale = scale.into();
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg__scaled_dot_product_flash_attention_for_cpu(
+            c_tensors.as_mut_ptr(),
+            query.c_tensor,
+            key.c_tensor,
+            value.c_tensor,
+            dropout_p,
+            if is_causal { 1 } else { 0 },
+            attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            scale.unwrap_or(std::f64::NAN),
+            scale.is_none() as i8
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_internal_scaled_dot_product_flash_attention_for_cpu_backward<T: Borrow<Tensor>>(
+        grad_out: &Tensor,
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        out: &Tensor,
+        logsumexp: &Tensor,
+        dropout_p: f64,
+        is_causal: bool,
+        attn_mask: Option<T>,
+        scale: impl Into<Option<f64>>,
+    ) -> Result<(Tensor, Tensor, Tensor), TchError> {
+        let scale = scale.into();
+        let mut c_tensors = [std::ptr::null_mut(); 3];
+        unsafe_torch_err!(atg__scaled_dot_product_flash_attention_for_cpu_backward(
+            c_tensors.as_mut_ptr(),
+            grad_out.c_tensor,
+            query.c_tensor,
+            key.c_tensor,
+            value.c_tensor,
+            out.c_tensor,
+            logsumexp.c_tensor,
+            dropout_p,
+            if is_causal { 1 } else { 0 },
+            attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             scale.unwrap_or(std::f64::NAN),
             scale.is_none() as i8
         ));
@@ -6037,6 +6335,7 @@ impl Tensor {
         meta: &Tensor,
         bias: Option<T>,
         activation: &str,
+        out_dtype: impl Into<Option<Kind>>,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_semi_structured_linear(
@@ -6046,7 +6345,8 @@ impl Tensor {
             meta.c_tensor,
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             activation.as_ptr(),
-            activation.len() as i32
+            activation.len() as i32,
+            out_dtype.into().map_or(-1, |s| s.c_int())
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -6575,6 +6875,21 @@ impl Tensor {
             values.c_tensor,
             addends.as_ptr(),
             addends.len_i32()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_test_parallel_materialize(
+        &self,
+        num_parallel: i64,
+        skip_first: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__test_parallel_materialize(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            num_parallel,
+            if skip_first { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8156,6 +8471,21 @@ impl Tensor {
             mat2.c_tensor,
             qgroupsize,
             qscaleandzeros.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_weight_int8pack_mm(
+        &self,
+        mat2: &Tensor,
+        scales: &Tensor,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__weight_int8pack_mm(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            scales.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -30739,6 +31069,31 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
+            dim,
+            start.unwrap_or(0i64),
+            start.is_none() as i8,
+            end.unwrap_or(0i64),
+            end.is_none() as i8,
+            step
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_slice_inverse(
+        &self,
+        src: &Tensor,
+        dim: i64,
+        start: impl Into<Option<i64>>,
+        end: impl Into<Option<i64>>,
+        step: i64,
+    ) -> Result<Tensor, TchError> {
+        let start = start.into();
+        let end = end.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_slice_inverse(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            src.c_tensor,
             dim,
             start.unwrap_or(0i64),
             start.is_none() as i8,
