@@ -4,6 +4,7 @@
 
 #ifdef __cplusplus
 #include<torch/torch.h>
+#include<ATen/dlpack.h>
 #include<stdexcept>
 using namespace std;
 extern thread_local char *torch_last_err;
@@ -113,6 +114,9 @@ void at_run_backward(tensor *tensors,
                       tensor *outputs,
                       int keep_graph,
                       int create_graph);
+
+DLManagedTensor* at_to_dlpack(tensor src);
+tensor at_from_dlpack(DLManagedTensor* src);
 
 optimizer ato_adam(double learning_rate,
                    double beta1,

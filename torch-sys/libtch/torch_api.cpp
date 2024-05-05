@@ -7,6 +7,7 @@
 #include<torch/csrc/jit/runtime/graph_executor.h>
 #include<torch/torch.h>
 #include<ATen/autocast_mode.h>
+#include<ATen/DLConvertor.h>
 #include<torch/script.h>
 #include<torch/csrc/jit/passes/tensorexpr_fuser.h>
 #include<torch/csrc/jit/codegen/cuda/interface.h>
@@ -665,6 +666,14 @@ void at_run_backward(tensor *tensors,
       outputs[i] = static_cast<tensor>(new torch::autograd::Variable(vl[i]));
     }
   )
+}
+
+DLManagedTensor* at_to_dlpack(tensor src) {
+  return at::toDLPack(*src);
+}
+
+tensor at_from_dlpack(DLManagedTensor* src) {
+  return new torch::Tensor(at::fromDLPack(src));
 }
 
 optimizer ato_adam(double learning_rate,
