@@ -1153,7 +1153,7 @@ pub const CLASSES: [&str; 1000] = [
 
 /// Returns the top k classes as well as the associated scores.
 pub fn top(tensor: &Tensor, k: i64) -> Vec<(f64, String)> {
-    let tensor = match tensor.size().as_slice() {
+    let tensor = match tensor.size() {
         [CLASS_COUNT] => tensor.shallow_clone(),
         [1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),
         [1, 1, CLASS_COUNT] => tensor.view((CLASS_COUNT,)),

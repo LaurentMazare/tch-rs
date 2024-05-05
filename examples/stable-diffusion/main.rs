@@ -918,7 +918,7 @@ impl Module for AttentionBlock {
 
         let xs = attention_probs.matmul(&value_states);
         let xs = xs.permute([0, 2, 1, 3]).contiguous();
-        let mut new_xs_shape = xs.size();
+        let mut new_xs_shape = xs.size().to_vec();
         new_xs_shape.pop();
         new_xs_shape.pop();
         new_xs_shape.push(self.channels);

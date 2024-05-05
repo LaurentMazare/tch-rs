@@ -80,16 +80,15 @@ impl Tensor {
     }
 
     /// Returns the shape of the input tensor.
-    pub fn size(&self) -> Vec<i64> {
+    pub fn size(&self) -> &[i64] {
         let dim = unsafe_torch!(at_dim(self.c_tensor));
-        let mut sz = vec![0i64; dim];
-        unsafe_torch!(at_shape(self.c_tensor, sz.as_mut_ptr()));
-        sz
+        let ptr = unsafe_torch!(at_shape(self.c_tensor));
+        unsafe { std::slice::from_raw_parts(ptr, dim) }
     }
 
     /// Returns the tensor size for single dimension tensors.
     pub fn size1(&self) -> Result<i64, TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0] => Ok(s0),
             size => Err(TchError::Shape(format!("expected one dim, got {size:?}"))),
         }
@@ -97,7 +96,7 @@ impl Tensor {
 
     /// Returns the tensor sizes for two dimension tensors.
     pub fn size2(&self) -> Result<(i64, i64), TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0, s1] => Ok((s0, s1)),
             size => Err(TchError::Shape(format!("expected two dims, got {size:?}"))),
         }
@@ -105,7 +104,7 @@ impl Tensor {
 
     /// Returns the tensor sizes for three dimension tensors.
     pub fn size3(&self) -> Result<(i64, i64, i64), TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
             size => Err(TchError::Shape(format!("expected three dims, got {size:?}"))),
         }
@@ -113,7 +112,7 @@ impl Tensor {
 
     /// Returns the tensor sizes for four dimension tensors.
     pub fn size4(&self) -> Result<(i64, i64, i64, i64), TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
             size => Err(TchError::Shape(format!("expected four dims, got {size:?}"))),
         }
@@ -121,7 +120,7 @@ impl Tensor {
 
     /// Returns the tensor sizes for five dimension tensors.
     pub fn size5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
             size => Err(TchError::Shape(format!("expected five dims, got {size:?}"))),
         }
@@ -129,23 +128,22 @@ impl Tensor {
 
     /// Returns the tensor sizes for six dimension tensors.
     pub fn size6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
-        match self.size().as_slice() {
+        match self.size() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
             size => Err(TchError::Shape(format!("expected six dims, got {size:?}"))),
         }
     }
 
     /// Returns the stride of the input tensor.
-    pub fn stride(&self) -> Vec<i64> {
+    pub fn stride(&self) -> &[i64] {
         let dim = unsafe_torch!(at_dim(self.c_tensor));
-        let mut sz = vec![0i64; dim];
-        unsafe_torch!(at_stride(self.c_tensor, sz.as_mut_ptr()));
-        sz
+        let ptr = unsafe_torch!(at_stride(self.c_tensor));
+        unsafe { std::slice::from_raw_parts(ptr, dim) }
     }
 
     /// Returns the tensor strides for single dimension tensors.
     pub fn stride1(&self) -> Result<i64, TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0] => Ok(s0),
             size => Err(TchError::Shape(format!("expected one dim, got {size:?}"))),
         }
@@ -153,7 +151,7 @@ impl Tensor {
 
     /// Returns the tensor strides for two dimension tensors.
     pub fn stride2(&self) -> Result<(i64, i64), TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0, s1] => Ok((s0, s1)),
             size => Err(TchError::Shape(format!("expected two dims, got {size:?}"))),
         }
@@ -161,7 +159,7 @@ impl Tensor {
 
     /// Returns the tensor strides for three dimension tensors.
     pub fn stride3(&self) -> Result<(i64, i64, i64), TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0, s1, s2] => Ok((s0, s1, s2)),
             size => Err(TchError::Shape(format!("expected three dims, got {size:?}"))),
         }
@@ -169,7 +167,7 @@ impl Tensor {
 
     /// Returns the tensor strides for four dimension tensors.
     pub fn stride4(&self) -> Result<(i64, i64, i64, i64), TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0, s1, s2, s3] => Ok((s0, s1, s2, s3)),
             size => Err(TchError::Shape(format!("expected four dims, got {size:?}"))),
         }
@@ -177,7 +175,7 @@ impl Tensor {
 
     /// Returns the tensor strides for five dimension tensors.
     pub fn stride5(&self) -> Result<(i64, i64, i64, i64, i64), TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0, s1, s2, s3, s4] => Ok((s0, s1, s2, s3, s4)),
             size => Err(TchError::Shape(format!("expected five dims, got {size:?}"))),
         }
@@ -185,7 +183,7 @@ impl Tensor {
 
     /// Returns the tensor strides for six dimension tensors.
     pub fn stride6(&self) -> Result<(i64, i64, i64, i64, i64, i64), TchError> {
-        match self.stride().as_slice() {
+        match self.stride() {
             &[s0, s1, s2, s3, s4, s5] => Ok((s0, s1, s2, s3, s4, s5)),
             size => Err(TchError::Shape(format!("expected six dims, got {size:?}"))),
         }
