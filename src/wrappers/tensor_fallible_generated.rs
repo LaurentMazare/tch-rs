@@ -6489,25 +6489,6 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_internal_sparse_semi_structured_addmm(
-        &self,
-        mat1: &Tensor,
-        mat1_meta: &Tensor,
-        mat2: &Tensor,
-        out_dtype: impl Into<Option<Kind>>,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg__sparse_semi_structured_addmm(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            mat1.c_tensor,
-            mat1_meta.c_tensor,
-            mat2.c_tensor,
-            out_dtype.into().map_or(-1, |s| s.c_int())
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
     pub fn f_internal_sparse_semi_structured_apply(
         &self,
         thread_masks: &Tensor,

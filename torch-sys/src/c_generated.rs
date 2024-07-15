@@ -2663,14 +2663,6 @@ extern "C" {
         reduce_ptr: *const u8,
         reduce_len: c_int,
     );
-    pub fn atg__sparse_semi_structured_addmm(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        mat1_: *mut C_tensor,
-        mat1_meta_: *mut C_tensor,
-        mat2_: *mut C_tensor,
-        out_dtype_: c_int,
-    );
     pub fn atg__sparse_semi_structured_apply(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,

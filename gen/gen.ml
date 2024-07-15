@@ -32,6 +32,7 @@ let excluded_functions =
     ; "_cummax_helper"
     ; "retain_grad"
     ; "_validate_sparse_coo_tensor_args"
+    ; "_sparse_semi_structured_addmm"
     ; "_backward"
     ; "size"
     ; "stride"

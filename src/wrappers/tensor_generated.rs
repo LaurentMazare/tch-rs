@@ -3893,16 +3893,6 @@ impl Tensor {
         self.f_internal_sparse_mm_reduce_impl(other, reduce).unwrap()
     }
 
-    pub fn internal_sparse_semi_structured_addmm(
-        &self,
-        mat1: &Tensor,
-        mat1_meta: &Tensor,
-        mat2: &Tensor,
-        out_dtype: impl Into<Option<Kind>>,
-    ) -> Tensor {
-        self.f_internal_sparse_semi_structured_addmm(mat1, mat1_meta, mat2, out_dtype).unwrap()
-    }
-
     pub fn internal_sparse_semi_structured_apply(&self, thread_masks: &Tensor) -> (Tensor, Tensor) {
         self.f_internal_sparse_semi_structured_apply(thread_masks).unwrap()
     }

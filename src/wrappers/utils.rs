@@ -120,9 +120,6 @@ pub fn has_lazy() -> bool {
 pub fn has_mps() -> bool {
     unsafe_torch!(torch_sys::at_context_has_mps())
 }
-pub fn has_ort() -> bool {
-    unsafe_torch!(torch_sys::at_context_has_ort())
-}
 pub fn version_cudnn() -> i64 {
     unsafe_torch!(torch_sys::at_context_version_cudnn())
 }

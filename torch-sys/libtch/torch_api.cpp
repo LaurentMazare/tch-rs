@@ -1109,13 +1109,6 @@ bool at_context_has_mps() {
   return 0;
 }
 
-bool at_context_has_ort() {
-  PROTECT (
-  return at::globalContext().hasORT();
-  )
-  return 0;
-}
-
 module atm_load(char *filename) {
   PROTECT(
     return new torch::jit::script::Module(torch::jit::load(filename));

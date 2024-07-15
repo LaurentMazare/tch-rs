@@ -2645,13 +2645,6 @@ void atg__sparse_mm_reduce_impl(tensor *out__, tensor self, tensor other, char* 
   )
 }
 
-void atg__sparse_semi_structured_addmm(tensor *out__, tensor input, tensor mat1, tensor mat1_meta, tensor mat2, int out_dtype) {
-  PROTECT(
-    auto outputs__ = torch::_sparse_semi_structured_addmm(*input, *mat1, *mat1_meta, *mat2, out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)));
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
 void atg__sparse_semi_structured_apply(tensor *out__, tensor input, tensor thread_masks) {
   PROTECT(
     auto outputs__ = torch::_sparse_semi_structured_apply(*input, *thread_masks);

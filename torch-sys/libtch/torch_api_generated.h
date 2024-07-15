@@ -359,7 +359,6 @@ void atg__sparse_mask_projection_out(tensor *, tensor out, tensor self, tensor m
 void atg__sparse_mm(tensor *, tensor sparse, tensor dense);
 void atg__sparse_mm_reduce(tensor *, tensor sparse, tensor dense, char* reduce_ptr, int reduce_len);
 void atg__sparse_mm_reduce_impl(tensor *, tensor self, tensor other, char* reduce_ptr, int reduce_len);
-void atg__sparse_semi_structured_addmm(tensor *, tensor input, tensor mat1, tensor mat1_meta, tensor mat2, int out_dtype);
 void atg__sparse_semi_structured_apply(tensor *, tensor input, tensor thread_masks);
 void atg__sparse_semi_structured_apply_dense(tensor *, tensor input, tensor thread_masks);
 void atg__sparse_semi_structured_linear(tensor *, tensor input, tensor weight, tensor meta, tensor bias, char* activation_ptr, int activation_len, int out_dtype);
