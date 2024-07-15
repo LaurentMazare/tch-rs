@@ -1369,6 +1369,27 @@ void atg__histogramdd_from_bin_tensors_out(tensor *out__, tensor out, tensor sel
   )
 }
 
+void atg__index_put_impl(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate, int unsafe) {
+  PROTECT(
+    auto outputs__ = torch::_index_put_impl(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate, (bool)unsafe);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg__index_put_impl_(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate, int unsafe) {
+  PROTECT(
+    auto outputs__ = torch::_index_put_impl_(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate, (bool)unsafe);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg__index_put_impl_out(tensor *out__, tensor out, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate, int unsafe) {
+  PROTECT(
+    auto outputs__ = torch::_index_put_impl_out(*out, *self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate, (bool)unsafe);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg__indices(tensor *out__, tensor self) {
   PROTECT(
     auto outputs__ = self->_indices();
@@ -3239,6 +3260,20 @@ void atg__unpack_dual(tensor *out__, tensor dual, int64_t level) {
     auto outputs__ = torch::_unpack_dual(*dual, level);
     out__[0] = new torch::Tensor(std::get<0>(outputs__));
     out__[1] = new torch::Tensor(std::get<1>(outputs__));
+  )
+}
+
+void atg__unsafe_index(tensor *out__, tensor self, tensor *indices_data, int indices_len) {
+  PROTECT(
+    auto outputs__ = torch::_unsafe_index(*self, of_carray_tensor_opt(indices_data, indices_len));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg__unsafe_index_put(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::_unsafe_index_put(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
+    out__[0] = new torch::Tensor(outputs__);
   )
 }
 
@@ -9208,6 +9243,13 @@ void atg_imag(tensor *out__, tensor self) {
   )
 }
 
+void atg_index(tensor *out__, tensor self, tensor *indices_data, int indices_len) {
+  PROTECT(
+    auto outputs__ = torch::index(*self, of_carray_tensor_opt(indices_data, indices_len));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_index_add(tensor *out__, tensor self, int64_t dim, tensor index, tensor source) {
   PROTECT(
     auto outputs__ = torch::index_add(*self, dim, *index, *source);
@@ -9292,6 +9334,27 @@ void atg_index_fill_int_tensor_out(tensor *out__, tensor out, tensor self, int64
   )
 }
 
+void atg_index_put(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::index_put(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_index_put_(tensor *out__, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::index_put_(*self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_index_put_out(tensor *out__, tensor out, tensor self, tensor *indices_data, int indices_len, tensor values, int accumulate) {
+  PROTECT(
+    auto outputs__ = torch::index_put_out(*out, *self, of_carray_tensor_opt(indices_data, indices_len), *values, (bool)accumulate);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_index_reduce(tensor *out__, tensor self, int64_t dim, tensor index, tensor source, char* reduce_ptr, int reduce_len, int include_self) {
   PROTECT(
     auto outputs__ = torch::index_reduce(*self, dim, *index, *source, std::string(reduce_ptr, reduce_len), (bool)include_self);
@@ -9330,6 +9393,13 @@ void atg_index_select_backward(tensor *out__, tensor grad, int64_t *self_sizes_d
 void atg_index_select_out(tensor *out__, tensor out, tensor self, int64_t dim, tensor index) {
   PROTECT(
     auto outputs__ = torch::index_select_out(*out, *self, dim, *index);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_index_tensor_out(tensor *out__, tensor out, tensor self, tensor *indices_data, int indices_len) {
+  PROTECT(
+    auto outputs__ = torch::index_out(*out, *self, of_carray_tensor_opt(indices_data, indices_len));
     out__[0] = new torch::Tensor(outputs__);
   )
 }

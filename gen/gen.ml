@@ -170,6 +170,7 @@ module Func = struct
     | "at::tensoroptions" -> Some TensorOptions
     | "at::intarrayref" -> Some (if is_nullable then IntListOption else IntList)
     | "at::arrayref<double>" -> Some DoubleList
+    | "const c10::list<::std::optional<at::tensor>> &"
     | "const c10::list<c10::optional<at::tensor>> &" -> Some TensorOptList
     | "const at::itensorlistref &" | "at::tensorlist" -> Some TensorList
     | "at::device" -> Some Device

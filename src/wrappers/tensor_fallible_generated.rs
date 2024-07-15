@@ -3450,6 +3450,68 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_index_put_impl<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__index_put_impl(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 },
+            if unsafe_ { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_index_put_impl_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__index_put_impl_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 },
+            if unsafe_ { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_index_put_impl_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__index_put_impl_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 },
+            if unsafe_ { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_indices(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__indices(c_tensors.as_mut_ptr(), self.c_tensor));
@@ -7850,6 +7912,38 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg__unpack_dual(c_tensors.as_mut_ptr(), dual.c_tensor, level));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_internal_unsafe_index<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__unsafe_index(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_unsafe_index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__unsafe_index_put(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_unsafe_view(&self, size: impl IntList) -> Result<Tensor, TchError> {
@@ -19334,6 +19428,17 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_index<T: Borrow<Tensor>>(&self, indices: &[Option<T>]) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_index_add(
         &self,
         dim: i64,
@@ -19546,6 +19651,62 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_put(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_index_put_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_put_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_index_put_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_put_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32,
+            values.c_tensor,
+            if accumulate { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_index_reduce(
         &self,
         dim: i64,
@@ -19656,6 +19817,22 @@ impl Tensor {
             self.c_tensor,
             dim,
             index.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_index_tensor_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_index_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            ptr_list_opt(indices).as_ptr(),
+            indices.len() as i32
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

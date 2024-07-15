@@ -2183,6 +2183,37 @@ impl Tensor {
         self.f_internal_histogramdd_from_bin_tensors_out(out, bins, weight, density).unwrap()
     }
 
+    pub fn internal_index_put_impl<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Tensor {
+        self.f_internal_index_put_impl(indices, values, accumulate, unsafe_).unwrap()
+    }
+
+    pub fn internal_index_put_impl_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Tensor {
+        self.f_internal_index_put_impl_(indices, values, accumulate, unsafe_).unwrap()
+    }
+
+    pub fn internal_index_put_impl_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+        unsafe_: bool,
+    ) -> Tensor {
+        self.f_internal_index_put_impl_out(out, indices, values, accumulate, unsafe_).unwrap()
+    }
+
     pub fn internal_indices(&self) -> Tensor {
         self.f_internal_indices().unwrap()
     }
@@ -4536,6 +4567,19 @@ impl Tensor {
 
     pub fn internal_unpack_dual(dual: &Tensor, level: i64) -> (Tensor, Tensor) {
         Tensor::f_internal_unpack_dual(dual, level).unwrap()
+    }
+
+    pub fn internal_unsafe_index<T: Borrow<Tensor>>(&self, indices: &[Option<T>]) -> Tensor {
+        self.f_internal_unsafe_index(indices).unwrap()
+    }
+
+    pub fn internal_unsafe_index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_internal_unsafe_index_put(indices, values, accumulate).unwrap()
     }
 
     pub fn internal_unsafe_view(&self, size: impl IntList) -> Tensor {
@@ -10094,6 +10138,10 @@ impl Tensor {
         self.f_imag().unwrap()
     }
 
+    pub fn index<T: Borrow<Tensor>>(&self, indices: &[Option<T>]) -> Tensor {
+        self.f_index(indices).unwrap()
+    }
+
     pub fn index_add(&self, dim: i64, index: &Tensor, source: &Tensor) -> Tensor {
         self.f_index_add(dim, index, source).unwrap()
     }
@@ -10160,6 +10208,34 @@ impl Tensor {
         self.f_index_fill_int_tensor_out(out, dim, index, value).unwrap()
     }
 
+    pub fn index_put<T: Borrow<Tensor>>(
+        &self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_index_put(indices, values, accumulate).unwrap()
+    }
+
+    pub fn index_put_<T: Borrow<Tensor>>(
+        &mut self,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_index_put_(indices, values, accumulate).unwrap()
+    }
+
+    pub fn index_put_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+        values: &Tensor,
+        accumulate: bool,
+    ) -> Tensor {
+        self.f_index_put_out(out, indices, values, accumulate).unwrap()
+    }
+
     pub fn index_reduce(
         &self,
         dim: i64,
@@ -10209,6 +10285,14 @@ impl Tensor {
 
     pub fn index_select_out(&self, out: &Tensor, dim: i64, index: &Tensor) -> Tensor {
         self.f_index_select_out(out, dim, index).unwrap()
+    }
+
+    pub fn index_tensor_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        indices: &[Option<T>],
+    ) -> Tensor {
+        self.f_index_tensor_out(out, indices).unwrap()
     }
 
     pub fn indices(&self) -> Tensor {

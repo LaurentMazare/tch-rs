@@ -1398,6 +1398,34 @@ extern "C" {
         weight_: *mut C_tensor,
         density_: c_int,
     );
+    pub fn atg__index_put_impl(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+        unsafe_: c_int,
+    );
+    pub fn atg__index_put_impl_(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+        unsafe_: c_int,
+    );
+    pub fn atg__index_put_impl_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+        unsafe_: c_int,
+    );
     pub fn atg__indices(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__indices_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__indices_copy_out(
@@ -3229,6 +3257,20 @@ extern "C" {
         return_inverse_: c_int,
     );
     pub fn atg__unpack_dual(out__: *mut *mut C_tensor, dual_: *mut C_tensor, level_: i64);
+    pub fn atg__unsafe_index(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+    );
+    pub fn atg__unsafe_index_put(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+    );
     pub fn atg__unsafe_view(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -7972,6 +8014,12 @@ extern "C" {
         stride_len: c_int,
     );
     pub fn atg_imag(out__: *mut *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_index(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+    );
     pub fn atg_index_add(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -8060,6 +8108,31 @@ extern "C" {
         index_: *mut C_tensor,
         value_: *mut C_tensor,
     );
+    pub fn atg_index_put(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+    );
+    pub fn atg_index_put_(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+    );
+    pub fn atg_index_put_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
+        values_: *mut C_tensor,
+        accumulate_: c_int,
+    );
     pub fn atg_index_reduce(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -8111,6 +8184,13 @@ extern "C" {
         self_: *mut C_tensor,
         dim_: i64,
         index_: *mut C_tensor,
+    );
+    pub fn atg_index_tensor_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        indices_data: *const *mut C_tensor,
+        indices_len: c_int,
     );
     pub fn atg_indices(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_indices_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);
