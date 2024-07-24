@@ -171,7 +171,6 @@ bool at_context_has_ipu();
 bool at_context_has_xla();
 bool at_context_has_lazy();
 bool at_context_has_mps();
-bool at_context_has_ort();
 
 
 /// Returns the number of CUDA devices available.

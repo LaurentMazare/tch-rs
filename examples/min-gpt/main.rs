@@ -80,7 +80,7 @@ fn causal_self_attention(p: &nn::Path, cfg: Config) -> impl ModuleT {
         let q = xs.apply(&query).view(sizes).transpose(1, 2);
         let v = xs.apply(&value).view(sizes).transpose(1, 2);
         let att = q.matmul(&k.transpose(-2, -1)) * (1.0 / f64::sqrt(sizes[3] as f64));
-        let att = att.masked_fill(&mask.i((.., .., ..sz_t, ..sz_t)).eq(0.), std::f64::NEG_INFINITY);
+        let att = att.masked_fill(&mask.i((.., .., ..sz_t, ..sz_t)).eq(0.), f64::NEG_INFINITY);
         let att = att.softmax(-1, Kind::Float).dropout(cfg.attn_pdrop, train);
         let ys = att.matmul(&v).transpose(1, 2).contiguous().view([sz_b, sz_t, sz_c]);
         ys.apply(&proj).dropout(cfg.resid_pdrop, train)

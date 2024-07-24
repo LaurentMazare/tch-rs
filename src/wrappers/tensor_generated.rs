@@ -312,6 +312,115 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_batch_norm_no_update<T: Borrow<Tensor>>(
+        &self,
+        weight: Option<T>,
+        bias: Option<T>,
+        running_mean: Option<T>,
+        running_var: Option<T>,
+        momentum: f64,
+        eps: f64,
+    ) -> (Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_batch_norm_no_update(weight, bias, running_mean, running_var, momentum, eps)
+            .unwrap()
+    }
+
+    pub fn internal_batch_norm_no_update_out<T: Borrow<Tensor>>(
+        &self,
+        out0: &Tensor,
+        out1: &Tensor,
+        out2: &Tensor,
+        out3: &Tensor,
+        weight: Option<T>,
+        bias: Option<T>,
+        running_mean: Option<T>,
+        running_var: Option<T>,
+        momentum: f64,
+        eps: f64,
+    ) -> (Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_batch_norm_no_update_out(
+            out0,
+            out1,
+            out2,
+            out3,
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            momentum,
+            eps,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_batch_norm_with_update<T: Borrow<Tensor>>(
+        &self,
+        weight: Option<T>,
+        bias: Option<T>,
+        running_mean: &Tensor,
+        running_var: &Tensor,
+        momentum: f64,
+        eps: f64,
+    ) -> (Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_batch_norm_with_update(
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            momentum,
+            eps,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_batch_norm_with_update_functional<T: Borrow<Tensor>>(
+        &self,
+        weight: Option<T>,
+        bias: Option<T>,
+        running_mean: &Tensor,
+        running_var: &Tensor,
+        momentum: f64,
+        eps: f64,
+    ) -> (Tensor, Tensor, Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_batch_norm_with_update_functional(
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            momentum,
+            eps,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_batch_norm_with_update_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        save_mean: &Tensor,
+        save_invstd: &Tensor,
+        reserve: &Tensor,
+        weight: Option<T>,
+        bias: Option<T>,
+        running_mean: &Tensor,
+        running_var: &Tensor,
+        momentum: f64,
+        eps: f64,
+    ) -> (Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_batch_norm_with_update_out(
+            out,
+            save_mean,
+            save_invstd,
+            reserve,
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            momentum,
+            eps,
+        )
+        .unwrap()
+    }
+
     pub fn internal_cast_byte(&self, non_blocking: bool) -> Tensor {
         self.f_internal_cast_byte(non_blocking).unwrap()
     }
@@ -1131,6 +1240,8 @@ impl Tensor {
         bias_requires_grad: bool,
         scale: impl Into<Option<f64>>,
         num_splits_key: impl Into<Option<i64>>,
+        window_size: impl Into<Option<i64>>,
+        shared_storage_dqdkdv: bool,
     ) -> (Tensor, Tensor, Tensor, Tensor) {
         Tensor::f_internal_efficient_attention_backward(
             grad_out_,
@@ -1151,6 +1262,8 @@ impl Tensor {
             bias_requires_grad,
             scale,
             num_splits_key,
+            window_size,
+            shared_storage_dqdkdv,
         )
         .unwrap()
     }
@@ -1736,6 +1849,8 @@ impl Tensor {
         philox_seed: &Tensor,
         philox_offset: &Tensor,
         scale: impl Into<Option<f64>>,
+        window_size_left: impl Into<Option<i64>>,
+        window_size_right: impl Into<Option<i64>>,
     ) -> (Tensor, Tensor, Tensor) {
         Tensor::f_internal_flash_attention_backward(
             grad_out,
@@ -1753,6 +1868,8 @@ impl Tensor {
             philox_seed,
             philox_offset,
             scale,
+            window_size_left,
+            window_size_right,
         )
         .unwrap()
     }
@@ -2773,6 +2890,12 @@ impl Tensor {
         self.f_internal_neg_view_copy_out(out).unwrap()
     }
 
+    pub fn internal_nested_compute_contiguous_strides_offsets(
+        nested_size: &Tensor,
+    ) -> (Tensor, Tensor) {
+        Tensor::f_internal_nested_compute_contiguous_strides_offsets(nested_size).unwrap()
+    }
+
     pub fn internal_nested_from_padded(
         padded: &Tensor,
         cpu_nested_shape_example: &Tensor,
@@ -3156,22 +3279,38 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_scaled_dot_product_cudnn_attention(
+    pub fn internal_scaled_dot_product_cudnn_attention_backward(
+        grad_out: &Tensor,
         query: &Tensor,
         key: &Tensor,
         value: &Tensor,
+        out: &Tensor,
+        logsumexp: &Tensor,
+        cum_seq_q: &Tensor,
+        cum_seq_k: &Tensor,
+        max_q: i64,
+        max_k: i64,
         dropout_p: f64,
         is_causal: bool,
-        return_debug_mask: bool,
+        philox_seed: &Tensor,
+        philox_offset: &Tensor,
         scale: impl Into<Option<f64>>,
-    ) -> (Tensor, Tensor, Tensor, Tensor) {
-        Tensor::f_internal_scaled_dot_product_cudnn_attention(
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_internal_scaled_dot_product_cudnn_attention_backward(
+            grad_out,
             query,
             key,
             value,
+            out,
+            logsumexp,
+            cum_seq_q,
+            cum_seq_k,
+            max_q,
+            max_k,
             dropout_p,
             is_causal,
-            return_debug_mask,
+            philox_seed,
+            philox_offset,
             scale,
         )
         .unwrap()
@@ -3552,6 +3691,25 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_sparse_compressed_tensor_with_dims(
+        nnz: i64,
+        dense_dim: i64,
+        size: impl IntList,
+        blocksize: impl IntList,
+        index_dtype: Kind,
+        options: (Kind, Device),
+    ) -> Tensor {
+        Tensor::f_internal_sparse_compressed_tensor_with_dims(
+            nnz,
+            dense_dim,
+            size,
+            blocksize,
+            index_dtype,
+            options,
+        )
+        .unwrap()
+    }
+
     pub fn internal_sparse_coo_tensor_unsafe(
         indices: &Tensor,
         values: &Tensor,
@@ -3766,6 +3924,14 @@ impl Tensor {
         self.f_internal_sparse_mm_reduce_impl(other, reduce).unwrap()
     }
 
+    pub fn internal_sparse_semi_structured_apply(&self, thread_masks: &Tensor) -> (Tensor, Tensor) {
+        self.f_internal_sparse_semi_structured_apply(thread_masks).unwrap()
+    }
+
+    pub fn internal_sparse_semi_structured_apply_dense(&self, thread_masks: &Tensor) -> Tensor {
+        self.f_internal_sparse_semi_structured_apply_dense(thread_masks).unwrap()
+    }
+
     pub fn internal_sparse_semi_structured_linear<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -3776,6 +3942,23 @@ impl Tensor {
     ) -> Tensor {
         self.f_internal_sparse_semi_structured_linear(weight, meta, bias, activation, out_dtype)
             .unwrap()
+    }
+
+    pub fn internal_sparse_semi_structured_mm(
+        mat1: &Tensor,
+        mat1_meta: &Tensor,
+        mat2: &Tensor,
+        out_dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
+        Tensor::f_internal_sparse_semi_structured_mm(mat1, mat1_meta, mat2, out_dtype).unwrap()
+    }
+
+    pub fn internal_sparse_semi_structured_tile(
+        &self,
+        algorithm: &str,
+        use_cutlass: bool,
+    ) -> (Tensor, Tensor, Tensor, Tensor, Tensor) {
+        self.f_internal_sparse_semi_structured_tile(algorithm, use_cutlass).unwrap()
     }
 
     pub fn internal_sparse_softmax(&self, dim: i64, half_to_float: bool) -> Tensor {
@@ -6498,8 +6681,8 @@ impl Tensor {
         self.f_bucketize_tensor_out(out, boundaries, out_int32, right).unwrap()
     }
 
-    pub fn can_cast(from: Kind, to: Kind) -> bool {
-        Tensor::f_can_cast(from, to).unwrap()
+    pub fn can_cast(from_: Kind, to: Kind) -> bool {
+        Tensor::f_can_cast(from_, to).unwrap()
     }
 
     pub fn cartesian_prod<T: Borrow<Tensor>>(tensors: &[T]) -> Tensor {
@@ -12868,8 +13051,9 @@ impl Tensor {
         stride: impl IntList,
         dilation: impl IntList,
         groups: i64,
+        input_size: impl IntListOption,
     ) -> Tensor {
-        self.f_mkldnn_reorder_conv3d_weight(padding, stride, dilation, groups).unwrap()
+        self.f_mkldnn_reorder_conv3d_weight(padding, stride, dilation, groups, input_size).unwrap()
     }
 
     pub fn mkldnn_reorder_conv3d_weight_out(
@@ -12879,8 +13063,10 @@ impl Tensor {
         stride: impl IntList,
         dilation: impl IntList,
         groups: i64,
+        input_size: impl IntListOption,
     ) -> Tensor {
-        self.f_mkldnn_reorder_conv3d_weight_out(out, padding, stride, dilation, groups).unwrap()
+        self.f_mkldnn_reorder_conv3d_weight_out(out, padding, stride, dilation, groups, input_size)
+            .unwrap()
     }
 
     pub fn mkldnn_rnn_layer(
@@ -15107,6 +15293,15 @@ impl Tensor {
 
     pub fn retains_grad(&self) -> bool {
         self.f_retains_grad().unwrap()
+    }
+
+    pub fn rms_norm<T: Borrow<Tensor>>(
+        &self,
+        normalized_shape: impl IntList,
+        weight: Option<T>,
+        eps: impl Into<Option<f64>>,
+    ) -> Tensor {
+        self.f_rms_norm(normalized_shape, weight, eps).unwrap()
     }
 
     pub fn rnn_relu<T: Borrow<Tensor>>(
