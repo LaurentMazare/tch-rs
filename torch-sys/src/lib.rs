@@ -4,6 +4,7 @@ pub mod io;
 pub mod python;
 mod traits;
 
+use dlpark::ffi::DLManagedTensor;
 use libc::{c_char, c_int, c_uchar, c_void, size_t};
 pub use traits::{DoubleList, IntList, IntListOption};
 
@@ -60,6 +61,8 @@ extern "C" {
         keep_graph: c_int,
         create_graph: c_int,
     );
+    pub fn at_to_dlpack(src: *mut C_tensor) -> *mut DLManagedTensor;
+    pub fn at_from_dlpack(src: *mut DLManagedTensor) -> *mut C_tensor;
     pub fn at_copy_data(
         arg: *mut C_tensor,
         vs: *const c_void,
