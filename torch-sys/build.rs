@@ -434,8 +434,8 @@ impl SystemInfo {
         match self.link_type {
             LinkType::Dynamic => println!("cargo:rustc-link-lib={lib_name}"),
             LinkType::Static => {
-                // TODO: whole-archive might only be necessary for libtorch_cpu?
-                println!("cargo:rustc-link-lib=static:+whole-archive,-bundle={lib_name}")
+                // Removed whole-archive option
+                println!("cargo:rustc-link-lib=static:-bundle={lib_name}")
             }
         }
     }
@@ -497,25 +497,12 @@ fn main() -> anyhow::Result<()> {
             system_info.link("torch_python")
         }
         if system_info.link_type == LinkType::Static {
-            // TODO: this has only be tried out on the cpu version. Check that it works
-            // with cuda too and maybe just try linking all available files?
-            system_info.link("asmjit");
             system_info.link("clog");
             system_info.link("cpuinfo");
-            system_info.link("dnnl");
-            system_info.link("dnnl_graph");
-            system_info.link("fbgemm");
-            system_info.link("gloo");
-            system_info.link("kineto");
-            system_info.link("nnpack");
-            system_info.link("onnx");
-            system_info.link("onnx_proto");
-            system_info.link("protobuf");
+            system_info.link("eigen_blas");
+            system_info.link("fmt");
             system_info.link("pthreadpool");
             system_info.link("pytorch_qnnpack");
-            system_info.link("sleef");
-            system_info.link("tensorpipe");
-            system_info.link("tensorpipe_uv");
             system_info.link("XNNPACK");
         }
         system_info.link("torch_cpu");
