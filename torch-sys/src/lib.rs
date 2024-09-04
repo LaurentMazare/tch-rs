@@ -157,7 +157,6 @@ extern "C" {
     pub fn at_context_has_xla() -> bool;
     pub fn at_context_has_lazy() -> bool;
     pub fn at_context_has_mps() -> bool;
-    pub fn at_context_has_ort() -> bool;
     pub fn at_context_version_cudnn() -> i64;
     pub fn at_context_version_cudart() -> i64;
 }

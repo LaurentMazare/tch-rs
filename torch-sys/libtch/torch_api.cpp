@@ -1118,13 +1118,6 @@ bool at_context_has_mps() {
   return 0;
 }
 
-bool at_context_has_ort() {
-  PROTECT (
-  return at::globalContext().hasORT();
-  )
-  return 0;
-}
-
 module atm_load(char *filename) {
   PROTECT(
     return new torch::jit::script::Module(torch::jit::load(filename));
@@ -1409,6 +1402,10 @@ ivalue ati_generic_dict(ivalue *is, int nvalues) {
     if (all_keys_are_str && all_values_are_tensor) {
       generic_dict dict(c10::StringType::get(), c10::TensorType::get());
       for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), is[2*i+1]->toTensor());
+      return new torch::jit::IValue(dict);
+    } else if (all_keys_are_str) {
+      generic_dict dict(c10::StringType::get(), c10::AnyType::get());
+      for (int i = 0; i < nvalues; ++i) dict.insert(is[2*i]->toString(), *(is[2*i+1]));
       return new torch::jit::IValue(dict);
     } else {
       generic_dict dict(c10::AnyType::get(), c10::AnyType::get());

@@ -1,6 +1,6 @@
 [package]
 name = "tch"
-version = "0.14.0"
+version = "0.17.0"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
@@ -23,7 +23,7 @@ ndarray = "0.15"
 num-traits = "0.2.15"
 rand = "0.8"
 thiserror = "1"
-torch-sys = { version = "0.14.0", path = "torch-sys" }
+torch-sys = { version = "0.17.0", path = "torch-sys" }
 zip = { version = "0.6", default-features = false, features = [
     # Any other features, in particular `deflate-<backend>` features
     # may be added by other crates and override the default backend.

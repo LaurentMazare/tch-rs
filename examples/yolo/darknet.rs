@@ -17,7 +17,7 @@ struct Block {
 
 impl Block {
     fn get(&self, key: &str) -> Result<&str> {
-        match self.parameters.get(&key.to_string()) {
+        match self.parameters.get(key) {
             None => bail!("cannot find {} in {}", key, self.block_type),
             Some(value) => Ok(value),
         }
@@ -32,7 +32,7 @@ pub struct Darknet {
 
 impl Darknet {
     fn get(&self, key: &str) -> Result<&str> {
-        match self.parameters.get(&key.to_string()) {
+        match self.parameters.get(key) {
             None => bail!("cannot find {} in net parameters", key),
             Some(value) => Ok(value),
         }
@@ -199,7 +199,7 @@ where
     slice.copy_(&src)
 }
 
-fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &Vec<(i64, i64)>) -> Tensor {
+fn detect(xs: &Tensor, image_height: i64, classes: i64, anchors: &[(i64, i64)]) -> Tensor {
     let (bsize, _channels, height, _width) = xs.size4().unwrap();
     let stride = image_height / height;
     let grid_size = image_height / stride;

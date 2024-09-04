@@ -18,7 +18,7 @@ The code generation part for the C api on top of libtorch comes from
 
 ## Getting Started
 
-This crate requires the C++ PyTorch library (libtorch) in version *v2.1.0* to be available on
+This crate requires the C++ PyTorch library (libtorch) in version *v2.4.0* to be available on
 your system. You can either:
 
 - Use the system-wide libtorch installation (default).
@@ -54,9 +54,9 @@ export LIBTORCH=/path/to/libtorch
 The header files location can also be specified separately from the shared library via
 the following:
 ```bash
-# LIBTORCH_INCLUDE must contains `include` directory.
+# LIBTORCH_INCLUDE must contain `include` directory.
 export LIBTORCH_INCLUDE=/path/to/libtorch/
-# LIBTORCH_LIB must contains `lib` directory.
+# LIBTORCH_LIB must contain `lib` directory.
 export LIBTORCH_LIB=/path/to/libtorch/
 ```
 - For Windows users, assuming that `X:\path\to\libtorch` is the unzipped libtorch directory.
@@ -85,7 +85,7 @@ seem to include `libtorch.a` by default so this would have to be compiled
 manually, e.g. via the following:
 
 ```bash
-git clone -b v2.1.0 --recurse-submodule https://github.com/pytorch/pytorch.git pytorch-static --depth 1
+git clone -b v2.4.0 --recurse-submodule https://github.com/pytorch/pytorch.git pytorch-static --depth 1
 cd pytorch-static
 USE_CUDA=OFF BUILD_SHARED_LIBS=OFF python setup.py build
 # export LIBTORCH to point at the build directory in pytorch-static.

@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-const TORCH_VERSION: &str = "2.1.0";
+const TORCH_VERSION: &str = "2.4.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
@@ -152,7 +152,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.1.0+cpu or 2.1.0+cu117
+    // Typical version number is 2.4.0+cpu or 2.4.0+cu121
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
@@ -311,11 +311,8 @@ impl SystemInfo {
                     "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu102" => "%2Bcu102",
-                        "cu113" => "%2Bcu113",
-                        "cu116" => "%2Bcu116",
-                        "cu117" => "%2Bcu117",
                         "cu118" => "%2Bcu118",
+                        "cu121" => "%2Bcu121",
                         _ => anyhow::bail!("unsupported device {device}, TORCH_CUDA_VERSION may be set incorrectly?"),
                     }
                 ),
@@ -330,18 +327,15 @@ impl SystemInfo {
                         export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
                         ")
                     } else {
-                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-{TORCH_VERSION}.zip")
+                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-x86_64-{TORCH_VERSION}.zip")
                     }
                 },
                 Os::Windows => format!(
                     "https://download.pytorch.org/libtorch/{}/libtorch-win-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
-                        "cu102" => "%2Bcu102",
-                        "cu113" => "%2Bcu113",
-                        "cu116" => "%2Bcu116",
-                        "cu117" => "%2Bcu117",
                         "cu118" => "%2Bcu118",
+                        "cu121" => "%2Bcu121",
                         _ => ""
                     }
                 ),
@@ -392,6 +386,7 @@ impl SystemInfo {
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++17")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
+                    .flag("-DGLOG_USE_GLOG_EXPORT")
                     .files(&c_files);
 
                 // Libtorch requires libstdc++, but some Clang-based compilers don't support
@@ -429,6 +424,7 @@ impl SystemInfo {
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .flag("/std:c++17")
+                    .flag("/p:DefineConstants=GLOG_USE_GLOG_EXPORT")
                     .files(&c_files)
                     .compile("tch");
             }
