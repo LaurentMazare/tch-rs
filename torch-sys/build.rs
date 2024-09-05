@@ -365,8 +365,18 @@ impl SystemInfo {
         println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
         println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
         println!("cargo:rerun-if-changed=libtch/stb_image.h");
+
+        let mut cuda_include_dirs: Vec<PathBuf> = vec![];
+        if use_cuda {
+            let cuda_home = env::var("CUDA_HOME").expect("Cannot found CUDA_HOME!!!");
+            let cuda_include = PathBuf::from(format!("{cuda_home}/include"));
+            let _ = cuda_include_dirs.push(cuda_include);
+            println!("cargo:rerun-if-changed=libtch/torch_c10_cuda_api.cpp");
+            println!("cargo:rerun-if-changed=libtch/torch_c10_cuda_api.h");
+        }
+
         let mut c_files =
-            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", cuda_dependency];
+            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", "libtch/torch_c10_cuda_api.cpp", cuda_dependency];
         if cfg!(feature = "python-extension") {
             c_files.push("libtch/torch_python.cpp")
         }
@@ -382,6 +392,7 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
+                    .includes(&cuda_include_dirs)
                     .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++17")
                     .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
@@ -398,6 +409,7 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
+                    .includes(&cuda_include_dirs)
                     .flag("/std:c++17")
                     .flag("/p:DefineConstants=GLOG_USE_GLOG_EXPORT")
                     .files(&c_files)
@@ -455,7 +467,8 @@ fn main() -> anyhow::Result<()> {
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
-            system_info.link("torch_cuda")
+            system_info.link("torch_cuda");
+            system_info.link("c10_cuda");
         }
         if use_cuda_cu {
             system_info.link("torch_cuda_cu")
