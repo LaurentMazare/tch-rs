@@ -376,7 +376,10 @@ impl SystemInfo {
         }
 
         let mut c_files =
-            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", "libtch/torch_c10_cuda_api.cpp", cuda_dependency];
+            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", cuda_dependency];
+        if use_cuda {
+            c_files.push("libtch/torch_c10_cuda_api.cpp")
+        }
         if cfg!(feature = "python-extension") {
             c_files.push("libtch/torch_python.cpp")
         }
