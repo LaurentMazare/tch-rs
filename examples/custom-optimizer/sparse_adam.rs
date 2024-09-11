@@ -59,7 +59,7 @@ impl SparseAdam {
             .unwrap()
             .trainable_variables
             .iter()
-            .map(|x| Buffer::new(&x.tensor.size()))
+            .map(|x| Buffer::new(x.tensor.size()))
             .collect();
 
         SparseAdam { lr, beta1, beta2, eps, force_sparse, vars, buffers }

@@ -143,18 +143,16 @@ size_t at_dim(tensor t) {
   return -1;
 }
 
-void at_shape(tensor t, int64_t *dims) {
-  PROTECT(
-    int i = 0;
-    for (int64_t dim : t->sizes()) dims[i++] = dim;
-  )
+int64_t *at_shape(tensor t) {
+  // Follow https://github.com/pytorch/pytorch/blob/main/aten/src/ATen/DLConvertor.cpp#L256
+  PROTECT(return const_cast<int64_t*>(t->sizes().data());)
+  return nullptr;
 }
 
-void at_stride(tensor t, int64_t *dims) {
-  PROTECT(
-    int i = 0;
-    for (int64_t dim: t->strides()) dims[i++] = dim;
-  )
+int64_t * at_stride(tensor t) {
+  // Follow https://github.com/pytorch/pytorch/blob/main/aten/src/ATen/DLConvertor.cpp#L256
+  PROTECT(return const_cast<int64_t*>(t->strides().data());)
+  return nullptr;
 }
 
 int at_scalar_type(tensor t) {
