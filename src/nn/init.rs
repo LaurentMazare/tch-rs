@@ -113,9 +113,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device, kind: Kind) -> Result<Tenso
                 Tensor::f_ones(dims, (kind, device)).map(|t| t * cst)
             }
         }
-        Init::Uniform { lo, up } => {
-            Tensor::f_zeros(dims, (kind, device))?.f_uniform_(lo, up)
-        }
+        Init::Uniform { lo, up } => Tensor::f_zeros(dims, (kind, device))?.f_uniform_(lo, up),
         Init::Randn { mean, stdev } => {
             if mean == 0. && (stdev - 1.).abs() <= f64::EPSILON {
                 Tensor::f_randn(dims, (kind, device))
@@ -197,7 +195,9 @@ impl Init {
                 tensor.copy_(&(tensor.randn_like() * stdev + mean));
             }
             Init::Orthogonal { gain } => {
-                let q = f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device(), Kind::Float).unwrap();
+                let q =
+                    f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device(), Kind::Float)
+                        .unwrap();
                 crate::no_grad(|| tensor.view_as(&q).copy_(&q));
             }
         }
