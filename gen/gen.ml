@@ -229,7 +229,7 @@ module Func = struct
            c10::optional<at::Layout>(static_cast<at::Layout>(%s)))"
           arg_name
           arg_name
-      | TensorOption -> Printf.sprintf "(%s ? *%s : torch::Tensor())" arg_name arg_name
+      | TensorOption -> Printf.sprintf "(%s ? ::std::optional<at::Tensor>(*%s) : ::std::nullopt)" arg_name arg_name
       | Bool -> "(bool)" ^ arg_name
       | IntList -> Printf.sprintf "torch::IntArrayRef(%s_data, %s_len)" arg_name arg_name
       | IntListOption ->
