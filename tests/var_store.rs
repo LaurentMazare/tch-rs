@@ -317,7 +317,8 @@ fn init_test() {
         "{}",
         "ortho_norm initialization failed {ortho_norm}"
     );
-    let ortho_shape_fail = tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu);
+    let ortho_shape_fail =
+        tch::nn::f_init(Init::Orthogonal { gain: 1.0 }, &[10], Device::Cpu, tch::Kind::Float);
     assert!(ortho_shape_fail.is_err());
     let kaiming_u = vs.root().var("kaiming_u", &[20, 100], nn::init::DEFAULT_KAIMING_UNIFORM);
     assert!(f64::abs(f64_from(&kaiming_u.mean(Kind::Float))) < 5e-3);

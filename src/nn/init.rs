@@ -101,26 +101,24 @@ pub const DEFAULT_KAIMING_NORMAL: Init = Init::Kaiming {
 };
 
 /// Creates a new float tensor with the specified shape, device, and initialization.
-pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError> {
+pub fn f_init(i: Init, dims: &[i64], device: Device, kind: Kind) -> Result<Tensor, TchError> {
     match i {
         Init::Const(cst) => {
             // Optimize the case for which a single C++ code can be done.
             if cst == 0. {
-                Tensor::f_zeros(dims, (Kind::Float, device))
+                Tensor::f_zeros(dims, (kind, device))
             } else if (cst - 1.).abs() <= f64::EPSILON {
-                Tensor::f_ones(dims, (Kind::Float, device))
+                Tensor::f_ones(dims, (kind, device))
             } else {
-                Tensor::f_ones(dims, (Kind::Float, device)).map(|t| t * cst)
+                Tensor::f_ones(dims, (kind, device)).map(|t| t * cst)
             }
         }
-        Init::Uniform { lo, up } => {
-            Tensor::f_zeros(dims, (Kind::Float, device))?.f_uniform_(lo, up)
-        }
+        Init::Uniform { lo, up } => Tensor::f_zeros(dims, (kind, device))?.f_uniform_(lo, up),
         Init::Randn { mean, stdev } => {
             if mean == 0. && (stdev - 1.).abs() <= f64::EPSILON {
-                Tensor::f_randn(dims, (Kind::Float, device))
+                Tensor::f_randn(dims, (kind, device))
             } else {
-                Tensor::f_randn(dims, (Kind::Float, device)).map(|t| t * stdev + mean)
+                Tensor::f_randn(dims, (kind, device)).map(|t| t * stdev + mean)
             }
         }
         Init::Kaiming { dist, fan, non_linearity } => {
@@ -130,10 +128,10 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             match dist {
                 NormalOrUniform::Uniform => {
                     let bound = 3f64.sqrt() * std;
-                    Tensor::f_zeros(dims, (Kind::Float, device))?.f_uniform_(-bound, bound)
+                    Tensor::f_zeros(dims, (kind, device))?.f_uniform_(-bound, bound)
                 }
                 NormalOrUniform::Normal => {
-                    let randn = Tensor::f_randn(dims, (Kind::Float, device))?;
+                    let randn = Tensor::f_randn(dims, (kind, device))?;
                     Ok(randn * std)
                 }
             }
@@ -148,7 +146,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             let cols: i64 = dims.iter().skip(1).product();
 
             let mut flattened =
-                Tensor::f_empty([rows, cols], (Kind::Float, device))?.f_normal_(0.0, 1.0)?;
+                Tensor::f_empty([rows, cols], (kind, device))?.f_normal_(0.0, 1.0)?;
             let flattened = if rows < cols { flattened.f_t_()? } else { flattened };
 
             let (mut q, r) = Tensor::f_linalg_qr(&flattened, "reduced")?;
@@ -166,7 +164,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
 
 /// Creates a new float tensor with the specified shape, device, and initialization.
 pub fn init(i: Init, dims: &[i64], device: Device) -> Tensor {
-    f_init(i, dims, device).unwrap()
+    f_init(i, dims, device, Kind::Float).unwrap()
 }
 
 impl Init {
@@ -197,7 +195,9 @@ impl Init {
                 tensor.copy_(&(tensor.randn_like() * stdev + mean));
             }
             Init::Orthogonal { gain } => {
-                let q = f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device()).unwrap();
+                let q =
+                    f_init(Init::Orthogonal { gain }, &tensor.size(), tensor.device(), Kind::Float)
+                        .unwrap();
                 crate::no_grad(|| tensor.view_as(&q).copy_(&q));
             }
         }
