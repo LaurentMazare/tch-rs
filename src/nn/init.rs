@@ -107,7 +107,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             // Optimize the case for which a single C++ code can be done.
             if cst == 0. {
                 Tensor::f_zeros(dims, (Kind::Float, device))
-            } else if (cst - 1.).abs() <= std::f64::EPSILON {
+            } else if (cst - 1.).abs() <= f64::EPSILON {
                 Tensor::f_ones(dims, (Kind::Float, device))
             } else {
                 Tensor::f_ones(dims, (Kind::Float, device)).map(|t| t * cst)
@@ -117,7 +117,7 @@ pub fn f_init(i: Init, dims: &[i64], device: Device) -> Result<Tensor, TchError>
             Tensor::f_zeros(dims, (Kind::Float, device))?.f_uniform_(lo, up)
         }
         Init::Randn { mean, stdev } => {
-            if mean == 0. && (stdev - 1.).abs() <= std::f64::EPSILON {
+            if mean == 0. && (stdev - 1.).abs() <= f64::EPSILON {
                 Tensor::f_randn(dims, (Kind::Float, device))
             } else {
                 Tensor::f_randn(dims, (Kind::Float, device)).map(|t| t * stdev + mean)
