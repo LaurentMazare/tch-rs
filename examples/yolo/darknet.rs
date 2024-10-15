@@ -17,7 +17,7 @@ struct Block {
 
 impl Block {
     fn get(&self, key: &str) -> Result<&str> {
-        match self.parameters.get(&key.to_string()) {
+        match self.parameters.get(key) {
             None => bail!("cannot find {} in {}", key, self.block_type),
             Some(value) => Ok(value),
         }
@@ -32,7 +32,7 @@ pub struct Darknet {
 
 impl Darknet {
     fn get(&self, key: &str) -> Result<&str> {
-        match self.parameters.get(&key.to_string()) {
+        match self.parameters.get(key) {
             None => bail!("cannot find {} in net parameters", key),
             Some(value) => Ok(value),
         }
