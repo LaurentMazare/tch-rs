@@ -6,10 +6,12 @@ use super::{
     kind::Kind,
 };
 use crate::TchError;
+use dlpark::ffi::DLManagedTensor;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
+use std::ptr::NonNull;
 use torch_sys::io::ReadStream;
 use torch_sys::*;
 
@@ -336,6 +338,28 @@ impl Tensor {
         T2: Borrow<Tensor>,
     {
         Tensor::f_run_backward(tensors, inputs, keep_graph, create_graph).unwrap()
+    }
+
+    pub fn f_to_dlpack(self) -> Result<NonNull<DLManagedTensor>, TchError> {
+        let ptr = unsafe_torch_err!(at_to_dlpack(self.c_tensor));
+        Ok(unsafe { NonNull::new_unchecked(ptr) })
+    }
+
+    /// Convert `tch::Tensor` to dlpack.
+    /// If you want to access original tensor, please use `shallow_clone` to make a shared view first.
+    pub fn to_dlpack(self) -> NonNull<DLManagedTensor> {
+        self.f_to_dlpack().unwrap()
+    }
+
+    pub fn f_from_dlpack(src: NonNull<DLManagedTensor>) -> Result<Self, TchError> {
+        let ptr = unsafe_torch_err!(at_from_dlpack(src.as_ptr().cast()));
+        Ok(unsafe { Self::from_ptr(ptr) })
+    }
+
+    /// Convert dlpack to `tch::Tensor`.
+    pub fn from_dlpack(src: NonNull<DLManagedTensor>) -> Self {
+        // Using ownership to prevent accessing the pointer twice.
+        Self::f_from_dlpack(src).unwrap()
     }
 
     /// Copies `numel` elements from `self` to `dst`.
