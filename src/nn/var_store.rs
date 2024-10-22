@@ -33,6 +33,7 @@ pub struct Variables {
 pub struct VarStore {
     pub variables_: Arc<Mutex<Variables>>,
     device: Device,
+    kind: Kind,
 }
 
 /// A variable store with an associated path for variables naming.
@@ -57,7 +58,7 @@ impl VarStore {
     pub fn new(device: Device) -> VarStore {
         let variables =
             Variables { named_variables: HashMap::new(), trainable_variables: Vec::new() };
-        VarStore { variables_: Arc::new(Mutex::new(variables)), device }
+        VarStore { variables_: Arc::new(Mutex::new(variables)), device, kind: Kind::Float }
     }
 
     pub fn merge(var_stores: Vec<(VarStore, Option<&str>)>) -> Result<VarStore, TchError> {
@@ -108,6 +109,11 @@ impl VarStore {
     /// Gets the device for this var-store.
     pub fn device(&self) -> Device {
         self.device
+    }
+
+    /// Gets the default kind of new variables
+    pub fn kind(&self) -> Kind {
+        self.kind
     }
 
     /// Returns the number of tensors currently stored on this var-store.
@@ -322,13 +328,15 @@ impl VarStore {
         }
     }
 
-    /// Casts all variables in a var store to the target kind .
+    /// Casts all variables in a var store to the target kind and sets the default kind
+    /// for new variables.
     ///
     /// For floating-point conversion, methods `half`, `bfloat16`, `float` and `double`
     /// should be preferred as they ensure only float-like variables will be converted
     /// to the target type.
     pub fn set_kind(&mut self, kind: Kind) {
         self.root().set_kind(kind);
+        self.kind = kind;
     }
 
     /// Casts all float-like variable of a var store to half-precision (Half kind).
@@ -408,6 +416,11 @@ impl<'a> Path<'a> {
     /// Gets the device where the var-store variables are stored.
     pub fn device(&self) -> Device {
         self.var_store.device
+    }
+
+    /// Gets the default kind of new variables
+    pub fn kind(&self) -> Kind {
+        self.var_store.kind
     }
 
     pub fn path(&self, name: &str) -> String {
@@ -551,7 +564,7 @@ impl<'a> Path<'a> {
     /// The variable uses a float tensor initialized as per the
     /// related argument.
     pub fn f_var(&self, name: &str, dims: &[i64], init: Init) -> Result<Tensor, TchError> {
-        let v = super::f_init(init, dims, self.device())?;
+        let v = super::f_init(init, dims, self.device(), self.kind())?;
         Ok(self.add(name, v, true))
     }
 

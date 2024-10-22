@@ -2448,7 +2448,6 @@ impl DDIMScheduler {
 }
 
 fn main() -> anyhow::Result<()> {
-    tch::maybe_init_cuda();
     println!("Cuda available: {}", tch::Cuda::is_available());
     println!("Cudnn available: {}", tch::Cuda::cudnn_is_available());
     // TODO: Switch to using claps to allow more flags?

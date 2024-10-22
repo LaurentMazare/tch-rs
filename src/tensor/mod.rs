@@ -1,6 +1,5 @@
 //! A Torch tensor.
 use crate::{Device, Kind, TchError};
-use torch_sys::*;
 
 mod convert;
 pub mod display;
@@ -252,6 +251,3 @@ impl Tensor {
         self.g_to_mkldnn(self.kind())
     }
 }
-
-#[used]
-static INIT_ARRAY: [unsafe extern "C" fn(); 1] = [dummy_cuda_dependency];

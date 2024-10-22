@@ -140,8 +140,8 @@ impl Header {
                     "b" | "i1" => Kind::Int8,
                     "B" | "u1" => Kind::Uint8,
                     "?" | "b1" => Kind::Bool,
-                    "F" | "F4" => Kind::ComplexFloat,
-                    "D" | "F8" => Kind::ComplexDouble,
+                    "F" | "F4" | "c8" => Kind::ComplexFloat,
+                    "D" | "F8" | "c16" => Kind::ComplexDouble,
                     descr => {
                         return Err(TchError::FileFormat(format!("unrecognized descr {descr}")))
                     }

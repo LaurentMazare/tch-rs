@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs, io};
 
-const TORCH_VERSION: &str = "2.4.0";
+const TORCH_VERSION: &str = "2.5.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
@@ -158,7 +158,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.4.0+cpu or 2.4.0+cu121
+    // Typical version number is 2.5.0+cpu or 2.5.0+cu121
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
@@ -314,6 +314,7 @@ impl SystemInfo {
                         "cpu" => "%2Bcpu",
                         "cu118" => "%2Bcu118",
                         "cu121" => "%2Bcu121",
+                        "cu124" => "%2Bcu124",
                         _ => anyhow::bail!("unsupported device {device}, TORCH_CUDA_VERSION may be set incorrectly?"),
                     }
                 ),
@@ -337,6 +338,7 @@ impl SystemInfo {
                         "cpu" => "%2Bcpu",
                         "cu118" => "%2Bcu118",
                         "cu121" => "%2Bcu121",
+                        "cu124" => "%2Bcu124",
                         _ => ""
                     }),
             };
@@ -349,13 +351,7 @@ impl SystemInfo {
         }
     }
 
-    fn make(&self, use_cuda: bool, use_hip: bool) {
-        let cuda_dependency = if use_cuda || use_hip {
-            "libtch/dummy_cuda_dependency.cpp"
-        } else {
-            "libtch/fake_cuda_dependency.cpp"
-        };
-        println!("cargo:rerun-if-changed={}", cuda_dependency);
+    fn make(&self, use_cuda: bool) {
         println!("cargo:rerun-if-changed=libtch/torch_python.cpp");
         println!("cargo:rerun-if-changed=libtch/torch_python.h");
         println!("cargo:rerun-if-changed=libtch/torch_api_generated.cpp");
@@ -365,7 +361,6 @@ impl SystemInfo {
         println!("cargo:rerun-if-changed=libtch/stb_image_write.h");
         println!("cargo:rerun-if-changed=libtch/stb_image_resize.h");
         println!("cargo:rerun-if-changed=libtch/stb_image.h");
-
         let mut cuda_include_dirs: Vec<PathBuf> = vec![];
         if use_cuda {
             let cuda_home = env::var("CUDA_HOME").expect("Cannot found CUDA_HOME!!!");
@@ -374,9 +369,7 @@ impl SystemInfo {
             println!("cargo:rerun-if-changed=libtch/torch_c10_cuda_api.cpp");
             println!("cargo:rerun-if-changed=libtch/torch_c10_cuda_api.h");
         }
-
-        let mut c_files =
-            vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp", cuda_dependency];
+        let mut c_files = vec!["libtch/torch_api.cpp", "libtch/torch_api_generated.cpp"];
         if use_cuda {
             c_files.push("libtch/torch_c10_cuda_api.cpp")
         }
@@ -396,9 +389,9 @@ impl SystemInfo {
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .includes(&cuda_include_dirs)
-                    .flag(&format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
+                    .flag(format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++17")
-                    .flag(&format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
+                    .flag(format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .flag("-DGLOG_USE_GLOG_EXPORT")
                     .files(&c_files)
                     .compile("tch");
@@ -455,6 +448,9 @@ fn main() -> anyhow::Result<()> {
         // if this issue.
         // TODO: Try out the as-needed native link modifier when it lands.
         // https://github.com/rust-lang/rust/issues/99424
+        //
+        // Update: it seems that the dummy dependency is not necessary anymore, so just
+        // removing it and keeping this comment around for legacy.
         let si_lib = &system_info.libtorch_lib_dir;
         let use_cuda =
             si_lib.join("libtorch_cuda.so").exists() || si_lib.join("torch_cuda.dll").exists();
@@ -466,7 +462,7 @@ fn main() -> anyhow::Result<()> {
             si_lib.join("libtorch_hip.so").exists() || si_lib.join("torch_hip.dll").exists();
         println!("cargo:rustc-link-search=native={}", si_lib.display());
 
-        system_info.make(use_cuda, use_hip);
+        system_info.make(use_cuda);
 
         println!("cargo:rustc-link-lib=static=tch");
         if use_cuda {
