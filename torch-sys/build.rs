@@ -442,6 +442,9 @@ impl SystemInfo {
 }
 
 fn main() -> anyhow::Result<()> {
+    if cfg!(feature = "no-libtorch") {
+        return Ok(());
+    }
     if !cfg!(feature = "doc-only") {
         let system_info = SystemInfo::new()?;
         // use_cuda is a hacky way to detect whether cuda is available and

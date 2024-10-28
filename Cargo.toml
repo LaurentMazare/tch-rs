@@ -55,6 +55,7 @@ python-extension = ["torch-sys/python-extension"]
 rl-python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
+no-libtorch = ["torch-sys/no-libtorch"]
 
 [package.metadata.docs.rs]
 features = [ "doc-only" ]

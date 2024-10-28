@@ -27,6 +27,7 @@ zip = { version = "0.6", optional = true, default-features = false, features = [
 download-libtorch = ["ureq", "serde", "serde_json", "zip"]
 doc-only = []
 python-extension = []
+no-libtorch = []
 
 [package.metadata.docs.rs]
 features = [ "doc-only" ]
