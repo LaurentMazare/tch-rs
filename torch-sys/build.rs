@@ -412,9 +412,88 @@ impl SystemInfo {
     }
 }
 
+const PYTHON_PRINT_TORCH_TENSORRT_PATH: &str = r#"
+try:
+    import torch_tensorrt
+    import os
+    lib_path = os.path.join(os.path.dirname(torch_tensorrt.__file__), 'lib')
+    print('TORCH_TENSORRT_LIB:', lib_path)
+except ImportError:
+    print('TORCH_TENSORRT_LIB: NOT_FOUND')
+"#;
+
+const PYTHON_PRINT_TENSORRT_LIBS_PATH: &str = r#"
+try:
+    import tensorrt_libs
+    import os
+    lib_path = os.path.dirname(tensorrt_libs.__file__)
+    print('TENSORRT_LIB:', lib_path)
+except ImportError:
+    print('TENSORRT_LIB: NOT_FOUND')
+"#;
+
+fn get_torch_tensorrt_lib_path(python_interpreter: &Path) -> Option<PathBuf> {
+    let output = std::process::Command::new(python_interpreter)
+        .arg("-c")
+        .arg(PYTHON_PRINT_TORCH_TENSORRT_PATH)
+        .output()
+        .ok()?;
+
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if let Some(path) = line.strip_prefix("TORCH_TENSORRT_LIB: ") {
+            if path != "NOT_FOUND" {
+                return Some(PathBuf::from(path));
+            }
+        }
+    }
+    None
+}
+
+fn get_tensorrt_libs_path(python_interpreter: &Path) -> Option<PathBuf> {
+    let output = std::process::Command::new(python_interpreter)
+        .arg("-c")
+        .arg(PYTHON_PRINT_TENSORRT_LIBS_PATH)
+        .output()
+        .ok()?;
+
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if let Some(path) = line.strip_prefix("TENSORRT_LIB: ") {
+            if path != "NOT_FOUND" {
+                return Some(PathBuf::from(path));
+            }
+        }
+    }
+    None
+}
+
+fn link_torch_tensorrt(system_info: &SystemInfo) {
+    if let Some(tensorrt_path) = get_torch_tensorrt_lib_path(&system_info.python_interpreter) {
+        println!("cargo:rustc-link-search=native={}", tensorrt_path.display());
+        println!("cargo:rustc-link-arg=-Wl,-rpath={}", tensorrt_path.display());
+        println!("cargo:rustc-link-lib=dylib:-as-needed=torchtrt_runtime");
+    }
+}
+
+fn link_tensorrt_libs(system_info: &SystemInfo) {
+    if let Some(tensorrt_libs_path) = get_tensorrt_libs_path(&system_info.python_interpreter) {
+        println!("cargo:rustc-link-search=native={}", tensorrt_libs_path.display());
+        println!("cargo:rustc-link-arg=-Wl,-rpath={}", tensorrt_libs_path.display());
+        println!("cargo:rustc-link-lib=nvinfer_plugin");
+        println!("cargo:rustc-link-lib=nvinfer");
+        println!("cargo:rustc-link-lib=nvonnxparser");
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     if !cfg!(feature = "doc-only") {
         let system_info = SystemInfo::new()?;
+
+        if cfg!(feature = "torch-tensorrt") {
+            //create the feature flag for cpp called USE_TORCH_TENSORRT
+            cc::Build::new().define("USE_TORCH_TENSORRT", None);
+            link_torch_tensorrt(&system_info);
+            link_tensorrt_libs(&system_info);
+        }
         // use_cuda is a hacky way to detect whether cuda is available and
         // if it's the case link to it by explicitly depending on a symbol
         // from the torch_cuda library.

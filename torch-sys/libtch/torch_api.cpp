@@ -14,6 +14,10 @@
 #include<vector>
 #include "torch_api.h"
 
+#ifdef USE_TORCH_TENSORRT
+#include "torch_tensorrt/torch_tensorrt.h"
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
