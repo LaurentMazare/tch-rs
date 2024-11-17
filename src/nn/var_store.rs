@@ -496,7 +496,7 @@ impl<'a> Path<'a> {
         self.set_float_kind(Kind::Double);
     }
 
-    pub(crate) fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
+    pub fn add(&self, name: &str, tensor: Tensor, trainable: bool) -> Tensor {
         let path = self.path(name);
         let mut variables = self.var_store.variables_.lock().unwrap();
         let path = if variables.named_variables.contains_key(&path) {
