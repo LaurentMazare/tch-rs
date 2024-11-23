@@ -2,7 +2,7 @@
 use super::utils::{path_to_cstring, ptr_to_string};
 use super::{device::Device, kind::Kind};
 use crate::{nn::Path, TchError, Tensor};
-use libc::{c_int, c_void};
+use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
 use std::convert::TryFrom;
 use torch_sys::*;
@@ -403,6 +403,14 @@ impl IValue {
         }
         Ok(v)
     }
+
+    pub(super) extern "C" fn add_callback(data: *mut c_void, name: *const c_char, c_ivalue: *mut CIValue) {
+        let v = unsafe { &mut *(data as *mut Vec<(String, Result<IValue, TchError>)>) };
+        let name = unsafe { std::ffi::CStr::from_ptr(name).to_str().unwrap() };
+        let name = name.replace('|', ".");
+        let value = Self::from_c(c_ivalue);
+        v.push((name, value));
+    }
 }
 
 /// A jit PyTorch module.
@@ -591,6 +599,17 @@ impl CModule {
             super::tensor::add_callback
         ));
         Ok(v)
+    }
+
+    /// Loads the named attributes on a module
+    pub fn named_attributes(&self) -> Result<Vec<(String, IValue)>, TchError> {
+        let mut v: Vec<(String, Result<IValue, TchError>)> = vec![];
+        unsafe_torch_err!(atm_named_attributes(
+            self.c_module,
+            &mut v as *mut _ as *mut c_void,
+            IValue::add_callback
+        ));
+        v.into_iter().map(|(k, v)| Ok((k, v?))).collect()
     }
 
     /// Create a new module by tracing the application of the specified function on
