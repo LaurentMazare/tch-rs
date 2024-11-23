@@ -23,7 +23,11 @@ impl BasicKind {
                 | Kind::QInt32
                 | Kind::Half
                 | Kind::Float
-                | Kind::Double => BasicKind::Float,
+                | Kind::Double
+                | Kind::Float8e5m2
+                | Kind::Float8e4m3fn
+                | Kind::Float8e5m2fnuz
+                | Kind::Float8e4m3fnuz => BasicKind::Float,
                 Kind::Bool => BasicKind::Bool,
                 Kind::ComplexHalf | Kind::ComplexFloat | Kind::ComplexDouble => BasicKind::Complex,
             },
@@ -54,7 +58,11 @@ impl std::fmt::Debug for Tensor {
                         | Kind::QInt32
                         | Kind::Half
                         | Kind::Float
-                        | Kind::Double => (false, true),
+                        | Kind::Double
+                        | Kind::Float8e5m2
+                        | Kind::Float8e4m3fn
+                        | Kind::Float8e5m2fnuz
+                        | Kind::Float8e4m3fnuz => (false, true),
                         Kind::Bool
                         | Kind::ComplexHalf
                         | Kind::ComplexFloat
