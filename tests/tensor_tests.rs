@@ -490,3 +490,19 @@ fn convert_ndarray() {
     let array_3d: ndarray::ArrayD<i64> = t_3d.as_ref().try_into().unwrap();
     assert_eq!(array_3d.as_slice(), ndarray::array![[[0, 1], [2, 3]], [[4, 5], [6, 7]]].as_slice());
 }
+
+#[test]
+fn fp8_tensor() {
+    let float8_types = [
+        tch::Kind::Float8e5m2,
+        tch::Kind::Float8e4m3fn,
+        tch::Kind::Float8e5m2fnuz,
+        tch::Kind::Float8e4m3fnuz,
+    ];
+
+    for &kind in &float8_types {
+        let t = Tensor::from_slice(&[1.0f32, 2.0, 3.0, 4.0]).to_kind(kind);
+        assert_eq!(t.kind(), kind);
+        assert_eq!(t.kind().elt_size_in_bytes(), 1);
+    }
+}
