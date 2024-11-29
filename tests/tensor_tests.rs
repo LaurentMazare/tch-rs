@@ -1,8 +1,10 @@
 #![allow(clippy::unnecessary_fallible_conversions)]
 use anyhow::Result;
+use dlpark::ffi::DLManagedTensor;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
+use std::ptr::NonNull;
 use tch::{Device, TchError, Tensor};
 
 mod test_utils;
@@ -489,4 +491,26 @@ fn convert_ndarray() {
     let t_3d = Tensor::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7]).view((2, 2, 2));
     let array_3d: ndarray::ArrayD<i64> = t_3d.as_ref().try_into().unwrap();
     assert_eq!(array_3d.as_slice(), ndarray::array![[[0, 1], [2, 3]], [[4, 5], [6, 7]]].as_slice());
+}
+
+#[test]
+fn convert_dlpack() {
+    let t1: Tensor = Tensor::from_slice(&[0, 1, 2, 3]);
+    let dlpack = t1.shallow_clone().to_dlpack();
+    let t2 = Tensor::from_dlpack(dlpack);
+    assert!(t1.allclose(&t2, 1e-5, 1e-5, false));
+    assert_eq!(t1.data_ptr(), t2.data_ptr());
+}
+
+#[test]
+fn from_vec_as_dlpack() {
+    let v: Vec<i64> = vec![0, 1, 2, 3, 4];
+    let v_ptr = v.as_ptr();
+    // TODO: upgrade dlpark version
+    let dlpack: DLManagedTensor = dlpark::tensor::ManagerCtx::from(v).into();
+    let t1 = Tensor::from_dlpack(NonNull::from(&dlpack));
+    let t2 = Tensor::arange(5, tch::kind::INT64_CPU);
+    assert!(t1.allclose(&t2, 1e-5, 1e-5, false));
+    // Check if zero copy
+    assert_eq!(t1.data_ptr(), v_ptr as *const std::ffi::c_void as *mut std::ffi::c_void);
 }

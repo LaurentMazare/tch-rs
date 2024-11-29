@@ -13,6 +13,7 @@ categories = ["external-ffi-bindings", "science"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
+dlpark = { version = "0.2.2", default-features = false }
 libc = "0.2.0"
 
 [build-dependencies]
