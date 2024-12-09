@@ -6,7 +6,7 @@ pub struct Func<'a> {
     f: Box<dyn 'a + Fn(&Tensor) -> Tensor + Send>,
 }
 
-impl<'a> std::fmt::Debug for Func<'a> {
+impl std::fmt::Debug for Func<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "func")
     }
@@ -19,7 +19,7 @@ where
     Func { f: Box::new(f) }
 }
 
-impl<'a> super::module::Module for Func<'a> {
+impl super::module::Module for Func<'_> {
     fn forward(&self, xs: &Tensor) -> Tensor {
         (*self.f)(xs)
     }
@@ -31,7 +31,7 @@ pub struct FuncT<'a> {
     f: Box<dyn 'a + Fn(&Tensor, bool) -> Tensor + Send>,
 }
 
-impl<'a> std::fmt::Debug for FuncT<'a> {
+impl std::fmt::Debug for FuncT<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "funcT")
     }
@@ -44,7 +44,7 @@ where
     FuncT { f: Box::new(f) }
 }
 
-impl<'a> super::module::ModuleT for FuncT<'a> {
+impl super::module::ModuleT for FuncT<'_> {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         (*self.f)(xs, train)
     }

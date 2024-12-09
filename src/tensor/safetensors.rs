@@ -83,7 +83,7 @@ impl<'a> TryFrom<&'a Tensor> for SafeView<'a> {
     }
 }
 
-impl<'a> View for SafeView<'a> {
+impl View for SafeView<'_> {
     fn dtype(&self) -> Dtype {
         self.dtype
     }
