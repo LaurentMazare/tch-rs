@@ -828,7 +828,7 @@ impl<'a> Path<'a> {
     }
 }
 
-impl<'a> Entry<'a> {
+impl Entry<'_> {
     /// Returns the existing entry if, otherwise create a new variable.
     ///
     /// If this entry name matches the name of a variables stored in the
