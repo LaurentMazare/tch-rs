@@ -31,6 +31,7 @@ pub enum Kind {
 impl Kind {
     pub(super) fn c_int(self) -> libc::c_int {
         // These values should be in sync with include/c10/core/ScalarType.h
+        // https://github.com/pytorch/pytorch/blob/a8d6afb511a69687bbb2b7e88a3cf67917e1697e/c10/core/ScalarType.h#L57
         match self {
             Kind::Uint8 => 0,
             Kind::Int8 => 1,
