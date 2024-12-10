@@ -22,11 +22,16 @@ pub enum Kind {
     QUInt8,
     QInt32,
     BFloat16,
+    Float8e5m2,
+    Float8e4m3fn,
+    Float8e5m2fnuz,
+    Float8e4m3fnuz,
 }
 
 impl Kind {
     pub(super) fn c_int(self) -> libc::c_int {
         // These values should be in sync with include/c10/core/ScalarType.h
+        // https://github.com/pytorch/pytorch/blob/a8d6afb511a69687bbb2b7e88a3cf67917e1697e/c10/core/ScalarType.h#L57
         match self {
             Kind::Uint8 => 0,
             Kind::Int8 => 1,
@@ -44,6 +49,10 @@ impl Kind {
             Kind::QUInt8 => 13,
             Kind::QInt32 => 14,
             Kind::BFloat16 => 15,
+            Kind::Float8e5m2 => 23,
+            Kind::Float8e4m3fn => 24,
+            Kind::Float8e5m2fnuz => 25,
+            Kind::Float8e4m3fnuz => 26,
         }
     }
 
@@ -65,6 +74,10 @@ impl Kind {
             13 => Ok(Kind::QUInt8),
             14 => Ok(Kind::QInt32),
             15 => Ok(Kind::BFloat16),
+            23 => Ok(Kind::Float8e5m2),
+            24 => Ok(Kind::Float8e4m3fn),
+            25 => Ok(Kind::Float8e5m2fnuz),
+            26 => Ok(Kind::Float8e4m3fnuz),
             _ => Err(crate::TchError::UnknownKind(v)),
         }
     }
@@ -87,6 +100,10 @@ impl Kind {
             Kind::QUInt8 => 1,
             Kind::QInt32 => 4,
             Kind::BFloat16 => 2,
+            Kind::Float8e5m2 => 1,
+            Kind::Float8e4m3fn => 1,
+            Kind::Float8e5m2fnuz => 1,
+            Kind::Float8e4m3fnuz => 1,
         }
     }
 }
