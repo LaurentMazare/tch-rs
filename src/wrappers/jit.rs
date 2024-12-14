@@ -470,6 +470,16 @@ impl CModule {
         Ok(CModule { c_module })
     }
 
+    /// Loads a PyTorch saved JIT model from a read instance.
+    ///
+    /// This function loads the buffer directly on the specified device,
+    pub fn load_buffer_on_device(buffer: &Vec<u8>, device: Device) -> Result<CModule, TchError> {
+        let buffer_ptr = buffer.as_ptr() as *const libc::c_char;
+        let c_module =
+            unsafe_torch_err!(atm_load_str_on_device(buffer_ptr, buffer.len(), device.c_int()));
+        Ok(CModule { c_module })
+    }
+
     /// Performs the forward pass for a model on some specified tensor inputs. This is equivalent
     /// to calling method_ts with the 'forward' method name, and returns a single tensor.
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
