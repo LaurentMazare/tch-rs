@@ -798,7 +798,7 @@ pub fn set_graph_executor_optimize(b: bool) {
 /// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
 #[derive(Debug)]
 pub struct CCompilationUnit {
-    pub(super) c_compunit: *mut CCompilationUnit_,
+    pub(super) c_compunit: *mut CSharedCompilationUnit_,
 }
 
 unsafe impl Send for CCompilationUnit {}
@@ -818,7 +818,7 @@ impl CCompilationUnit {
     ) -> Result<CCompilationUnit, TchError>
     {
         let c_script = std::ffi::CString::new(script)?;
-        let c_compunit = unsafe_torch_err!(atcu_compile(script.as_ptr()));
+        let c_compunit = unsafe_torch_err!(atcu_compile(c_script.as_ptr()));
         Ok(Self { c_compunit })
     }
 
@@ -830,7 +830,7 @@ impl CCompilationUnit {
     ) -> Result<Tensor, TchError> {
         let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
         let c_function_name = std::ffi::CString::new(function_name)?;
-        let c_tensor = unsafe_torch_err!(atm_method(
+        let c_tensor = unsafe_torch_err!(atcu_function(
             self.c_compunit,
             c_function_name.as_ptr(),
             ts.as_ptr(),
@@ -845,11 +845,11 @@ impl CCompilationUnit {
         function_name: &str,
         ts: &[T],
     ) -> Result<IValue, TchError> {
-        let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
         let c_function_name = std::ffi::CString::new(function_name)?;
-        let c_ivalue = unsafe_torch_err!(atm_method_(
+        let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
+        let c_ivalue = unsafe_torch_err!(atcu_function_(
             self.c_compunit,
-            function_name.as_ptr(),
+            c_function_name.as_ptr(),
             ts.as_ptr(),
             ts.len() as c_int
         ));
@@ -911,6 +911,8 @@ impl Drop for Object {
 
 #[cfg(test)]
 mod tests {
+    use crate::{TchError, Tensor};
+
     use super::IValue;
     use std::f64::consts;
 
@@ -919,6 +921,7 @@ mod tests {
         let ivalue2 = IValue::from_c(ivalue.to_c().unwrap()).unwrap();
         assert_eq!(ivalue, ivalue2);
     }
+
     #[test]
     fn ivalue_round_trip() {
         round_trip(());
@@ -938,5 +941,19 @@ mod tests {
             (IValue::from(42), IValue::from("foobar")),
             (IValue::from("foo"), IValue::from("bar")),
         ]);
+    }
+    
+    #[test]
+    fn test_script() -> Result<(), TchError> {
+        let script = super::CCompilationUnit::compile(r#"
+          def relu_script(a, b):
+            return torch.relu(a + b)
+        "#)?;
+
+        let input_a = Tensor::from(-1);
+        let input_b= Tensor::from(-2);
+        let output = script.function_ts("relu_script", &[input_a, input_b])?;
+        assert_eq!(output, Tensor::from(0));
+        Ok(())
     }
 }

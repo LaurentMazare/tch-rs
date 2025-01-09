@@ -234,7 +234,7 @@ pub struct CModule_ {
 }
 
 #[repr(C)]
-pub struct CCompilationUnit_ {
+pub struct CSharedCompilationUnit_ {
     _private: [u8; 0],
 }
 
@@ -336,20 +336,20 @@ extern "C" {
         noutputs: c_int,
     );
 
-    pub fn atcu_compile(script: *const c_char) -> *mut CCompilationUnit_;
+    pub fn atcu_compile(script: *const c_char) -> *mut CSharedCompilationUnit_;
     pub fn atcu_function(
-        compunit: *mut CCompilationUnit_,
+        compunit: *mut CSharedCompilationUnit_,
         function_name: *const c_char,
         args: *const *mut C_tensor,
         n: c_int,
     ) -> *mut C_tensor;
     pub fn atcu_function_(
-        compunit: *mut CCompilationUnit_,
+        compunit: *mut CSharedCompilationUnit_,
         function_name: *const c_char,
         args: *const *mut CIValue,
         n: c_int,
     ) -> *mut CIValue;
-    pub fn atcu_free(arg: *mut CCompilationUnit_);
+    pub fn atcu_free(arg: *mut CSharedCompilationUnit_);
     
     pub fn atm_set_tensor_expr_fuser_enabled(enabled: c_int);
     pub fn atm_get_tensor_expr_fuser_enabled() -> bool;
