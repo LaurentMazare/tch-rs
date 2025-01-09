@@ -1317,6 +1317,50 @@ void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor
   )
 }
 
+compunit atcu_compile(const char *script) {
+  PROTECT(
+    compunit result = torch::jit::compile(script).get();
+    return result;
+  )
+  return nullptr;
+}
+
+tensor atcu_function(compunit cu,
+                     char *function_name,
+                     tensor *tensors,
+                     int ntensors) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < ntensors; ++i)
+      inputs.push_back(*(tensors[i]));
+    auto function = cu->find_function(function_name);
+    torch::jit::IValue output = (*function)(std::move(inputs));
+    if (!output.isTensor())
+      throw std::invalid_argument("function did not return a tensor");
+    return new torch::Tensor(output.toTensor());
+  )
+  return nullptr;
+}
+
+ivalue atcu_function_(compunit cu,
+                      char *function_name,
+                      ivalue *ivalues,
+                      int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < nivalues; ++i)
+      inputs.push_back(*(ivalues[i]));
+    auto function = cu->find_function(function_name);
+    torch::jit::IValue output = (*function)(std::move(inputs));
+    return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
+
+void atcu_free(compunit cu) {
+  delete(m);
+}
+
 ivalue ati_tensor(tensor t) {
   PROTECT(
     return new torch::jit::IValue(*t);
