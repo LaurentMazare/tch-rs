@@ -336,19 +336,20 @@ extern "C" {
         noutputs: c_int,
     );
 
-    pub unsafe fn atcu_compile(const char* script) -> *mut CCompilationUnit_;
-    pub unsafe fn atcu_function(
+    pub fn atcu_compile(script: *const c_char) -> *mut CCompilationUnit_;
+    pub fn atcu_function(
         compunit: *mut CCompilationUnit_,
         function_name: *const c_char,
         args: *const *mut C_tensor,
         n: c_int,
     ) -> *mut C_tensor;
-    pub unsafe fn atcu_function(
+    pub fn atcu_function_(
         compunit: *mut CCompilationUnit_,
-        method_name: *const c_char,
+        function_name: *const c_char,
         args: *const *mut CIValue,
         n: c_int,
     ) -> *mut CIValue;
+    pub fn atcu_free(arg: *mut CCompilationUnit_);
     
     pub fn atm_set_tensor_expr_fuser_enabled(enabled: c_int);
     pub fn atm_get_tensor_expr_fuser_enabled() -> bool;

@@ -1358,7 +1358,7 @@ ivalue atcu_function_(compunit cu,
 }
 
 void atcu_free(compunit cu) {
-  delete(m);
+  delete(cu);
 }
 
 ivalue ati_tensor(tensor t) {
