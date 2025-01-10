@@ -792,6 +792,75 @@ pub fn set_graph_executor_optimize(b: bool) {
     f_set_graph_executor_optimize(b).unwrap();
 }
 
+/// A jit PyTorch compilation unit.
+///
+/// These modules can be compiled via
+/// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
+#[derive(Debug)]
+pub struct CCompilationUnit {
+    pub(super) c_compunit: *mut CSharedCompilationUnit_,
+}
+
+unsafe impl Send for CCompilationUnit {}
+
+unsafe impl Sync for CCompilationUnit  {}
+
+impl Drop for CCompilationUnit  {
+    fn drop(&mut self) {
+        unsafe_torch!(atcu_free(self.c_compunit))
+    }
+}
+
+impl CCompilationUnit {
+    /// Create a new module by compiling TorchScript
+    pub fn compile(
+        script: &str,
+    ) -> Result<CCompilationUnit, TchError>
+    {
+        let c_script = std::ffi::CString::new(script)?;
+        let c_compunit = unsafe_torch_err!(atcu_compile(c_script.as_ptr()));
+        Ok(Self { c_compunit })
+    }
+
+    /// Runs a specified entry point for a model on some given tensor inputs.
+    pub fn function_ts<T: Borrow<Tensor>>(
+        &self,
+        function_name: &str,
+        ts: &[T],
+    ) -> Result<Tensor, TchError> {
+        let ts: Vec<_> = ts.iter().map(|x| x.borrow().c_tensor).collect();
+        let c_function_name = std::ffi::CString::new(function_name)?;
+        let c_tensor = unsafe_torch_err!(atcu_function(
+            self.c_compunit,
+            c_function_name.as_ptr(),
+            ts.as_ptr(),
+            ts.len() as c_int
+        ));
+        Ok(Tensor { c_tensor })
+    }
+
+    /// Runs a specified entry point for a model on some given ivalue inputs.
+    pub fn function_is<T: Borrow<IValue>>(
+        &self,
+        function_name: &str,
+        ts: &[T],
+    ) -> Result<IValue, TchError> {
+        let c_function_name = std::ffi::CString::new(function_name)?;
+        let ts = ts.iter().map(|x| x.borrow().to_c()).collect::<Result<Vec<_>, TchError>>()?;
+        let c_ivalue = unsafe_torch_err!(atcu_function_(
+            self.c_compunit,
+            c_function_name.as_ptr(),
+            ts.as_ptr(),
+            ts.len() as c_int
+        ));
+        for x in ts {
+            unsafe { ati_free(x) }
+        }
+        IValue::from_c(c_ivalue)
+    }
+
+}
+
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Debug, PartialEq)]
 pub struct Object {
@@ -842,6 +911,8 @@ impl Drop for Object {
 
 #[cfg(test)]
 mod tests {
+    use crate::{TchError, Tensor};
+
     use super::IValue;
     use std::f64::consts;
 
@@ -850,6 +921,7 @@ mod tests {
         let ivalue2 = IValue::from_c(ivalue.to_c().unwrap()).unwrap();
         assert_eq!(ivalue, ivalue2);
     }
+
     #[test]
     fn ivalue_round_trip() {
         round_trip(());
@@ -869,5 +941,19 @@ mod tests {
             (IValue::from(42), IValue::from("foobar")),
             (IValue::from("foo"), IValue::from("bar")),
         ]);
+    }
+    
+    #[test]
+    fn test_script() -> Result<(), TchError> {
+        let script = super::CCompilationUnit::compile(r#"
+          def relu_script(a, b):
+            return torch.relu(a + b)
+        "#)?;
+
+        let input_a = Tensor::from(-1);
+        let input_b= Tensor::from(-2);
+        let output = script.function_ts("relu_script", &[input_a, input_b])?;
+        assert_eq!(output, Tensor::from(0));
+        Ok(())
     }
 }
