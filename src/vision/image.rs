@@ -118,7 +118,7 @@ fn visit_dirs(dir: &Path, files: &mut Vec<std::fs::DirEntry>) -> Result<(), TchE
             } else if entry
                 .file_name()
                 .to_str()
-                .map_or(false, |s| s.ends_with(".png") || s.ends_with(".jpg"))
+                .is_some_and(|s| s.ends_with(".png") || s.ends_with(".jpg"))
             {
                 files.push(entry);
             }
