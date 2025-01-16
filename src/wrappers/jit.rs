@@ -622,6 +622,36 @@ impl CModule {
         ));
         Ok(CModule { c_module })
     }
+    
+    /// Create a new module by tracing the application of the specified function on
+    /// the given inputs.
+    pub fn create_by_tracing_is<F>(
+        modl_name: &str,
+        fn_name: &str,
+        inputs: &[Tensor],
+        closure: &mut F,
+    ) -> Result<CModule, TchError>
+    where
+        F: FnMut(&[Tensor]) -> Vec<IValue>,
+    {
+        let modl_name = std::ffi::CString::new(modl_name)?;
+        let fn_name = std::ffi::CString::new(fn_name)?;
+        let c_inputs = inputs.iter().map(|tensor| tensor.c_tensor).collect::<Vec<_>>();
+        let c_module = unsafe_torch_err!(atm_create_for_tracing(
+            modl_name.as_ptr(),
+            c_inputs.as_ptr(),
+            c_inputs.len() as c_int
+        ));
+        let outputs = closure(inputs);
+        let c_outputs = outputs.into_iter().map(|x| x.to_c()).collect::<Result<Vec<_>, TchError>>()?;
+        unsafe_torch_err!(atm_end_tracing_is(
+            c_module,
+            fn_name.as_ptr(),
+            c_outputs.as_ptr(),
+            c_outputs.len() as c_int,
+        ));
+        Ok(CModule { c_module })
+    }
 }
 
 /// The trainable version of a jit PyTorch module.

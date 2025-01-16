@@ -1307,6 +1307,23 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
   )
 }
 
+void atm_end_tracing_is(module m, char *fn_name, ivalue *outputs, int noutputs) {
+  PROTECT(
+    auto state = torch::jit::tracer::getTracingState();
+    if (state == nullptr)
+      throw std::invalid_argument("not in tracing mode");
+
+    for (int i = 0; i < noutputs; ++i) {
+      state->graph->registerOutput(state->getOutput(*outputs[i], i));
+    }
+    torch::jit::FixupTraceScopeBlocks(state->graph, m);
+    torch::jit::NormalizeOps(state->graph);
+    torch::jit::tracer::setTracingState(nullptr);
+    auto fn = m->_ivalue()->compilation_unit()->create_function(fn_name, state->graph);
+    m->type()->addMethod(fn);
+  )
+}
+
 
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(

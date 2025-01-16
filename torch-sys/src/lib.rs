@@ -335,6 +335,12 @@ extern "C" {
         outputs: *const *mut C_tensor,
         noutputs: c_int,
     );
+    pub fn atm_end_tracing_is(
+        m: *mut CModule_,
+        fn_name: *const c_char,
+        outputs: *const *mut CIValue,
+        noutputs: c_int,
+    );
 
     pub fn atcu_compile(script: *const c_char) -> *mut CSharedCompilationUnit_;
     pub fn atcu_function(

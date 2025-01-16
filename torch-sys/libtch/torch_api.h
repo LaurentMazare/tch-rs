@@ -235,6 +235,7 @@ void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor))
 // This function has to be followed by a call to atm_end_tracing.
 module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
 void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
+void atm_end_tracing_is(module m, char *fn_name, ivalue *outputs, int noutputs);
 
 shared_compunit atcu_compile(const char* script);
 tensor atcu_function(shared_compunit,
