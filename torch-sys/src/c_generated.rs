@@ -242,6 +242,8 @@ extern "C" {
         stride_data: *const i64,
         stride_len: c_int,
         dtype_: c_int,
+        device_: c_int,
+        layout_: i8,
     );
     pub fn atg__autocast_to_full_precision(
         out__: *mut *mut C_tensor,
@@ -460,6 +462,11 @@ extern "C" {
         self_: *mut C_tensor,
         innerKTiles_: i64,
     );
+    pub fn atg__convert_weight_to_int4pack_for_cpu(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        innerKTiles_: i64,
+    );
     pub fn atg__convolution(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,
@@ -567,6 +574,8 @@ extern "C" {
         out_dtype_: c_int,
         transpose_result_: c_int,
         alg_id_: i64,
+        split_k_: i64,
+        split_k_one_kernel_: c_int,
     );
     pub fn atg__cslt_sparse_mm_search(
         compressed_A_: *mut C_tensor,
@@ -1945,6 +1954,17 @@ extern "C" {
         padded_: *mut C_tensor,
         cpu_nested_shape_example_: *mut C_tensor,
         fuse_transform_0213_: c_int,
+    );
+    pub fn atg__nested_from_padded_tensor(
+        out__: *mut *mut C_tensor,
+        padded_: *mut C_tensor,
+        offsets_: *mut C_tensor,
+        dummy_: *mut C_tensor,
+        ragged_idx_: i64,
+        min_seqlen_: *mut C_tensor,
+        max_seqlen_: *mut C_tensor,
+        sum_S_v: i64,
+        sum_S_null: i8,
     );
     pub fn atg__nested_get_jagged_dummy(out__: *mut *mut C_tensor, any_: *mut C_tensor);
     pub fn atg__nested_get_lengths(out__: *mut *mut C_tensor, self_: *mut C_tensor);
@@ -3690,6 +3710,13 @@ extern "C" {
         qGroupSize_: i64,
         qScaleAndZeros_: *mut C_tensor,
     );
+    pub fn atg__weight_int4pack_mm_for_cpu(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        qGroupSize_: i64,
+        qScaleAndZeros_: *mut C_tensor,
+    );
     pub fn atg__weight_int8pack_mm(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -3773,6 +3800,13 @@ extern "C" {
     pub fn atg_acosh_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_adaptive_avg_pool1d(
         out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        output_size_data: *const i64,
+        output_size_len: c_int,
+    );
+    pub fn atg_adaptive_avg_pool1d_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
         self_: *mut C_tensor,
         output_size_data: *const i64,
         output_size_len: c_int,
@@ -4347,6 +4381,19 @@ extern "C" {
     ) -> *mut *mut C_tensor;
     pub fn atg_avg_pool1d(
         out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        kernel_size_data: *const i64,
+        kernel_size_len: c_int,
+        stride_data: *const i64,
+        stride_len: c_int,
+        padding_data: *const i64,
+        padding_len: c_int,
+        ceil_mode_: c_int,
+        count_include_pad_: c_int,
+    );
+    pub fn atg_avg_pool1d_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
         self_: *mut C_tensor,
         kernel_size_data: *const i64,
         kernel_size_len: c_int,
@@ -12614,6 +12661,12 @@ extern "C" {
         training_: c_int,
         self_is_result_: c_int,
     );
+    pub fn atg_rrelu_with_noise_functional(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        noise_: *mut C_tensor,
+        training_: c_int,
+    );
     pub fn atg_rrelu_with_noise_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -15217,6 +15270,16 @@ extern "C" {
         scale_factors_data: *const f64,
         scale_factors_len: c_int,
     );
+    pub fn atg_upsample_bilinear2d_vec_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        input_: *mut C_tensor,
+        output_size_data: *const i64,
+        output_size_len: c_int,
+        align_corners_: c_int,
+        scale_factors_data: *const f64,
+        scale_factors_len: c_int,
+    );
     pub fn atg_upsample_linear1d(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
@@ -15362,6 +15425,15 @@ extern "C" {
     );
     pub fn atg_upsample_nearest2d_vec(
         out__: *mut *mut C_tensor,
+        input_: *mut C_tensor,
+        output_size_data: *const i64,
+        output_size_len: c_int,
+        scale_factors_data: *const f64,
+        scale_factors_len: c_int,
+    );
+    pub fn atg_upsample_nearest2d_vec_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
         input_: *mut C_tensor,
         output_size_data: *const i64,
         output_size_len: c_int,
