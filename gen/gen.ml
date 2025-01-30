@@ -691,7 +691,8 @@ let write_fallible_wrapper funcs filename =
       List.iter func.args ~f:(fun arg ->
         match arg.arg_type with
         | DoubleOption | Int64Option ->
-          pm "        let %s = %s.into();" arg.arg_name arg.arg_name
+          let arg_name = Func.rust_name arg.arg_name in
+          pm "        let %s = %s.into();" arg_name arg_name
         | _ -> ());
       match func.returns with
       | `dynamic ->
@@ -882,7 +883,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.5.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.6.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

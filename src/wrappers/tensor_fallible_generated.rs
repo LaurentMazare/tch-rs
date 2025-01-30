@@ -635,6 +635,8 @@ impl Tensor {
         size: impl IntListOption,
         stride: impl IntListOption,
         dtype: impl Into<Option<Kind>>,
+        device: Device,
+        layout: Option<Layout>,
     ) -> Result<(), TchError> {
         unsafe_torch_err!(atg__assert_tensor_metadata(
             a.c_tensor,
@@ -642,7 +644,9 @@ impl Tensor {
             size.len_i32(),
             stride.as_ptr(),
             stride.len_i32(),
-            dtype.into().map_or(-1, |s| s.c_int())
+            dtype.into().map_or(-1, |s| s.c_int()),
+            device.c_int(),
+            layout.map_or(-1, |s| s.to_i8())
         ));
         Ok(())
     }
@@ -1271,6 +1275,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_convert_weight_to_int4pack_for_cpu(
+        &self,
+        innerktiles: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__convert_weight_to_int4pack_for_cpu(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            innerktiles
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_convolution<T: Borrow<Tensor>>(
         &self,
         weight: &Tensor,
@@ -1485,6 +1502,8 @@ impl Tensor {
         out_dtype: impl Into<Option<Kind>>,
         transpose_result: bool,
         alg_id: i64,
+        split_k: i64,
+        split_k_one_kernel: bool,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__cslt_sparse_mm(
@@ -1495,7 +1514,9 @@ impl Tensor {
             alpha.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             out_dtype.into().map_or(-1, |s| s.c_int()),
             if transpose_result { 1 } else { 0 },
-            alg_id
+            alg_id,
+            split_k,
+            if split_k_one_kernel { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -4801,6 +4822,31 @@ impl Tensor {
             padded.c_tensor,
             cpu_nested_shape_example.c_tensor,
             if fuse_transform_0213 { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_nested_from_padded_tensor<T: Borrow<Tensor>>(
+        padded: &Tensor,
+        offsets: &Tensor,
+        dummy: &Tensor,
+        ragged_idx: i64,
+        min_seqlen: Option<T>,
+        max_seqlen: Option<T>,
+        sum_s: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let sum_s = sum_s.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__nested_from_padded_tensor(
+            c_tensors.as_mut_ptr(),
+            padded.c_tensor,
+            offsets.c_tensor,
+            dummy.c_tensor,
+            ragged_idx,
+            min_seqlen.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            max_seqlen.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            sum_s.unwrap_or(0i64),
+            sum_s.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8879,6 +8925,23 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_weight_int4pack_mm_for_cpu(
+        &self,
+        mat2: &Tensor,
+        qgroupsize: i64,
+        qscaleandzeros: &Tensor,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__weight_int4pack_mm_for_cpu(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            qgroupsize,
+            qscaleandzeros.c_tensor
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_weight_int8pack_mm(
         &self,
         mat2: &Tensor,
@@ -9111,6 +9174,22 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_adaptive_avg_pool1d(
             c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            output_size.as_ptr(),
+            output_size.len_i32()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_adaptive_avg_pool1d_out(
+        &self,
+        out: &Tensor,
+        output_size: impl IntList,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_adaptive_avg_pool1d_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32()
@@ -10614,6 +10693,32 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_avg_pool1d(
             c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            kernel_size.as_ptr(),
+            kernel_size.len_i32(),
+            stride.as_ptr(),
+            stride.len_i32(),
+            padding.as_ptr(),
+            padding.len_i32(),
+            if ceil_mode { 1 } else { 0 },
+            if count_include_pad { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_avg_pool1d_out(
+        &self,
+        out: &Tensor,
+        kernel_size: impl IntList,
+        stride: impl IntList,
+        padding: impl IntList,
+        ceil_mode: bool,
+        count_include_pad: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_avg_pool1d_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
             self.c_tensor,
             kernel_size.as_ptr(),
             kernel_size.len_i32(),
@@ -30513,6 +30618,21 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_rrelu_with_noise_functional(
+        &self,
+        noise: &Tensor,
+        training: bool,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_rrelu_with_noise_functional(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            noise.c_tensor,
+            if training { 1 } else { 0 }
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
     pub fn f_rrelu_with_noise_out(
         &self,
         out: &Tensor,
@@ -37091,6 +37211,27 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_upsample_bilinear2d_vec_out(
+        &self,
+        out: &Tensor,
+        output_size: impl IntListOption,
+        align_corners: bool,
+        scale_factors: impl DoubleList,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_upsample_bilinear2d_vec_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            output_size.as_ptr(),
+            output_size.len_i32(),
+            if align_corners { 1 } else { 0 },
+            scale_factors.as_ptr(),
+            scale_factors.len_i32()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_upsample_linear1d(
         &self,
         output_size: impl IntList,
@@ -37405,6 +37546,25 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_upsample_nearest2d_vec(
             c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            output_size.as_ptr(),
+            output_size.len_i32(),
+            scale_factors.as_ptr(),
+            scale_factors.len_i32()
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_upsample_nearest2d_vec_out(
+        &self,
+        out: &Tensor,
+        output_size: impl IntListOption,
+        scale_factors: impl DoubleList,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_upsample_nearest2d_vec_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
