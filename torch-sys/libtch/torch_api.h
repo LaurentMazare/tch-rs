@@ -5,6 +5,7 @@
 #ifdef __cplusplus
 #include<torch/torch.h>
 #include<stdexcept>
+#include<memory>
 using namespace std;
 extern thread_local char *torch_last_err;
 
@@ -13,6 +14,8 @@ typedef torch::Tensor *tensor;
 typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef torch::jit::script::Module *module;
+typedef torch::jit::script::CompilationUnit *compunit;
+typedef std::shared_ptr<torch::jit::script::CompilationUnit> *shared_compunit;
 typedef torch::jit::IValue *ivalue;
 #define PROTECT(x) \
   try { \
@@ -25,6 +28,8 @@ typedef void *tensor;
 typedef void *optimizer;
 typedef void *scalar;
 typedef void *module;
+typedef void *compunit;
+typedef void *shared_compunit;
 typedef void *ivalue;
 #endif
 
@@ -230,6 +235,18 @@ void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor))
 // This function has to be followed by a call to atm_end_tracing.
 module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
 void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
+void atm_end_tracing_is(module m, char *fn_name, ivalue *outputs, int noutputs);
+
+shared_compunit atcu_compile(const char* script);
+tensor atcu_function(shared_compunit,
+                     char *function_name,
+                     tensor *tensors,
+                     int nivalues);
+ivalue atcu_function_(shared_compunit,
+                      char *function_name,
+                      ivalue *ivalues,
+                      int nivalues);
+void atcu_free(shared_compunit scu);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);

@@ -153,6 +153,39 @@ fn create_traced() {
     )
 }
 
+#[test]
+fn create_traced_tuple() {
+    let mut closure = |inputs: &[Tensor]| {
+        let v1 = inputs[0].shallow_clone();
+        let v2 = inputs[1].shallow_clone();
+        vec![IValue::Tuple(vec![IValue::Tensor(v1), IValue::Tensor(v2)])]
+    };
+    let modl = tch::CModule::create_by_tracing_is(
+        "MyModule2",
+        "MyFn2",
+        &[Tensor::from(0.0), Tensor::from(1.0)],
+        &mut closure,
+    )
+    .unwrap();
+    let filename = std::env::temp_dir().join(format!("tch-modl2-{}", std::process::id()));
+    modl.save(&filename).unwrap();
+    let modl = tch::CModule::load(&filename).unwrap();
+    let xs = Tensor::from_slice(&[1.0, 2.0, 3.0, 4.0, 5.0]);
+    let ys = Tensor::from_slice(&[41.0, 1335.0, std::f64::consts::PI - 3., 4.0, 5.0]);
+    let iresult = modl.method_is("MyFn2", &[IValue::Tensor(xs), IValue::Tensor(ys)]).unwrap();
+    let IValue::Tuple(mut vs) = iresult else { panic!("unexpected") };
+    let IValue::Tensor(v2) = vs.pop().unwrap() else { panic!("unexpected") };
+    let IValue::Tensor(v1) = vs.pop().unwrap() else { panic!("unexpected") };
+    assert_eq!(
+        Vec::<f64>::try_from(&v1).unwrap(),
+        &[1.0, 2.0, 3.0, 4.0, 5.0]
+    );
+    assert_eq!(
+        Vec::<f64>::try_from(&v2).unwrap(),
+        &[41.0, 1335.0, std::f64::consts::PI - 3., 4.0, 5.0]
+    );
+}
+
 // https://github.com/LaurentMazare/tch-rs/issues/475
 #[test]
 fn jit_double_free() {
