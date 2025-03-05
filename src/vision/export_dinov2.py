@@ -8,8 +8,9 @@ def normalize_key(k):
         k = k[7:]
     return k
 
-dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14_lc', layers=1)
-print(dinov2_vits14)
-weights = dinov2_vits14.state_dict()
-weights = {normalize_key(k): v for k, v in weights.items()}
-save_file(weights, "dinov2_vits14.safetensors")
+for model_size in ["small", "base", "large", "giant"]:
+    letter = model_size[0]
+    dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', f'dinov2_vit{letter}14_lc', layers=1)
+    weights = dinov2_vits14.state_dict()
+    weights = {normalize_key(k): v for k, v in weights.items()}
+    save_file(weights, f"dinov2_vit{letter}14.safetensors")

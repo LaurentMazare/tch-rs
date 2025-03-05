@@ -173,7 +173,7 @@ impl DinoVisionTransformer {
         Self { patch_embed, cls_token, pos_embed, blocks, norm, head }
     }
 
-    fn interpolate_pos_encoding(&self, xs: &Tensor, w: i64, h: i64) -> Tensor {
+    pub fn interpolate_pos_encoding(&self, xs: &Tensor, w: i64, h: i64) -> Tensor {
         let npatch = xs.size()[1] - 1;
         let n = self.pos_embed.size()[1] - 1;
         let sqrt_n = (n as f64).sqrt();
@@ -192,16 +192,14 @@ impl DinoVisionTransformer {
         Tensor::cat(&[class_pos_embed, patch_pos_embed], 1)
     }
 
-    fn prepare_tokens_with_mask(&self, xs: &Tensor) -> Tensor {
+    pub fn prepare_tokens_with_mask(&self, xs: &Tensor) -> Tensor {
         let (b, _nc, w, h) = xs.size4().unwrap();
         let xs = xs.apply(&self.patch_embed);
         let xs = Tensor::concat(&[self.cls_token.expand([b, -1, -1], false), xs], 1);
         &xs + &self.interpolate_pos_encoding(&xs, w, h)
     }
-}
 
-impl nn::Module for DinoVisionTransformer {
-    fn forward(&self, xs: &Tensor) -> Tensor {
+    pub fn extract_features(&self, xs: &Tensor) -> Tensor {
         let mut xs = self.prepare_tokens_with_mask(xs);
         for blk in self.blocks.iter() {
             xs = xs.apply(blk)
@@ -209,11 +207,28 @@ impl nn::Module for DinoVisionTransformer {
         let xs = xs.apply(&self.norm);
         let xs_norm_clstoken = xs.i((.., 0));
         let xs_norm_patchtokens = xs.i((.., 1..)).mean_dim(1, false, None);
-        let xs = Tensor::concat(&[xs_norm_clstoken, xs_norm_patchtokens], -1);
-        xs.apply(&self.head)
+        Tensor::concat(&[xs_norm_clstoken, xs_norm_patchtokens], -1)
+    }
+}
+
+impl nn::Module for DinoVisionTransformer {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        self.extract_features(xs).apply(&self.head)
     }
 }
 
 pub fn vit_small(vs: &nn::Path) -> DinoVisionTransformer {
     DinoVisionTransformer::new(vs, 12, 384, 6)
+}
+
+pub fn vit_base(vs: &nn::Path) -> DinoVisionTransformer {
+    DinoVisionTransformer::new(vs, 12, 768, 12)
+}
+
+pub fn vit_large(vs: &nn::Path) -> DinoVisionTransformer {
+    DinoVisionTransformer::new(vs, 24, 1024, 16)
+}
+
+pub fn vit_giant(vs: &nn::Path) -> DinoVisionTransformer {
+    DinoVisionTransformer::new(vs, 40, 1536, 24)
 }
