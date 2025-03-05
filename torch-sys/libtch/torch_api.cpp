@@ -1452,6 +1452,14 @@ ivalue ati_tensor_list(tensor *is, int nvalues) {
   return nullptr;
 }
 
+ivalue ati_device(int device_idx) {
+  PROTECT(
+    return new torch::jit::IValue(device_of_int(device_idx));
+  )
+  return nullptr;
+}
+
+
 int ati_tag(ivalue i) {
   PROTECT(
     if (i->isNone()) return 0;
