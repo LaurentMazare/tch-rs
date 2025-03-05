@@ -1411,7 +1411,7 @@ void atg_le_scalar_out(tensor *, tensor out, tensor self, scalar other);
 void atg_le_tensor(tensor *, tensor self, tensor other);
 void atg_le_tensor_(tensor *, tensor self, tensor other);
 void atg_le_tensor_out(tensor *, tensor out, tensor self, tensor other);
-void atg_leaky_relu(tensor *, tensor self);
+void atg_leaky_relu(tensor *, tensor self, scalar negative_slope);
 void atg_leaky_relu_(tensor *, tensor self);
 void atg_leaky_relu_backward(tensor *, tensor grad_output, tensor self, scalar negative_slope, int self_is_result);
 void atg_leaky_relu_backward_grad_input(tensor *, tensor grad_input, tensor grad_output, tensor self, scalar negative_slope, int self_is_result);

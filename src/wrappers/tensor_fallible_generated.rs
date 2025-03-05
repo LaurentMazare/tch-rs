@@ -21509,9 +21509,13 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_leaky_relu(&self) -> Result<Tensor, TchError> {
+    pub fn f_leaky_relu<S: Into<Scalar>>(&self, negative_slope: S) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_leaky_relu(c_tensors.as_mut_ptr(), self.c_tensor));
+        unsafe_torch_err!(atg_leaky_relu(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            negative_slope.into().c_scalar
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 

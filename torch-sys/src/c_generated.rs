@@ -8885,7 +8885,11 @@ extern "C" {
         self_: *mut C_tensor,
         other_: *mut C_tensor,
     );
-    pub fn atg_leaky_relu(out__: *mut *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_leaky_relu(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        negative_slope: *mut C_scalar,
+    );
     pub fn atg_leaky_relu_(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_leaky_relu_backward(
         out__: *mut *mut C_tensor,

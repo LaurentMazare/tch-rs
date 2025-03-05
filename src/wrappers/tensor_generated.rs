@@ -11285,8 +11285,8 @@ impl Tensor {
         self.f_le_tensor_out(out, other).unwrap()
     }
 
-    pub fn leaky_relu(&self) -> Tensor {
-        self.f_leaky_relu().unwrap()
+    pub fn leaky_relu<S: Into<Scalar>>(&self, negative_slope: S) -> Tensor {
+        self.f_leaky_relu(negative_slope).unwrap()
     }
 
     pub fn leaky_relu_(&mut self) -> Tensor {

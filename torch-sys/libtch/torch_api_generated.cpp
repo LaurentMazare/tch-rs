@@ -10158,9 +10158,9 @@ void atg_le_tensor_out(tensor *out__, tensor out, tensor self, tensor other) {
   )
 }
 
-void atg_leaky_relu(tensor *out__, tensor self) {
+void atg_leaky_relu(tensor *out__, tensor self, scalar negative_slope) {
   PROTECT(
-    auto outputs__ = torch::leaky_relu(*self);
+    auto outputs__ = torch::leaky_relu(*self, *negative_slope);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
