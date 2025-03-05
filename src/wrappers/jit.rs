@@ -307,7 +307,7 @@ impl IValue {
                 unsafe_torch_err!(ati_clone(*c_ivalue))
             }
             IValue::Device(device) => {
-                ati_device(device.c_int())   
+                ati_device(device.c_int())
             }
         });
         Ok(c)
