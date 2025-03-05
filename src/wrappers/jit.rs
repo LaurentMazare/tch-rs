@@ -29,6 +29,7 @@ pub enum IValue {
     // Eq or Hash out of the box in rust. TODO: improve this?
     GenericDict(Vec<(IValue, IValue)>),
     Object(Object),
+    Device(Device),
 }
 
 impl IValue {
@@ -49,6 +50,7 @@ impl IValue {
             IValue::GenericList(_) => "GenericList",
             IValue::GenericDict(_) => "GenericDict",
             IValue::Object(_) => "Object",
+            IValue::Device(_) => "Device",
         }
     }
 }
@@ -233,6 +235,7 @@ impl_from!(Vec<crate::Tensor>, TensorList);
 impl_from!(Vec<IValue>, GenericList);
 impl_from!(Vec<(IValue, IValue)>, GenericDict);
 impl_from!(Object, Object);
+impl_from!(Device, Device);
 
 impl From<&str> for IValue {
     fn from(s: &str) -> Self {
@@ -302,6 +305,9 @@ impl IValue {
             IValue::Object(Object { c_ivalue }) => {
                 // Clone the object if necessary before passing the pointer to the C++ side.
                 unsafe_torch_err!(ati_clone(*c_ivalue))
+            }
+            IValue::Device(device) => {
+                ati_device(device.c_int())
             }
         });
         Ok(c)
