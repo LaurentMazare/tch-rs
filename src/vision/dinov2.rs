@@ -207,8 +207,7 @@ impl DinoVisionTransformer {
         let xs = xs.apply(&self.norm);
         let xs_norm_clstoken = xs.i((.., 0));
         let xs_norm_patchtokens = xs.i((.., 1..)).mean_dim(1, false, None);
-        let xs = Tensor::concat(&[xs_norm_clstoken, xs_norm_patchtokens], -1);
-        xs
+        Tensor::concat(&[xs_norm_clstoken, xs_norm_patchtokens], -1)
     }
 }
 
