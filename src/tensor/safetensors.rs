@@ -119,9 +119,8 @@ impl crate::Tensor {
         let file = std::fs::read(&path).map_err(|e| wrap_err(&path, e.into()))?;
         Self::read_safetensors(&file)
     }
-    pub fn write_safetensors<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
+    pub fn write_safetensors<S: AsRef<str>, T: AsRef<Tensor>>(
         tensors: &[(S, T)],
-        path: P,
     ) -> Result<Vec<u8>, TchError> {
         let views = tensors
             .iter()
@@ -130,7 +129,7 @@ impl crate::Tensor {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        safetensors::tensor::serialize(views, &None).map_err(|e| wrap_err(path, e))
+        safetensors::tensor::serialize(views, &None).map_err(|e| wrap_err(":memory:", e))
     }
 
     /// Writes a tensor in the safetensors format.
