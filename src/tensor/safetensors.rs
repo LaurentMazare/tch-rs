@@ -108,15 +108,33 @@ fn wrap_err<P: AsRef<Path>>(path: P, err: safetensors::SafeTensorError) -> TchEr
 }
 
 impl crate::Tensor {
-    /// Reads a safetensors file and returns some named tensors.
-    pub fn read_safetensors<T: AsRef<Path>>(path: T) -> Result<Vec<(String, Tensor)>, TchError> {
-        let file = std::fs::read(&path).map_err(|e| wrap_err(&path, e.into()))?;
-        let safetensors = SafeTensors::deserialize(&file).map_err(|e| wrap_err(&path, e))?;
+    pub fn read_safetensors(data: &[u8]) -> Result<Vec<(String, Tensor)>, TchError> {
+        let safetensors = SafeTensors::deserialize(data).map_err(|e| wrap_err(":memory:", e))?;
         safetensors.tensors().into_iter().map(|(name, view)| Ok((name, view.try_into()?))).collect()
+    }
+    /// Reads a safetensors file and returns some named tensors.
+    pub fn read_safetensors_file<T: AsRef<Path>>(
+        path: T,
+    ) -> Result<Vec<(String, Tensor)>, TchError> {
+        let file = std::fs::read(&path).map_err(|e| wrap_err(&path, e.into()))?;
+        Self::read_safetensors(&file)
+    }
+    pub fn write_safetensors<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
+        tensors: &[(S, T)],
+        path: P,
+    ) -> Result<Vec<u8>, TchError> {
+        let views = tensors
+            .iter()
+            .map(|(name, tensor)| {
+                Ok::<(&str, SafeView), TchError>((name.as_ref(), tensor.as_ref().try_into()?))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        safetensors::tensor::serialize(views, &None).map_err(|e| wrap_err(path, e))
     }
 
     /// Writes a tensor in the safetensors format.
-    pub fn write_safetensors<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
+    pub fn persist_safetensors<S: AsRef<str>, T: AsRef<Tensor>, P: AsRef<Path>>(
         tensors: &[(S, T)],
         path: P,
     ) -> Result<(), TchError> {
@@ -146,7 +164,7 @@ impl VarStore {
     }
 
     pub fn fill_safetensors<P: AsRef<Path>>(&self, path: P) -> Result<(), TchError> {
-        for (name, tensor) in Tensor::read_safetensors(path)? {
+        for (name, tensor) in Tensor::read_safetensors_file(path)? {
             if let Some(s) = self.variables_.lock().unwrap().named_variables.get_mut(&name) {
                 s.f_copy_(&tensor)?
             }
