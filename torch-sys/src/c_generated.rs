@@ -812,6 +812,23 @@ extern "C" {
         alpha_: *mut C_tensor,
         total_: *mut C_tensor,
     );
+    pub fn atg__dyn_quant_matmul_4bit(
+        out__: *mut *mut C_tensor,
+        inp_: *mut C_tensor,
+        packed_weights_: *mut C_tensor,
+        block_size_: i64,
+        in_features_: i64,
+        out_features_: i64,
+    );
+    pub fn atg__dyn_quant_pack_4bit_weight(
+        out__: *mut *mut C_tensor,
+        weights_: *mut C_tensor,
+        scales_zeros_: *mut C_tensor,
+        bias_: *mut C_tensor,
+        block_size_: i64,
+        in_features_: i64,
+        out_features_: i64,
+    );
     pub fn atg__efficient_attention_backward(
         out__: *mut *mut C_tensor,
         grad_out__: *mut C_tensor,
@@ -1179,8 +1196,8 @@ extern "C" {
         max_k_: i64,
         dropout_p_: f64,
         is_causal_: c_int,
-        philox_seed_: *mut C_tensor,
-        philox_offset_: *mut C_tensor,
+        rng_state_: *mut C_tensor,
+        unused_: *mut C_tensor,
         scale_v: f64,
         scale_null: i8,
         window_size_left_v: i64,
@@ -2347,6 +2364,18 @@ extern "C" {
         attn_mask_: *mut C_tensor,
         scale_v: f64,
         scale_null: i8,
+    );
+    pub fn atg__scaled_grouped_mm(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        scale_a_: *mut C_tensor,
+        scale_b_: *mut C_tensor,
+        offs_: *mut C_tensor,
+        bias_: *mut C_tensor,
+        scale_result_: *mut C_tensor,
+        out_dtype_: c_int,
+        use_fast_accum_: c_int,
     );
     pub fn atg__scaled_mm(
         out__: *mut *mut C_tensor,
@@ -14519,6 +14548,7 @@ extern "C" {
         normalized_: c_int,
         onesided_: c_int,
         return_complex_: c_int,
+        align_to_window_: c_int,
     );
     pub fn atg_stft_center(
         out__: *mut *mut C_tensor,
@@ -14535,6 +14565,7 @@ extern "C" {
         normalized_: c_int,
         onesided_: c_int,
         return_complex_: c_int,
+        align_to_window_: c_int,
     );
     pub fn atg_sub(out__: *mut *mut C_tensor, self_: *mut C_tensor, other_: *mut C_tensor);
     pub fn atg_sub_(out__: *mut *mut C_tensor, self_: *mut C_tensor, other_: *mut C_tensor);

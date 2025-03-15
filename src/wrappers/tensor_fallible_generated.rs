@@ -2060,6 +2060,46 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_dyn_quant_matmul_4bit(
+        inp: &Tensor,
+        packed_weights: &Tensor,
+        block_size: i64,
+        in_features: i64,
+        out_features: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__dyn_quant_matmul_4bit(
+            c_tensors.as_mut_ptr(),
+            inp.c_tensor,
+            packed_weights.c_tensor,
+            block_size,
+            in_features,
+            out_features
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_dyn_quant_pack_4bit_weight<T: Borrow<Tensor>>(
+        weights: &Tensor,
+        scales_zeros: &Tensor,
+        bias: Option<T>,
+        block_size: i64,
+        in_features: i64,
+        out_features: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__dyn_quant_pack_4bit_weight(
+            c_tensors.as_mut_ptr(),
+            weights.c_tensor,
+            scales_zeros.c_tensor,
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            block_size,
+            in_features,
+            out_features
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_efficient_attention_backward<T: Borrow<Tensor>>(
         grad_out_: &Tensor,
         query: &Tensor,
@@ -2900,8 +2940,8 @@ impl Tensor {
         max_k: i64,
         dropout_p: f64,
         is_causal: bool,
-        philox_seed: &Tensor,
-        philox_offset: &Tensor,
+        rng_state: &Tensor,
+        unused: &Tensor,
         scale: impl Into<Option<f64>>,
         window_size_left: impl Into<Option<i64>>,
         window_size_right: impl Into<Option<i64>>,
@@ -2924,8 +2964,8 @@ impl Tensor {
             max_k,
             dropout_p,
             if is_causal { 1 } else { 0 },
-            philox_seed.c_tensor,
-            philox_offset.c_tensor,
+            rng_state.c_tensor,
+            unused.c_tensor,
             scale.unwrap_or(std::f64::NAN),
             scale.is_none() as i8,
             window_size_left.unwrap_or(0i64),
@@ -5781,6 +5821,33 @@ impl Tensor {
             Tensor { c_tensor: c_tensors[1] },
             Tensor { c_tensor: c_tensors[2] },
         ))
+    }
+
+    pub fn f_internal_scaled_grouped_mm<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &Tensor,
+        scale_b: &Tensor,
+        offs: Option<T>,
+        bias: Option<T>,
+        scale_result: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_grouped_mm(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            scale_a.c_tensor,
+            scale_b.c_tensor,
+            offs.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_scaled_mm<T: Borrow<Tensor>>(
@@ -35234,6 +35301,7 @@ impl Tensor {
         normalized: bool,
         onesided: bool,
         return_complex: bool,
+        align_to_window: bool,
     ) -> Result<Tensor, TchError> {
         let hop_length = hop_length.into();
         let win_length = win_length.into();
@@ -35249,7 +35317,8 @@ impl Tensor {
             window.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if normalized { 1 } else { 0 },
             if onesided { 1 } else { 0 },
-            if return_complex { 1 } else { 0 }
+            if return_complex { 1 } else { 0 },
+            if align_to_window { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -35265,6 +35334,7 @@ impl Tensor {
         normalized: bool,
         onesided: bool,
         return_complex: bool,
+        align_to_window: bool,
     ) -> Result<Tensor, TchError> {
         let hop_length = hop_length.into();
         let win_length = win_length.into();
@@ -35283,7 +35353,8 @@ impl Tensor {
             pad_mode.len() as i32,
             if normalized { 1 } else { 0 },
             if onesided { 1 } else { 0 },
-            if return_complex { 1 } else { 0 }
+            if return_complex { 1 } else { 0 },
+            if align_to_window { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
