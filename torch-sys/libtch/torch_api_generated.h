@@ -126,6 +126,8 @@ int64_t atg__dimi(tensor self);
 int64_t atg__dimv(tensor self);
 void atg__dirichlet_grad(tensor *, tensor x, tensor alpha, tensor total);
 void atg__dirichlet_grad_out(tensor *, tensor out, tensor x, tensor alpha, tensor total);
+void atg__dyn_quant_matmul_4bit(tensor *, tensor inp, tensor packed_weights, int64_t block_size, int64_t in_features, int64_t out_features);
+void atg__dyn_quant_pack_4bit_weight(tensor *, tensor weights, tensor scales_zeros, tensor bias, int64_t block_size, int64_t in_features, int64_t out_features);
 void atg__efficient_attention_backward(tensor *, tensor grad_out_, tensor query, tensor key, tensor value, tensor bias, tensor out, tensor cu_seqlens_q, tensor cu_seqlens_k, int64_t max_seqlen_q, int64_t max_seqlen_k, tensor logsumexp, double dropout_p, tensor philox_seed, tensor philox_offset, int64_t custom_mask_type, int bias_requires_grad, double scale_v, uint8_t scale_null, int64_t num_splits_key_v, uint8_t num_splits_key_null, int64_t window_size_v, uint8_t window_size_null, int shared_storage_dqdkdv);
 void atg__efficientzerotensor(tensor *, int64_t *size_data, int size_len, int options_kind, int options_device);
 void atg__efficientzerotensor_out(tensor *, tensor out, int64_t *size_data, int size_len);
@@ -160,7 +162,7 @@ void atg__fft_c2r_out(tensor *, tensor out, tensor self, int64_t *dim_data, int 
 void atg__fft_r2c(tensor *, tensor self, int64_t *dim_data, int dim_len, int64_t normalization, int onesided);
 void atg__fft_r2c_out(tensor *, tensor out, tensor self, int64_t *dim_data, int dim_len, int64_t normalization, int onesided);
 void atg__fill_mem_eff_dropout_mask_(tensor *, tensor self, double dropout_p, int64_t seed, int64_t offset);
-void atg__flash_attention_backward(tensor *, tensor grad_out, tensor query, tensor key, tensor value, tensor out, tensor logsumexp, tensor cum_seq_q, tensor cum_seq_k, int64_t max_q, int64_t max_k, double dropout_p, int is_causal, tensor philox_seed, tensor philox_offset, double scale_v, uint8_t scale_null, int64_t window_size_left_v, uint8_t window_size_left_null, int64_t window_size_right_v, uint8_t window_size_right_null);
+void atg__flash_attention_backward(tensor *, tensor grad_out, tensor query, tensor key, tensor value, tensor out, tensor logsumexp, tensor cum_seq_q, tensor cum_seq_k, int64_t max_q, int64_t max_k, double dropout_p, int is_causal, tensor rng_state, tensor unused, double scale_v, uint8_t scale_null, int64_t window_size_left_v, uint8_t window_size_left_null, int64_t window_size_right_v, uint8_t window_size_right_null);
 void atg__foobar(tensor *, tensor self, int arg1, int arg2, int arg3);
 void atg__foobar_out(tensor *, tensor out, tensor self, int arg1, int arg2, int arg3);
 void atg__functional_assert_async(tensor *, tensor self, char* assert_msg_ptr, int assert_msg_len, tensor dep_token);
@@ -321,6 +323,7 @@ void atg__scaled_dot_product_efficient_attention(tensor *, tensor query, tensor 
 void atg__scaled_dot_product_flash_attention_backward(tensor *, tensor grad_out, tensor query, tensor key, tensor value, tensor out, tensor logsumexp, tensor cum_seq_q, tensor cum_seq_k, int64_t max_q, int64_t max_k, double dropout_p, int is_causal, tensor philox_seed, tensor philox_offset, double scale_v, uint8_t scale_null);
 void atg__scaled_dot_product_flash_attention_for_cpu(tensor *, tensor query, tensor key, tensor value, double dropout_p, int is_causal, tensor attn_mask, double scale_v, uint8_t scale_null);
 void atg__scaled_dot_product_flash_attention_for_cpu_backward(tensor *, tensor grad_out, tensor query, tensor key, tensor value, tensor out, tensor logsumexp, double dropout_p, int is_causal, tensor attn_mask, double scale_v, uint8_t scale_null);
+void atg__scaled_grouped_mm(tensor *, tensor self, tensor mat2, tensor scale_a, tensor scale_b, tensor offs, tensor bias, tensor scale_result, int out_dtype, int use_fast_accum);
 void atg__scaled_mm(tensor *, tensor self, tensor mat2, tensor scale_a, tensor scale_b, tensor bias, tensor scale_result, int out_dtype, int use_fast_accum);
 void atg__scaled_mm_out(tensor *, tensor out, tensor self, tensor mat2, tensor scale_a, tensor scale_b, tensor bias, tensor scale_result, int out_dtype, int use_fast_accum);
 void atg__scatter_reduce(tensor *, tensor self, int64_t dim, tensor index, tensor src, char* reduce_ptr, int reduce_len, int include_self);
@@ -2401,8 +2404,8 @@ void atg_std_mean_correction(tensor *, tensor self, int64_t *dim_data, int dim_l
 void atg_std_mean_correction_out(tensor *, tensor out0, tensor out1, tensor self, int64_t *dim_data, int dim_len, scalar correction, int keepdim);
 void atg_std_mean_dim(tensor *, tensor self, int64_t *dim_data, int dim_len, int unbiased, int keepdim);
 void atg_std_out(tensor *, tensor out, tensor self, int64_t *dim_data, int dim_len, int unbiased, int keepdim);
-void atg_stft(tensor *, tensor self, int64_t n_fft, int64_t hop_length_v, uint8_t hop_length_null, int64_t win_length_v, uint8_t win_length_null, tensor window, int normalized, int onesided, int return_complex);
-void atg_stft_center(tensor *, tensor self, int64_t n_fft, int64_t hop_length_v, uint8_t hop_length_null, int64_t win_length_v, uint8_t win_length_null, tensor window, int center, char* pad_mode_ptr, int pad_mode_len, int normalized, int onesided, int return_complex);
+void atg_stft(tensor *, tensor self, int64_t n_fft, int64_t hop_length_v, uint8_t hop_length_null, int64_t win_length_v, uint8_t win_length_null, tensor window, int normalized, int onesided, int return_complex, int align_to_window);
+void atg_stft_center(tensor *, tensor self, int64_t n_fft, int64_t hop_length_v, uint8_t hop_length_null, int64_t win_length_v, uint8_t win_length_null, tensor window, int center, char* pad_mode_ptr, int pad_mode_len, int normalized, int onesided, int return_complex, int align_to_window);
 void atg_sub(tensor *, tensor self, tensor other);
 void atg_sub_(tensor *, tensor self, tensor other);
 void atg_sub_out(tensor *, tensor out, tensor self, tensor other);
