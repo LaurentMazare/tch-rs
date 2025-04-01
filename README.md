@@ -219,7 +219,7 @@ This should print the top 5 imagenet categories for the image. The code for this
 
 ```rust
     // First the image is loaded and resized to 224x224.
-    let image = imagenet::load_image_and_resize(image_file)?;
+    let image = imagenet::load_image_and_resize224(image_file)?;
 
     // A variable store is created to hold the model parameters.
     let vs = tch::nn::VarStore::new(tch::Device::Cpu);
@@ -232,7 +232,7 @@ This should print the top 5 imagenet categories for the image. The code for this
     // to probabilities via a softmax.
     let output = resnet18
         .forward_t(&image.unsqueeze(0), /*train=*/ false)
-        .softmax(-1);
+        .softmax(-1, Kind::Float);
 
     // Finally print the top 5 categories and their associated probabilities.
     for (probability, class) in imagenet::top(&output, 5).iter() {
