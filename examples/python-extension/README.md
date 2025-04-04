@@ -11,7 +11,7 @@ Python environment that has torch installed from the root of the github repo.
 
 ```bash
 LIBTORCH_USE_PYTORCH=1 cargo build -p tch-ext && cp -f target/debug/libtch_ext.so tch_ext.so
-python examples/python-extension/main.py
+PYTHONPATH=. python examples/python-extension/test.py
 ```
 
 It is recommended to run the build with `LIBTORCH_USE_PYTORCH` set, this will
