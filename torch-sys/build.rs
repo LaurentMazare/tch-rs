@@ -315,6 +315,8 @@ impl SystemInfo {
                         "cu118" => "%2Bcu118",
                         "cu121" => "%2Bcu121",
                         "cu124" => "%2Bcu124",
+                        "cu126" => "%2Bcu126",
+                        "cu128" => "%2Bcu128",
                         _ => anyhow::bail!("unsupported device {device}, TORCH_CUDA_VERSION may be set incorrectly?"),
                     }
                 ),
@@ -339,6 +341,8 @@ impl SystemInfo {
                         "cu118" => "%2Bcu118",
                         "cu121" => "%2Bcu121",
                         "cu124" => "%2Bcu124",
+                        "cu126" => "%2Bcu126",
+                        "cu128" => "%2Bcu128",
                         _ => ""
                     }),
             };
