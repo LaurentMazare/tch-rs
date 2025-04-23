@@ -11,7 +11,7 @@ fn add_one(tensor: PyTensor) -> PyResult<PyTensor> {
 /// objects.
 #[pymodule]
 fn tch_ext(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
-    py.import_bound("torch")?;
+    py.import("torch")?;
     m.add_function(wrap_pyfunction!(add_one, m)?)?;
     Ok(())
 }

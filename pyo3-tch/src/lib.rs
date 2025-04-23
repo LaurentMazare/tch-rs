@@ -18,7 +18,7 @@ pub fn wrap_tch_err(err: tch::TchError) -> PyErr {
 }
 
 impl<'source> FromPyObject<'source> for PyTensor {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+    fn extract_bound(ob: &Bound<'source, PyAny>) -> PyResult<Self> {
         let ptr = ob.as_ptr() as *mut tch::python::CPyObject;
         let tensor = unsafe { tch::Tensor::pyobject_unpack(ptr) };
         tensor
@@ -31,13 +31,18 @@ impl<'source> FromPyObject<'source> for PyTensor {
     }
 }
 
-impl IntoPy<PyObject> for PyTensor {
-    fn into_py(self, py: Python<'_>) -> PyObject {
+impl<'py> IntoPyObject<'py> for PyTensor {
+    type Output = Bound<'py, Self::Target>;
+    type Target = PyAny;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         // There is no fallible alternative to ToPyObject/IntoPy at the moment so we return
         // None on errors. https://github.com/PyO3/pyo3/issues/1813
-        self.0.pyobject_wrap().map_or_else(
+        let v = self.0.pyobject_wrap().map_or_else(
             |_| py.None(),
             |ptr| unsafe { PyObject::from_owned_ptr(py, ptr as *mut pyo3::ffi::PyObject) },
-        )
+        );
+        Ok(v.into_pyobject(py)?)
     }
 }
