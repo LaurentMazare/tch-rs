@@ -1231,6 +1231,42 @@ impl Tensor {
         Tensor::f_internal_dirichlet_grad_out(out, x, alpha, total).unwrap()
     }
 
+    pub fn internal_dyn_quant_matmul_4bit(
+        inp: &Tensor,
+        packed_weights: &Tensor,
+        block_size: i64,
+        in_features: i64,
+        out_features: i64,
+    ) -> Tensor {
+        Tensor::f_internal_dyn_quant_matmul_4bit(
+            inp,
+            packed_weights,
+            block_size,
+            in_features,
+            out_features,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_dyn_quant_pack_4bit_weight<T: Borrow<Tensor>>(
+        weights: &Tensor,
+        scales_zeros: &Tensor,
+        bias: Option<T>,
+        block_size: i64,
+        in_features: i64,
+        out_features: i64,
+    ) -> Tensor {
+        Tensor::f_internal_dyn_quant_pack_4bit_weight(
+            weights,
+            scales_zeros,
+            bias,
+            block_size,
+            in_features,
+            out_features,
+        )
+        .unwrap()
+    }
+
     pub fn internal_efficient_attention_backward<T: Borrow<Tensor>>(
         grad_out_: &Tensor,
         query: &Tensor,
@@ -1856,8 +1892,8 @@ impl Tensor {
         max_k: i64,
         dropout_p: f64,
         is_causal: bool,
-        philox_seed: &Tensor,
-        philox_offset: &Tensor,
+        rng_state: &Tensor,
+        unused: &Tensor,
         scale: impl Into<Option<f64>>,
         window_size_left: impl Into<Option<i64>>,
         window_size_right: impl Into<Option<i64>>,
@@ -1875,8 +1911,8 @@ impl Tensor {
             max_k,
             dropout_p,
             is_causal,
-            philox_seed,
-            philox_offset,
+            rng_state,
+            unused,
             scale,
             window_size_left,
             window_size_right,
@@ -3484,6 +3520,30 @@ impl Tensor {
     ) -> (Tensor, Tensor, Tensor) {
         Tensor::f_internal_scaled_dot_product_flash_attention_for_cpu_backward(
             grad_out, query, key, value, out, logsumexp, dropout_p, is_causal, attn_mask, scale,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_grouped_mm<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &Tensor,
+        scale_b: &Tensor,
+        offs: Option<T>,
+        bias: Option<T>,
+        scale_result: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_grouped_mm(
+            mat2,
+            scale_a,
+            scale_b,
+            offs,
+            bias,
+            scale_result,
+            out_dtype,
+            use_fast_accum,
         )
         .unwrap()
     }
@@ -17844,9 +17904,19 @@ impl Tensor {
         normalized: bool,
         onesided: bool,
         return_complex: bool,
+        align_to_window: bool,
     ) -> Tensor {
-        self.f_stft(n_fft, hop_length, win_length, window, normalized, onesided, return_complex)
-            .unwrap()
+        self.f_stft(
+            n_fft,
+            hop_length,
+            win_length,
+            window,
+            normalized,
+            onesided,
+            return_complex,
+            align_to_window,
+        )
+        .unwrap()
     }
 
     pub fn stft_center<T: Borrow<Tensor>>(
@@ -17860,6 +17930,7 @@ impl Tensor {
         normalized: bool,
         onesided: bool,
         return_complex: bool,
+        align_to_window: bool,
     ) -> Tensor {
         self.f_stft_center(
             n_fft,
@@ -17871,6 +17942,7 @@ impl Tensor {
             normalized,
             onesided,
             return_complex,
+            align_to_window,
         )
         .unwrap()
     }
