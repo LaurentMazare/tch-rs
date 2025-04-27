@@ -1307,6 +1307,23 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
   )
 }
 
+void atm_end_tracing_is(module m, char *fn_name, ivalue *outputs, int noutputs) {
+  PROTECT(
+    auto state = torch::jit::tracer::getTracingState();
+    if (state == nullptr)
+      throw std::invalid_argument("not in tracing mode");
+
+    for (int i = 0; i < noutputs; ++i) {
+      state->graph->registerOutput(state->getOutput(*outputs[i], i));
+    }
+    torch::jit::FixupTraceScopeBlocks(state->graph, m);
+    torch::jit::NormalizeOps(state->graph);
+    torch::jit::tracer::setTracingState(nullptr);
+    auto fn = m->_ivalue()->compilation_unit()->create_function(fn_name, state->graph);
+    m->type()->addMethod(fn);
+  )
+}
+
 
 void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor)) {
   PROTECT(
@@ -1315,6 +1332,50 @@ void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor
       f(data, (char*)p.name.c_str(), new torch::Tensor(v));
     }
   )
+}
+
+shared_compunit atcu_compile(const char *script) {
+  PROTECT(
+    auto result = torch::jit::compile(script);
+    return new std::shared_ptr<torch::jit::script::CompilationUnit>(result);
+  )
+  return nullptr;
+}
+
+tensor atcu_function(shared_compunit scu,
+                     char *function_name,
+                     tensor *tensors,
+                     int ntensors) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < ntensors; ++i)
+      inputs.push_back(*(tensors[i]));
+    auto function = (*scu)->find_function(function_name);
+    torch::jit::IValue output = (*function)(std::move(inputs));
+    if (!output.isTensor())
+      throw std::invalid_argument("function did not return a tensor");
+    return new torch::Tensor(output.toTensor());
+  )
+  return nullptr;
+}
+
+ivalue atcu_function_(shared_compunit scu,
+                      char *function_name,
+                      ivalue *ivalues,
+                      int nivalues) {
+  PROTECT(
+    std::vector<torch::jit::IValue> inputs;
+    for (int i = 0; i < nivalues; ++i)
+      inputs.push_back(*(ivalues[i]));
+    auto function = (*scu)->find_function(function_name);
+    torch::jit::IValue output = (*function)(std::move(inputs));
+    return new torch::jit::IValue(output);
+  )
+  return nullptr;
+}
+
+void atcu_free(shared_compunit scu) {
+  delete(scu);
 }
 
 ivalue ati_tensor(tensor t) {
