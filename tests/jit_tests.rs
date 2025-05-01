@@ -76,6 +76,23 @@ fn jit4() {
     assert_eq!(v, 14.0);
     let named_parameters = mod_.named_parameters().unwrap();
     assert_eq!(named_parameters, vec![]);
+
+    // Even "empty" models have some attributes.
+    let named_attributes = mod_.named_attributes().unwrap();
+    assert_eq!(named_attributes, vec![
+        (String::from("training"), IValue::Bool(true)),
+        (String::from("_is_full_backward_hook"), IValue::None),
+    ]);
+}
+
+#[test]
+fn jit_named_attributes() {
+    // Check that models with user-defined attributes are correctly loaded.
+    let mod_ = tch::CModule::load("tests/foo9.pt").unwrap();
+    let named_attributes = mod_.named_attributes().unwrap();
+    assert!(named_attributes.len() > 2);
+    assert!(named_attributes.iter().any(|(name, _)| name == "embedding_length"));
+    assert!(named_attributes.iter().any(|(name, _)| name == "max_distance"));
 }
 
 #[test]
