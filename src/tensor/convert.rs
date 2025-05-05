@@ -180,3 +180,61 @@ impl<T: Element> TryFrom<Vec<T>> for Tensor {
         Self::try_from(&value)
     }
 }
+
+/// Create a tensor from a 1-dimensional array.
+impl<T: Element, const N: usize> TryFrom<[T; N]> for Tensor {
+    type Error = TchError;
+
+    fn try_from(value: [T; N]) -> Result<Self, Self::Error> {
+        Self::f_from_slice(value.as_slice())
+    }
+}
+
+/// Create a tensor from a reference to a 1-dimensional array.
+impl<T: Element, const N: usize> TryFrom<&[T; N]> for Tensor {
+    type Error = TchError;
+
+    fn try_from(value: &[T; N]) -> Result<Self, Self::Error> {
+        Self::f_from_slice(value.as_slice())
+    }
+}
+
+/// Create a tensor from a 2-dimensional array.
+impl<T: Element, const N1: usize, const N2: usize> TryFrom<[[T; N2]; N1]> for Tensor {
+    type Error = TchError;
+
+    fn try_from(value: [[T; N2]; N1]) -> Result<Self, Self::Error> {
+        use ::slice_of_array::prelude::*;
+        let slice = value.as_slice().flat();
+        let tensor = Self::f_from_slice(slice)?;
+        tensor.f_view([N1 as i64, N2 as i64])
+    }
+}
+
+/// Create a tensor from a 3-dimensional array.
+impl<T: Element, const N1: usize, const N2: usize, const N3: usize> TryFrom<[[[T; N3]; N2]; N1]>
+    for Tensor
+{
+    type Error = TchError;
+
+    fn try_from(value: [[[T; N3]; N2]; N1]) -> Result<Self, Self::Error> {
+        use ::slice_of_array::prelude::*;
+        let slice = value.as_slice().flat().flat();
+        let tensor = Self::f_from_slice(slice)?;
+        tensor.f_view([N1 as i64, N2 as i64, N3 as i64])
+    }
+}
+
+/// Create a tensor from a 4-dimensional array.
+impl<T: Element, const N1: usize, const N2: usize, const N3: usize, const N4: usize>
+    TryFrom<[[[[T; N4]; N3]; N2]; N1]> for Tensor
+{
+    type Error = TchError;
+
+    fn try_from(value: [[[[T; N4]; N3]; N2]; N1]) -> Result<Self, Self::Error> {
+        use ::slice_of_array::prelude::*;
+        let slice = value.as_slice().flat().flat().flat();
+        let tensor = Self::f_from_slice(slice)?;
+        tensor.f_view([N1 as i64, N2 as i64, N3 as i64, N4 as i64])
+    }
+}
