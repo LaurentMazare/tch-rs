@@ -48,10 +48,9 @@ pub(super) fn path_to_cstring<T: AsRef<std::path::Path>>(
     let path = path.as_ref();
     match path.to_str() {
         Some(path) => Ok(std::ffi::CString::new(path)?),
-        None => Err(TchError::Io(io::Error::new(
-            io::ErrorKind::Other,
-            format!("path {path:?} cannot be converted to UTF-8"),
-        ))),
+        None => Err(TchError::Io(io::Error::other(format!(
+            "path {path:?} cannot be converted to UTF-8"
+        )))),
     }
 }
 
