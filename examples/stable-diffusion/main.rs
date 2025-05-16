@@ -2423,7 +2423,7 @@ impl DDIMScheduler {
 
     // https://github.com/huggingface/diffusers/blob/6e099e2c8ce4c4f5c7318e970a8c093dc5c7046e/src/diffusers/schedulers/scheduling_ddim.py#L195
     fn step(&self, model_output: &Tensor, timestep: usize, sample: &Tensor) -> Tensor {
-        let prev_timestep = if timestep > self.step_ratio { timestep - self.step_ratio } else { 0 };
+        let prev_timestep = timestep.saturating_sub(self.step_ratio);
 
         let alpha_prod_t = self.alphas_cumprod[timestep];
         let alpha_prod_t_prev = self.alphas_cumprod[prev_timestep];
