@@ -33,6 +33,7 @@ image = { version = "0.24.5", optional = true }
 clap = { version = "4.2.4", features = ["derive"], optional = true }
 serde_json = { version = "1.0.96", optional = true }
 memmap2 = { version = "0.6.1", optional = true }
+num-complex = { version = "0.4.6", optional = true }
 
 [dev-dependencies]
 anyhow = "^1.0.60"
@@ -50,6 +51,7 @@ python-extension = ["torch-sys/python-extension"]
 rl-python = ["cpython"]
 doc-only = ["torch-sys/doc-only"]
 cuda-tests = []
+complex = ["dep:num-complex"]
 
 [package.metadata.docs.rs]
 features = [ "doc-only" ]

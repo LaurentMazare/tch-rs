@@ -3,7 +3,7 @@ use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
-use tch::{Device, TchError, Tensor};
+use tch::{Device, Kind, TchError, Tensor};
 
 mod test_utils;
 use test_utils::*;
@@ -505,4 +505,32 @@ fn fp8_tensor() {
         assert_eq!(t.kind(), kind);
         assert_eq!(t.kind().elt_size_in_bytes(), 1);
     }
+}
+
+#[cfg(feature = "complex")]
+#[test]
+fn complex_tensor() {
+    use num_complex::Complex;
+    
+    let input = vec![
+        Complex::<f32>::new(0., 0.),
+        Complex::<f32>::new(1., 0.),
+        Complex::<f32>::new(1., 1.),
+        Complex::<f32>::new(0., 1.),
+    ];
+
+    let t = Tensor::from_slice(&input);
+    assert_eq!(t.kind(), Kind::ComplexFloat);
+    assert_eq!(t.kind().elt_size_in_bytes(), 8);
+    assert!(t.is_complex());
+
+    let c = t.conj_physical();
+    let back: Vec<Complex<f32>> = c.try_into().unwrap();
+    let expected = input.iter().map(Complex::conj).collect::<Vec<_>>();
+    assert_eq!(expected, back);
+    
+    let t = Tensor::from_slice(&[Complex::<f64>::new(3., -7.)]);
+    assert_eq!(t.kind(), Kind::ComplexDouble);
+    assert_eq!(t.kind().elt_size_in_bytes(), 16);
+    
 }
