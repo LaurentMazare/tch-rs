@@ -43,7 +43,7 @@ such as `mnist_nn.rs` or `mnist_conv.rs` use an Adam optimizer.
 ```rust
     for epoch in 1..200 {
         let logits = m.train_images.mm(&ws) + &bs;
-        let loss = logits.log_softmax(-1).nll_loss(&m.train_labels);
+        let loss = logits.log_softmax(-1, Kind::Float).nll_loss(&m.train_labels);
         ws.zero_grad();
         bs.zero_grad();
         loss.backward();
@@ -51,6 +51,7 @@ such as `mnist_nn.rs` or `mnist_conv.rs` use an Adam optimizer.
             ws += ws.grad() * (-1);
             bs += bs.grad() * (-1);
         });
+    }
 ```
 
 Running this code should build a model that has ~92% accuracy.
