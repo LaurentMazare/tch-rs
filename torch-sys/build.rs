@@ -508,6 +508,7 @@ fn main() -> anyhow::Result<()> {
             system_info.link("XNNPACK");
             system_info.link("microkernels-prod");
             system_info.link("sleef");
+            system_info.link("blis");
         }
         system_info.link("torch_cpu");
         system_info.link("torch");
