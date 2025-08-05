@@ -133,7 +133,7 @@ fn rnn_weights<'a, T: Borrow<super::Path<'a>>>(
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct LSTM {
-    flat_weights: Vec<Tensor>,
+    pub flat_weights: Vec<Tensor>,
     hidden_dim: i64,
     config: RNNConfig,
     device: Device,
@@ -218,7 +218,7 @@ impl GRUState {
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub struct GRU {
-    flat_weights: Vec<Tensor>,
+    pub flat_weights: Vec<Tensor>,
     hidden_dim: i64,
     config: RNNConfig,
     device: Device,
