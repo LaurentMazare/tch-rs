@@ -241,7 +241,7 @@ impl Darknet {
         Ok(image_width)
     }
 
-    pub fn build_model(&self, vs: &nn::Path) -> Result<FuncT> {
+    pub fn build_model(&self, vs: &nn::Path) -> Result<FuncT<'_>> {
         let mut blocks: Vec<(i64, Bl)> = vec![];
         let mut prev_channels: i64 = 3;
         for (index, block) in self.blocks.iter().enumerate() {

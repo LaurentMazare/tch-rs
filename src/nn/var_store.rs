@@ -149,7 +149,7 @@ impl VarStore {
     /// Variables are named and organized using paths. This function returns
     /// the top level path for the var store and can be combined with '/'
     /// to create sub-paths.
-    pub fn root(&self) -> Path {
+    pub fn root(&self) -> Path<'_> {
         Path { path: vec![], group: 0, var_store: self }
     }
 
