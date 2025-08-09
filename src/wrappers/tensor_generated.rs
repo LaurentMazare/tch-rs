@@ -783,7 +783,7 @@ impl Tensor {
         transpose_result: bool,
         alg_id: i64,
         split_k: i64,
-        split_k_one_kernel: bool,
+        split_k_mode: i64,
     ) -> Tensor {
         Tensor::f_internal_cslt_sparse_mm(
             compressed_a,
@@ -794,7 +794,7 @@ impl Tensor {
             transpose_result,
             alg_id,
             split_k,
-            split_k_one_kernel,
+            split_k_mode,
         )
         .unwrap()
     }
@@ -2072,6 +2072,15 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_fused_rms_norm(
+        &self,
+        normalized_shape_ndim: i64,
+        weight: &Tensor,
+        eps: f64,
+    ) -> Tensor {
+        self.f_internal_fused_rms_norm(normalized_shape_ndim, weight, eps).unwrap()
+    }
+
     pub fn internal_fused_sdp_choice<T: Borrow<Tensor>>(
         query: &Tensor,
         key: &Tensor,
@@ -2159,6 +2168,16 @@ impl Tensor {
             align_corners,
         )
         .unwrap()
+    }
+
+    pub fn internal_grouped_mm<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        offs: Option<T>,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+    ) -> Tensor {
+        self.f_internal_grouped_mm(mat2, offs, bias, out_dtype).unwrap()
     }
 
     pub fn internal_has_compatible_shallow_copy_type(&self, from: &Tensor) -> bool {
@@ -5159,9 +5178,16 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
+        check_pinning: bool,
     ) {
-        Tensor::f_internal_validate_sparse_bsc_tensor_args(ccol_indices, row_indices, values, size)
-            .unwrap()
+        Tensor::f_internal_validate_sparse_bsc_tensor_args(
+            ccol_indices,
+            row_indices,
+            values,
+            size,
+            check_pinning,
+        )
+        .unwrap()
     }
 
     pub fn internal_validate_sparse_bsr_tensor_args(
@@ -5169,9 +5195,16 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
+        check_pinning: bool,
     ) {
-        Tensor::f_internal_validate_sparse_bsr_tensor_args(crow_indices, col_indices, values, size)
-            .unwrap()
+        Tensor::f_internal_validate_sparse_bsr_tensor_args(
+            crow_indices,
+            col_indices,
+            values,
+            size,
+            check_pinning,
+        )
+        .unwrap()
     }
 
     pub fn internal_validate_sparse_compressed_tensor_args(
@@ -5180,6 +5213,7 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         layout: Layout,
+        check_pinning: bool,
     ) {
         Tensor::f_internal_validate_sparse_compressed_tensor_args(
             compressed_indices,
@@ -5187,6 +5221,7 @@ impl Tensor {
             values,
             size,
             layout,
+            check_pinning,
         )
         .unwrap()
     }
@@ -5196,9 +5231,16 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
+        check_pinning: bool,
     ) {
-        Tensor::f_internal_validate_sparse_csc_tensor_args(ccol_indices, row_indices, values, size)
-            .unwrap()
+        Tensor::f_internal_validate_sparse_csc_tensor_args(
+            ccol_indices,
+            row_indices,
+            values,
+            size,
+            check_pinning,
+        )
+        .unwrap()
     }
 
     pub fn internal_validate_sparse_csr_tensor_args(
@@ -5206,9 +5248,16 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
+        check_pinning: bool,
     ) {
-        Tensor::f_internal_validate_sparse_csr_tensor_args(crow_indices, col_indices, values, size)
-            .unwrap()
+        Tensor::f_internal_validate_sparse_csr_tensor_args(
+            crow_indices,
+            col_indices,
+            values,
+            size,
+            check_pinning,
+        )
+        .unwrap()
     }
 
     pub fn internal_values(&self) -> Tensor {
@@ -5243,6 +5292,17 @@ impl Tensor {
         qscaleandzeros: &Tensor,
     ) -> Tensor {
         self.f_internal_weight_int4pack_mm_for_cpu(mat2, qgroupsize, qscaleandzeros).unwrap()
+    }
+
+    pub fn internal_weight_int4pack_mm_with_scales_and_zeros(
+        &self,
+        mat2: &Tensor,
+        qgroupsize: i64,
+        qscale: &Tensor,
+        qzeros: &Tensor,
+    ) -> Tensor {
+        self.f_internal_weight_int4pack_mm_with_scales_and_zeros(mat2, qgroupsize, qscale, qzeros)
+            .unwrap()
     }
 
     pub fn internal_weight_int8pack_mm(&self, mat2: &Tensor, scales: &Tensor) -> Tensor {
@@ -5554,6 +5614,20 @@ impl Tensor {
 
     pub fn addmm_(&mut self, mat1: &Tensor, mat2: &Tensor) -> Tensor {
         self.f_addmm_(mat1, mat2).unwrap()
+    }
+
+    pub fn addmm_dtype(&self, mat1: &Tensor, mat2: &Tensor, out_dtype: Kind) -> Tensor {
+        self.f_addmm_dtype(mat1, mat2, out_dtype).unwrap()
+    }
+
+    pub fn addmm_dtype_out(
+        &self,
+        out: &Tensor,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        out_dtype: Kind,
+    ) -> Tensor {
+        self.f_addmm_dtype_out(out, mat1, mat2, out_dtype).unwrap()
     }
 
     pub fn addmm_out(&self, out: &Tensor, mat1: &Tensor, mat2: &Tensor) -> Tensor {
@@ -6226,6 +6300,27 @@ impl Tensor {
         self.f_baddbmm_(batch1, batch2).unwrap()
     }
 
+    pub fn baddbmm_dtype<S: Into<Scalar>>(
+        &self,
+        batch1: &Tensor,
+        batch2: &Tensor,
+        out_dtype: Kind,
+        beta: S,
+        alpha: S,
+    ) -> Tensor {
+        self.f_baddbmm_dtype(batch1, batch2, out_dtype, beta, alpha).unwrap()
+    }
+
+    pub fn baddbmm_dtype_out(
+        &self,
+        out: &Tensor,
+        batch1: &Tensor,
+        batch2: &Tensor,
+        out_dtype: Kind,
+    ) -> Tensor {
+        self.f_baddbmm_dtype_out(out, batch1, batch2, out_dtype).unwrap()
+    }
+
     pub fn baddbmm_out(&self, out: &Tensor, batch1: &Tensor, batch2: &Tensor) -> Tensor {
         self.f_baddbmm_out(out, batch1, batch2).unwrap()
     }
@@ -6849,6 +6944,14 @@ impl Tensor {
 
     pub fn bmm(&self, mat2: &Tensor) -> Tensor {
         self.f_bmm(mat2).unwrap()
+    }
+
+    pub fn bmm_dtype(&self, mat2: &Tensor, out_dtype: Kind) -> Tensor {
+        self.f_bmm_dtype(mat2, out_dtype).unwrap()
+    }
+
+    pub fn bmm_dtype_out(&self, out: &Tensor, mat2: &Tensor, out_dtype: Kind) -> Tensor {
+        self.f_bmm_dtype_out(out, mat2, out_dtype).unwrap()
     }
 
     pub fn bmm_out(&self, out: &Tensor, mat2: &Tensor) -> Tensor {
@@ -13494,6 +13597,14 @@ impl Tensor {
         self.f_mm(mat2).unwrap()
     }
 
+    pub fn mm_dtype(&self, mat2: &Tensor, out_dtype: Kind) -> Tensor {
+        self.f_mm_dtype(mat2, out_dtype).unwrap()
+    }
+
+    pub fn mm_dtype_out(&self, out: &Tensor, mat2: &Tensor, out_dtype: Kind) -> Tensor {
+        self.f_mm_dtype_out(out, mat2, out_dtype).unwrap()
+    }
+
     pub fn mm_out(&self, out: &Tensor, mat2: &Tensor) -> Tensor {
         self.f_mm_out(out, mat2).unwrap()
     }
@@ -15101,6 +15212,14 @@ impl Tensor {
 
     pub fn randint_like_out(&self, out: &Tensor, high: i64) -> Tensor {
         self.f_randint_like_out(out, high).unwrap()
+    }
+
+    pub fn randint_like_tensor(&self, high: &Tensor) -> Tensor {
+        self.f_randint_like_tensor(high).unwrap()
+    }
+
+    pub fn randint_like_tensor_out(&self, out: &Tensor, high: &Tensor) -> Tensor {
+        self.f_randint_like_tensor_out(out, high).unwrap()
     }
 
     pub fn randint_low(low: i64, high: i64, size: impl IntList, options: (Kind, Device)) -> Tensor {

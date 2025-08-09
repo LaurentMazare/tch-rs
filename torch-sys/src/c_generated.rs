@@ -575,7 +575,7 @@ extern "C" {
         transpose_result_: c_int,
         alg_id_: i64,
         split_k_: i64,
-        split_k_one_kernel_: c_int,
+        split_k_mode_: i64,
     );
     pub fn atg__cslt_sparse_mm_search(
         compressed_A_: *mut C_tensor,
@@ -1310,6 +1310,13 @@ extern "C" {
         per_row_fake_quant_: c_int,
         symmetric_quant_: c_int,
     );
+    pub fn atg__fused_rms_norm(
+        out__: *mut *mut C_tensor,
+        input_: *mut C_tensor,
+        normalized_shape_ndim_: i64,
+        weight_: *mut C_tensor,
+        eps_: f64,
+    );
     pub fn atg__fused_sdp_choice(
         query_: *mut C_tensor,
         key_: *mut C_tensor,
@@ -1361,6 +1368,14 @@ extern "C" {
         interpolation_mode_: i64,
         padding_mode_: i64,
         align_corners_: c_int,
+    );
+    pub fn atg__grouped_mm(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        offs_: *mut C_tensor,
+        bias_: *mut C_tensor,
+        out_dtype_: c_int,
     );
     pub fn atg__has_compatible_shallow_copy_type(
         self_: *mut C_tensor,
@@ -3694,6 +3709,7 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
+        check_pinning_: c_int,
     );
     pub fn atg__validate_sparse_bsr_tensor_args(
         crow_indices_: *mut C_tensor,
@@ -3701,6 +3717,7 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
+        check_pinning_: c_int,
     );
     pub fn atg__validate_sparse_compressed_tensor_args(
         compressed_indices_: *mut C_tensor,
@@ -3709,6 +3726,7 @@ extern "C" {
         size_data: *const i64,
         size_len: c_int,
         layout_: i8,
+        check_pinning_: c_int,
     );
     pub fn atg__validate_sparse_csc_tensor_args(
         ccol_indices_: *mut C_tensor,
@@ -3716,6 +3734,7 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
+        check_pinning_: c_int,
     );
     pub fn atg__validate_sparse_csr_tensor_args(
         crow_indices_: *mut C_tensor,
@@ -3723,6 +3742,7 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
+        check_pinning_: c_int,
     );
     pub fn atg__values(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__values_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);
@@ -3745,6 +3765,14 @@ extern "C" {
         mat2_: *mut C_tensor,
         qGroupSize_: i64,
         qScaleAndZeros_: *mut C_tensor,
+    );
+    pub fn atg__weight_int4pack_mm_with_scales_and_zeros(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        qGroupSize_: i64,
+        qScale_: *mut C_tensor,
+        qZeros_: *mut C_tensor,
     );
     pub fn atg__weight_int8pack_mm(
         out__: *mut *mut C_tensor,
@@ -4016,6 +4044,21 @@ extern "C" {
         self_: *mut C_tensor,
         mat1_: *mut C_tensor,
         mat2_: *mut C_tensor,
+    );
+    pub fn atg_addmm_dtype(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat1_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
+    pub fn atg_addmm_dtype_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        mat1_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
     );
     pub fn atg_addmm_out(
         out__: *mut *mut C_tensor,
@@ -4567,6 +4610,23 @@ extern "C" {
         batch1_: *mut C_tensor,
         batch2_: *mut C_tensor,
     );
+    pub fn atg_baddbmm_dtype(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        batch1_: *mut C_tensor,
+        batch2_: *mut C_tensor,
+        out_dtype_: c_int,
+        beta_: *mut C_scalar,
+        alpha_: *mut C_scalar,
+    );
+    pub fn atg_baddbmm_dtype_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        batch1_: *mut C_tensor,
+        batch2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
     pub fn atg_baddbmm_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -5065,6 +5125,19 @@ extern "C" {
         tensors_len: c_int,
     );
     pub fn atg_bmm(out__: *mut *mut C_tensor, self_: *mut C_tensor, mat2_: *mut C_tensor);
+    pub fn atg_bmm_dtype(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
+    pub fn atg_bmm_dtype_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
     pub fn atg_bmm_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -10688,6 +10761,19 @@ extern "C" {
         train_: c_int,
     );
     pub fn atg_mm(out__: *mut *mut C_tensor, self_: *mut C_tensor, mat2_: *mut C_tensor);
+    pub fn atg_mm_dtype(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
+    pub fn atg_mm_dtype_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        mat2_: *mut C_tensor,
+        out_dtype_: c_int,
+    );
     pub fn atg_mm_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
@@ -12064,6 +12150,17 @@ extern "C" {
         out_: *mut C_tensor,
         self_: *mut C_tensor,
         high_: i64,
+    );
+    pub fn atg_randint_like_tensor(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        high_: *mut C_tensor,
+    );
+    pub fn atg_randint_like_tensor_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        high_: *mut C_tensor,
     );
     pub fn atg_randint_low(
         out__: *mut *mut C_tensor,
