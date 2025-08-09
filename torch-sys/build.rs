@@ -309,7 +309,7 @@ impl SystemInfo {
                 fs::create_dir(&libtorch_dir).unwrap_or_default();
                 let libtorch_url = match os {
                 Os::Linux => format!(
-                    "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
+                    "https://download.pytorch.org/libtorch/{}/libtorch-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
                         "cu118" => "%2Bcu118",
