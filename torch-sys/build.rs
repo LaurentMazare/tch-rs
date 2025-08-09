@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs, io};
 
-const TORCH_VERSION: &str = "2.7.0";
+const TORCH_VERSION: &str = "2.8.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
@@ -158,7 +158,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.7.0+cpu or 2.7.0+cu121
+    // Typical version number is 2.8.0+cpu or 2.8.0+cu121
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
@@ -309,7 +309,7 @@ impl SystemInfo {
                 fs::create_dir(&libtorch_dir).unwrap_or_default();
                 let libtorch_url = match os {
                 Os::Linux => format!(
-                    "https://download.pytorch.org/libtorch/{}/libtorch-cxx11-abi-shared-with-deps-{}{}.zip",
+                    "https://download.pytorch.org/libtorch/{}/libtorch-shared-with-deps-{}{}.zip",
                     device, TORCH_VERSION, match device.as_ref() {
                         "cpu" => "%2Bcpu",
                         "cu118" => "%2Bcu118",

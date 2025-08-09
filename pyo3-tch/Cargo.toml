@@ -1,6 +1,6 @@
 [package]
 name = "pyo3-tch"
-version = "0.20.0"
+version = "0.21.0"
 authors = ["Laurent Mazare <lmazare@gmail.com>"]
 edition = "2021"
 build = "build.rs"
@@ -12,6 +12,6 @@ categories = ["science"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-tch = { path = "..", features = ["python-extension"], version = "0.20.0" }
-torch-sys = { path = "../torch-sys", features = ["python-extension"], version = "0.20.0" }
+tch = { path = "..", features = ["python-extension"], version = "0.21.0" }
+torch-sys = { path = "../torch-sys", features = ["python-extension"], version = "0.21.0" }
 pyo3 = { version = "0.24", features = ["extension-module"] }
