@@ -1317,6 +1317,15 @@ void atm_named_parameters(module m, void *data, void (*f)(void *, char *, tensor
   )
 }
 
+void atm_named_attributes(module m, void *data, void (*f)(void *, char *, ivalue)) {
+  PROTECT(
+    for (const auto &p : m->named_attributes()) {
+      auto v = p.value;
+      f(data, (char*)p.name.c_str(), new torch::IValue(v));
+    }
+  )
+}
+
 ivalue ati_tensor(tensor t) {
   PROTECT(
     return new torch::jit::IValue(*t);
