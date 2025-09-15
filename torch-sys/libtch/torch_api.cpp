@@ -12,6 +12,9 @@
 #include<torch/csrc/jit/codegen/cuda/interface.h>
 #include<stdexcept>
 #include<vector>
+#include<string>
+#include<cstdlib>
+#include<dlfcn.h>
 #include "torch_api.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -24,6 +27,27 @@
 #include "stb_image_resize.h"
 
 thread_local char *torch_last_err = nullptr;
+
+__attribute__((constructor))
+static void init_rocm_runtime() {
+#ifdef USE_ROCM
+    // Try LIBTORCH environment variable first
+    const char* libtorch_path = std::getenv("LIBTORCH");
+    if (libtorch_path) {
+        std::string base_path(libtorch_path);
+        std::string lib_path = base_path + "/lib/";
+        
+        if (dlopen((lib_path + "libtorch.so").c_str(), RTLD_LAZY | RTLD_GLOBAL) &&
+            dlopen((lib_path + "libtorch_hip.so").c_str(), RTLD_LAZY | RTLD_GLOBAL)) {
+            return; // Successfully loaded from LIBTORCH path
+        }
+    }
+    
+    // Fallback to system library search paths
+    dlopen("libtorch.so", RTLD_LAZY | RTLD_GLOBAL);
+    dlopen("libtorch_hip.so", RTLD_LAZY | RTLD_GLOBAL);
+#endif
+}
 
 char *get_and_reset_last_err() {
     char *tmp = torch_last_err;
