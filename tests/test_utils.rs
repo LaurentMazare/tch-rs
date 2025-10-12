@@ -42,3 +42,9 @@ pub fn vec_i32_from(t: &Tensor) -> Vec<i32> {
 pub fn vec_bool_from(t: &Tensor) -> Vec<bool> {
     from::<Vec<bool>>(&t.reshape(-1))
 }
+
+#[cfg(feature = "complex")]
+#[allow(dead_code)]
+pub fn vec_cplx_from(t: &Tensor) -> Vec<num_complex::Complex<f32>> {
+    from::<Vec<num_complex::Complex<f32>>>(&t.reshape(-1))
+}
