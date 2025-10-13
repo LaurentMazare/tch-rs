@@ -338,7 +338,7 @@ impl IValue {
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_tuple(c_ivalue, c_ivalues.as_mut_ptr(), len));
                 let vec: Result<Vec<_>, _> =
-                    c_ivalues.iter().map(|&c_ivalue| (Self::from_c(c_ivalue))).collect();
+                    c_ivalues.iter().map(|&c_ivalue| Self::from_c(c_ivalue)).collect();
                 IValue::Tuple(vec?)
             }
             6 => {
@@ -373,7 +373,7 @@ impl IValue {
                 let mut c_tensors: Vec<_> =
                     (0..len).map(|_| std::ptr::null_mut::<C_tensor>()).collect();
                 unsafe_torch_err!(ati_to_tensor_list(c_ivalue, c_tensors.as_mut_ptr(), len));
-                let vec: Vec<_> = c_tensors.iter().map(|&c_tensor| (Tensor { c_tensor })).collect();
+                let vec: Vec<_> = c_tensors.iter().map(|&c_tensor| Tensor { c_tensor }).collect();
                 IValue::TensorList(vec)
             }
             12 => {
@@ -382,7 +382,7 @@ impl IValue {
                     (0..len).map(|_| std::ptr::null_mut::<CIValue>()).collect();
                 unsafe_torch_err!(ati_to_generic_list(c_ivalue, c_ivalues.as_mut_ptr(), len));
                 let vec: Result<Vec<_>, _> =
-                    c_ivalues.iter().map(|&c_ivalue| (Self::from_c(c_ivalue))).collect();
+                    c_ivalues.iter().map(|&c_ivalue| Self::from_c(c_ivalue)).collect();
                 IValue::GenericList(vec?)
             }
             13 => {
