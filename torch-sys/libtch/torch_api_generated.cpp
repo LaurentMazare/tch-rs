@@ -7700,69 +7700,6 @@ void atg_fake_quantize_per_tensor_affine_tensor_qparams(tensor *out__, tensor se
   )
 }
 
-void atg_fbgemm_linear_fp16_weight(tensor *out__, tensor input, tensor packed_weight, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight(*input, *packed_weight, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_fp16_weight_fp32_activation(tensor *out__, tensor input, tensor packed_weight, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight_fp32_activation(*input, *packed_weight, (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt));
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_fp16_weight_fp32_activation_out(tensor *out__, tensor input, tensor packed_weight, tensor bias, tensor output) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight_fp32_activation(*input, *packed_weight, (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), *output);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_fp16_weight_out(tensor *out__, tensor input, tensor packed_weight, tensor bias, tensor output) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight(*input, *packed_weight, *bias, *output);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_int8_weight(tensor *out__, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_int8_weight(*input, *weight, *packed, *col_offsets, *weight_scale, *weight_zero_point, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_int8_weight_fp32_activation(tensor *out__, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_int8_weight_fp32_activation(*input, *weight, *packed, *col_offsets, *weight_scale, *weight_zero_point, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_gemm_matrix_fp16(tensor *out__, tensor input) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_gemm_matrix_fp16(*input);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_quantized_matrix(tensor *out__, tensor input) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_quantized_matrix_kn(tensor *out__, tensor input, int64_t K, int64_t n) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input, K, n);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
 void atg_feature_alpha_dropout(tensor *out__, tensor input, double p, int train) {
   PROTECT(
     auto outputs__ = torch::feature_alpha_dropout(*input, p, (bool)train);

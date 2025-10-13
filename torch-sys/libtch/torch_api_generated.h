@@ -1063,15 +1063,6 @@ void atg_fake_quantize_per_tensor_affine_cachemask(tensor *, tensor self, double
 void atg_fake_quantize_per_tensor_affine_cachemask_backward(tensor *, tensor grad, tensor mask);
 void atg_fake_quantize_per_tensor_affine_cachemask_out(tensor *, tensor out0, tensor out1, tensor self, double scale, int64_t zero_point, int64_t quant_min, int64_t quant_max);
 void atg_fake_quantize_per_tensor_affine_tensor_qparams(tensor *, tensor self, tensor scale, tensor zero_point, int64_t quant_min, int64_t quant_max);
-void atg_fbgemm_linear_fp16_weight(tensor *, tensor input, tensor packed_weight, tensor bias);
-void atg_fbgemm_linear_fp16_weight_fp32_activation(tensor *, tensor input, tensor packed_weight, tensor bias);
-void atg_fbgemm_linear_fp16_weight_fp32_activation_out(tensor *, tensor input, tensor packed_weight, tensor bias, tensor output);
-void atg_fbgemm_linear_fp16_weight_out(tensor *, tensor input, tensor packed_weight, tensor bias, tensor output);
-void atg_fbgemm_linear_int8_weight(tensor *, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias);
-void atg_fbgemm_linear_int8_weight_fp32_activation(tensor *, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias);
-void atg_fbgemm_pack_gemm_matrix_fp16(tensor *, tensor input);
-void atg_fbgemm_pack_quantized_matrix(tensor *, tensor input);
-void atg_fbgemm_pack_quantized_matrix_kn(tensor *, tensor input, int64_t K, int64_t n);
 void atg_feature_alpha_dropout(tensor *, tensor input, double p, int train);
 void atg_feature_alpha_dropout_(tensor *, tensor self, double p, int train);
 void atg_feature_dropout(tensor *, tensor input, double p, int train);

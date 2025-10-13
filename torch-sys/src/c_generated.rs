@@ -6847,60 +6847,6 @@ extern "C" {
         quant_min_: i64,
         quant_max_: i64,
     );
-    pub fn atg_fbgemm_linear_fp16_weight(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_fp16_weight_fp32_activation(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_fp16_weight_fp32_activation_out(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-        output_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_fp16_weight_out(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-        output_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_int8_weight(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        weight_: *mut C_tensor,
-        packed_: *mut C_tensor,
-        col_offsets_: *mut C_tensor,
-        weight_scale_: *mut C_scalar,
-        weight_zero_point_: *mut C_scalar,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_int8_weight_fp32_activation(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        weight_: *mut C_tensor,
-        packed_: *mut C_tensor,
-        col_offsets_: *mut C_tensor,
-        weight_scale_: *mut C_scalar,
-        weight_zero_point_: *mut C_scalar,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_pack_gemm_matrix_fp16(out__: *mut *mut C_tensor, input_: *mut C_tensor);
-    pub fn atg_fbgemm_pack_quantized_matrix(out__: *mut *mut C_tensor, input_: *mut C_tensor);
-    pub fn atg_fbgemm_pack_quantized_matrix_kn(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        K_: i64,
-        n_: i64,
-    );
     pub fn atg_feature_alpha_dropout(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,

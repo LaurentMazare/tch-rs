@@ -96,6 +96,7 @@ let excluded_prefixes =
   ; "_fused_adagrad"
   ; "sym_"
   ; "_fused_sgd"
+  ; "fbgemm_"
   ]
 
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
