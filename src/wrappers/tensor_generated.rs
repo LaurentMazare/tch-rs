@@ -979,6 +979,45 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_cudnn_attention_backward(
+        grad_out: &Tensor,
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        out: &Tensor,
+        logsumexp: &Tensor,
+        philox_seed: &Tensor,
+        philox_offset: &Tensor,
+        attn_bias: &Tensor,
+        cum_seq_q: &Tensor,
+        cum_seq_k: &Tensor,
+        max_q: i64,
+        max_k: i64,
+        dropout_p: f64,
+        is_causal: bool,
+        scale: impl Into<Option<f64>>,
+    ) -> (Tensor, Tensor, Tensor) {
+        Tensor::f_internal_cudnn_attention_backward(
+            grad_out,
+            query,
+            key,
+            value,
+            out,
+            logsumexp,
+            philox_seed,
+            philox_offset,
+            attn_bias,
+            cum_seq_q,
+            cum_seq_k,
+            max_q,
+            max_k,
+            dropout_p,
+            is_causal,
+            scale,
+        )
+        .unwrap()
+    }
+
     pub fn internal_cudnn_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
@@ -2072,13 +2111,13 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_fused_rms_norm(
+    pub fn internal_fused_rms_norm<T: Borrow<Tensor>>(
         &self,
-        normalized_shape_ndim: i64,
-        weight: &Tensor,
-        eps: f64,
-    ) -> Tensor {
-        self.f_internal_fused_rms_norm(normalized_shape_ndim, weight, eps).unwrap()
+        normalized_shape: impl IntList,
+        weight: Option<T>,
+        eps: impl Into<Option<f64>>,
+    ) -> (Tensor, Tensor) {
+        self.f_internal_fused_rms_norm(normalized_shape, weight, eps).unwrap()
     }
 
     pub fn internal_fused_sdp_choice<T: Borrow<Tensor>>(
@@ -8984,12 +9023,30 @@ impl Tensor {
         self.f_fbgemm_linear_fp16_weight(packed_weight, bias).unwrap()
     }
 
-    pub fn fbgemm_linear_fp16_weight_fp32_activation(
+    pub fn fbgemm_linear_fp16_weight_fp32_activation<T: Borrow<Tensor>>(
+        &self,
+        packed_weight: &Tensor,
+        bias: Option<T>,
+    ) -> Tensor {
+        self.f_fbgemm_linear_fp16_weight_fp32_activation(packed_weight, bias).unwrap()
+    }
+
+    pub fn fbgemm_linear_fp16_weight_fp32_activation_out<T: Borrow<Tensor>>(
+        &self,
+        packed_weight: &Tensor,
+        bias: Option<T>,
+        output: &Tensor,
+    ) -> Tensor {
+        self.f_fbgemm_linear_fp16_weight_fp32_activation_out(packed_weight, bias, output).unwrap()
+    }
+
+    pub fn fbgemm_linear_fp16_weight_out(
         &self,
         packed_weight: &Tensor,
         bias: &Tensor,
+        output: &Tensor,
     ) -> Tensor {
-        self.f_fbgemm_linear_fp16_weight_fp32_activation(packed_weight, bias).unwrap()
+        self.f_fbgemm_linear_fp16_weight_out(packed_weight, bias, output).unwrap()
     }
 
     pub fn fbgemm_linear_int8_weight<S: Into<Scalar>>(
@@ -10251,6 +10308,20 @@ impl Tensor {
 
     pub fn hardtanh_out(&self, out: &Tensor) -> Tensor {
         self.f_hardtanh_out(out).unwrap()
+    }
+
+    pub fn hash_tensor(&self, dim: impl IntList, keepdim: bool, mode: i64) -> Tensor {
+        self.f_hash_tensor(dim, keepdim, mode).unwrap()
+    }
+
+    pub fn hash_tensor_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntList,
+        keepdim: bool,
+        mode: i64,
+    ) -> Tensor {
+        self.f_hash_tensor_out(out, dim, keepdim, mode).unwrap()
     }
 
     pub fn heaviside(&self, values: &Tensor) -> Tensor {
