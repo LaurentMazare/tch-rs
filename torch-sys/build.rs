@@ -158,7 +158,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.9.0+cpu or 2.9.0+cu121
+    // Typical version number is 2.9.0+cpu or 2.9.0+cu129
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
