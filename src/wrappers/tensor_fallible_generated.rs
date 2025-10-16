@@ -1726,6 +1726,53 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
+    pub fn f_internal_cudnn_attention_backward(
+        grad_out: &Tensor,
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        out: &Tensor,
+        logsumexp: &Tensor,
+        philox_seed: &Tensor,
+        philox_offset: &Tensor,
+        attn_bias: &Tensor,
+        cum_seq_q: &Tensor,
+        cum_seq_k: &Tensor,
+        max_q: i64,
+        max_k: i64,
+        dropout_p: f64,
+        is_causal: bool,
+        scale: impl Into<Option<f64>>,
+    ) -> Result<(Tensor, Tensor, Tensor), TchError> {
+        let scale = scale.into();
+        let mut c_tensors = [std::ptr::null_mut(); 3];
+        unsafe_torch_err!(atg__cudnn_attention_backward(
+            c_tensors.as_mut_ptr(),
+            grad_out.c_tensor,
+            query.c_tensor,
+            key.c_tensor,
+            value.c_tensor,
+            out.c_tensor,
+            logsumexp.c_tensor,
+            philox_seed.c_tensor,
+            philox_offset.c_tensor,
+            attn_bias.c_tensor,
+            cum_seq_q.c_tensor,
+            cum_seq_k.c_tensor,
+            max_q,
+            max_k,
+            dropout_p,
+            if is_causal { 1 } else { 0 },
+            scale.unwrap_or(std::f64::NAN),
+            scale.is_none() as i8
+        ));
+        Ok((
+            Tensor { c_tensor: c_tensors[0] },
+            Tensor { c_tensor: c_tensors[1] },
+            Tensor { c_tensor: c_tensors[2] },
+        ))
+    }
+
     pub fn f_internal_cudnn_ctc_loss(
         log_probs: &Tensor,
         targets: &Tensor,
@@ -3229,21 +3276,24 @@ impl Tensor {
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
-    pub fn f_internal_fused_rms_norm(
+    pub fn f_internal_fused_rms_norm<T: Borrow<Tensor>>(
         &self,
-        normalized_shape_ndim: i64,
-        weight: &Tensor,
-        eps: f64,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
+        normalized_shape: impl IntList,
+        weight: Option<T>,
+        eps: impl Into<Option<f64>>,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let eps = eps.into();
+        let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg__fused_rms_norm(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            normalized_shape_ndim,
-            weight.c_tensor,
-            eps
+            normalized_shape.as_ptr(),
+            normalized_shape.len_i32(),
+            weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            eps.unwrap_or(std::f64::NAN),
+            eps.is_none() as i8
         ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
     pub fn f_internal_fused_sdp_choice<T: Borrow<Tensor>>(
@@ -16653,105 +16703,6 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_fbgemm_linear_fp16_weight(
-        &self,
-        packed_weight: &Tensor,
-        bias: &Tensor,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_linear_fp16_weight(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            packed_weight.c_tensor,
-            bias.c_tensor
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_linear_fp16_weight_fp32_activation(
-        &self,
-        packed_weight: &Tensor,
-        bias: &Tensor,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_linear_fp16_weight_fp32_activation(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            packed_weight.c_tensor,
-            bias.c_tensor
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_linear_int8_weight<S: Into<Scalar>>(
-        &self,
-        weight: &Tensor,
-        packed: &Tensor,
-        col_offsets: &Tensor,
-        weight_scale: S,
-        weight_zero_point: S,
-        bias: &Tensor,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_linear_int8_weight(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            weight.c_tensor,
-            packed.c_tensor,
-            col_offsets.c_tensor,
-            weight_scale.into().c_scalar,
-            weight_zero_point.into().c_scalar,
-            bias.c_tensor
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_linear_int8_weight_fp32_activation<S: Into<Scalar>>(
-        &self,
-        weight: &Tensor,
-        packed: &Tensor,
-        col_offsets: &Tensor,
-        weight_scale: S,
-        weight_zero_point: S,
-        bias: &Tensor,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_linear_int8_weight_fp32_activation(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            weight.c_tensor,
-            packed.c_tensor,
-            col_offsets.c_tensor,
-            weight_scale.into().c_scalar,
-            weight_zero_point.into().c_scalar,
-            bias.c_tensor
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_pack_gemm_matrix_fp16(&self) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_pack_gemm_matrix_fp16(c_tensors.as_mut_ptr(), self.c_tensor));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_pack_quantized_matrix(&self) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_pack_quantized_matrix(c_tensors.as_mut_ptr(), self.c_tensor));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_fbgemm_pack_quantized_matrix_kn(&self, k: i64, n: i64) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_fbgemm_pack_quantized_matrix_kn(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            k,
-            n
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
     pub fn f_feature_alpha_dropout(&self, p: f64, train: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_feature_alpha_dropout(
@@ -19498,6 +19449,44 @@ impl Tensor {
     pub fn f_hardtanh_out(&self, out: &Tensor) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_hardtanh_out(c_tensors.as_mut_ptr(), out.c_tensor, self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_hash_tensor(
+        &self,
+        dim: impl IntList,
+        keepdim: bool,
+        mode: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_hash_tensor(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 },
+            mode
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_hash_tensor_out(
+        &self,
+        out: &Tensor,
+        dim: impl IntList,
+        keepdim: bool,
+        mode: i64,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_hash_tensor_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 },
+            mode
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 

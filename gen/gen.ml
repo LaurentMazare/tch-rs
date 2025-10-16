@@ -96,6 +96,7 @@ let excluded_prefixes =
   ; "_fused_adagrad"
   ; "sym_"
   ; "_fused_sgd"
+  ; "fbgemm_"
   ]
 
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
@@ -883,7 +884,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.8.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.9.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

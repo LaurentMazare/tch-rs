@@ -788,6 +788,15 @@ void atg__ctc_loss_tensor_out(tensor *out__, tensor out0, tensor out1, tensor lo
   )
 }
 
+void atg__cudnn_attention_backward(tensor *out__, tensor grad_out, tensor query, tensor key, tensor value, tensor out, tensor logsumexp, tensor philox_seed, tensor philox_offset, tensor attn_bias, tensor cum_seq_q, tensor cum_seq_k, int64_t max_q, int64_t max_k, double dropout_p, int is_causal, double scale_v, uint8_t scale_null) {
+  PROTECT(
+    auto outputs__ = torch::_cudnn_attention_backward(*grad_out, *query, *key, *value, *out, *logsumexp, *philox_seed, *philox_offset, *attn_bias, *cum_seq_q, *cum_seq_k, max_q, max_k, dropout_p, (bool)is_causal, scale_null ? c10::nullopt : c10::optional<double>(scale_v));
+    out__[0] = new torch::Tensor(std::get<0>(outputs__));
+    out__[1] = new torch::Tensor(std::get<1>(outputs__));
+    out__[2] = new torch::Tensor(std::get<2>(outputs__));
+  )
+}
+
 void atg__cudnn_ctc_loss(tensor *out__, tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank, int deterministic, int zero_infinity) {
   PROTECT(
     auto outputs__ = torch::_cudnn_ctc_loss(*log_probs, *targets, torch::IntArrayRef(input_lengths_data, input_lengths_len), torch::IntArrayRef(target_lengths_data, target_lengths_len), blank, (bool)deterministic, (bool)zero_infinity);
@@ -1272,10 +1281,11 @@ void atg__fused_moving_avg_obs_fq_helper_out(tensor *out__, tensor out0, tensor 
   )
 }
 
-void atg__fused_rms_norm(tensor *out__, tensor input, int64_t normalized_shape_ndim, tensor weight, double eps) {
+void atg__fused_rms_norm(tensor *out__, tensor input, int64_t *normalized_shape_data, int normalized_shape_len, tensor weight, double eps_v, uint8_t eps_null) {
   PROTECT(
-    auto outputs__ = torch::_fused_rms_norm(*input, normalized_shape_ndim, *weight, eps);
-    out__[0] = new torch::Tensor(outputs__);
+    auto outputs__ = torch::_fused_rms_norm(*input, torch::IntArrayRef(normalized_shape_data, normalized_shape_len), (weight ? ::std::optional<at::Tensor>(*weight) : ::std::nullopt), eps_null ? c10::nullopt : c10::optional<double>(eps_v));
+    out__[0] = new torch::Tensor(std::get<0>(outputs__));
+    out__[1] = new torch::Tensor(std::get<1>(outputs__));
   )
 }
 
@@ -7690,55 +7700,6 @@ void atg_fake_quantize_per_tensor_affine_tensor_qparams(tensor *out__, tensor se
   )
 }
 
-void atg_fbgemm_linear_fp16_weight(tensor *out__, tensor input, tensor packed_weight, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight(*input, *packed_weight, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_fp16_weight_fp32_activation(tensor *out__, tensor input, tensor packed_weight, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_fp16_weight_fp32_activation(*input, *packed_weight, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_int8_weight(tensor *out__, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_int8_weight(*input, *weight, *packed, *col_offsets, *weight_scale, *weight_zero_point, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_linear_int8_weight_fp32_activation(tensor *out__, tensor input, tensor weight, tensor packed, tensor col_offsets, scalar weight_scale, scalar weight_zero_point, tensor bias) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_linear_int8_weight_fp32_activation(*input, *weight, *packed, *col_offsets, *weight_scale, *weight_zero_point, *bias);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_gemm_matrix_fp16(tensor *out__, tensor input) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_gemm_matrix_fp16(*input);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_quantized_matrix(tensor *out__, tensor input) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
-void atg_fbgemm_pack_quantized_matrix_kn(tensor *out__, tensor input, int64_t K, int64_t n) {
-  PROTECT(
-    auto outputs__ = torch::fbgemm_pack_quantized_matrix(*input, K, n);
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
 void atg_feature_alpha_dropout(tensor *out__, tensor input, double p, int train) {
   PROTECT(
     auto outputs__ = torch::feature_alpha_dropout(*input, p, (bool)train);
@@ -9159,6 +9120,20 @@ void atg_hardtanh_backward_grad_input(tensor *out__, tensor grad_input, tensor g
 void atg_hardtanh_out(tensor *out__, tensor out, tensor self) {
   PROTECT(
     auto outputs__ = torch::hardtanh_out(*out, *self);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_hash_tensor(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int keepdim, int64_t mode) {
+  PROTECT(
+    auto outputs__ = torch::hash_tensor(*self, torch::IntArrayRef(dim_data, dim_len), (bool)keepdim, mode);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_hash_tensor_out(tensor *out__, tensor out, tensor self, int64_t *dim_data, int dim_len, int keepdim, int64_t mode) {
+  PROTECT(
+    auto outputs__ = torch::hash_tensor_out(*out, *self, torch::IntArrayRef(dim_data, dim_len), (bool)keepdim, mode);
     out__[0] = new torch::Tensor(outputs__);
   )
 }

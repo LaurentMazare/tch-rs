@@ -670,6 +670,26 @@ extern "C" {
         blank_: i64,
         zero_infinity_: c_int,
     );
+    pub fn atg__cudnn_attention_backward(
+        out__: *mut *mut C_tensor,
+        grad_out_: *mut C_tensor,
+        query_: *mut C_tensor,
+        key_: *mut C_tensor,
+        value_: *mut C_tensor,
+        out_: *mut C_tensor,
+        logsumexp_: *mut C_tensor,
+        philox_seed_: *mut C_tensor,
+        philox_offset_: *mut C_tensor,
+        attn_bias_: *mut C_tensor,
+        cum_seq_q_: *mut C_tensor,
+        cum_seq_k_: *mut C_tensor,
+        max_q_: i64,
+        max_k_: i64,
+        dropout_p_: f64,
+        is_causal_: c_int,
+        scale_v: f64,
+        scale_null: i8,
+    );
     pub fn atg__cudnn_ctc_loss(
         out__: *mut *mut C_tensor,
         log_probs_: *mut C_tensor,
@@ -1313,9 +1333,11 @@ extern "C" {
     pub fn atg__fused_rms_norm(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,
-        normalized_shape_ndim_: i64,
+        normalized_shape_data: *const i64,
+        normalized_shape_len: c_int,
         weight_: *mut C_tensor,
-        eps_: f64,
+        eps_v: f64,
+        eps_null: i8,
     );
     pub fn atg__fused_sdp_choice(
         query_: *mut C_tensor,
@@ -6825,46 +6847,6 @@ extern "C" {
         quant_min_: i64,
         quant_max_: i64,
     );
-    pub fn atg_fbgemm_linear_fp16_weight(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_fp16_weight_fp32_activation(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        packed_weight_: *mut C_tensor,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_int8_weight(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        weight_: *mut C_tensor,
-        packed_: *mut C_tensor,
-        col_offsets_: *mut C_tensor,
-        weight_scale_: *mut C_scalar,
-        weight_zero_point_: *mut C_scalar,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_linear_int8_weight_fp32_activation(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        weight_: *mut C_tensor,
-        packed_: *mut C_tensor,
-        col_offsets_: *mut C_tensor,
-        weight_scale_: *mut C_scalar,
-        weight_zero_point_: *mut C_scalar,
-        bias_: *mut C_tensor,
-    );
-    pub fn atg_fbgemm_pack_gemm_matrix_fp16(out__: *mut *mut C_tensor, input_: *mut C_tensor);
-    pub fn atg_fbgemm_pack_quantized_matrix(out__: *mut *mut C_tensor, input_: *mut C_tensor);
-    pub fn atg_fbgemm_pack_quantized_matrix_kn(
-        out__: *mut *mut C_tensor,
-        input_: *mut C_tensor,
-        K_: i64,
-        n_: i64,
-    );
     pub fn atg_feature_alpha_dropout(
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,
@@ -8063,6 +8045,23 @@ extern "C" {
         max_val_: *mut C_scalar,
     );
     pub fn atg_hardtanh_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_hash_tensor(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        dim_data: *const i64,
+        dim_len: c_int,
+        keepdim_: c_int,
+        mode_: i64,
+    );
+    pub fn atg_hash_tensor_out(
+        out__: *mut *mut C_tensor,
+        out_: *mut C_tensor,
+        self_: *mut C_tensor,
+        dim_data: *const i64,
+        dim_len: c_int,
+        keepdim_: c_int,
+        mode_: i64,
+    );
     pub fn atg_heaviside(out__: *mut *mut C_tensor, self_: *mut C_tensor, values_: *mut C_tensor);
     pub fn atg_heaviside_(out__: *mut *mut C_tensor, self_: *mut C_tensor, values_: *mut C_tensor);
     pub fn atg_heaviside_out(
