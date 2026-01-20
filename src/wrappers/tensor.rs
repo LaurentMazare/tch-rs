@@ -442,6 +442,22 @@ impl Tensor {
         Ok(Tensor { c_tensor })
     }
 
+    pub fn f_of_slice_size<T: kind::Element>(data: &[T], size: &[i64]) -> Result<Tensor, TchError> {
+        let data_len = data.len();
+        let data = data.as_ptr() as *const c_void;
+        let c_tensor = unsafe_torch_err!(at_tensor_of_data(
+            data,
+            size.as_ptr(),
+            size.len(),
+            T::KIND.elt_size_in_bytes(),
+            T::KIND.c_int(),
+        ));
+        Ok(Tensor { c_tensor })
+    }
+    /// Converts a slice to a tensor with size specified
+    pub fn of_slice_size<T: kind::Element>(data: &[T], size: &[i64]) -> Tensor {
+        Self::f_of_slice_size(data, size).unwrap()
+    }
     /// Converts a slice to a tensor.
     pub fn from_slice<T: kind::Element>(data: &[T]) -> Tensor {
         Self::f_from_slice(data).unwrap()
