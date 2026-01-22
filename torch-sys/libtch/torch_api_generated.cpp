@@ -2419,6 +2419,13 @@ void atg__scaled_grouped_mm(tensor *out__, tensor self, tensor mat2, tensor scal
   )
 }
 
+void atg__scaled_grouped_mm_v2(tensor *out__, tensor self, tensor mat2, tensor *scale_a_data, int scale_a_len, int64_t *recipe_a_data, int recipe_a_len, int64_t *swizzle_a_data, int swizzle_a_len, tensor *scale_b_data, int scale_b_len, int64_t *recipe_b_data, int recipe_b_len, int64_t *swizzle_b_data, int swizzle_b_len, tensor offs, tensor bias, int out_dtype, int64_t *contraction_dim_data, int contraction_dim_len, int use_fast_accum) {
+  PROTECT(
+    auto outputs__ = torch::_scaled_grouped_mm_v2(*self, *mat2, of_carray_tensor(scale_a_data, scale_a_len), torch::IntArrayRef(recipe_a_data, recipe_a_len), torch::IntArrayRef(swizzle_a_data, swizzle_a_len), of_carray_tensor(scale_b_data, scale_b_len), torch::IntArrayRef(recipe_b_data, recipe_b_len), torch::IntArrayRef(swizzle_b_data, swizzle_b_len), (offs ? ::std::optional<at::Tensor>(*offs) : ::std::nullopt), (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)), torch::IntArrayRef(contraction_dim_data, contraction_dim_len), (bool)use_fast_accum);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg__scaled_mm(tensor *out__, tensor self, tensor mat2, tensor scale_a, tensor scale_b, tensor bias, tensor scale_result, int out_dtype, int use_fast_accum) {
   PROTECT(
     auto outputs__ = torch::_scaled_mm(*self, *mat2, *scale_a, *scale_b, (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), (scale_result ? ::std::optional<at::Tensor>(*scale_result) : ::std::nullopt), out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)), (bool)use_fast_accum);
@@ -2429,6 +2436,20 @@ void atg__scaled_mm(tensor *out__, tensor self, tensor mat2, tensor scale_a, ten
 void atg__scaled_mm_out(tensor *out__, tensor out, tensor self, tensor mat2, tensor scale_a, tensor scale_b, tensor bias, tensor scale_result, int out_dtype, int use_fast_accum) {
   PROTECT(
     auto outputs__ = torch::_scaled_mm_out(*out, *self, *mat2, *scale_a, *scale_b, (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), (scale_result ? ::std::optional<at::Tensor>(*scale_result) : ::std::nullopt), out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)), (bool)use_fast_accum);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg__scaled_mm_v2(tensor *out__, tensor self, tensor mat2, tensor *scale_a_data, int scale_a_len, int64_t *recipe_a_data, int recipe_a_len, int64_t *swizzle_a_data, int swizzle_a_len, tensor *scale_b_data, int scale_b_len, int64_t *recipe_b_data, int recipe_b_len, int64_t *swizzle_b_data, int swizzle_b_len, tensor bias, int out_dtype, int64_t *contraction_dim_data, int contraction_dim_len, int use_fast_accum) {
+  PROTECT(
+    auto outputs__ = torch::_scaled_mm_v2(*self, *mat2, of_carray_tensor(scale_a_data, scale_a_len), torch::IntArrayRef(recipe_a_data, recipe_a_len), torch::IntArrayRef(swizzle_a_data, swizzle_a_len), of_carray_tensor(scale_b_data, scale_b_len), torch::IntArrayRef(recipe_b_data, recipe_b_len), torch::IntArrayRef(swizzle_b_data, swizzle_b_len), (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)), torch::IntArrayRef(contraction_dim_data, contraction_dim_len), (bool)use_fast_accum);
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg__scaled_mm_v2_out(tensor *out__, tensor out, tensor self, tensor mat2, tensor *scale_a_data, int scale_a_len, int64_t *recipe_a_data, int recipe_a_len, int64_t *swizzle_a_data, int swizzle_a_len, tensor *scale_b_data, int scale_b_len, int64_t *recipe_b_data, int recipe_b_len, int64_t *swizzle_b_data, int swizzle_b_len, tensor bias, int out_dtype, int64_t *contraction_dim_data, int contraction_dim_len, int use_fast_accum) {
+  PROTECT(
+    auto outputs__ = torch::_scaled_mm_v2_out(*out, *self, *mat2, of_carray_tensor(scale_a_data, scale_a_len), torch::IntArrayRef(recipe_a_data, recipe_a_len), torch::IntArrayRef(swizzle_a_data, swizzle_a_len), of_carray_tensor(scale_b_data, scale_b_len), torch::IntArrayRef(recipe_b_data, recipe_b_len), torch::IntArrayRef(swizzle_b_data, swizzle_b_len), (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), out_dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(out_dtype)), torch::IntArrayRef(contraction_dim_data, contraction_dim_len), (bool)use_fast_accum);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
