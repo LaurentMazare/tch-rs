@@ -5936,6 +5936,48 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_scaled_grouped_mm_v2<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        offs: Option<T>,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_grouped_mm_v2(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            offs.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_scaled_mm<T: Borrow<Tensor>>(
         &self,
         mat2: &Tensor,
@@ -5983,6 +6025,88 @@ impl Tensor {
             bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             scale_result.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             out_dtype.into().map_or(-1, |s| s.c_int()),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_scaled_mm_v2<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_mm_v2(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_scaled_mm_v2_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_mm_v2_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
             if use_fast_accum { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })

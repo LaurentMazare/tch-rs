@@ -3606,6 +3606,38 @@ impl Tensor {
         .unwrap()
     }
 
+    pub fn internal_scaled_grouped_mm_v2<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        offs: Option<T>,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_grouped_mm_v2(
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            offs,
+            bias,
+            out_dtype,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
     pub fn internal_scaled_mm<T: Borrow<Tensor>>(
         &self,
         mat2: &Tensor,
@@ -3647,6 +3679,68 @@ impl Tensor {
             bias,
             scale_result,
             out_dtype,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_mm_v2<T: Borrow<Tensor>>(
+        &self,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_mm_v2(
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            bias,
+            out_dtype,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_mm_v2_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_mm_v2_out(
+            out,
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            bias,
+            out_dtype,
+            contraction_dim,
             use_fast_accum,
         )
         .unwrap()
