@@ -376,7 +376,8 @@ impl SystemInfo {
                 // as DEP_TORCH_SYS_LIBTORCH_LIB, see:
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
                 println!("cargo:libtorch_lib={}", self.libtorch_lib_dir.display());
-                cc::Build::new()
+                let mut build = cc::Build::new();
+                build
                     .cpp(true)
                     .pic(true)
                     .warnings(false)
@@ -385,22 +386,39 @@ impl SystemInfo {
                     .flag("-std=c++17")
                     .flag(format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .flag("-DGLOG_USE_GLOG_EXPORT")
-                    .files(&c_files)
-                    .compile("tch");
+                    .files(&c_files);
+                
+                // Check for HIP support
+                let use_hip = self.libtorch_lib_dir.join("libtorch_hip.so").exists() ||
+                              self.libtorch_lib_dir.join("torch_hip.dll").exists();
+                if use_hip {
+                    build.define("USE_ROCM", None);
+                }
+                
+                build.compile("tch");
             }
             Os::Windows => {
                 // TODO: Pass "/link" "LIBPATH:{}" to cl.exe in order to emulate rpath.
                 //       Not yet supported by cc=rs.
                 //       https://github.com/alexcrichton/cc-rs/issues/323
-                cc::Build::new()
+                let mut build = cc::Build::new();
+                build
                     .cpp(true)
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .flag("/std:c++17")
                     .flag("/p:DefineConstants=GLOG_USE_GLOG_EXPORT")
-                    .files(&c_files)
-                    .compile("tch");
+                    .files(&c_files);
+                
+                // Check for HIP support
+                let use_hip = self.libtorch_lib_dir.join("libtorch_hip.so").exists() ||
+                              self.libtorch_lib_dir.join("torch_hip.dll").exists();
+                if use_hip {
+                    build.define("USE_ROCM", None);
+                }
+                
+                build.compile("tch");
             }
         };
     }
