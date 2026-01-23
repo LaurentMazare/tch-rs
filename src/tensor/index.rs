@@ -44,6 +44,20 @@
 //! assert_eq!(t.size(), &[2, 3, 1]);
 //! ```
 //!
+//! The `Slice::new(start, end, step)` index can be used to select elements over step size.
+//!
+//! ```ignore
+//! use crate::tch::{IndexOp, Slice, Tensor};
+//! let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+//! let t = tensor.i((.., Slice::new(None, None, 2)));
+//! assert_eq!(t.size(), [2, 2]);
+//! assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [1, 3, 4, 6]);
+//! let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).view((5, 2));
+//! let t = tensor.i((Slice::new(None, 4, 2), ..));
+//! assert_eq!(t.size(), [2, 2]);
+//! assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [1, 2, 5, 6]);
+//! ```
+//!
 //! Unlike NumPy, the `i` operation does not support advanced indexing.
 //! The result can be different from NumPy with same set of arguments.
 //! For example, `tensor.i(..1, vec![0, 3], vec![2, 1, 3])` does narrowing
@@ -60,17 +74,37 @@ use std::ops::{
 #[derive(Debug, PartialEq, Eq)]
 pub struct NewAxis;
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct Slice(Option<i64>, Option<i64>, i64);
+
+impl Slice {
+    pub fn new(
+        start: impl Into<Option<i64>>,
+        end: impl Into<Option<i64>>,
+        step: i64,
+    ) -> Self {
+        Self(start.into(), end.into(), step)
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum TensorIndexer {
     Select(i64),
     Narrow(Bound<i64>, Bound<i64>),
     IndexSelect(Tensor),
     InsertNewAxis,
+    IndexSlice(Option<i64>, Option<i64>, i64),
 }
 
 impl From<NewAxis> for TensorIndexer {
     fn from(_index: NewAxis) -> Self {
         TensorIndexer::InsertNewAxis
+    }
+}
+
+impl From<Slice> for TensorIndexer {
+    fn from(slice: Slice) -> Self {
+        TensorIndexer::IndexSlice(slice.0, slice.1, slice.2)
     }
 }
 
@@ -363,6 +397,10 @@ impl Tensor {
                     let index_tensor = index_tensor.to_device(curr_tensor.device());
                     (curr_tensor.index_select(curr_idx, &index_tensor), curr_idx + 1)
                 }
+                IndexSlice(start, end, step) => (
+                    curr_tensor.slice(curr_idx, *start, *end, *step),
+                    curr_idx + 1
+                ),
             };
             curr_tensor = next_tensor;
             curr_idx = next_idx;

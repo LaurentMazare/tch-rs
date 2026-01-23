@@ -1,5 +1,6 @@
 use tch::{Device, Kind, Tensor};
 use tch::{IndexOp, NewAxis};
+use tch::index::Slice;
 
 mod test_utils;
 use test_utils::*;
@@ -226,4 +227,16 @@ fn indexing_doc() {
     assert_eq!(t.size(), &[1, 2, 3]);
     let t = tensor.i((.., .., NewAxis));
     assert_eq!(t.size(), &[2, 3, 1]);
+
+    let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6]).view((2, 3));
+    let t = tensor.i((.., Slice::new(None, None, 2)));
+    assert_eq!(t.size(), [2, 2]);
+    assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [1, 3, 4, 6]);
+    let tensor = Tensor::from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).view((5, 2));
+    let t = tensor.i((Slice::new(None, 4, 2), ..));
+    assert_eq!(t.size(), [2, 2]);
+    assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [1, 2, 5, 6]);
+    let t = tensor.i((Slice::new(2, 4, 2), ..));
+    assert_eq!(t.size(), [1, 2]);
+    assert_eq!(vec_i64_from(&t.contiguous().view(-1)), [5, 6]);
 }
