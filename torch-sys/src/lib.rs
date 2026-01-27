@@ -161,6 +161,7 @@ extern "C" {
 }
 
 pub mod c_generated;
+pub mod c10_cuda;
 
 extern "C" {
     pub fn get_and_reset_last_err() -> *mut c_char;
