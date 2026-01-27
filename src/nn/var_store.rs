@@ -166,7 +166,7 @@ impl VarStore {
         let variables = self.variables_.lock().unwrap();
         let named_tensors = variables.named_variables.iter().collect::<Vec<_>>();
         match path.as_ref().extension().and_then(|x| x.to_str()) {
-            Some("safetensors") => Tensor::write_safetensors(named_tensors.as_slice(), path),
+            Some("safetensors") => Tensor::persist_safetensors(named_tensors.as_slice(), path),
             Some(_) | None => Tensor::save_multi(named_tensors.as_slice(), path),
         }
     }
@@ -187,7 +187,7 @@ impl VarStore {
     ) -> Result<HashMap<String, Tensor>, TchError> {
         let named_tensors = match path.as_ref().extension().and_then(|x| x.to_str()) {
             Some("bin") | Some("pt") => Tensor::loadz_multi_with_device(&path, self.device),
-            Some("safetensors") => Tensor::read_safetensors(path),
+            Some("safetensors") => Tensor::read_safetensors_file(path),
             Some(_) | None => Tensor::load_multi_with_device(&path, self.device),
         };
         Ok(named_tensors?.into_iter().collect())

@@ -164,8 +164,8 @@ fn save_and_load_safetensors() {
     let tmp_file = TmpFile::create("save-and-load-safetensors");
     let pi = Tensor::from_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]);
     let e = Tensor::from_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]);
-    Tensor::write_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
-    let named_tensors = Tensor::read_safetensors(&tmp_file).unwrap();
+    Tensor::persist_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
+    let named_tensors = Tensor::read_safetensors_file(&tmp_file).unwrap();
     assert_eq!(named_tensors.len(), 2);
     for (name, tensor) in named_tensors {
         match name.as_str() {
@@ -182,8 +182,8 @@ fn save_and_load_safetensors_half() {
     let pi = Tensor::from_slice(&[3.0, 1.0, 4.0, 1.0, 5.0]).to_dtype(Kind::Half, true, false);
     let e =
         Tensor::from_slice(&[2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 6]).to_dtype(Kind::Half, true, false);
-    Tensor::write_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
-    let named_tensors = Tensor::read_safetensors(&tmp_file).unwrap();
+    Tensor::persist_safetensors(&[(&"pi", &pi), (&"e", &e)], &tmp_file).unwrap();
+    let named_tensors = Tensor::read_safetensors_file(&tmp_file).unwrap();
     assert_eq!(named_tensors.len(), 2);
     for (name, tensor) in named_tensors {
         match name.as_str() {
