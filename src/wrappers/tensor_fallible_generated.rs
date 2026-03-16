@@ -5420,9 +5420,9 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_internal_pin_memory(&self, device: Device) -> Result<Tensor, TchError> {
+    pub fn f_internal_pin_memory(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg__pin_memory(c_tensors.as_mut_ptr(), self.c_tensor, device.c_int()));
+        unsafe_torch_err!(atg__pin_memory(c_tensors.as_mut_ptr(), self.c_tensor));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -20605,9 +20605,9 @@ impl Tensor {
         Ok(return_ != 0)
     }
 
-    pub fn f_is_pinned(&self, device: Device) -> Result<bool, TchError> {
+    pub fn f_is_pinned(&self) -> Result<bool, TchError> {
         let return_;
-        unsafe_torch_err!(return_ = atg_is_pinned(self.c_tensor, device.c_int()));
+        unsafe_torch_err!(return_ = atg_is_pinned(self.c_tensor));
         Ok(return_ != 0)
     }
 
@@ -28337,9 +28337,9 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_pin_memory(&self, device: Device) -> Result<Tensor, TchError> {
+    pub fn f_pin_memory(&self) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_pin_memory(c_tensors.as_mut_ptr(), self.c_tensor, device.c_int()));
+        unsafe_torch_err!(atg_pin_memory(c_tensors.as_mut_ptr(), self.c_tensor));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
