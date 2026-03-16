@@ -2211,9 +2211,9 @@ void atg__pdist_backward_out(tensor *out__, tensor out, tensor grad, tensor self
   )
 }
 
-void atg__pin_memory(tensor *out__, tensor self, int device) {
+void atg__pin_memory(tensor *out__, tensor self) {
   PROTECT(
-    auto outputs__ = torch::_pin_memory(*self, device_of_int(device));
+    auto outputs__ = torch::_pin_memory(*self);
     out__[0] = new torch::Tensor(outputs__);
   )
 }
@@ -9721,9 +9721,9 @@ int atg_is_nonzero(tensor self) {
   return 0;
 }
 
-int atg_is_pinned(tensor self, int device) {
+int atg_is_pinned(tensor self) {
   PROTECT(
-    return self->is_pinned(device_of_int(device));
+    return self->is_pinned();
   )
   return 0;
 }
@@ -13480,9 +13480,9 @@ void atg_permute_copy_out(tensor *out__, tensor out, tensor self, int64_t *dims_
   )
 }
 
-void atg_pin_memory(tensor *out__, tensor self, int device) {
+void atg_pin_memory(tensor *out__, tensor self) {
   PROTECT(
-    auto outputs__ = self->pin_memory(device_of_int(device));
+    auto outputs__ = self->pin_memory();
     out__[0] = new torch::Tensor(outputs__);
   )
 }
