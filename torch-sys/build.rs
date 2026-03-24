@@ -376,6 +376,9 @@ impl SystemInfo {
                 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#the-links-manifest-key
                 println!("cargo:libtorch_lib={}", self.libtorch_lib_dir.display());
 
+                // NOTE: Compiling torch-sys on AArch64 shows depceration warnings for
+                // at::autocast::is_enabled(). -Wno-deprecated-declarations is added to supress
+                // this warning.
                 let mut build = cc::Build::new();
                 build
                     .cpp(true)
@@ -384,6 +387,7 @@ impl SystemInfo {
                     .includes(&self.libtorch_include_dirs)
                     .flag(format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
                     .flag("-std=c++17")
+                    .flag("-Wno-deprecated-declarations")
                     .flag(format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .flag("-DGLOG_USE_GLOG_EXPORT")
                     .files(&c_files);
@@ -499,21 +503,27 @@ fn main() -> anyhow::Result<()> {
         if cfg!(feature = "python-extension") {
             system_info.link("torch_python")
         }
-        if system_info.link_type == LinkType::Static {
-            system_info.link("clog");
-            system_info.link("cpuinfo");
-            system_info.link("eigen_blas");
-            system_info.link("fmt");
-            system_info.link("pthreadpool");
-            system_info.link("pytorch_qnnpack");
-            system_info.link("XNNPACK");
-            system_info.link("microkernels-prod");
-        }
+
+        // NOTE: Link order is modified to support AArch64 due to default linker differences.
+        // Unlike rust-lld, which is the default linker for x86_64, AArch64's default linker
+        // cannot resolve cicrular dependencies. Therefore, the linked libraries must be sorted
+        // in a topological order for proper linkage.
         system_info.link("torch_cpu");
         system_info.link("torch");
         system_info.link("c10");
         if use_hip {
             system_info.link("c10_hip");
+        }
+
+        if system_info.link_type == LinkType::Static {
+            system_info.link("pytorch_qnnpack");
+            system_info.link("XNNPACK");
+            system_info.link("microkernels-prod");
+            system_info.link("eigen_blas");
+            system_info.link("fmt");
+            system_info.link("pthreadpool");
+            system_info.link("cpuinfo");
+            system_info.link("clog");
         }
     }
     Ok(())
