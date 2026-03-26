@@ -42,6 +42,7 @@ let excluded_functions =
     ; "linalg_vector_norm_out"
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
+    ; "linalg__powsum"
       (* Deactivate normal_out, bernoulli_out as these result in some
        ambiguous function calls. *)
     ; "normal_out"

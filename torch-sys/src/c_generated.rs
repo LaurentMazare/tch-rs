@@ -8844,14 +8844,6 @@ extern "C" {
         self_: *mut C_tensor,
     );
     pub fn atg_lift_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
-    pub fn atg_linalg__powsum(
-        out__: *mut *mut C_tensor,
-        self_: *mut C_tensor,
-        dim_data: *const i64,
-        dim_len: c_int,
-        keepdim_: c_int,
-        dtype_: c_int,
-    );
     pub fn atg_linalg_cholesky(out__: *mut *mut C_tensor, self_: *mut C_tensor, upper_: c_int);
     pub fn atg_linalg_cholesky_ex(
         out__: *mut *mut C_tensor,

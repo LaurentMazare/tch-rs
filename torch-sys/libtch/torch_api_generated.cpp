@@ -10290,13 +10290,6 @@ void atg_lift_out(tensor *out__, tensor out, tensor self) {
   )
 }
 
-void atg_linalg__powsum(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype) {
-  PROTECT(
-    auto outputs__ = torch::linalg__powsum(*self, dim_data == nullptr ? c10::nullopt : c10::optional<torch::IntArrayRef>(torch::IntArrayRef(dim_data, dim_len)), (bool)keepdim, dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(dtype)));
-    out__[0] = new torch::Tensor(outputs__);
-  )
-}
-
 void atg_linalg_cholesky(tensor *out__, tensor self, int upper) {
   PROTECT(
     auto outputs__ = torch::linalg_cholesky(*self, (bool)upper);

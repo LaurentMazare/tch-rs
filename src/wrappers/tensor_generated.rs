@@ -11254,15 +11254,6 @@ impl Tensor {
         self.f_lift_out(out).unwrap()
     }
 
-    pub fn linalg_powsum(
-        &self,
-        dim: impl IntListOption,
-        keepdim: bool,
-        dtype: impl Into<Option<Kind>>,
-    ) -> Tensor {
-        self.f_linalg_powsum(dim, keepdim, dtype).unwrap()
-    }
-
     pub fn linalg_cholesky(&self, upper: bool) -> Tensor {
         self.f_linalg_cholesky(upper).unwrap()
     }

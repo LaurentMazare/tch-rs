@@ -1429,7 +1429,6 @@ void atg_lift_fresh(tensor *, tensor self);
 void atg_lift_fresh_copy(tensor *, tensor self);
 void atg_lift_fresh_copy_out(tensor *, tensor out, tensor self);
 void atg_lift_out(tensor *, tensor out, tensor self);
-void atg_linalg__powsum(tensor *, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype);
 void atg_linalg_cholesky(tensor *, tensor self, int upper);
 void atg_linalg_cholesky_ex(tensor *, tensor self, int upper, int check_errors);
 void atg_linalg_cholesky_ex_l(tensor *, tensor L, tensor info, tensor self, int upper, int check_errors);

@@ -21502,24 +21502,6 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_linalg_powsum(
-        &self,
-        dim: impl IntListOption,
-        keepdim: bool,
-        dtype: impl Into<Option<Kind>>,
-    ) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_linalg__powsum(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            dim.as_ptr(),
-            dim.len_i32(),
-            if keepdim { 1 } else { 0 },
-            dtype.into().map_or(-1, |s| s.c_int())
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
     pub fn f_linalg_cholesky(&self, upper: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_cholesky(
