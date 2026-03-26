@@ -3785,6 +3785,22 @@ extern "C" {
         blank_: i64,
     ) -> c_int;
     pub fn atg__use_cudnn_rnn_flatten_weight() -> c_int;
+    pub fn atg__use_miopen_ctc_loss(
+        log_probs_: *mut C_tensor,
+        targets_: *mut C_tensor,
+        input_lengths_data: *const i64,
+        input_lengths_len: c_int,
+        target_lengths_data: *const i64,
+        target_lengths_len: c_int,
+        blank_: i64,
+    ) -> c_int;
+    pub fn atg__use_miopen_ctc_loss_tensor(
+        log_probs_: *mut C_tensor,
+        targets_: *mut C_tensor,
+        input_lengths_: *mut C_tensor,
+        target_lengths_: *mut C_tensor,
+        blank_: i64,
+    ) -> c_int;
     pub fn atg__validate_compressed_sparse_indices(
         is_crow_: c_int,
         compressed_idx_: *mut C_tensor,
@@ -8828,6 +8844,14 @@ extern "C" {
         self_: *mut C_tensor,
     );
     pub fn atg_lift_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
+    pub fn atg_linalg__powsum(
+        out__: *mut *mut C_tensor,
+        self_: *mut C_tensor,
+        dim_data: *const i64,
+        dim_len: c_int,
+        keepdim_: c_int,
+        dtype_: c_int,
+    );
     pub fn atg_linalg_cholesky(out__: *mut *mut C_tensor, self_: *mut C_tensor, upper_: c_int);
     pub fn atg_linalg_cholesky_ex(
         out__: *mut *mut C_tensor,
@@ -10374,6 +10398,42 @@ extern "C" {
         groups_: i64,
         benchmark_: c_int,
         deterministic_: c_int,
+    );
+    pub fn atg_miopen_ctc_loss(
+        out__: *mut *mut C_tensor,
+        log_probs_: *mut C_tensor,
+        targets_: *mut C_tensor,
+        input_lengths_data: *const i64,
+        input_lengths_len: c_int,
+        target_lengths_data: *const i64,
+        target_lengths_len: c_int,
+        blank_: i64,
+        deterministic_: c_int,
+        zero_infinity_: c_int,
+    );
+    pub fn atg_miopen_ctc_loss_out(
+        out__: *mut *mut C_tensor,
+        out0_: *mut C_tensor,
+        out1_: *mut C_tensor,
+        log_probs_: *mut C_tensor,
+        targets_: *mut C_tensor,
+        input_lengths_data: *const i64,
+        input_lengths_len: c_int,
+        target_lengths_data: *const i64,
+        target_lengths_len: c_int,
+        blank_: i64,
+        deterministic_: c_int,
+        zero_infinity_: c_int,
+    );
+    pub fn atg_miopen_ctc_loss_tensor(
+        out__: *mut *mut C_tensor,
+        log_probs_: *mut C_tensor,
+        targets_: *mut C_tensor,
+        input_lengths_: *mut C_tensor,
+        target_lengths_: *mut C_tensor,
+        blank_: i64,
+        deterministic_: c_int,
+        zero_infinity_: c_int,
     );
     pub fn atg_miopen_depthwise_convolution(
         out__: *mut *mut C_tensor,

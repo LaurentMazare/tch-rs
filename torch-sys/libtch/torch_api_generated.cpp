@@ -3615,6 +3615,20 @@ int atg__use_cudnn_rnn_flatten_weight() {
   return 0;
 }
 
+int atg__use_miopen_ctc_loss(tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank) {
+  PROTECT(
+    return torch::_use_miopen_ctc_loss(*log_probs, *targets, torch::IntArrayRef(input_lengths_data, input_lengths_len), torch::IntArrayRef(target_lengths_data, target_lengths_len), blank);
+  )
+  return 0;
+}
+
+int atg__use_miopen_ctc_loss_tensor(tensor log_probs, tensor targets, tensor input_lengths, tensor target_lengths, int64_t blank) {
+  PROTECT(
+    return torch::_use_miopen_ctc_loss(*log_probs, *targets, *input_lengths, *target_lengths, blank);
+  )
+  return 0;
+}
+
 void atg__validate_compressed_sparse_indices(int is_crow, tensor compressed_idx, tensor plain_idx, int64_t cdim, int64_t dim, int64_t nnz) {
   PROTECT(
     torch::_validate_compressed_sparse_indices((bool)is_crow, *compressed_idx, *plain_idx, cdim, dim, nnz);
@@ -10276,6 +10290,13 @@ void atg_lift_out(tensor *out__, tensor out, tensor self) {
   )
 }
 
+void atg_linalg__powsum(tensor *out__, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype) {
+  PROTECT(
+    auto outputs__ = torch::linalg__powsum(*self, dim_data == nullptr ? c10::nullopt : c10::optional<torch::IntArrayRef>(torch::IntArrayRef(dim_data, dim_len)), (bool)keepdim, dtype < 0 ? c10::nullopt : c10::optional<at::ScalarType>(at::ScalarType(dtype)));
+    out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
 void atg_linalg_cholesky(tensor *out__, tensor self, int upper) {
   PROTECT(
     auto outputs__ = torch::linalg_cholesky(*self, (bool)upper);
@@ -12081,6 +12102,30 @@ void atg_miopen_convolution_transpose_out(tensor *out__, tensor out, tensor self
   PROTECT(
     auto outputs__ = torch::miopen_convolution_transpose_out(*out, *self, *weight, (bias ? ::std::optional<at::Tensor>(*bias) : ::std::nullopt), torch::IntArrayRef(padding_data, padding_len), torch::IntArrayRef(output_padding_data, output_padding_len), torch::IntArrayRef(stride_data, stride_len), torch::IntArrayRef(dilation_data, dilation_len), groups, (bool)benchmark, (bool)deterministic);
     out__[0] = new torch::Tensor(outputs__);
+  )
+}
+
+void atg_miopen_ctc_loss(tensor *out__, tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank, int deterministic, int zero_infinity) {
+  PROTECT(
+    auto outputs__ = torch::miopen_ctc_loss(*log_probs, *targets, torch::IntArrayRef(input_lengths_data, input_lengths_len), torch::IntArrayRef(target_lengths_data, target_lengths_len), blank, (bool)deterministic, (bool)zero_infinity);
+    out__[0] = new torch::Tensor(std::get<0>(outputs__));
+    out__[1] = new torch::Tensor(std::get<1>(outputs__));
+  )
+}
+
+void atg_miopen_ctc_loss_out(tensor *out__, tensor out0, tensor out1, tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank, int deterministic, int zero_infinity) {
+  PROTECT(
+    auto outputs__ = torch::miopen_ctc_loss_out(*out0, *out1, *log_probs, *targets, torch::IntArrayRef(input_lengths_data, input_lengths_len), torch::IntArrayRef(target_lengths_data, target_lengths_len), blank, (bool)deterministic, (bool)zero_infinity);
+    out__[0] = new torch::Tensor(std::get<0>(outputs__));
+    out__[1] = new torch::Tensor(std::get<1>(outputs__));
+  )
+}
+
+void atg_miopen_ctc_loss_tensor(tensor *out__, tensor log_probs, tensor targets, tensor input_lengths, tensor target_lengths, int64_t blank, int deterministic, int zero_infinity) {
+  PROTECT(
+    auto outputs__ = torch::miopen_ctc_loss(*log_probs, *targets, *input_lengths, *target_lengths, blank, (bool)deterministic, (bool)zero_infinity);
+    out__[0] = new torch::Tensor(std::get<0>(outputs__));
+    out__[1] = new torch::Tensor(std::get<1>(outputs__));
   )
 }
 

@@ -9056,6 +9056,48 @@ impl Tensor {
         Ok(return_ != 0)
     }
 
+    pub fn f_internal_use_miopen_ctc_loss(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+    ) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg__use_miopen_ctc_loss(
+                log_probs.c_tensor,
+                targets.c_tensor,
+                input_lengths.as_ptr(),
+                input_lengths.len_i32(),
+                target_lengths.as_ptr(),
+                target_lengths.len_i32(),
+                blank
+            )
+        );
+        Ok(return_ != 0)
+    }
+
+    pub fn f_internal_use_miopen_ctc_loss_tensor(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: &Tensor,
+        target_lengths: &Tensor,
+        blank: i64,
+    ) -> Result<bool, TchError> {
+        let return_;
+        unsafe_torch_err!(
+            return_ = atg__use_miopen_ctc_loss_tensor(
+                log_probs.c_tensor,
+                targets.c_tensor,
+                input_lengths.c_tensor,
+                target_lengths.c_tensor,
+                blank
+            )
+        );
+        Ok(return_ != 0)
+    }
+
     pub fn f_internal_validate_compressed_sparse_indices(
         is_crow: bool,
         compressed_idx: &Tensor,
@@ -21460,6 +21502,24 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_linalg_powsum(
+        &self,
+        dim: impl IntListOption,
+        keepdim: bool,
+        dtype: impl Into<Option<Kind>>,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linalg__powsum(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            dim.as_ptr(),
+            dim.len_i32(),
+            if keepdim { 1 } else { 0 },
+            dtype.into().map_or(-1, |s| s.c_int())
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_linalg_cholesky(&self, upper: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_linalg_cholesky(
@@ -25189,6 +25249,83 @@ impl Tensor {
             if deterministic { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_miopen_ctc_loss(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_miopen_ctc_loss(
+            c_tensors.as_mut_ptr(),
+            log_probs.c_tensor,
+            targets.c_tensor,
+            input_lengths.as_ptr(),
+            input_lengths.len_i32(),
+            target_lengths.as_ptr(),
+            target_lengths.len_i32(),
+            blank,
+            if deterministic { 1 } else { 0 },
+            if zero_infinity { 1 } else { 0 }
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_miopen_ctc_loss_out(
+        out0: &Tensor,
+        out1: &Tensor,
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_miopen_ctc_loss_out(
+            c_tensors.as_mut_ptr(),
+            out0.c_tensor,
+            out1.c_tensor,
+            log_probs.c_tensor,
+            targets.c_tensor,
+            input_lengths.as_ptr(),
+            input_lengths.len_i32(),
+            target_lengths.as_ptr(),
+            target_lengths.len_i32(),
+            blank,
+            if deterministic { 1 } else { 0 },
+            if zero_infinity { 1 } else { 0 }
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_miopen_ctc_loss_tensor(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: &Tensor,
+        target_lengths: &Tensor,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_miopen_ctc_loss_tensor(
+            c_tensors.as_mut_ptr(),
+            log_probs.c_tensor,
+            targets.c_tensor,
+            input_lengths.c_tensor,
+            target_lengths.c_tensor,
+            blank,
+            if deterministic { 1 } else { 0 },
+            if zero_infinity { 1 } else { 0 }
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
     pub fn f_miopen_depthwise_convolution<T: Borrow<Tensor>>(

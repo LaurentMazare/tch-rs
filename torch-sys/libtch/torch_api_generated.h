@@ -494,6 +494,8 @@ void atg__upsample_nearest_exact3d_vec(tensor *, tensor input, int64_t *output_s
 int atg__use_cudnn_ctc_loss(tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank);
 int atg__use_cudnn_ctc_loss_tensor(tensor log_probs, tensor targets, tensor input_lengths, tensor target_lengths, int64_t blank);
 int atg__use_cudnn_rnn_flatten_weight();
+int atg__use_miopen_ctc_loss(tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank);
+int atg__use_miopen_ctc_loss_tensor(tensor log_probs, tensor targets, tensor input_lengths, tensor target_lengths, int64_t blank);
 void atg__validate_compressed_sparse_indices(int is_crow, tensor compressed_idx, tensor plain_idx, int64_t cdim, int64_t dim, int64_t nnz);
 void atg__validate_sparse_bsc_tensor_args(tensor ccol_indices, tensor row_indices, tensor values, int64_t *size_data, int size_len, int check_pinning);
 void atg__validate_sparse_bsr_tensor_args(tensor crow_indices, tensor col_indices, tensor values, int64_t *size_data, int size_len, int check_pinning);
@@ -1427,6 +1429,7 @@ void atg_lift_fresh(tensor *, tensor self);
 void atg_lift_fresh_copy(tensor *, tensor self);
 void atg_lift_fresh_copy_out(tensor *, tensor out, tensor self);
 void atg_lift_out(tensor *, tensor out, tensor self);
+void atg_linalg__powsum(tensor *, tensor self, int64_t *dim_data, int dim_len, int keepdim, int dtype);
 void atg_linalg_cholesky(tensor *, tensor self, int upper);
 void atg_linalg_cholesky_ex(tensor *, tensor self, int upper, int check_errors);
 void atg_linalg_cholesky_ex_l(tensor *, tensor L, tensor info, tensor self, int upper, int check_errors);
@@ -1674,6 +1677,9 @@ void atg_miopen_convolution_out(tensor *, tensor out, tensor self, tensor weight
 void atg_miopen_convolution_relu(tensor *, tensor self, tensor weight, tensor bias, int64_t *stride_data, int stride_len, int64_t *padding_data, int padding_len, int64_t *dilation_data, int dilation_len, int64_t groups);
 void atg_miopen_convolution_transpose(tensor *, tensor self, tensor weight, tensor bias, int64_t *padding_data, int padding_len, int64_t *output_padding_data, int output_padding_len, int64_t *stride_data, int stride_len, int64_t *dilation_data, int dilation_len, int64_t groups, int benchmark, int deterministic);
 void atg_miopen_convolution_transpose_out(tensor *, tensor out, tensor self, tensor weight, tensor bias, int64_t *padding_data, int padding_len, int64_t *output_padding_data, int output_padding_len, int64_t *stride_data, int stride_len, int64_t *dilation_data, int dilation_len, int64_t groups, int benchmark, int deterministic);
+void atg_miopen_ctc_loss(tensor *, tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank, int deterministic, int zero_infinity);
+void atg_miopen_ctc_loss_out(tensor *, tensor out0, tensor out1, tensor log_probs, tensor targets, int64_t *input_lengths_data, int input_lengths_len, int64_t *target_lengths_data, int target_lengths_len, int64_t blank, int deterministic, int zero_infinity);
+void atg_miopen_ctc_loss_tensor(tensor *, tensor log_probs, tensor targets, tensor input_lengths, tensor target_lengths, int64_t blank, int deterministic, int zero_infinity);
 void atg_miopen_depthwise_convolution(tensor *, tensor self, tensor weight, tensor bias, int64_t *padding_data, int padding_len, int64_t *stride_data, int stride_len, int64_t *dilation_data, int dilation_len, int64_t groups, int benchmark, int deterministic);
 void atg_miopen_depthwise_convolution_out(tensor *, tensor out, tensor self, tensor weight, tensor bias, int64_t *padding_data, int padding_len, int64_t *stride_data, int stride_len, int64_t *dilation_data, int dilation_len, int64_t groups, int benchmark, int deterministic);
 void atg_miopen_rnn(tensor *, tensor input, tensor *weight_data, int weight_len, int64_t weight_stride0, tensor hx, tensor cx, int64_t mode, int64_t hidden_size, int64_t num_layers, int batch_first, double dropout, int train, int bidirectional, int64_t *batch_sizes_data, int batch_sizes_len, tensor dropout_state);
