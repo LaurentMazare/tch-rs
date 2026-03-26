@@ -42,6 +42,7 @@ let excluded_functions =
     ; "linalg_vector_norm_out"
     ; "linalg_matrix_norm"
     ; "linalg_matrix_norm_out"
+    ; "linalg__powsum"
       (* Deactivate normal_out, bernoulli_out as these result in some
        ambiguous function calls. *)
     ; "normal_out"
@@ -884,7 +885,7 @@ let run
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.10.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.11.0.yaml"
     ~cpp_filename:"torch-sys/libtch/torch_api_generated"
     ~ffi_filename:"torch-sys/src/c_generated.rs"
     ~wrapper_filename:"src/wrappers/tensor_generated.rs"

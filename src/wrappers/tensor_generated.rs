@@ -5287,6 +5287,40 @@ impl Tensor {
         Tensor::f_internal_use_cudnn_rnn_flatten_weight().unwrap()
     }
 
+    pub fn internal_use_miopen_ctc_loss(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+    ) -> bool {
+        Tensor::f_internal_use_miopen_ctc_loss(
+            log_probs,
+            targets,
+            input_lengths,
+            target_lengths,
+            blank,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_use_miopen_ctc_loss_tensor(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: &Tensor,
+        target_lengths: &Tensor,
+        blank: i64,
+    ) -> bool {
+        Tensor::f_internal_use_miopen_ctc_loss_tensor(
+            log_probs,
+            targets,
+            input_lengths,
+            target_lengths,
+            blank,
+        )
+        .unwrap()
+    }
+
     pub fn internal_validate_compressed_sparse_indices(
         is_crow: bool,
         compressed_idx: &Tensor,
@@ -13038,6 +13072,73 @@ impl Tensor {
             groups,
             benchmark,
             deterministic,
+        )
+        .unwrap()
+    }
+
+    pub fn miopen_ctc_loss(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> (Tensor, Tensor) {
+        Tensor::f_miopen_ctc_loss(
+            log_probs,
+            targets,
+            input_lengths,
+            target_lengths,
+            blank,
+            deterministic,
+            zero_infinity,
+        )
+        .unwrap()
+    }
+
+    pub fn miopen_ctc_loss_out(
+        out0: &Tensor,
+        out1: &Tensor,
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: impl IntList,
+        target_lengths: impl IntList,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> (Tensor, Tensor) {
+        Tensor::f_miopen_ctc_loss_out(
+            out0,
+            out1,
+            log_probs,
+            targets,
+            input_lengths,
+            target_lengths,
+            blank,
+            deterministic,
+            zero_infinity,
+        )
+        .unwrap()
+    }
+
+    pub fn miopen_ctc_loss_tensor(
+        log_probs: &Tensor,
+        targets: &Tensor,
+        input_lengths: &Tensor,
+        target_lengths: &Tensor,
+        blank: i64,
+        deterministic: bool,
+        zero_infinity: bool,
+    ) -> (Tensor, Tensor) {
+        Tensor::f_miopen_ctc_loss_tensor(
+            log_probs,
+            targets,
+            input_lengths,
+            target_lengths,
+            blank,
+            deterministic,
+            zero_infinity,
         )
         .unwrap()
     }
