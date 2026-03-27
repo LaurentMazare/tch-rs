@@ -3304,8 +3304,8 @@ impl Tensor {
         self.f_internal_pdist_backward_out(out, grad, p, pdist).unwrap()
     }
 
-    pub fn internal_pin_memory(&self, device: Device) -> Tensor {
-        self.f_internal_pin_memory(device).unwrap()
+    pub fn internal_pin_memory(&self) -> Tensor {
+        self.f_internal_pin_memory().unwrap()
     }
 
     pub fn internal_pin_memory_out(&self, out: &Tensor, device: Device) -> Tensor {
@@ -10830,8 +10830,8 @@ impl Tensor {
         self.f_is_nonzero().unwrap()
     }
 
-    pub fn is_pinned(&self, device: Device) -> bool {
-        self.f_is_pinned(device).unwrap()
+    pub fn is_pinned(&self) -> bool {
+        self.f_is_pinned().unwrap()
     }
 
     pub fn is_same_size(&self, other: &Tensor) -> bool {
@@ -14793,8 +14793,8 @@ impl Tensor {
         self.f_permute_copy_out(out, dims).unwrap()
     }
 
-    pub fn pin_memory(&self, device: Device) -> Tensor {
-        self.f_pin_memory(device).unwrap()
+    pub fn pin_memory(&self) -> Tensor {
+        self.f_pin_memory().unwrap()
     }
 
     pub fn pinverse(&self, rcond: f64) -> Tensor {
