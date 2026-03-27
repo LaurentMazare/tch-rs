@@ -156,7 +156,7 @@ unsafe impl Element for half::f16 {
 }
 
 unsafe impl Element for half::bf16 {
-    const KIND: Kind = Kind::Half;
+    const KIND: Kind = Kind::BFloat16;
     const ZERO: Self = half::bf16::ZERO;
 }
 
