@@ -25,7 +25,7 @@ pub fn main() -> Result<()> {
                         println!("{filename}: {name} {tensor:?}")
                     }
                 } else if filename.ends_with(".safetensors") {
-                    let tensors = tch::Tensor::read_safetensors(filename)?;
+                    let tensors = tch::Tensor::read_safetensors_file(filename)?;
                     for (name, tensor) in tensors.iter() {
                         println!("{filename}: {name} {tensor:?}")
                     }
@@ -51,7 +51,7 @@ pub fn main() -> Result<()> {
             let tensors = if src_filename.ends_with(".npz") {
                 tch::Tensor::read_npz(src_filename)?
             } else if src_filename.ends_with(".safetensors") {
-                tch::Tensor::read_safetensors(src_filename)?
+                tch::Tensor::read_safetensors_file(src_filename)?
             } else if src_filename.ends_with(".ot") {
                 tch::Tensor::load_multi(src_filename)?
             } else if src_filename.ends_with(".bin") || src_filename.ends_with(".zip") {
@@ -65,7 +65,7 @@ pub fn main() -> Result<()> {
             if dst_filename.ends_with(".npz") {
                 tch::Tensor::write_npz(&tensors, dst_filename)?
             } else if dst_filename.ends_with(".safetensors") {
-                tch::Tensor::write_safetensors(&tensors, dst_filename)?
+                tch::Tensor::persist_safetensors(&tensors, dst_filename)?
             } else if dst_filename.ends_with(".ot") {
                 tch::Tensor::save_multi(&tensors, dst_filename)?
             } else {
