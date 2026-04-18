@@ -10,7 +10,8 @@ mod ops;
 mod safetensors;
 
 pub use super::wrappers::tensor::{
-    autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
+    autocast, inference_mode, is_inference_mode_enabled, no_grad, no_grad_guard, with_grad,
+    InferenceModeGuard, NoGradGuard, Reduction, Tensor,
 };
 pub use index::{IndexOp, NewAxis, TensorIndexer};
 
