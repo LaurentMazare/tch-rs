@@ -300,6 +300,15 @@ impl Tensor {
         self.f_backward().unwrap()
     }
 
+    pub fn f_backward_with(&self, keep_graph: bool, create_graph: bool) -> Result<(), TchError> {
+        unsafe_torch_err!(at_backward(self.c_tensor, keep_graph as c_int, create_graph as c_int));
+        Ok(())
+    }
+
+    pub fn backward_with(&self, keep_graph: bool, create_graph: bool) {
+        self.f_backward_with(keep_graph, create_graph).unwrap()
+    }
+
     pub fn f_run_backward<T1, T2>(
         tensors: &[T1],
         inputs: &[T2],
