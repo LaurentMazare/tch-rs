@@ -14,11 +14,18 @@ pub(super) unsafe fn ptr_to_string(ptr: *mut c_char) -> Option<String> {
     }
 }
 
+fn clean_error(c_error: String) -> String {
+    match c_error.find("\nException raised from") {
+        None => c_error,
+        Some(index) => c_error[..index].to_string(),
+    }
+}
+
 pub(super) fn read_and_clean_error() -> Result<(), TchError> {
     unsafe {
         match ptr_to_string(torch_sys::get_and_reset_last_err()) {
             None => Ok(()),
-            Some(c_error) => Err(TchError::Torch(c_error)),
+            Some(c_error) => Err(TchError::Torch(clean_error(c_error))),
         }
     }
 }
@@ -153,5 +160,22 @@ impl QEngine {
     pub fn set(self) -> Result<(), TchError> {
         unsafe_torch_err!(torch_sys::at_set_qengine(self.to_cint()));
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clean_error() {
+        let err = "mat1 and mat2 must have the same dtype, but got Int and Float\nException raised from meta at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/native/LinearAlgebra.cpp:195 (most recent call first):\nframe #0: c10::Error::Error(c10::SourceLocation, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>) + 52 (0x1009b55dc in libc10.dylib)\n".to_string();
+        assert_eq!(clean_error(err), "mat1 and mat2 must have the same dtype, but got Int and Float");
+
+        let err2 = "Some other error without exception header".to_string();
+        assert_eq!(clean_error(err2), "Some other error without exception header");
+
+        let err3 = "Multi-line error\nthat should stay\nException raised from somewhere".to_string();
+        assert_eq!(clean_error(err3), "Multi-line error\nthat should stay");
     }
 }
