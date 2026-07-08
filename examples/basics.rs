@@ -31,6 +31,12 @@ fn main() {
     grad_example();
     println!("has_mps: {}", tch::utils::has_mps());
     println!("has_vulkan: {}", tch::utils::has_vulkan());
-    println!("version_cudnn: {}", tch::utils::version_cudnn());
-    println!("version_cudart: {}", tch::utils::version_cudart());
+
+    if tch::Cuda::is_available() {
+        println!("version_cudnn: {}", tch::utils::version_cudnn());
+    }
+
+    if tch::Cuda::cudnn_is_available() {
+        println!("version_cudart: {}", tch::utils::version_cudart());
+    }
 }
