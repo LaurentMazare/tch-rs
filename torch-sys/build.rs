@@ -106,9 +106,15 @@ fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
     }
     let pypi_package: PyPiPackage = response.into_json()?;
     let urls = pypi_package.urls;
-    let expected_filename = format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl");
+    // Wheel names vary across releases, e.g. `torch-2.11.0-cp311-none-macosx_11_0_arm64.whl`
+    // vs `torch-2.12.0-cp311-cp311-macosx_14_0_arm64.whl`, so match loosely on the
+    // python/platform tags rather than on an exact filename.
+    let filename_prefix = format!("torch-{TORCH_VERSION}-cp311-");
+    let filename_suffix = "_arm64.whl";
     let url = urls.iter().find_map(|pypi_url: &PyPiPackageUrl| {
-        if pypi_url.filename == expected_filename {
+        if pypi_url.filename.starts_with(&filename_prefix)
+            && pypi_url.filename.ends_with(filename_suffix)
+        {
             Some(pypi_url.url.clone())
         } else {
             None
