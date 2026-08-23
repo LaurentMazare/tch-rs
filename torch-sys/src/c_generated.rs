@@ -4368,11 +4368,6 @@ extern "C" {
     pub fn atg_alias(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_alias_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_alias_copy_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
-    pub fn atg_align_as(out__: *mut *mut C_tensor, self_: *mut C_tensor, other_: *mut C_tensor);
-    pub fn atg_align_tensors(
-        tensors_data: *const *mut C_tensor,
-        tensors_len: c_int,
-    ) -> *mut *mut C_tensor;
     pub fn atg_all(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_all_all_out(out__: *mut *mut C_tensor, out_: *mut C_tensor, self_: *mut C_tensor);
     pub fn atg_all_dim(out__: *mut *mut C_tensor, self_: *mut C_tensor, dim_: i64, keepdim_: c_int);
