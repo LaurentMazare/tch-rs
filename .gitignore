@@ -6,7 +6,6 @@ gen/.merlin
 **/*.rs.bk
 *.swp
 *.swo
-Cargo.lock
 __pycache__
 *~
 .*~
