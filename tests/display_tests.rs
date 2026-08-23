@@ -15,9 +15,9 @@ fn display_scalar() {
     assert_eq!(&s, "[-0.]\nTensor[[], Float]");
     let s = format!("{}", &t * (-0.));
     assert_eq!(&s, "[0.]\nTensor[[], Float]");
-    let s = format!("{}", &t.eq_tensor(&t));
+    let s = format!("{}", t.eq_tensor(&t));
     assert_eq!(&s, "[true]\nTensor[[], Bool]");
-    let s = format!("{}", &t.not_equal_tensor(&t));
+    let s = format!("{}", t.not_equal_tensor(&t));
     assert_eq!(&s, "[false]\nTensor[[], Bool]");
 }
 
