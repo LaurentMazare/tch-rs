@@ -45,7 +45,7 @@ impl Tokenizer {
                     .strip_prefix("<0x")
                     .and_then(|s| s.strip_suffix('>'))
                     .and_then(|s| u8::from_str_radix(s, 16).ok())
-                    .and_then(|s| if single_chars.contains(&s) { None } else { Some(s) })
+                    .filter(|&s| !single_chars.contains(&s))
                     .map_or_else(|| key.as_bytes().to_vec(), |s| vec![s]);
                 value.as_i64().context("not an int").map(|v| (key, v as usize))
             })
