@@ -5,6 +5,7 @@ mod convert;
 pub mod display;
 pub mod index;
 mod iter;
+pub mod mask;
 mod npy;
 mod ops;
 mod safetensors;
@@ -13,6 +14,7 @@ pub use super::wrappers::tensor::{
     autocast, no_grad, no_grad_guard, with_grad, NoGradGuard, Reduction, Tensor,
 };
 pub use index::{IndexOp, NewAxis, TensorIndexer};
+pub use mask::{MaskSelectOp, MaskSelector};
 
 pub trait Shape {
     fn to_shape(&self) -> Box<[i64]>;

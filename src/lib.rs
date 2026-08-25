@@ -24,8 +24,8 @@ pub use wrappers::{
 
 mod tensor;
 pub use tensor::{
-    autocast, display, index, no_grad, no_grad_guard, with_grad, IndexOp, NewAxis, NoGradGuard,
-    Reduction, Shape, Tensor, TensorIndexer,
+    autocast, display, index, no_grad, no_grad_guard, with_grad, IndexOp, MaskSelectOp,
+    MaskSelector, NewAxis, NoGradGuard, Reduction, Shape, Tensor, TensorIndexer,
 };
 
 pub mod nn;
