@@ -33,6 +33,10 @@ fn range_index() {
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[3, 4, 5, 6, 7, 8]);
 
+    let result = tensor.i(-4..-2);
+    assert_eq!(result.size(), &[2, 3]);
+    assert_eq!(vec_i64_from(&result), &[0, 1, 2, 3, 4, 5]);
+
     // RangeFull
     let tensor = Tensor::arange_start(0, 2 * 3, opt).view([2, 3]);
     let result = tensor.i(..);
@@ -45,15 +49,28 @@ fn range_index() {
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[6, 7, 8, 9, 10, 11]);
 
+    let result = tensor.i(-1..);
+    assert_eq!(result.size(), &[1, 3]);
+    assert_eq!(vec_i64_from(&result), &[9, 10, 11]);
+
     // RangeTo
     let tensor = Tensor::arange_start(0, 4 * 3, opt).view([4, 3]);
     let result = tensor.i(..2);
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[0, 1, 2, 3, 4, 5]);
 
+    let result = tensor.i(..-3);
+    assert_eq!(result.size(), &[1, 3]);
+    assert_eq!(vec_i64_from(&result), &[0, 1, 2]);
+
     // RangeInclusive
     let tensor = Tensor::arange_start(0, 4 * 3, opt).view([4, 3]);
     let result = tensor.i(1..=2);
+    assert_eq!(result.size(), &[2, 3]);
+    assert_eq!(vec_i64_from(&result), &[3, 4, 5, 6, 7, 8]);
+
+    let (start, end) = (1, -2);
+    let result = tensor.i(start..=end);
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[3, 4, 5, 6, 7, 8]);
 
@@ -66,6 +83,10 @@ fn range_index() {
     // RangeToInclusive
     let tensor = Tensor::arange_start(0, 4 * 3, opt).view([4, 3]);
     let result = tensor.i(..=1);
+    assert_eq!(result.size(), &[2, 3]);
+    assert_eq!(vec_i64_from(&result), &[0, 1, 2, 3, 4, 5]);
+
+    let result = tensor.i(..=-3);
     assert_eq!(result.size(), &[2, 3]);
     assert_eq!(vec_i64_from(&result), &[0, 1, 2, 3, 4, 5]);
 
