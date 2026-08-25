@@ -45,7 +45,7 @@ impl Iter2 {
             batch_index: 0,
             batch_size,
             total_size,
-            device: Device::Cpu,
+            device: xs.device(),
             return_smaller_last_batch: false,
         })
     }
