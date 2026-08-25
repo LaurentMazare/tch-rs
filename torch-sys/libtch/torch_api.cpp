@@ -1,5 +1,6 @@
 #include "torch_api.h"
 #include <ATen/autocast_mode.h>
+#include <c10/core/InferenceMode.h>
 #include <stdexcept>
 #include <torch/csrc/autograd/engine.h>
 #include <torch/csrc/jit/codegen/cuda/interface.h>
@@ -212,6 +213,20 @@ int at_requires_grad(tensor t) {
 int at_grad_set_enabled(int b) {
   PROTECT(bool is_enabled = torch::autograd::GradMode::is_enabled();
           torch::autograd::GradMode::set_enabled(b); return is_enabled;)
+  return -1;
+}
+
+inference_mode_guard at_inference_mode_guard_new() {
+  PROTECT(return new c10::InferenceMode(true);)
+  return nullptr;
+}
+
+void at_inference_mode_guard_free(inference_mode_guard guard) {
+  PROTECT(delete static_cast<c10::InferenceMode *>(guard);)
+}
+
+int at_inference_mode_is_enabled() {
+  PROTECT(return c10::InferenceMode::is_enabled();)
   return -1;
 }
 

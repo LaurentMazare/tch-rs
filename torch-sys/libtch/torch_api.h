@@ -14,6 +14,7 @@ typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef torch::jit::script::Module *module;
 typedef torch::jit::IValue *ivalue;
+typedef void *inference_mode_guard;
 #define PROTECT(x) \
   try { \
     x \
@@ -26,6 +27,7 @@ typedef void *optimizer;
 typedef void *scalar;
 typedef void *module;
 typedef void *ivalue;
+typedef void *inference_mode_guard;
 #endif
 
 char *get_and_reset_last_err(); // thread-local
@@ -58,6 +60,9 @@ bool at_autocast_set_enabled(bool b);
 void at_backward(tensor, int, int);
 int at_requires_grad(tensor);
 int at_grad_set_enabled(int);
+inference_mode_guard at_inference_mode_guard_new(void);
+void at_inference_mode_guard_free(inference_mode_guard);
+int at_inference_mode_is_enabled(void);
 
 tensor at_get(tensor, int index);
 void at_fill_double(tensor, double);

@@ -26,6 +26,11 @@ pub struct C_tensor {
     _private: [u8; 0],
 }
 
+#[repr(C)]
+pub struct C_inference_mode_guard {
+    _private: [u8; 0],
+}
+
 extern "C" {
     pub fn at_new_tensor() -> *mut C_tensor;
     pub fn at_shallow_clone(arg: *mut C_tensor) -> *mut C_tensor;
@@ -95,6 +100,9 @@ extern "C" {
         device: c_int,
     ) -> *mut C_tensor;
     pub fn at_grad_set_enabled(b: c_int) -> c_int;
+    pub fn at_inference_mode_guard_new() -> *mut C_inference_mode_guard;
+    pub fn at_inference_mode_guard_free(arg: *mut C_inference_mode_guard);
+    pub fn at_inference_mode_is_enabled() -> c_int;
     pub fn at_save(arg: *mut C_tensor, filename: *const c_char);
     pub fn at_save_to_stream(arg: *mut C_tensor, stream_ptr: *mut c_void);
     pub fn at_load(filename: *const c_char) -> *mut C_tensor;
