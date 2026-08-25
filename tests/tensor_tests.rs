@@ -3,7 +3,7 @@ use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
 use std::f32;
-use tch::{Device, TchError, Tensor};
+use tch::{Device, Kind, TchError, Tensor};
 
 mod test_utils;
 use test_utils::*;
@@ -215,6 +215,17 @@ fn into_ndarray_i64() {
     assert_eq!(vec_i64_from(&tensor).as_slice(), nd.as_slice().unwrap());
 }
 
+#[cfg(feature = "complex")]
+#[test]
+fn into_ndarray_cplx() {
+    use num_complex::{c32, Complex};
+    let tensor = Tensor::from_slice(&[c32(0., 0.), c32(1. , 0.), c32(0., 1.), c32(1.,1.)]).reshape(&[2, 2]);
+    let nd: ndarray::ArrayD<Complex<f32>> = (&tensor).try_into().unwrap();
+    assert_eq!(nd.shape(), [2, 2]);
+    assert_eq!(vec_cplx_from(&tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+
 #[test]
 fn from_ndarray_f64() {
     let nd = ndarray::arr2(&[[1f64, 2.], [3., 4.]]);
@@ -234,6 +245,16 @@ fn from_ndarray_bool() {
     let nd = ndarray::arr2(&[[true, false], [true, true]]);
     let tensor = Tensor::try_from(nd.clone()).unwrap();
     assert_eq!(vec_bool_from(&tensor).as_slice(), nd.as_slice().unwrap());
+}
+
+#[cfg(feature = "complex")]
+#[test]
+fn from_ndarray_cplx() {
+    use num_complex::c32;
+    let nd = ndarray::arr2(&[[c32(0., 0.), c32(1. , 0.)], [c32(0., 1.), c32(1.,1.)]]);
+    let tensor = Tensor::try_from(nd.clone()).unwrap();
+    assert_eq!(tensor.dim(), 2);
+    assert_eq!(vec_cplx_from(&tensor).as_slice(), nd.as_slice().unwrap());
 }
 
 #[test]
@@ -505,4 +526,32 @@ fn fp8_tensor() {
         assert_eq!(t.kind(), kind);
         assert_eq!(t.kind().elt_size_in_bytes(), 1);
     }
+}
+
+#[cfg(feature = "complex")]
+#[test]
+fn complex_tensor() {
+    use num_complex::Complex;
+
+    let input = vec![
+        Complex::<f32>::new(0., 0.),
+        Complex::<f32>::new(1., 0.),
+        Complex::<f32>::new(1., 1.),
+        Complex::<f32>::new(0., 1.),
+    ];
+
+    let t = Tensor::from_slice(&input);
+    assert_eq!(t.kind(), Kind::ComplexFloat);
+    assert_eq!(t.kind().elt_size_in_bytes(), 8);
+    assert!(t.is_complex());
+
+    let c = t.conj_physical();
+    let back: Vec<Complex<f32>> = c.try_into().unwrap();
+    let expected = input.iter().map(Complex::conj).collect::<Vec<_>>();
+    assert_eq!(expected, back);
+
+    let t = Tensor::from_slice(&[Complex::<f64>::new(3., -7.)]);
+    assert_eq!(t.kind(), Kind::ComplexDouble);
+    assert_eq!(t.kind().elt_size_in_bytes(), 16);
+
 }

@@ -174,3 +174,15 @@ unsafe impl Element for bool {
     const KIND: Kind = Kind::Bool;
     const ZERO: Self = false;
 }
+
+#[cfg(feature = "complex")]
+unsafe impl Element for num_complex::Complex<f32> {
+    const KIND: Kind = Kind::ComplexFloat;
+    const ZERO: Self = num_complex::Complex::<f32>::ZERO;
+}
+
+#[cfg(feature = "complex")]
+unsafe impl Element for num_complex::Complex<f64> {
+    const KIND: Kind = Kind::ComplexDouble;
+    const ZERO: Self = num_complex::Complex::<f64>::ZERO;
+}
