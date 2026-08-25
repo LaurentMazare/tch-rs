@@ -226,6 +226,7 @@ void atm_set_profiling_mode(int);
 void atm_fuser_cuda_set_enabled(bool);
 bool atm_fuser_cuda_is_enabled();
 void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor));
+void atm_named_attributes(module, void *data, void (*f)(void *, char *, ivalue));
 
 // This function has to be followed by a call to atm_end_tracing.
 module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
