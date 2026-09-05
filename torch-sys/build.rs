@@ -385,6 +385,7 @@ impl SystemInfo {
                     .flag("-std=c++17")
                     .flag(format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .flag("-DGLOG_USE_GLOG_EXPORT")
+                    .flag(if self.libtorch_lib_dir.join("libtorch_xpu.so").exists() { "-DTCH_XPU" } else { "-DTCH_NO_XPU" })
                     .files(&c_files)
                     .compile("tch");
             }
@@ -451,6 +452,11 @@ fn main() -> anyhow::Result<()> {
             || si_lib.join("torch_cuda_cpp.dll").exists();
         let use_hip =
             si_lib.join("libtorch_hip.so").exists() || si_lib.join("torch_hip.dll").exists();
+        // Intel XPU, detected by presence like cuda/hip above so no cargo feature is
+        // needed. BOTH libs are required: libc10_xpu registers the XPU DeviceGuardImpl,
+        // libtorch_xpu registers the ATen XPU kernels.
+        let use_xpu =
+            si_lib.join("libtorch_xpu.so").exists() || si_lib.join("torch_xpu.dll").exists();
         println!("cargo:rustc-link-search=native={}", si_lib.display());
 
         system_info.make();
@@ -467,6 +473,10 @@ fn main() -> anyhow::Result<()> {
         }
         if use_hip {
             system_info.link("torch_hip")
+        }
+        if use_xpu {
+            system_info.link("c10_xpu");
+            system_info.link("torch_xpu")
         }
         if cfg!(feature = "python-extension") {
             system_info.link("torch_python")
