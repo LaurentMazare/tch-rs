@@ -155,6 +155,7 @@ extern "C" {
     pub fn at_context_has_ipu() -> bool;
     pub fn at_context_has_xla() -> bool;
     pub fn at_context_has_lazy() -> bool;
+    pub fn atc_xpu_device_count() -> c_int;
     pub fn at_context_has_mps() -> bool;
     pub fn at_context_version_cudnn() -> i64;
     pub fn at_context_version_cudart() -> i64;

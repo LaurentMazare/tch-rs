@@ -11,6 +11,8 @@ pub enum Device {
     Mps,
     /// The main Vulkan device.
     Vulkan,
+    /// The main XPU device (Intel GPUs via SYCL/oneAPI).
+    Xpu,
 }
 
 /// Cuda related helper functions.
@@ -82,6 +84,22 @@ impl Cuda {
     }
 }
 
+/// Intel XPU devices (Intel GPUs via SYCL/oneAPI).
+pub struct Xpu;
+
+impl Xpu {
+    /// Number of visible XPU devices.
+    pub fn device_count() -> i64 {
+        let res = unsafe_torch!(torch_sys::atc_xpu_device_count());
+        i64::from(res)
+    }
+
+    /// Returns true if at least one XPU device is available.
+    pub fn is_available() -> bool {
+        Self::device_count() > 0
+    }
+}
+
 impl Device {
     pub(super) fn c_int(self) -> libc::c_int {
         match self {
@@ -89,6 +107,7 @@ impl Device {
             Device::Cuda(device_index) => device_index as libc::c_int,
             Device::Mps => -2,
             Device::Vulkan => -3,
+            Device::Xpu => -4,
         }
     }
 
@@ -97,6 +116,7 @@ impl Device {
             -1 => Device::Cpu,
             -2 => Device::Mps,
             -3 => Device::Vulkan,
+            -4 => Device::Xpu,
             index if index >= 0 => Device::Cuda(index as usize),
             _ => panic!("unexpected device {v}"),
         }
@@ -111,10 +131,26 @@ impl Device {
         }
     }
 
+    /// Returns the XPU device if available, else the CPU device.
+    pub fn xpu_if_available() -> Device {
+        if Xpu::is_available() {
+            Device::Xpu
+        } else {
+            Device::Cpu
+        }
+    }
+
     pub fn is_cuda(self) -> bool {
         match self {
             Device::Cuda(_) => true,
-            Device::Cpu | Device::Mps | Device::Vulkan => false,
+            Device::Cpu | Device::Mps | Device::Vulkan | Device::Xpu => false,
+        }
+    }
+
+    pub fn is_xpu(self) -> bool {
+        match self {
+            Device::Xpu => true,
+            Device::Cpu | Device::Cuda(_) | Device::Mps | Device::Vulkan => false,
         }
     }
 }

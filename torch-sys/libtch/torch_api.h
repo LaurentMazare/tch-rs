@@ -170,6 +170,7 @@ bool at_context_has_hip();
 bool at_context_has_ipu();
 bool at_context_has_xla();
 bool at_context_has_lazy();
+int atc_xpu_device_count();
 bool at_context_has_mps();
 
 

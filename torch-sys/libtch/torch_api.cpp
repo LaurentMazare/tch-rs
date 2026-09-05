@@ -50,6 +50,8 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
 }
 
 at::Device device_of_int(int d) {
+  if (d == -4)
+    return at::Device(at::kXPU);
   if (d == -3)
     return at::Device(at::kVulkan);
   if (d == -2)
@@ -196,6 +198,7 @@ int at_device(tensor t) {
   PROTECT(auto device = t->device(); if (device.type() == at::kCPU) return -1;
           if (device.type() == at::kMPS) return -2;
           if (device.type() == at::kVulkan) return -3;
+          if (device.type() == at::kXPU) return -4;
           if (device.type() == at::kCUDA) return device.index();)
   return -2;
 }
@@ -947,6 +950,38 @@ bool at_context_has_lazy() {
   PROTECT(return at::globalContext().hasLazy();)
   return 0;
 }
+
+#ifdef TCH_XPU
+// Forward-declared rather than including <c10/xpu/XPUFunctions.h> and <ATen/xpu/...>,
+// which transitively pull <sycl/sycl.hpp> and would make every build require oneAPI
+// headers. C++ does not mangle return types for free functions, so these produce the
+// same symbols as the real declarations.
+namespace c10 {
+namespace xpu {
+signed char device_count();
+}
+}  // namespace c10
+namespace at {
+namespace xpu {
+namespace detail {
+void *getDefaultXPUGenerator(signed char);
+}
+}
+}  // namespace at
+
+int atc_xpu_device_count() {
+  // Keeps libtorch_xpu linked. It is a registration library -- nothing calls into it --
+  // so with -ffunction-sections/--gc-sections and --as-needed the linker drops it and
+  // every XPU op then fails to dispatch. This MUST be a local volatile: a `static` lands
+  // in its own data section, which --gc-sections collects along with the relocation.
+  void *volatile keep_libtorch_xpu = (void *)&at::xpu::detail::getDefaultXPUGenerator;
+  (void)keep_libtorch_xpu;
+  PROTECT(return (int)c10::xpu::device_count();)
+  return 0;
+}
+#else
+int atc_xpu_device_count() { return 0; }
+#endif
 
 bool at_context_has_mps() {
   PROTECT(return at::globalContext().hasMPS();)
