@@ -114,7 +114,7 @@ impl Iterator for Iter2 {
 pub struct TextData {
     data: Tensor,
     char_for_label: Vec<char>,
-    label_for_char: HashMap<u8, u8>,
+    label_for_char: HashMap<char, u8>,
 }
 
 /// Text data iterator.
@@ -131,18 +131,28 @@ pub struct TextDataIter {
 impl TextData {
     /// Creates a text dataset from a file.
     pub fn new<P: AsRef<std::path::Path>>(filename: P) -> Result<TextData, TchError> {
-        let mut buffer = std::fs::read(&filename).map_err(|err| {
+        let text = std::fs::read_to_string(&filename).map_err(|err| {
             std::io::Error::new(err.kind(), format!("{:?} {err}", filename.as_ref()))
         })?;
 
-        let mut label_for_char = HashMap::<u8, u8>::new();
+        let mut label_for_char = HashMap::<char, u8>::new();
         let mut char_for_label = Vec::<char>::new();
-        for c in buffer.iter_mut() {
-            *c = *label_for_char.entry(*c).or_insert_with(|| {
-                let label = char_for_label.len() as u8;
-                char_for_label.push(*c as char);
+        let mut buffer = Vec::with_capacity(text.chars().count());
+        for c in text.chars() {
+            let label = if let Some(&label) = label_for_char.get(&c) {
                 label
-            })
+            } else {
+                if char_for_label.len() > u8::MAX as usize {
+                    return Err(TchError::Convert(
+                        "text dataset contains more than 256 distinct characters".to_string(),
+                    ));
+                }
+                let label = char_for_label.len() as u8;
+                char_for_label.push(c);
+                label_for_char.insert(c, label);
+                label
+            };
+            buffer.push(label);
         }
 
         Ok(TextData { data: Tensor::from_slice(&buffer), char_for_label, label_for_char })
@@ -163,7 +173,7 @@ impl TextData {
     }
 
     pub fn char_to_label(&self, c: char) -> Result<u8, TchError> {
-        match self.label_for_char.get(&(c as u8)) {
+        match self.label_for_char.get(&c) {
             None => Err(TchError::Convert(format!("cannot find char {c}"))),
             Some(v) => Ok(*v),
         }
