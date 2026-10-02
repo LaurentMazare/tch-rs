@@ -196,8 +196,9 @@ impl CausalSelfAttention {
         let k = k.reshape(target_dim).transpose(1, 2);
         let q = q.reshape(target_dim).transpose(1, 2);
         let v = v.reshape(target_dim).transpose(1, 2);
-        let q = self.apply_rotary_emb(&q, freqs_cis);
-        let k = self.apply_rotary_emb(&k, freqs_cis);
+        let freqs_cis = freqs_cis.narrow(2, 0, t);
+        let q = self.apply_rotary_emb(&q, &freqs_cis);
+        let k = self.apply_rotary_emb(&k, &freqs_cis);
         let k_shape = k.size();
         let att: Tensor = q.matmul(&k.transpose(-2, -1)) / (*k_shape.last().unwrap() as f64).sqrt();
         let mask = Tensor::ones([t, t], (kind, self.device)).tril(0).reshape([1, 1, t, t]);
