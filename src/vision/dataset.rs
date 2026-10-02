@@ -34,7 +34,7 @@ pub fn random_flip(t: &Tensor) -> Tensor {
     for batch_index in 0..size[0] {
         let mut output_view = output.i(batch_index);
         let t_view = t.i(batch_index);
-        let src = if rand::random() { t_view } else { t_view.flip([2]) };
+        let src = if rand::random() { t_view } else { t_view.flip([3]) };
         output_view.copy_(&src)
     }
     output
