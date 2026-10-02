@@ -33,8 +33,15 @@ impl Iter2 {
     /// * `ys` - the targets that the model attempts to predict.
     /// * `batch_size` - the size of batches to be returned.
     pub fn f_new(xs: &Tensor, ys: &Tensor, batch_size: i64) -> Result<Iter2, TchError> {
-        let total_size = xs.size()[0];
-        if ys.size()[0] != total_size {
+        let xs_size = xs.size();
+        let ys_size = ys.size();
+        if xs_size.is_empty() || ys_size.is_empty() {
+            return Err(TchError::Shape(format!(
+                "expected inputs with at least one dimension, got {xs_size:?} and {ys_size:?}"
+            )));
+        }
+        let total_size = xs_size[0];
+        if ys_size[0] != total_size {
             return Err(TchError::Shape(format!(
                 "different dimension for the two inputs {xs:?} {ys:?}"
             )));
