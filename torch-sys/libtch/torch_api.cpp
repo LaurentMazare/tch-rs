@@ -753,7 +753,7 @@ void ato_set_momentum_group(optimizer t, size_t group, double momentum) {
         adamw->betas(std::tuple<double, double>(momentum, get<1>(betas)));
       } else if (auto rms = dynamic_cast<torch::optim::RMSpropOptions *>(d)) {
         rms->momentum(momentum);
-      } if (auto sgd = dynamic_cast<torch::optim::SGDOptions *>(d)) {
+      } else if (auto sgd = dynamic_cast<torch::optim::SGDOptions *>(d)) {
         sgd->momentum(momentum);
       } else throw std::invalid_argument("unexpected optimizer");)
 }
