@@ -58,7 +58,7 @@ pub fn resize_preserve_aspect_ratio_hwc(
     out_h: i64,
 ) -> Result<Tensor, TchError> {
     let tensor_size = t.size();
-    let (w, h) = (tensor_size[0], tensor_size[1]);
+    let (h, w) = (tensor_size[0], tensor_size[1]);
     if w * out_h == h * out_w {
         Ok(hwc_to_chw(&resize_hwc(t, out_w, out_h)?))
     } else {
@@ -66,7 +66,7 @@ pub fn resize_preserve_aspect_ratio_hwc(
             let ratio_w = out_w as f64 / w as f64;
             let ratio_h = out_h as f64 / h as f64;
             let ratio = ratio_w.max(ratio_h);
-            ((ratio * h as f64) as i64, (ratio * w as f64) as i64)
+            ((ratio * w as f64) as i64, (ratio * h as f64) as i64)
         };
         let resize_w = i64::max(resize_w, out_w);
         let resize_h = i64::max(resize_h, out_h);
