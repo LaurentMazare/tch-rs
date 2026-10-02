@@ -649,7 +649,7 @@ dependencies = [
 
 [[package]]
 name = "pyo3-tch"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "pyo3",
  "tch",
@@ -928,7 +928,7 @@ checksum = "b1dd07eb858a2067e2f3c7155d54e929265c264e6f37efe3ee7a8d1b5a1dd0ba"
 
 [[package]]
 name = "tch"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -951,7 +951,7 @@ dependencies = [
 
 [[package]]
 name = "tch-ext"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "pyo3",
  "pyo3-tch",
@@ -1007,7 +1007,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "torch-sys"
-version = "0.26.0"
+version = "0.27.0"
 dependencies = [
  "anyhow",
  "cc",
