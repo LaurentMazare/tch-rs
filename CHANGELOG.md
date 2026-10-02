@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 
+## v0.27.0
+### Changed
+- PyTorch v2.14 support
+- Compile libtch with C++20, as required by PyTorch v2.14 headers
+
 ## v0.26.0
 ### Changed
 - PyTorch v2.13 support

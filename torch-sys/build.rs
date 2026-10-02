@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-const TORCH_VERSION: &str = "2.13.0";
+const TORCH_VERSION: &str = "2.14.0";
 const PYTHON_PRINT_PYTORCH_DETAILS: &str = r"
 import torch
 from torch.utils import cpp_extension
@@ -152,7 +152,7 @@ fn version_check(version: &str) -> Result<()> {
         return Ok(());
     }
     let version = version.trim();
-    // Typical version number is 2.13.0+cpu or 2.13.0+cu129
+    // Typical version number is 2.14.0+cpu or 2.14.0+cu129
     let version = match version.split_once('+') {
         None => version,
         Some((version, _)) => version,
@@ -386,7 +386,7 @@ impl SystemInfo {
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
                     .flag(format!("-Wl,-rpath={}", self.libtorch_lib_dir.display()))
-                    .flag("-std=c++17")
+                    .flag("-std=c++20")
                     .flag("-Wno-deprecated-declarations")
                     .flag(format!("-D_GLIBCXX_USE_CXX11_ABI={}", self.cxx11_abi))
                     .flag("-DGLOG_USE_GLOG_EXPORT")
@@ -426,7 +426,7 @@ impl SystemInfo {
                     .pic(true)
                     .warnings(false)
                     .includes(&self.libtorch_include_dirs)
-                    .flag("/std:c++17")
+                    .flag("/std:c++20")
                     .flag("/p:DefineConstants=GLOG_USE_GLOG_EXPORT")
                     .files(&c_files)
                     .compile("tch");
