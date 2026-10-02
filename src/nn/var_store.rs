@@ -849,7 +849,7 @@ impl Entry<'_> {
 
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
-        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
+        self.or_var(dims, super::init::DEFAULT_KAIMING_UNIFORM)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
