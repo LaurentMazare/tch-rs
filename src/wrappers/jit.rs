@@ -555,24 +555,24 @@ impl CModule {
     }
 
     /// Switches the module to evaluation mode.
-    pub fn f_set_eval(&mut self) -> Result<(), TchError> {
+    pub fn f_set_eval(&self) -> Result<(), TchError> {
         unsafe_torch_err!(atm_eval(self.c_module));
         Ok(())
     }
 
     /// Switches the module to evaluation mode.
-    pub fn set_eval(&mut self) {
+    pub fn set_eval(&self) {
         self.f_set_eval().unwrap();
     }
 
     /// Switches the module to training mode.
-    pub fn f_set_train(&mut self) -> Result<(), TchError> {
+    pub fn f_set_train(&self) -> Result<(), TchError> {
         unsafe_torch_err!(atm_train(self.c_module));
         Ok(())
     }
 
     /// Switches the module to training mode.
-    pub fn set_train(&mut self) {
+    pub fn set_train(&self) {
         self.f_set_train().unwrap();
     }
 
