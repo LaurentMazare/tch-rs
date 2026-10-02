@@ -449,6 +449,22 @@ impl Tensor {
 
     /// Converts some byte data to a tensor with some specified kind and shape.
     pub fn f_from_data_size(data: &[u8], size: &[i64], kind: Kind) -> Result<Tensor, TchError> {
+        let numel = size.iter().try_fold(1usize, |numel, &dim| {
+            let dim = usize::try_from(dim)
+                .map_err(|_| TchError::Shape(format!("invalid tensor dimension {dim}")))?;
+            numel
+                .checked_mul(dim)
+                .ok_or_else(|| TchError::Shape("tensor size overflows address space".to_string()))
+        })?;
+        let byte_len = numel.checked_mul(kind.elt_size_in_bytes()).ok_or_else(|| {
+            TchError::Shape("tensor byte size overflows address space".to_string())
+        })?;
+        if data.len() < byte_len {
+            return Err(TchError::Shape(format!(
+                "data slice has {} bytes, but tensor shape and kind require at least {byte_len}",
+                data.len()
+            )));
+        }
         let data = data.as_ptr() as *const c_void;
         let elt_size_in_bytes = kind.elt_size_in_bytes();
         let c_tensor = unsafe_torch_err!(at_tensor_of_data(
