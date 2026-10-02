@@ -246,6 +246,7 @@ ivalue ati_bool_list(char *, int);
 ivalue ati_string_list(char **, int);
 ivalue ati_tensor_list(tensor *, int);
 ivalue ati_device(int);
+int ati_to_device(ivalue);
 
 tensor ati_to_tensor(ivalue);
 int64_t ati_to_int(ivalue);

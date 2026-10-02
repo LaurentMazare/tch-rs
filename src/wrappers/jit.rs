@@ -402,6 +402,10 @@ impl IValue {
                 free = false;
                 IValue::Object(Object { c_ivalue })
             }
+            15 => {
+                let device = unsafe_torch_err!(ati_to_device(c_ivalue));
+                IValue::Device(Device::from_c_int(device))
+            }
             _ => return Err(TchError::Kind(format!("unhandled tag {tag}"))),
         };
         if free {
