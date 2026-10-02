@@ -1,5 +1,5 @@
 use anyhow::Result;
-use tch::{kind::FLOAT_CUDA, nn, nn::ModuleT, nn::OptimizerConfig, CModule, Device, Tensor};
+use tch::{nn, nn::ModuleT, nn::OptimizerConfig, CModule, Device, Tensor};
 
 #[derive(Debug)]
 struct Net {
@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     let model = CModule::create_by_tracing(
         "MyModule",
         "forward",
-        &[Tensor::zeros([784], FLOAT_CUDA)],
+        &[Tensor::zeros([784], (tch::Kind::Float, vs.device()))],
         &mut closure,
     )?;
     model.save("model.pt")?;
