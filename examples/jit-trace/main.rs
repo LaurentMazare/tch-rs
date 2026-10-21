@@ -34,6 +34,16 @@ impl nn::ModuleT for Net {
     }
 }
 
+fn trace_model(net: &Net, vs: &nn::VarStore) -> std::result::Result<CModule, tch::TchError> {
+    let mut closure = |input: &[Tensor]| vec![net.forward_t(&input[0], false)];
+    CModule::create_by_tracing(
+        "MyModule",
+        "forward",
+        &[Tensor::zeros([784], (tch::Kind::Float, vs.device()))],
+        &mut closure,
+    )
+}
+
 fn main() -> Result<()> {
     let m = tch::vision::mnist::load_dir("data")?;
     let mut vs = nn::VarStore::new(Device::cuda_if_available());
@@ -50,14 +60,36 @@ fn main() -> Result<()> {
     }
 
     vs.freeze();
-    let mut closure = |input: &[Tensor]| vec![net.forward_t(&input[0], false)];
-    let model = CModule::create_by_tracing(
-        "MyModule",
-        "forward",
-        &[Tensor::zeros([784], (tch::Kind::Float, vs.device()))],
-        &mut closure,
-    )?;
+    let model = trace_model(&net, &vs)?;
     model.save("model.pt")?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cpu_example_net_traces_saves_and_reloads() -> Result<()> {
+        tch::set_num_threads(1);
+        let mut vs = nn::VarStore::new(Device::Cpu);
+        let net = Net::new(&vs.root());
+        vs.freeze();
+        let input = Tensor::arange(784, (tch::Kind::Float, Device::Cpu)) / 784.;
+        let expected = net.forward_t(&input, false);
+        let model = trace_model(&net, &vs)?;
+        let output = model.forward_ts(&[&input])?;
+        assert_eq!(output.size(), [1, 10]);
+        assert!(output.allclose(&expected, 1e-5, 1e-6, false));
+        let path =
+            std::env::temp_dir().join(format!("tch-jit-trace-cpu-{}.pt", std::process::id()));
+        assert!(!path.exists());
+        model.save(&path)?;
+        let restored = CModule::load(&path)?;
+        let restored_output = restored.forward_ts(&[&input]);
+        std::fs::remove_file(path)?;
+        assert!(restored_output?.allclose(&expected, 1e-5, 1e-6, false));
+        Ok(())
+    }
 }
