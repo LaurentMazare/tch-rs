@@ -396,3 +396,75 @@ fn main() -> Result<()> {
     println!("----\n{}\n----", tokenizer.decode(&new_tokens));
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn config() -> Config {
+        Config { block_size: CONTEXT_SIZE, vocab_size: 16, n_layer: 1, n_head: 2, n_embd: 8 }
+    }
+
+    fn check_attention(batch: i64, length: i64) {
+        let _guard = tch::no_grad_guard();
+        let vs = nn::VarStore::new(Device::Cpu);
+        let config = config();
+        let attention = CausalSelfAttention::new(vs.root(), 2, 8);
+        let input = (Tensor::arange(batch * length * 8, (Kind::Float, Device::Cpu)) / 100.)
+            .reshape([batch, length, 8]);
+        let frequencies = precompute_freqs_cis(&config);
+        assert_eq!(frequencies.size(), [1, 1, CONTEXT_SIZE as i64, 2, 2]);
+        let output = attention.forward(&input, &frequencies);
+        assert_eq!(output.size(), [batch, length, 8]);
+        assert!(bool::try_from(output.isfinite().all()).unwrap());
+        let exact_context = frequencies.narrow(2, 0, length);
+        let expected = attention.forward(&input, &exact_context);
+        assert!(output.allclose(&expected, 1e-5, 1e-6, false));
+    }
+
+    #[test]
+    fn single_token_attention_uses_one_rotary_position() {
+        check_attention(1, 1);
+    }
+    #[test]
+    fn batched_short_attention_uses_active_time_axis() {
+        check_attention(2, 3);
+    }
+    #[test]
+    fn full_context_attention_retains_existing_behavior() {
+        check_attention(1, CONTEXT_SIZE as i64);
+    }
+
+    #[test]
+    fn actual_model_handles_growing_and_sliding_synthetic_contexts() {
+        tch::set_num_threads(1);
+        let _guard = tch::no_grad_guard();
+        let vs = nn::VarStore::new(Device::Cpu);
+        let config = config();
+        let model = Llama::new(vs.root(), &config);
+        // The production constructor leaves scales at zero for checkpoint loading.
+        // Give this synthetic model nonzero normalization without loading a checkpoint.
+        for (name, mut value) in vs.variables() {
+            if name.ends_with("scale") {
+                let _ = value.fill_(1.);
+            }
+        }
+        let frequencies = precompute_freqs_cis(&config);
+        let mut tokens = vec![1i64, 2, 3];
+        for _ in 0..2 {
+            let context = Tensor::from_slice(&tokens).reshape([1, -1]);
+            let logits = model.forward(&context, &frequencies);
+            assert_eq!(logits.size(), [1, 1, 16]);
+            assert!(bool::try_from(logits.isfinite().all()).unwrap());
+            tokens.push(i64::try_from(logits.get(0).get(0).argmax(0, false)).unwrap());
+        }
+        for length in [CONTEXT_SIZE, CONTEXT_SIZE + 1] {
+            let tokens: Vec<i64> = (0..length).map(|i| (i % 16) as i64).collect();
+            let context = &tokens[tokens.len().saturating_sub(CONTEXT_SIZE)..];
+            let context = Tensor::from_slice(context).reshape([1, -1]);
+            let logits = model.forward(&context, &frequencies);
+            assert_eq!(logits.size(), [1, 1, 16]);
+            assert!(bool::try_from(logits.isfinite().all()).unwrap());
+        }
+    }
+}
