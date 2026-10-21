@@ -34,8 +34,8 @@ def test(model, device, test_loader):
     )
 
 
-model = torch.jit.load("model.pt")
-device = torch.device("cuda")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = torch.jit.load("model.pt", map_location=device)
 test_kwargs = {"batch_size": 100}
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
