@@ -163,7 +163,7 @@ impl TextData {
     }
 
     pub fn char_to_label(&self, c: char) -> Result<u8, TchError> {
-        match self.label_for_char.get(&(c as u8)) {
+        match u8::try_from(c).ok().and_then(|c| self.label_for_char.get(&c)) {
             None => Err(TchError::Convert(format!("cannot find char {c}"))),
             Some(v) => Ok(*v),
         }
