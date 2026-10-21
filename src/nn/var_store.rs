@@ -849,7 +849,7 @@ impl Entry<'_> {
 
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_kaiming_uniform(self, dims: &[i64]) -> Tensor {
-        self.or_var(dims, super::init::DEFAULT_KAIMING_NORMAL)
+        self.or_var(dims, super::init::DEFAULT_KAIMING_UNIFORM)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -870,7 +870,7 @@ impl Entry<'_> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_ones_no_train(self, dims: &[i64]) -> Tensor {
         let o = Tensor::ones(dims, (Kind::Float, self.path.device()));
-        self.path.get_or_add_with_lock(self.name, o, true, self.variables)
+        self.path.get_or_add_with_lock(self.name, o, false, self.variables)
     }
 
     /// Returns the existing entry if, otherwise create a new variable.
@@ -897,7 +897,7 @@ impl Entry<'_> {
     /// Returns the existing entry if, otherwise create a new variable.
     pub fn or_zeros_no_train(self, dims: &[i64]) -> Tensor {
         let z = Tensor::zeros(dims, (Kind::Float, self.path.device()));
-        self.path.get_or_add_with_lock(self.name, z, true, self.variables)
+        self.path.get_or_add_with_lock(self.name, z, false, self.variables)
     }
 }
 
