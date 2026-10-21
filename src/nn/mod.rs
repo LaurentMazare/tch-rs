@@ -63,7 +63,13 @@ impl Module for crate::CModule {
 }
 
 impl ModuleT for crate::TrainableCModule {
-    fn forward_t(&self, xs: &crate::Tensor, _train: bool) -> crate::Tensor {
-        self.inner.forward_ts(&[xs]).unwrap()
+    fn forward_t(&self, xs: &crate::Tensor, train: bool) -> crate::Tensor {
+        let mut inner = self.inner.lock().unwrap();
+        if train {
+            inner.set_train()
+        } else {
+            inner.set_eval()
+        }
+        inner.forward_ts(&[xs]).unwrap()
     }
 }
