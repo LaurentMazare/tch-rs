@@ -1219,6 +1219,20 @@ ivalue ati_device(int device_idx) {
   return nullptr;
 }
 
+int ati_to_device(ivalue i) {
+  PROTECT(auto device = i->toDevice();
+          if (device.type() == at::kCPU) return -1;
+          if (device.type() == at::kMPS) return -2;
+          if (device.type() == at::kVulkan) return -3;
+          if (device.type() == at::kCUDA) {
+            if (!device.has_index())
+              throw std::invalid_argument("CUDA device index is unspecified");
+            return device.index();
+          }
+          throw std::invalid_argument("unsupported device type");)
+  return -4;
+}
+
 int ati_tag(ivalue i) {
   PROTECT(
       if (i->isNone()) return 0; else if (i->isTensor()) return 1;
@@ -1228,6 +1242,7 @@ int ati_tag(ivalue i) {
       else if (i->isBoolList()) return 8; else if (i->isString()) return 9;
       else if (i->isTensorList()) return 10; else if (i->isList()) return 12;
       else if (i->isGenericDict()) return 13; else if (i->isObject()) return 14;
+      else if (i->isDevice()) return 15;
       throw std::invalid_argument(("unsupported tag " + i->tagKind()).c_str());
       return -1;)
   return -1;

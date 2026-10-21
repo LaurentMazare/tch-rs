@@ -402,6 +402,14 @@ impl IValue {
                 free = false;
                 IValue::Object(Object { c_ivalue })
             }
+            15 => {
+                let device = unsafe { ati_to_device(c_ivalue) };
+                let result = crate::wrappers::utils::read_and_clean_error();
+                unsafe { ati_free(c_ivalue) };
+                result?;
+                free = false;
+                IValue::Device(Device::from_c_int(device))
+            }
             _ => return Err(TchError::Kind(format!("unhandled tag {tag}"))),
         };
         if free {
