@@ -117,3 +117,11 @@ class DictExample(torch.jit.ScriptModule):
 
 foo_8 = DictExample()
 foo_8.save("foo8.pt")
+
+# Device objects can be returned without allocating a tensor on that device.
+class DeviceResult(torch.jit.ScriptModule):
+    @torch.jit.script_method
+    def forward(self, name: str) -> torch.device:
+        return torch.device(name)
+
+DeviceResult().save("device.pt")

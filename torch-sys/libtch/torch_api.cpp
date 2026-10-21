@@ -1224,7 +1224,11 @@ int ati_to_device(ivalue i) {
           if (device.type() == at::kCPU) return -1;
           if (device.type() == at::kMPS) return -2;
           if (device.type() == at::kVulkan) return -3;
-          if (device.type() == at::kCUDA) return device.index();
+          if (device.type() == at::kCUDA) {
+            if (!device.has_index())
+              throw std::invalid_argument("CUDA device index is unspecified");
+            return device.index();
+          }
           throw std::invalid_argument("unsupported device type");)
   return -4;
 }
