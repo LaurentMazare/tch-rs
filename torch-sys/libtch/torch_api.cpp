@@ -953,31 +953,31 @@ bool at_context_has_mps() {
   return 0;
 }
 
-module atm_load(char *filename) {
+jit_module atm_load(char *filename) {
   PROTECT(return new torch::jit::script::Module(torch::jit::load(filename));)
   return nullptr;
 }
 
-module atm_load_on_device(char *filename, int device) {
+jit_module atm_load_on_device(char *filename, int device) {
   PROTECT(return new torch::jit::script::Module(
                      torch::jit::load(filename, device_of_int(device)));)
   return nullptr;
 }
 
-module atm_load_str(char *data, size_t sz) {
+jit_module atm_load_str(char *data, size_t sz) {
   PROTECT(std::istringstream stream(std::string(data, sz));
           return new torch::jit::script::Module(torch::jit::load(stream));)
   return nullptr;
 }
 
-module atm_load_str_on_device(char *data, size_t sz, int device) {
+jit_module atm_load_str_on_device(char *data, size_t sz, int device) {
   PROTECT(std::istringstream stream(std::string(data, sz));
           return new torch::jit::script::Module(
               torch::jit::load(stream, device_of_int(device)));)
   return nullptr;
 }
 
-tensor atm_forward(module m, tensor *tensors, int ntensors) {
+tensor atm_forward(jit_module m, tensor *tensors, int ntensors) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < ntensors; ++i) inputs.push_back(*(tensors[i]));
           torch::jit::IValue output = m->forward(std::move(inputs));
@@ -987,7 +987,7 @@ tensor atm_forward(module m, tensor *tensors, int ntensors) {
   return nullptr;
 }
 
-ivalue atm_forward_(module m, ivalue *ivalues, int nivalues) {
+ivalue atm_forward_(jit_module m, ivalue *ivalues, int nivalues) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < nivalues; ++i) inputs.push_back(*(ivalues[i]));
           torch::jit::IValue output = m->forward(std::move(inputs));
@@ -995,7 +995,7 @@ ivalue atm_forward_(module m, ivalue *ivalues, int nivalues) {
   return nullptr;
 }
 
-tensor atm_method(module m, char *method_name, tensor *tensors, int ntensors) {
+tensor atm_method(jit_module m, char *method_name, tensor *tensors, int ntensors) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < ntensors; ++i) inputs.push_back(*(tensors[i]));
           torch::jit::IValue output =
@@ -1006,7 +1006,7 @@ tensor atm_method(module m, char *method_name, tensor *tensors, int ntensors) {
   return nullptr;
 }
 
-ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
+ivalue atm_method_(jit_module m, char *method_name, ivalue *ivalues, int nivalues) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < nivalues; ++i) inputs.push_back(*(ivalues[i]));
           torch::jit::IValue output =
@@ -1015,7 +1015,7 @@ ivalue atm_method_(module m, char *method_name, ivalue *ivalues, int nivalues) {
   return nullptr;
 }
 
-ivalue atm_create_class_(module m, char *clz_name, ivalue *ivalues,
+ivalue atm_create_class_(jit_module m, char *clz_name, ivalue *ivalues,
                          int nivalues) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < nivalues; ++i) inputs.push_back(*(ivalues[i]));
@@ -1027,15 +1027,15 @@ ivalue atm_create_class_(module m, char *clz_name, ivalue *ivalues,
   return nullptr;
 }
 
-void atm_eval(module m) { PROTECT(m->eval();) }
+void atm_eval(jit_module m) { PROTECT(m->eval();) }
 
-void atm_train(module m) { PROTECT(m->train();) }
+void atm_train(jit_module m) { PROTECT(m->train();) }
 
-void atm_free(module m) { delete (m); }
+void atm_free(jit_module m) { delete (m); }
 
-void atm_save(module m, char *filename) { PROTECT(m->save(filename);) }
+void atm_save(jit_module m, char *filename) { PROTECT(m->save(filename);) }
 
-void atm_to(module m, int device, int dtype, bool non_blocking) {
+void atm_to(jit_module m, int device, int dtype, bool non_blocking) {
   PROTECT(m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);)
 }
 
@@ -1066,7 +1066,7 @@ bool atm_fuser_cuda_is_enabled() {
   return false;
 }
 
-module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs) {
+jit_module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs) {
   PROTECT(torch::jit::script::Module modl(modl_name);
           if (torch::jit::tracer::isTracing()) throw std::invalid_argument(
               "cannot nest tracing calls");
@@ -1083,7 +1083,7 @@ module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs) {
   return nullptr;
 }
 
-void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
+void atm_end_tracing(jit_module m, char *fn_name, tensor *outputs, int noutputs) {
   PROTECT(
       auto state = torch::jit::tracer::getTracingState();
       if (state == nullptr) throw std::invalid_argument("not in tracing mode");
@@ -1097,7 +1097,7 @@ void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs) {
       m->type()->addMethod(fn);)
 }
 
-void atm_named_parameters(module m, void *data,
+void atm_named_parameters(jit_module m, void *data,
                           void (*f)(void *, char *, tensor)) {
   PROTECT(for (const auto &p : m->named_parameters()) {
     auto v = p.value;

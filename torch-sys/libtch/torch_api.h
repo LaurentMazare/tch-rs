@@ -12,7 +12,12 @@ extern "C" {
 typedef torch::Tensor *tensor;
 typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
-typedef torch::jit::script::Module *module;
+typedef torch::jit::script::Module *jit_module;
+// MSVC treats module declarations as C++20 syntax in this position.
+// Keep the legacy alias for consumers whose compiler still accepts it.
+#if !defined(_MSC_VER) || !defined(_MSVC_LANG) || _MSVC_LANG < 202002L
+typedef jit_module module;
+#endif
 typedef torch::jit::IValue *ivalue;
 #define PROTECT(x) \
   try { \
@@ -24,7 +29,8 @@ typedef torch::jit::IValue *ivalue;
 typedef void *tensor;
 typedef void *optimizer;
 typedef void *scalar;
-typedef void *module;
+typedef void *jit_module;
+typedef jit_module module;
 typedef void *ivalue;
 #endif
 
@@ -196,40 +202,40 @@ int atc_user_enabled_cudnn();
 void atc_set_user_enabled_cudnn(int b);
 void atc_set_benchmark_cudnn(int b);
 
-module atm_load(char *);
-module atm_load_on_device(char *, int device);
-module atm_load_str(char *, size_t sz);
-module atm_load_str_on_device(char *, size_t sz, int device);
-tensor atm_forward(module, tensor *tensors, int ntensors);
-ivalue atm_forward_(module,
+jit_module atm_load(char *);
+jit_module atm_load_on_device(char *, int device);
+jit_module atm_load_str(char *, size_t sz);
+jit_module atm_load_str_on_device(char *, size_t sz, int device);
+tensor atm_forward(jit_module, tensor *tensors, int ntensors);
+ivalue atm_forward_(jit_module,
                     ivalue *ivalues,
                     int nivalues);
-tensor atm_method(module,
+tensor atm_method(jit_module,
                   char *method_name,
                   tensor *tensors,
                   int ntensors);
-ivalue atm_method_(module,
+ivalue atm_method_(jit_module,
                    char *method_name,
                    ivalue *ivalues,
                    int nivalues);
-ivalue atm_create_class_(module,
+ivalue atm_create_class_(jit_module,
                    char *clz_name, 
                    ivalue *ivalues, 
                    int nivalues);
-void atm_eval(module);
-void atm_train(module);
-void atm_free(module);
-void atm_to(module m, int device, int dtype, bool non_blocking);
-void atm_save(module m, char*);
+void atm_eval(jit_module);
+void atm_train(jit_module);
+void atm_free(jit_module);
+void atm_to(jit_module m, int device, int dtype, bool non_blocking);
+void atm_save(jit_module m, char*);
 int atm_get_profiling_mode();
 void atm_set_profiling_mode(int);
 void atm_fuser_cuda_set_enabled(bool);
 bool atm_fuser_cuda_is_enabled();
-void atm_named_parameters(module, void *data, void (*f)(void *, char *, tensor));
+void atm_named_parameters(jit_module, void *data, void (*f)(void *, char *, tensor));
 
 // This function has to be followed by a call to atm_end_tracing.
-module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
-void atm_end_tracing(module m, char *fn_name, tensor *outputs, int noutputs);
+jit_module atm_create_for_tracing(char *modl_name, tensor *inputs, int ninputs);
+void atm_end_tracing(jit_module m, char *fn_name, tensor *outputs, int noutputs);
 
 ivalue ati_none();
 ivalue ati_tensor(tensor);
