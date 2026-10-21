@@ -64,11 +64,12 @@ impl Module for crate::CModule {
 
 impl ModuleT for crate::TrainableCModule {
     fn forward_t(&self, xs: &crate::Tensor, train: bool) -> crate::Tensor {
+        let mut inner = self.inner.lock().unwrap();
         if train {
-            self.inner.set_train()
+            inner.set_train()
         } else {
-            self.inner.set_eval()
+            inner.set_eval()
         }
-        self.inner.forward_ts(&[xs]).unwrap()
+        inner.forward_ts(&[xs]).unwrap()
     }
 }

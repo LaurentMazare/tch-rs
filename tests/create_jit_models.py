@@ -117,3 +117,28 @@ class DictExample(torch.jit.ScriptModule):
 
 foo_8 = DictExample()
 foo_8.save("foo8.pt")
+
+# Train/eval-sensitive fixtures; no learned weights or external datasets.
+class ModeDropout(torch.jit.ScriptModule):
+    @torch.jit.script_method
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.dropout(x, 1.0, self.training)
+
+ModeDropout().save("mode_dropout.pt")
+
+class ModeBatchNorm(torch.jit.ScriptModule):
+    def __init__(self):
+        super(ModeBatchNorm, self).__init__()
+        self.register_buffer("running_mean", torch.zeros(2))
+        self.register_buffer("running_var", torch.ones(2))
+
+    @torch.jit.script_method
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.batch_norm(x, None, None, self.running_mean, self.running_var,
+                                self.training, 0.1, 0.00001, False)
+
+    @torch.jit.script_method
+    def mean(self) -> torch.Tensor:
+        return self.running_mean.clone()
+
+ModeBatchNorm().save("mode_batchnorm.pt")
