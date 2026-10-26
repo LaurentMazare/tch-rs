@@ -31,6 +31,9 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
     c: LinearConfig,
 ) -> Linear {
     let vs = vs.borrow();
+    // Create the weight before the bias as in PyTorch, so that the weight initialization
+    // does not depend on whether there is a bias or not.
+    let ws = vs.var("weight", &[out_dim, in_dim], c.ws_init);
     let bs = if c.bias {
         let bs_init = c.bs_init.unwrap_or_else(|| {
             let bound = 1.0 / (in_dim as f64).sqrt();
@@ -41,7 +44,7 @@ pub fn linear<'a, T: Borrow<super::Path<'a>>>(
         None
     };
 
-    Linear { ws: vs.var("weight", &[out_dim, in_dim], c.ws_init), bs }
+    Linear { ws, bs }
 }
 
 impl super::module::Module for Linear {

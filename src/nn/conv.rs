@@ -119,10 +119,10 @@ pub fn conv<'a, ND: std::convert::AsRef<[i64]>, T: Borrow<super::Path<'a>>>(
     config: ConvConfigND<ND>,
 ) -> Conv<ND> {
     let vs = vs.borrow();
-    let bs = if config.bias { Some(vs.var("bias", &[out_dim], config.bs_init)) } else { None };
     let mut weight_size = vec![out_dim, in_dim / config.groups];
     weight_size.extend(ksizes.as_ref().iter());
     let ws = vs.var("weight", weight_size.as_slice(), config.ws_init);
+    let bs = if config.bias { Some(vs.var("bias", &[out_dim], config.bs_init)) } else { None };
     let mut reversed_padding_repeated_twice = vec![];
     for &v in config.padding.as_ref().iter().rev() {
         reversed_padding_repeated_twice.push(v)

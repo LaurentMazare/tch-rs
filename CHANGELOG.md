@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- `nn::linear`, `nn::conv` and `nn::conv_transpose` now create the weight before the
+  bias, as in PyTorch, so that the weight initialization does not depend on whether
+  there is a bias. For a given seed, the initial weights of linear layers with a bias
+  differ from the previous versions.
 
 ## v0.26.0
 ### Changed
