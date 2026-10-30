@@ -123,7 +123,7 @@ impl Model {
             state = state_;
         }
         let enc_outputs = Tensor::stack(&enc_outputs, 1);
-        let use_teacher_forcing: bool = rng.gen();
+        let use_teacher_forcing: bool = rng.random();
         let mut loss = Tensor::from(0f32).to_device(self.device);
         let mut prev = self.decoder_start.shallow_clone();
         for &s in target.iter() {
@@ -198,7 +198,7 @@ pub fn main() -> Result<()> {
     println!("Input:  {} {} words.", ilang.name(), ilang.len());
     println!("Output: {} {} words.", olang.name(), olang.len());
     println!("Pairs:  {}.", pairs.len());
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
     let model = Model::new(vs.root(), ilang, olang, HIDDEN_SIZE);
