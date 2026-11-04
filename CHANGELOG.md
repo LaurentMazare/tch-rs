@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 
+## v0.27.0
+### Changed
+- PyTorch v2.14 support.
+- Compile libtch with C++20, as required by the PyTorch v2.14 headers.
+- Removed `cholesky`, `cholesky_out`, `qr` and `qr_out` (removed from PyTorch v2.14;
+  use the `linalg_cholesky*` / `linalg_qr*` equivalents).
+
 ## v0.26.0
 ### Changed
 - PyTorch v2.13 support
