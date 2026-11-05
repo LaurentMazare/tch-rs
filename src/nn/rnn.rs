@@ -56,6 +56,7 @@ pub struct RNNConfig {
     pub has_biases: bool,
     pub num_layers: i64,
     pub dropout: f64,
+    /// The mode used by the `RNN` trait methods, the `*_t` methods take it per call instead.
     pub train: bool,
     pub bidirectional: bool,
     pub batch_first: bool,
@@ -179,12 +180,38 @@ impl RNN for LSTM {
     }
 
     fn step(&self, input: &Tensor, in_state: &LSTMState) -> LSTMState {
-        let input = input.unsqueeze(1);
-        let (_output, state) = self.seq_init(&input, in_state);
-        state
+        self.step_t(input, in_state, self.config.train)
     }
 
     fn seq_init(&self, input: &Tensor, in_state: &LSTMState) -> (Tensor, LSTMState) {
+        self.seq_init_t(input, in_state, self.config.train)
+    }
+}
+
+impl LSTM {
+    /// Same as [`RNN::step`], running in training mode if `train` is true.
+    pub fn step_t(&self, input: &Tensor, in_state: &LSTMState, train: bool) -> LSTMState {
+        let input = input.unsqueeze(1);
+        let (_output, state) = self.seq_init_t(&input, in_state, train);
+        state
+    }
+
+    /// Same as [`RNN::seq`], running in training mode if `train` is true.
+    pub fn seq_t(&self, input: &Tensor, train: bool) -> (Tensor, LSTMState) {
+        let state = self.zero_state(input.size()[0]);
+        self.seq_init_t(input, &state, train)
+    }
+
+    /// Same as [`RNN::seq_init`], running in training mode if `train` is true.
+    ///
+    /// Training mode enables the dropout and, on cuDNN, the forward pass that can be
+    /// differentiated, which keeps the activations of every step and layer.
+    pub fn seq_init_t(
+        &self,
+        input: &Tensor,
+        in_state: &LSTMState,
+        train: bool,
+    ) -> (Tensor, LSTMState) {
         let LSTMState((h, c)) = in_state;
         let flat_weights = self.flat_weights.iter().collect::<Vec<_>>();
         let (output, h, c) = input.lstm(
@@ -193,7 +220,7 @@ impl RNN for LSTM {
             self.config.has_biases,
             self.config.num_layers,
             self.config.dropout,
-            self.config.train,
+            train,
             self.config.bidirectional,
             self.config.batch_first,
         );
@@ -263,12 +290,38 @@ impl RNN for GRU {
     }
 
     fn step(&self, input: &Tensor, in_state: &GRUState) -> GRUState {
-        let input = input.unsqueeze(1);
-        let (_output, state) = self.seq_init(&input, in_state);
-        state
+        self.step_t(input, in_state, self.config.train)
     }
 
     fn seq_init(&self, input: &Tensor, in_state: &GRUState) -> (Tensor, GRUState) {
+        self.seq_init_t(input, in_state, self.config.train)
+    }
+}
+
+impl GRU {
+    /// Same as [`RNN::step`], running in training mode if `train` is true.
+    pub fn step_t(&self, input: &Tensor, in_state: &GRUState, train: bool) -> GRUState {
+        let input = input.unsqueeze(1);
+        let (_output, state) = self.seq_init_t(&input, in_state, train);
+        state
+    }
+
+    /// Same as [`RNN::seq`], running in training mode if `train` is true.
+    pub fn seq_t(&self, input: &Tensor, train: bool) -> (Tensor, GRUState) {
+        let state = self.zero_state(input.size()[0]);
+        self.seq_init_t(input, &state, train)
+    }
+
+    /// Same as [`RNN::seq_init`], running in training mode if `train` is true.
+    ///
+    /// Training mode enables the dropout and, on cuDNN, the forward pass that can be
+    /// differentiated, which keeps the activations of every step and layer.
+    pub fn seq_init_t(
+        &self,
+        input: &Tensor,
+        in_state: &GRUState,
+        train: bool,
+    ) -> (Tensor, GRUState) {
         let GRUState(h) = in_state;
         let (output, h) = input.gru(
             h,
@@ -276,7 +329,7 @@ impl RNN for GRU {
             self.config.has_biases,
             self.config.num_layers,
             self.config.dropout,
-            self.config.train,
+            train,
             self.config.bidirectional,
             self.config.batch_first,
         );

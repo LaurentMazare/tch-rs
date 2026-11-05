@@ -280,6 +280,54 @@ fn lstm() {
     lstm_test(nn::RNNConfig { num_layers: 2, bidirectional: true, ..Default::default() });
 }
 
+// With a dropout of 0.5 between two layers, two runs in training mode differ.
+fn applies_dropout(run: impl Fn() -> Tensor) -> bool {
+    run() != run()
+}
+
+fn dropout_config() -> nn::RNNConfig {
+    nn::RNNConfig { num_layers: 2, dropout: 0.5, ..Default::default() }
+}
+
+#[test]
+fn gru_train_per_call() {
+    use nn::RNN;
+    tch::manual_seed(42);
+    let vs = nn::VarStore::new(Device::Cpu);
+    let xs = Tensor::randn([5, 3, 2], kind::FLOAT_CPU);
+
+    let gru = nn::gru(vs.root() / "train", 2, 4, dropout_config());
+    let state = gru.zero_state(5);
+    assert!(applies_dropout(|| gru.seq(&xs).0));
+    assert!(!applies_dropout(|| gru.seq_t(&xs, false).0));
+    assert!(!applies_dropout(|| gru.seq_init_t(&xs, &state, false).0));
+    assert!(!applies_dropout(|| gru.step_t(&xs.select(1, 0), &state, false).0));
+
+    let gru = nn::gru(vs.root() / "eval", 2, 4, nn::RNNConfig { train: false, ..dropout_config() });
+    assert!(!applies_dropout(|| gru.seq(&xs).0));
+    assert!(applies_dropout(|| gru.seq_t(&xs, true).0));
+}
+
+#[test]
+fn lstm_train_per_call() {
+    use nn::RNN;
+    tch::manual_seed(42);
+    let vs = nn::VarStore::new(Device::Cpu);
+    let xs = Tensor::randn([5, 3, 2], kind::FLOAT_CPU);
+
+    let lstm = nn::lstm(vs.root() / "train", 2, 4, dropout_config());
+    let state = lstm.zero_state(5);
+    assert!(applies_dropout(|| lstm.seq(&xs).0));
+    assert!(!applies_dropout(|| lstm.seq_t(&xs, false).0));
+    assert!(!applies_dropout(|| lstm.seq_init_t(&xs, &state, false).0));
+    assert!(!applies_dropout(|| lstm.step_t(&xs.select(1, 0), &state, false).h()));
+
+    let lstm =
+        nn::lstm(vs.root() / "eval", 2, 4, nn::RNNConfig { train: false, ..dropout_config() });
+    assert!(!applies_dropout(|| lstm.seq(&xs).0));
+    assert!(applies_dropout(|| lstm.seq_t(&xs, true).0));
+}
+
 fn embedding_test(embedding_config: nn::EmbeddingConfig) {
     let batch_dim = 5;
     let seq_len = 7;
