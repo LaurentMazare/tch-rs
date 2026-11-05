@@ -123,8 +123,14 @@ fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     let mut archive = zip::ZipArchive::new(buf)?;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        let outpath = outpath.as_ref().join(file.mangled_name());
-        if !file.name().ends_with('/') {
+        let file_name = file.mangled_name().ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidFilename,
+                "Cannot get the name of the file",
+            )
+        })?;
+        let outpath = outpath.as_ref().join(file_name);
+        if !file.is_dir() {
             println!(
                 "File {} extracted to \"{}\" ({} bytes)",
                 i,
