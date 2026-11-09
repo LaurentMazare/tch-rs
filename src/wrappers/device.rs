@@ -11,7 +11,12 @@ pub enum Device {
     Mps,
     /// The main Vulkan device.
     Vulkan,
+    Mtia(usize),
 }
+
+/// MTIA encodes index as `MTIA_C_INT_BASE - n`. Indices observed so far go up to 24.
+/// Keep in sync with the MTIA decoding in torch-sys's libtch/torch_api.cpp.
+const MTIA_C_INT_BASE: libc::c_int = -100;
 
 /// Cuda related helper functions.
 pub enum Cuda {}
@@ -89,6 +94,7 @@ impl Device {
             Device::Cuda(device_index) => device_index as libc::c_int,
             Device::Mps => -2,
             Device::Vulkan => -3,
+            Device::Mtia(device_index) => MTIA_C_INT_BASE - device_index as libc::c_int,
         }
     }
 
@@ -98,6 +104,7 @@ impl Device {
             -2 => Device::Mps,
             -3 => Device::Vulkan,
             index if index >= 0 => Device::Cuda(index as usize),
+            mtia if mtia <= MTIA_C_INT_BASE => Device::Mtia((MTIA_C_INT_BASE - mtia) as usize),
             _ => panic!("unexpected device {v}"),
         }
     }
@@ -114,7 +121,11 @@ impl Device {
     pub fn is_cuda(self) -> bool {
         match self {
             Device::Cuda(_) => true,
-            Device::Cpu | Device::Mps | Device::Vulkan => false,
+            Device::Cpu | Device::Mps | Device::Vulkan | Device::Mtia(_) => false,
         }
+    }
+
+    pub fn is_mtia(self) -> bool {
+        matches!(self, Device::Mtia(_))
     }
 }
