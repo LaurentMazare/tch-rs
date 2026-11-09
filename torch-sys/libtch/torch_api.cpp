@@ -49,7 +49,14 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
   return c10::List<c10::optional<torch::Tensor>>(result);
 }
 
+// MTIA claims the index block at or below kMtiaBase (currently -100), encoding
+// index n as (kMtiaBase - n). tch's src/wrappers/device.rs encodes the same
+// index block -- keep the two in step.
+constexpr int kMtiaBase = -100;
+
 at::Device device_of_int(int d) {
+  if (d <= kMtiaBase)
+    return at::Device(at::kMTIA, static_cast<c10::DeviceIndex>(kMtiaBase - d));
   if (d == -3)
     return at::Device(at::kVulkan);
   if (d == -2)
@@ -58,6 +65,7 @@ at::Device device_of_int(int d) {
     return at::Device(at::kCPU);
   return at::Device(at::kCUDA, /*index=*/d);
 }
+
 tensor at_new_tensor() {
   PROTECT(return new torch::Tensor();)
   return nullptr;
@@ -196,7 +204,12 @@ int at_device(tensor t) {
   PROTECT(auto device = t->device(); if (device.type() == at::kCPU) return -1;
           if (device.type() == at::kMPS) return -2;
           if (device.type() == at::kVulkan) return -3;
-          if (device.type() == at::kCUDA) return device.index();)
+          if (device.type() == at::kMTIA) {
+            // c10 spells "current device" as -1.
+            if (device.index() < 0)
+              throw std::invalid_argument("tch: MTIA device has no index");
+            return kMtiaBase - device.index();
+          } if (device.type() == at::kCUDA) return device.index();)
   return -2;
 }
 
