@@ -186,8 +186,8 @@ impl crate::Tensor {
         for i in 0..zip.len() {
             let mut reader = zip.by_index(i).unwrap();
             let name = {
-                let name = reader.name();
-                name.strip_suffix(NPY_SUFFIX).unwrap_or(name).to_owned()
+                let name = reader.name()?;
+                name.strip_suffix(NPY_SUFFIX).unwrap_or(&name).to_owned()
             };
             let header = read_header(&mut reader)?;
             let header = Header::parse(&header)?;
@@ -233,8 +233,8 @@ impl crate::Tensor {
         path: P,
     ) -> Result<(), TchError> {
         let mut zip = zip::ZipWriter::new(File::create(path.as_ref())?);
-        let options =
-            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored);
 
         for (name, tensor) in ts.iter() {
             zip.start_file(format!("{}.npy", name.as_ref()), options)?;

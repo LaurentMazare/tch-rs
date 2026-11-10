@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- Bump the `zip` dependency to v9.5 and `pyo3` to v0.30.
 
 ## v0.27.0
 ### Changed
