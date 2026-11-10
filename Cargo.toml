@@ -23,7 +23,7 @@ ndarray = "0.16.1"
 rand = "0.8"
 thiserror = "1"
 torch-sys = { version = "0.27.0", path = "torch-sys" }
-zip = "0.6"
+zip = "9.5"
 half = "2"
 safetensors = "0.3.0"
 
