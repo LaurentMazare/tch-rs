@@ -463,7 +463,7 @@ module Func = struct
       | TensorOptions -> Printf.sprintf "%s.0.c_int(), %s.1.c_int()" name name
       | Int64Option -> Printf.sprintf "%s.unwrap_or(0i64), %s.is_none() as i8" name name
       | DoubleOption ->
-        Printf.sprintf "%s.unwrap_or(std::f64::NAN), %s.is_none() as i8" name name
+        Printf.sprintf "%s.unwrap_or(f64::NAN), %s.is_none() as i8" name name
       | String -> Printf.sprintf "%s.as_ptr(), %s.len() as i32" name name
       | IntList | IntListOption | DoubleList ->
         Printf.sprintf "%s.as_ptr(), %s.len_i32()" name name
