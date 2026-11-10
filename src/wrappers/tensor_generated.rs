@@ -456,24 +456,24 @@ impl Tensor {
     }
 
     pub fn internal_cdist_backward(
-        grad: &Tensor,
+        grad_output: &Tensor,
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
         cdist: &Tensor,
     ) -> Tensor {
-        Tensor::f_internal_cdist_backward(grad, x1, x2, p, cdist).unwrap()
+        Tensor::f_internal_cdist_backward(grad_output, x1, x2, p, cdist).unwrap()
     }
 
     pub fn internal_cdist_backward_out(
         out: &Tensor,
-        grad: &Tensor,
+        grad_output: &Tensor,
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
         cdist: &Tensor,
     ) -> Tensor {
-        Tensor::f_internal_cdist_backward_out(out, grad, x1, x2, p, cdist).unwrap()
+        Tensor::f_internal_cdist_backward_out(out, grad_output, x1, x2, p, cdist).unwrap()
     }
 
     pub fn internal_cholesky_solve_helper(&self, a: &Tensor, upper: bool) -> Tensor {
@@ -1014,6 +1014,37 @@ impl Tensor {
             dropout_p,
             is_causal,
             scale,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_cudnn_attention_forward_no_dropout_inplace<T: Borrow<Tensor>>(
+        out: &Tensor,
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        cum_seq_q: &Tensor,
+        cum_seq_k: Option<T>,
+        max_q: i64,
+        max_k: i64,
+        is_causal: bool,
+        scale: impl Into<Option<f64>>,
+        seqused_k: Option<T>,
+        block_table: Option<T>,
+    ) -> Tensor {
+        Tensor::f_internal_cudnn_attention_forward_no_dropout_inplace(
+            out,
+            query,
+            key,
+            value,
+            cum_seq_q,
+            cum_seq_k,
+            max_q,
+            max_k,
+            is_causal,
+            scale,
+            seqused_k,
+            block_table,
         )
         .unwrap()
     }
@@ -3333,22 +3364,26 @@ impl Tensor {
         .unwrap()
     }
 
-    pub fn internal_pdist_backward(&self, grad: &Tensor, p: f64, pdist: &Tensor) -> Tensor {
-        self.f_internal_pdist_backward(grad, p, pdist).unwrap()
+    pub fn internal_pdist_backward(&self, grad_output: &Tensor, p: f64, pdist: &Tensor) -> Tensor {
+        self.f_internal_pdist_backward(grad_output, p, pdist).unwrap()
     }
 
     pub fn internal_pdist_backward_out(
         &self,
         out: &Tensor,
-        grad: &Tensor,
+        grad_output: &Tensor,
         p: f64,
         pdist: &Tensor,
     ) -> Tensor {
-        self.f_internal_pdist_backward_out(out, grad, p, pdist).unwrap()
+        self.f_internal_pdist_backward_out(out, grad_output, p, pdist).unwrap()
     }
 
     pub fn internal_philox_key_fold_in(key: &Tensor, data: i64) -> Tensor {
         Tensor::f_internal_philox_key_fold_in(key, data).unwrap()
+    }
+
+    pub fn internal_philox_key_fold_in_tensor(key: &Tensor, data: &Tensor) -> Tensor {
+        Tensor::f_internal_philox_key_fold_in_tensor(key, data).unwrap()
     }
 
     pub fn internal_philox_key_split(key: &Tensor, num_splits: i64) -> Tensor {
@@ -3371,6 +3406,34 @@ impl Tensor {
         std: f64,
     ) -> Tensor {
         self.f_internal_philox_normal_out(out, key, mean, std).unwrap()
+    }
+
+    pub fn internal_philox_randint(
+        &self,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Tensor {
+        self.f_internal_philox_randint(key, low, high).unwrap()
+    }
+
+    pub fn internal_philox_randint_(
+        &mut self,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Tensor {
+        self.f_internal_philox_randint_(key, low, high).unwrap()
+    }
+
+    pub fn internal_philox_randint_out(
+        &self,
+        out: &Tensor,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Tensor {
+        self.f_internal_philox_randint_out(out, key, low, high).unwrap()
     }
 
     pub fn internal_philox_uniform(&self, key: &Tensor, low: f64, high: f64) -> Tensor {
@@ -3487,6 +3550,92 @@ impl Tensor {
 
     pub fn internal_saturate_weight_to_fp16(weight: &Tensor) -> Tensor {
         Tensor::f_internal_saturate_weight_to_fp16(weight).unwrap()
+    }
+
+    pub fn internal_scaled_addmm<T: Borrow<Tensor>>(
+        &self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_addmm(
+            mat1,
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_addmm_<T: Borrow<Tensor>>(
+        &mut self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_addmm_(
+            mat1,
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_addmm_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_addmm_out(
+            out,
+            mat1,
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
     }
 
     pub fn internal_scaled_dot_product_attention_math<T: Borrow<Tensor>>(
@@ -3711,6 +3860,40 @@ impl Tensor {
         use_fast_accum: bool,
     ) -> Tensor {
         self.f_internal_scaled_grouped_mm_v2(
+            mat2,
+            scale_a,
+            recipe_a,
+            swizzle_a,
+            scale_b,
+            recipe_b,
+            swizzle_b,
+            offs,
+            bias,
+            out_dtype,
+            contraction_dim,
+            use_fast_accum,
+        )
+        .unwrap()
+    }
+
+    pub fn internal_scaled_grouped_mm_v2_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        offs: Option<T>,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Tensor {
+        self.f_internal_scaled_grouped_mm_v2_out(
+            out,
             mat2,
             scale_a,
             recipe_a,
@@ -7414,20 +7597,12 @@ impl Tensor {
         self.f_channel_shuffle_out(out, groups).unwrap()
     }
 
-    pub fn cholesky(&self, upper: bool) -> Tensor {
-        self.f_cholesky(upper).unwrap()
-    }
-
     pub fn cholesky_inverse(&self, upper: bool) -> Tensor {
         self.f_cholesky_inverse(upper).unwrap()
     }
 
     pub fn cholesky_inverse_out(&self, out: &Tensor, upper: bool) -> Tensor {
         self.f_cholesky_inverse_out(out, upper).unwrap()
-    }
-
-    pub fn cholesky_out(&self, out: &Tensor, upper: bool) -> Tensor {
-        self.f_cholesky_out(out, upper).unwrap()
     }
 
     pub fn cholesky_solve(&self, input2: &Tensor, upper: bool) -> Tensor {
@@ -11761,6 +11936,14 @@ impl Tensor {
         self.f_linalg_matrix_rank_tol_tensor(tol, hermitian).unwrap()
     }
 
+    pub fn linalg_matrix_sqrth(&self) -> Tensor {
+        self.f_linalg_matrix_sqrth().unwrap()
+    }
+
+    pub fn linalg_matrix_sqrth_out(&self, out: &Tensor) -> Tensor {
+        self.f_linalg_matrix_sqrth_out(out).unwrap()
+    }
+
     pub fn linalg_multi_dot<T: Borrow<Tensor>>(tensors: &[T]) -> Tensor {
         Tensor::f_linalg_multi_dot(tensors).unwrap()
     }
@@ -11868,6 +12051,14 @@ impl Tensor {
 
     pub fn linalg_pinv_rcond_tensor(&self, rcond: &Tensor, hermitian: bool) -> Tensor {
         self.f_linalg_pinv_rcond_tensor(rcond, hermitian).unwrap()
+    }
+
+    pub fn linalg_polar(a: &Tensor) -> (Tensor, Tensor) {
+        Tensor::f_linalg_polar(a).unwrap()
+    }
+
+    pub fn linalg_polar_out(u: &Tensor, h: &Tensor, a: &Tensor) -> (Tensor, Tensor) {
+        Tensor::f_linalg_polar_out(u, h, a).unwrap()
     }
 
     pub fn linalg_qr(a: &Tensor, mode: &str) -> (Tensor, Tensor) {
@@ -15130,14 +15321,6 @@ impl Tensor {
 
     pub fn q_zero_point(&self) -> i64 {
         self.f_q_zero_point().unwrap()
-    }
-
-    pub fn qr(&self, some: bool) -> (Tensor, Tensor) {
-        self.f_qr(some).unwrap()
-    }
-
-    pub fn qr_q(&self, q: &Tensor, r: &Tensor, some: bool) -> (Tensor, Tensor) {
-        self.f_qr_q(q, r, some).unwrap()
     }
 
     pub fn quantile(

@@ -924,7 +924,7 @@ impl Tensor {
     }
 
     pub fn f_internal_cdist_backward(
-        grad: &Tensor,
+        grad_output: &Tensor,
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
@@ -933,7 +933,7 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__cdist_backward(
             c_tensors.as_mut_ptr(),
-            grad.c_tensor,
+            grad_output.c_tensor,
             x1.c_tensor,
             x2.c_tensor,
             p,
@@ -944,7 +944,7 @@ impl Tensor {
 
     pub fn f_internal_cdist_backward_out(
         out: &Tensor,
-        grad: &Tensor,
+        grad_output: &Tensor,
         x1: &Tensor,
         x2: &Tensor,
         p: f64,
@@ -954,7 +954,7 @@ impl Tensor {
         unsafe_torch_err!(atg__cdist_backward_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
-            grad.c_tensor,
+            grad_output.c_tensor,
             x1.c_tensor,
             x2.c_tensor,
             p,
@@ -1763,7 +1763,7 @@ impl Tensor {
             max_k,
             dropout_p,
             if is_causal { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((
@@ -1771,6 +1771,41 @@ impl Tensor {
             Tensor { c_tensor: c_tensors[1] },
             Tensor { c_tensor: c_tensors[2] },
         ))
+    }
+
+    pub fn f_internal_cudnn_attention_forward_no_dropout_inplace<T: Borrow<Tensor>>(
+        out: &Tensor,
+        query: &Tensor,
+        key: &Tensor,
+        value: &Tensor,
+        cum_seq_q: &Tensor,
+        cum_seq_k: Option<T>,
+        max_q: i64,
+        max_k: i64,
+        is_causal: bool,
+        scale: impl Into<Option<f64>>,
+        seqused_k: Option<T>,
+        block_table: Option<T>,
+    ) -> Result<Tensor, TchError> {
+        let scale = scale.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__cudnn_attention_forward_no_dropout_inplace(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            query.c_tensor,
+            key.c_tensor,
+            value.c_tensor,
+            cum_seq_q.c_tensor,
+            cum_seq_k.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            max_q,
+            max_k,
+            if is_causal { 1 } else { 0 },
+            scale.unwrap_or(f64::NAN),
+            scale.is_none() as i8,
+            seqused_k.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            block_table.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor)
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
     pub fn f_internal_cudnn_ctc_loss(
@@ -2191,7 +2226,7 @@ impl Tensor {
             philox_offset.c_tensor,
             custom_mask_type,
             if bias_requires_grad { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             num_splits_key.unwrap_or(0i64),
             num_splits_key.is_none() as i8,
@@ -3013,7 +3048,7 @@ impl Tensor {
             if is_causal { 1 } else { 0 },
             rng_state.c_tensor,
             unused.c_tensor,
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             window_size_left.unwrap_or(0i64),
             window_size_left.is_none() as i8,
@@ -3065,7 +3100,7 @@ impl Tensor {
             dropout_p,
             if is_causal { 1 } else { 0 },
             if return_debug_mask { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             window_size_left.unwrap_or(0i64),
             window_size_left.is_none() as i8,
@@ -3343,7 +3378,7 @@ impl Tensor {
             normalized_shape.as_ptr(),
             normalized_shape.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -3369,7 +3404,7 @@ impl Tensor {
                 attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
                 dropout_p,
                 if is_causal { 1 } else { 0 },
-                scale.unwrap_or(std::f64::NAN),
+                scale.unwrap_or(f64::NAN),
                 scale.is_none() as i8,
                 if enable_gqa { 1 } else { 0 }
             )
@@ -5412,7 +5447,7 @@ impl Tensor {
             pad.as_ptr(),
             pad.len_i32(),
             mode,
-            value.unwrap_or(std::f64::NAN),
+            value.unwrap_or(f64::NAN),
             value.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -5439,14 +5474,14 @@ impl Tensor {
 
     pub fn f_internal_pdist_backward(
         &self,
-        grad: &Tensor,
+        grad_output: &Tensor,
         p: f64,
         pdist: &Tensor,
     ) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__pdist_backward(
             c_tensors.as_mut_ptr(),
-            grad.c_tensor,
+            grad_output.c_tensor,
             self.c_tensor,
             p,
             pdist.c_tensor
@@ -5457,7 +5492,7 @@ impl Tensor {
     pub fn f_internal_pdist_backward_out(
         &self,
         out: &Tensor,
-        grad: &Tensor,
+        grad_output: &Tensor,
         p: f64,
         pdist: &Tensor,
     ) -> Result<Tensor, TchError> {
@@ -5465,7 +5500,7 @@ impl Tensor {
         unsafe_torch_err!(atg__pdist_backward_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
-            grad.c_tensor,
+            grad_output.c_tensor,
             self.c_tensor,
             p,
             pdist.c_tensor
@@ -5476,6 +5511,19 @@ impl Tensor {
     pub fn f_internal_philox_key_fold_in(key: &Tensor, data: i64) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__philox_key_fold_in(c_tensors.as_mut_ptr(), key.c_tensor, data));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_philox_key_fold_in_tensor(
+        key: &Tensor,
+        data: &Tensor,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__philox_key_fold_in_tensor(
+            c_tensors.as_mut_ptr(),
+            key.c_tensor,
+            data.c_tensor
+        ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
@@ -5534,6 +5582,71 @@ impl Tensor {
             key.c_tensor,
             mean,
             std
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_philox_randint(
+        &self,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let low = low.into();
+        let high = high.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__philox_randint(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            key.c_tensor,
+            low.unwrap_or(0i64),
+            low.is_none() as i8,
+            high.unwrap_or(0i64),
+            high.is_none() as i8
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_philox_randint_(
+        &mut self,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let low = low.into();
+        let high = high.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__philox_randint_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            key.c_tensor,
+            low.unwrap_or(0i64),
+            low.is_none() as i8,
+            high.unwrap_or(0i64),
+            high.is_none() as i8
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_philox_randint_out(
+        &self,
+        out: &Tensor,
+        key: &Tensor,
+        low: impl Into<Option<i64>>,
+        high: impl Into<Option<i64>>,
+    ) -> Result<Tensor, TchError> {
+        let low = low.into();
+        let high = high.into();
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__philox_randint_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            key.c_tensor,
+            low.unwrap_or(0i64),
+            low.is_none() as i8,
+            high.unwrap_or(0i64),
+            high.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -5840,6 +5953,122 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
+    pub fn f_internal_scaled_addmm<T: Borrow<Tensor>>(
+        &self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_addmm(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat1.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_scaled_addmm_<T: Borrow<Tensor>>(
+        &mut self,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_addmm_(
+            c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat1.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_scaled_addmm_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat1: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_addmm_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor,
+            mat1.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
     pub fn f_internal_scaled_dot_product_attention_math<T: Borrow<Tensor>>(
         query: &Tensor,
         key: &Tensor,
@@ -5862,7 +6091,7 @@ impl Tensor {
             dropout_p,
             if is_causal { 1 } else { 0 },
             dropout_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             if enable_gqa { 1 } else { 0 }
         ));
@@ -5891,7 +6120,7 @@ impl Tensor {
             dropout_p,
             if is_causal { 1 } else { 0 },
             dropout_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             if enable_gqa { 1 } else { 0 }
         ));
@@ -5935,7 +6164,7 @@ impl Tensor {
             max_k,
             dropout_p,
             if is_causal { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((
@@ -5966,7 +6195,7 @@ impl Tensor {
             if compute_log_sumexp { 1 } else { 0 },
             dropout_p,
             if is_causal { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((
@@ -6012,7 +6241,7 @@ impl Tensor {
             if is_causal { 1 } else { 0 },
             philox_seed.c_tensor,
             philox_offset.c_tensor,
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((
@@ -6041,7 +6270,7 @@ impl Tensor {
             dropout_p,
             if is_causal { 1 } else { 0 },
             attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
@@ -6072,7 +6301,7 @@ impl Tensor {
             dropout_p,
             if is_causal { 1 } else { 0 },
             attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8
         ));
         Ok((
@@ -6127,6 +6356,50 @@ impl Tensor {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__scaled_grouped_mm_v2(
             c_tensors.as_mut_ptr(),
+            self.c_tensor,
+            mat2.c_tensor,
+            ptr_list(scale_a).as_ptr(),
+            scale_a.len() as i32,
+            recipe_a.as_ptr(),
+            recipe_a.len_i32(),
+            swizzle_a.as_ptr(),
+            swizzle_a.len_i32(),
+            ptr_list(scale_b).as_ptr(),
+            scale_b.len() as i32,
+            recipe_b.as_ptr(),
+            recipe_b.len_i32(),
+            swizzle_b.as_ptr(),
+            swizzle_b.len_i32(),
+            offs.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            bias.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
+            out_dtype.into().map_or(-1, |s| s.c_int()),
+            contraction_dim.as_ptr(),
+            contraction_dim.len_i32(),
+            if use_fast_accum { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_internal_scaled_grouped_mm_v2_out<T: Borrow<Tensor>>(
+        &self,
+        out: &Tensor,
+        mat2: &Tensor,
+        scale_a: &[T],
+        recipe_a: impl IntList,
+        swizzle_a: impl IntList,
+        scale_b: &[T],
+        recipe_b: impl IntList,
+        swizzle_b: impl IntList,
+        offs: Option<T>,
+        bias: Option<T>,
+        out_dtype: impl Into<Option<Kind>>,
+        contraction_dim: impl IntList,
+        use_fast_accum: bool,
+    ) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg__scaled_grouped_mm_v2_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
             self.c_tensor,
             mat2.c_tensor,
             ptr_list(scale_a).as_ptr(),
@@ -8602,9 +8875,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8629,9 +8902,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8658,9 +8931,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8684,9 +8957,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8727,9 +9000,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8754,9 +9027,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8783,9 +9056,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8809,9 +9082,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8852,9 +9125,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8879,9 +9152,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8908,9 +9181,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8934,9 +9207,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8973,7 +9246,7 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -8994,7 +9267,7 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9017,7 +9290,7 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9037,7 +9310,7 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9074,9 +9347,9 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9099,9 +9372,9 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9126,9 +9399,9 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9150,9 +9423,9 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9191,11 +9464,11 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9220,11 +9493,11 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9251,11 +9524,11 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -9279,11 +9552,11 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -13282,16 +13555,6 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_cholesky(&self, upper: bool) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cholesky(
-            c_tensors.as_mut_ptr(),
-            self.c_tensor,
-            if upper { 1 } else { 0 }
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
     pub fn f_cholesky_inverse(&self, upper: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cholesky_inverse(
@@ -13305,17 +13568,6 @@ impl Tensor {
     pub fn f_cholesky_inverse_out(&self, out: &Tensor, upper: bool) -> Result<Tensor, TchError> {
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_cholesky_inverse_out(
-            c_tensors.as_mut_ptr(),
-            out.c_tensor,
-            self.c_tensor,
-            if upper { 1 } else { 0 }
-        ));
-        Ok(Tensor { c_tensor: c_tensors[0] })
-    }
-
-    pub fn f_cholesky_out(&self, out: &Tensor, upper: bool) -> Result<Tensor, TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 1];
-        unsafe_torch_err!(atg_cholesky_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
@@ -22215,7 +22467,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             b.c_tensor,
-            rcond.unwrap_or(std::f64::NAN),
+            rcond.unwrap_or(f64::NAN),
             rcond.is_none() as i8,
             driver.as_ptr(),
             driver.len() as i32
@@ -22248,7 +22500,7 @@ impl Tensor {
             singular_values.c_tensor,
             self.c_tensor,
             b.c_tensor,
-            rcond.unwrap_or(std::f64::NAN),
+            rcond.unwrap_or(f64::NAN),
             rcond.is_none() as i8,
             driver.as_ptr(),
             driver.len() as i32
@@ -22482,9 +22734,9 @@ impl Tensor {
         unsafe_torch_err!(atg_linalg_matrix_rank_atol_rtol_float(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            atol.unwrap_or(std::f64::NAN),
+            atol.unwrap_or(f64::NAN),
             atol.is_none() as i8,
-            rtol.unwrap_or(std::f64::NAN),
+            rtol.unwrap_or(f64::NAN),
             rtol.is_none() as i8,
             if hermitian { 1 } else { 0 }
         ));
@@ -22505,9 +22757,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            atol.unwrap_or(std::f64::NAN),
+            atol.unwrap_or(f64::NAN),
             atol.is_none() as i8,
-            rtol.unwrap_or(std::f64::NAN),
+            rtol.unwrap_or(f64::NAN),
             rtol.is_none() as i8,
             if hermitian { 1 } else { 0 }
         ));
@@ -22595,6 +22847,22 @@ impl Tensor {
             self.c_tensor,
             tol.c_tensor,
             if hermitian { 1 } else { 0 }
+        ));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linalg_matrix_sqrth(&self) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linalg_matrix_sqrth(c_tensors.as_mut_ptr(), self.c_tensor));
+        Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linalg_matrix_sqrth_out(&self, out: &Tensor) -> Result<Tensor, TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 1];
+        unsafe_torch_err!(atg_linalg_matrix_sqrth_out(
+            c_tensors.as_mut_ptr(),
+            out.c_tensor,
+            self.c_tensor
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -22732,9 +23000,9 @@ impl Tensor {
         unsafe_torch_err!(atg_linalg_pinv_atol_rtol_float(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            atol.unwrap_or(std::f64::NAN),
+            atol.unwrap_or(f64::NAN),
             atol.is_none() as i8,
-            rtol.unwrap_or(std::f64::NAN),
+            rtol.unwrap_or(f64::NAN),
             rtol.is_none() as i8,
             if hermitian { 1 } else { 0 }
         ));
@@ -22755,9 +23023,9 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            atol.unwrap_or(std::f64::NAN),
+            atol.unwrap_or(f64::NAN),
             atol.is_none() as i8,
-            rtol.unwrap_or(std::f64::NAN),
+            rtol.unwrap_or(f64::NAN),
             rtol.is_none() as i8,
             if hermitian { 1 } else { 0 }
         ));
@@ -22847,6 +23115,27 @@ impl Tensor {
             if hermitian { 1 } else { 0 }
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
+    }
+
+    pub fn f_linalg_polar(a: &Tensor) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_linalg_polar(c_tensors.as_mut_ptr(), a.c_tensor));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
+    }
+
+    pub fn f_linalg_polar_out(
+        u: &Tensor,
+        h: &Tensor,
+        a: &Tensor,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let mut c_tensors = [std::ptr::null_mut(); 2];
+        unsafe_torch_err!(atg_linalg_polar_out(
+            c_tensors.as_mut_ptr(),
+            u.c_tensor,
+            h.c_tensor,
+            a.c_tensor
+        ));
+        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
     pub fn f_linalg_qr(a: &Tensor, mode: &str) -> Result<(Tensor, Tensor), TchError> {
@@ -23658,7 +23947,7 @@ impl Tensor {
         unsafe_torch_err!(atg_logit(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23670,7 +23959,7 @@ impl Tensor {
         unsafe_torch_err!(atg_logit_(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23687,7 +23976,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             grad_output.c_tensor,
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23706,7 +23995,7 @@ impl Tensor {
             grad_input.c_tensor,
             grad_output.c_tensor,
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -23723,7 +24012,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -27083,11 +27372,11 @@ impl Tensor {
         unsafe_torch_err!(atg_nan_to_num(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            nan.unwrap_or(std::f64::NAN),
+            nan.unwrap_or(f64::NAN),
             nan.is_none() as i8,
-            posinf.unwrap_or(std::f64::NAN),
+            posinf.unwrap_or(f64::NAN),
             posinf.is_none() as i8,
-            neginf.unwrap_or(std::f64::NAN),
+            neginf.unwrap_or(f64::NAN),
             neginf.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -27106,11 +27395,11 @@ impl Tensor {
         unsafe_torch_err!(atg_nan_to_num_(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            nan.unwrap_or(std::f64::NAN),
+            nan.unwrap_or(f64::NAN),
             nan.is_none() as i8,
-            posinf.unwrap_or(std::f64::NAN),
+            posinf.unwrap_or(f64::NAN),
             posinf.is_none() as i8,
-            neginf.unwrap_or(std::f64::NAN),
+            neginf.unwrap_or(f64::NAN),
             neginf.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -27131,11 +27420,11 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            nan.unwrap_or(std::f64::NAN),
+            nan.unwrap_or(f64::NAN),
             nan.is_none() as i8,
-            posinf.unwrap_or(std::f64::NAN),
+            posinf.unwrap_or(f64::NAN),
             posinf.is_none() as i8,
-            neginf.unwrap_or(std::f64::NAN),
+            neginf.unwrap_or(f64::NAN),
             neginf.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -28653,7 +28942,7 @@ impl Tensor {
             pad.len_i32(),
             mode.as_ptr(),
             mode.len() as i32,
-            value.unwrap_or(std::f64::NAN),
+            value.unwrap_or(f64::NAN),
             value.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -29136,24 +29425,6 @@ impl Tensor {
         let return_;
         unsafe_torch_err!(return_ = atg_q_zero_point(self.c_tensor));
         Ok(return_)
-    }
-
-    pub fn f_qr(&self, some: bool) -> Result<(Tensor, Tensor), TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 2];
-        unsafe_torch_err!(atg_qr(c_tensors.as_mut_ptr(), self.c_tensor, if some { 1 } else { 0 }));
-        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
-    }
-
-    pub fn f_qr_q(&self, q: &Tensor, r: &Tensor, some: bool) -> Result<(Tensor, Tensor), TchError> {
-        let mut c_tensors = [std::ptr::null_mut(); 2];
-        unsafe_torch_err!(atg_qr_q(
-            c_tensors.as_mut_ptr(),
-            q.c_tensor,
-            r.c_tensor,
-            self.c_tensor,
-            if some { 1 } else { 0 }
-        ));
-        Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
 
     pub fn f_quantile(
@@ -31017,7 +31288,7 @@ impl Tensor {
             normalized_shape.as_ptr(),
             normalized_shape.len_i32(),
             weight.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -31556,7 +31827,7 @@ impl Tensor {
             attn_mask.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             dropout_p,
             if is_causal { 1 } else { 0 },
-            scale.unwrap_or(std::f64::NAN),
+            scale.unwrap_or(f64::NAN),
             scale.is_none() as i8,
             if enable_gqa { 1 } else { 0 }
         ));
@@ -34670,7 +34941,7 @@ impl Tensor {
         unsafe_torch_err!(atg_special_logit(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -34687,7 +34958,7 @@ impl Tensor {
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
-            eps.unwrap_or(std::f64::NAN),
+            eps.unwrap_or(f64::NAN),
             eps.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37789,9 +38060,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37816,9 +38087,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37845,9 +38116,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37871,9 +38142,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37914,9 +38185,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37941,9 +38212,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37970,9 +38241,9 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -37996,9 +38267,9 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38058,7 +38329,7 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38081,7 +38352,7 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38106,7 +38377,7 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38128,7 +38399,7 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38165,7 +38436,7 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38186,7 +38457,7 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38209,7 +38480,7 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38229,7 +38500,7 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales.unwrap_or(std::f64::NAN),
+            scales.unwrap_or(f64::NAN),
             scales.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38266,9 +38537,9 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38291,9 +38562,9 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38318,9 +38589,9 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38342,9 +38613,9 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38402,11 +38673,11 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38431,11 +38702,11 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38462,11 +38733,11 @@ impl Tensor {
             output_size.len_i32(),
             input_size.as_ptr(),
             input_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38490,11 +38761,11 @@ impl Tensor {
             self.c_tensor,
             output_size.as_ptr(),
             output_size.len_i32(),
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38535,11 +38806,11 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38566,11 +38837,11 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38599,11 +38870,11 @@ impl Tensor {
             input_size.as_ptr(),
             input_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
@@ -38629,11 +38900,11 @@ impl Tensor {
             output_size.as_ptr(),
             output_size.len_i32(),
             if align_corners { 1 } else { 0 },
-            scales_d.unwrap_or(std::f64::NAN),
+            scales_d.unwrap_or(f64::NAN),
             scales_d.is_none() as i8,
-            scales_h.unwrap_or(std::f64::NAN),
+            scales_h.unwrap_or(f64::NAN),
             scales_h.is_none() as i8,
-            scales_w.unwrap_or(std::f64::NAN),
+            scales_w.unwrap_or(f64::NAN),
             scales_w.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
