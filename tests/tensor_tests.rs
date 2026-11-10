@@ -2,7 +2,6 @@
 use anyhow::Result;
 use half::f16;
 use std::convert::{TryFrom, TryInto};
-use std::f32;
 use tch::{Device, TchError, Tensor};
 
 mod test_utils;
@@ -324,7 +323,7 @@ fn bool_tensor() {
 
 #[test]
 fn copy_overflow() {
-    let mut s = [f32::consts::PI];
+    let mut s = [std::f32::consts::PI];
     let r = Tensor::zeros([1], (tch::Kind::Int64, Device::Cpu)).f_copy_data(&mut s, 1);
     assert!(r.is_err());
 
