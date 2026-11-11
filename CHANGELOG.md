@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- `nn::LSTM` and `nn::GRU` have `step_t`, `seq_t` and `seq_init_t`, which take the training
+  mode per call instead of from `RNNConfig::train`. Evaluation passes can then run without
+  dropout and, on cuDNN, without the memory kept for the backward pass.
+
 ### Changed
 - Bump the `zip` dependency to v9.5 and `pyo3` to v0.30.
 
