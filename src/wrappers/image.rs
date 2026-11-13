@@ -21,7 +21,13 @@ pub fn load_hwc_from_mem(data: &[u8]) -> Result<Tensor, TchError> {
 /// Expects a tensor of shape [width, height, channels].
 pub fn save_hwc<T: AsRef<Path>>(t: &Tensor, path: T) -> Result<(), TchError> {
     let path = path_to_cstring(path)?;
-    let _ = unsafe_torch_err!(torch_sys::at_save_image(t.c_tensor, path.as_ptr()));
+    let status = unsafe_torch_err!(torch_sys::at_save_image(t.c_tensor, path.as_ptr()));
+    if status == 0 {
+        return Err(TchError::Io(std::io::Error::other(format!(
+            "failed to write image to {}",
+            path.to_string_lossy()
+        ))));
+    }
     Ok(())
 }
 
