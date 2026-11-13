@@ -634,9 +634,11 @@ impl CModule {
 ///
 /// These modules can be created via the
 /// [TorchScript python api](https://pytorch.org/docs/stable/jit.html).
+/// Calls through this wrapper are serialized so a ModuleT mode change and its
+/// forward pass use the same mode, including when the wrapper is shared.
 #[derive(Debug)]
 pub struct TrainableCModule {
-    pub(crate) inner: CModule,
+    pub(crate) inner: std::sync::Mutex<CModule>,
 }
 
 impl TrainableCModule {
@@ -650,7 +652,7 @@ impl TrainableCModule {
             let requires_grad = tensor.requires_grad();
             let _t = path.add(&name.replace('.', "_"), tensor, requires_grad);
         }
-        Ok(TrainableCModule { inner })
+        Ok(TrainableCModule { inner: std::sync::Mutex::new(inner) })
     }
 
     /// Loads a PyTorch saved JIT model from a read instance.
@@ -663,41 +665,41 @@ impl TrainableCModule {
             let requires_grad = tensor.requires_grad();
             let _t = path.add(&name.replace('.', "_"), tensor, requires_grad);
         }
-        Ok(TrainableCModule { inner })
+        Ok(TrainableCModule { inner: std::sync::Mutex::new(inner) })
     }
 
     pub fn save<T: AsRef<std::path::Path>>(&self, module_path: T) -> Result<(), TchError> {
-        self.inner.save(module_path)
+        self.inner.lock().unwrap().save(module_path)
     }
 
     /// Switches the module to training mode.
     pub fn f_set_train(&mut self) -> Result<(), TchError> {
-        self.inner.f_set_train()
+        self.inner.lock().unwrap().f_set_train()
     }
 
     /// Switches the module to training mode.
     pub fn set_train(&mut self) {
-        self.inner.set_train()
+        self.inner.lock().unwrap().set_train()
     }
 
     /// Switches the module to evaluation mode.
     pub fn f_set_eval(&mut self) -> Result<(), TchError> {
-        self.inner.f_set_eval()
+        self.inner.lock().unwrap().f_set_eval()
     }
 
     /// Switches the module to evaluation mode.
     pub fn set_eval(&mut self) {
-        self.inner.set_eval()
+        self.inner.lock().unwrap().set_eval()
     }
 
     /// Performs the forward pass for a model on some specified tensor inputs.
     pub fn forward_ts<T: Borrow<Tensor>>(&self, ts: &[T]) -> Result<Tensor, TchError> {
-        self.inner.forward_ts(ts)
+        self.inner.lock().unwrap().forward_ts(ts)
     }
 
     /// Performs the forward pass for a model on some specified ivalue inputs.
     pub fn forward_is<T: Borrow<IValue>>(&self, ts: &[T]) -> Result<IValue, TchError> {
-        self.inner.forward_is(ts)
+        self.inner.lock().unwrap().forward_is(ts)
     }
 
     /// Runs a specified entry point for a model on some given tensor inputs.
@@ -706,7 +708,7 @@ impl TrainableCModule {
         method_name: &str,
         ts: &[T],
     ) -> Result<Tensor, TchError> {
-        self.inner.method_ts(method_name, ts)
+        self.inner.lock().unwrap().method_ts(method_name, ts)
     }
 
     /// Runs a specified entry point for a model on some given ivalue inputs.
@@ -715,7 +717,7 @@ impl TrainableCModule {
         method_name: &str,
         ts: &[T],
     ) -> Result<IValue, TchError> {
-        self.inner.method_is(method_name, ts)
+        self.inner.lock().unwrap().method_is(method_name, ts)
     }
 }
 
