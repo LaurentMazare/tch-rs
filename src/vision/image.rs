@@ -142,5 +142,8 @@ pub fn load_dir<T: AsRef<Path>>(path: T, out_w: i64, out_h: i64) -> Result<Tenso
         // Silently discard image errors.
         .filter_map(|x| load_and_resize(x.path(), out_w, out_h).ok())
         .collect();
+    if v.is_empty() {
+        return Err(TchError::MissingImage(format!("no readable image in {:?}", path.as_ref())));
+    }
     Ok(Tensor::stack(&v, 0))
 }
