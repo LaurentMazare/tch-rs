@@ -80,43 +80,6 @@ fn download<P: AsRef<Path>>(_source_url: &str, _target_file: P) -> anyhow::Resul
     anyhow::bail!("cannot use download without the ureq feature")
 }
 
-#[cfg(not(feature = "download-libtorch"))]
-fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
-    anyhow::bail!("cannot get pypi wheel url without the ureq feature")
-}
-
-#[cfg(feature = "download-libtorch")]
-#[derive(serde::Deserialize, Debug)]
-struct PyPiPackageUrl {
-    url: String,
-    filename: String,
-}
-#[cfg(feature = "download-libtorch")]
-#[derive(serde::Deserialize, Debug)]
-struct PyPiPackage {
-    urls: Vec<PyPiPackageUrl>,
-}
-#[cfg(feature = "download-libtorch")]
-fn get_pypi_wheel_url_for_aarch64_macosx() -> anyhow::Result<String> {
-    let pypi_url = format!("https://pypi.org/pypi/torch/{TORCH_VERSION}/json");
-    let response = ureq::get(pypi_url.as_str()).call()?;
-    let response_code = response.status();
-    if response_code != 200 {
-        anyhow::bail!("Unexpected response code {} for {}", response_code, pypi_url)
-    }
-    let pypi_package: PyPiPackage = response.into_json()?;
-    let urls = pypi_package.urls;
-    let expected_filename = format!("torch-{TORCH_VERSION}-cp311-none-macosx_11_0_arm64.whl");
-    let url = urls.iter().find_map(|pypi_url: &PyPiPackageUrl| {
-        if pypi_url.filename == expected_filename {
-            Some(pypi_url.url.clone())
-        } else {
-            None
-        }
-    });
-    url.context("Failed to find arm64 macosx wheel from pypi")
-}
-
 fn extract<P: AsRef<Path>>(filename: P, outpath: P) -> anyhow::Result<()> {
     let file = fs::File::open(&filename)?;
     let buf = io::BufReader::new(file);
@@ -322,16 +285,9 @@ impl SystemInfo {
                 ),
                 Os::Macos => {
                     if env::var("CARGO_CFG_TARGET_ARCH") == Ok(String::from("aarch64")) {
-                        get_pypi_wheel_url_for_aarch64_macosx().expect(
-                            "Failed to retrieve torch from pypi.  Pre-built version of libtorch for apple silicon are not available.
-                            You can install torch manually following the indications from https://github.com/LaurentMazare/tch-rs/issues/629
-                            pip3 install torch=={TORCH_VERSION}
-                            Then update the following environment variables:
-                            export LIBTORCH=$(python3 -c 'import torch; from pathlib import Path; print(Path(torch.__file__).parent)')
-                            export DYLD_LIBRARY_PATH=${{LIBTORCH}}/lib
-                            ")
+                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-{TORCH_VERSION}.zip")
                     } else {
-                        format!("https://download.pytorch.org/libtorch/cpu/libtorch-macos-x86_64-{TORCH_VERSION}.zip")
+                        anyhow::bail!("pre-built libtorch binaries are only available for aarch64 macOS.")
                     }
                 },
                 Os::Windows => format!(
