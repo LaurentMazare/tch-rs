@@ -320,6 +320,11 @@ extern "C" {
         data: *mut c_void,
         f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut C_tensor),
     );
+    pub fn atm_named_attributes(
+        m: *mut CModule_,
+        data: *mut c_void,
+        f: extern "C" fn(*mut c_void, name: *const c_char, t: *mut CIValue),
+    );
     pub fn atm_create_for_tracing(
         modl_name: *const c_char,
         inputs: *const *mut C_tensor,
