@@ -144264,7 +144264,6 @@
     name: self
     type: const at::Tensor &
   - annotation: null
-    default: 2
     dynamic_type: const at::Scalar &
     is_nullable: false
     name: ord
@@ -144297,7 +144296,6 @@
     name: self
     type: const at::Tensor &
   - annotation: null
-    default: 2
     dynamic_type: const at::Scalar &
     is_nullable: false
     name: ord
