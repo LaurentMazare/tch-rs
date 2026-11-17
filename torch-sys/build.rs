@@ -37,6 +37,14 @@ See the readme for more details:
 https://github.com/LaurentMazare/tch-rs/blob/main/README.md
 ";
 
+const NO_PYTORCH_DURING_BUILD_TIME_ERROR_MESSAGE : &str = r"
+LIBTORCH_USE_PYTORCH=1 is detected, but PyTorch Python package has not been found during build time of torch-sys:
+- Check if the PyTorch package is in build dependencies. Example for 'pyproject.toml' : [build-system] requires = ['setuptools', 'torch'].
+- Check if the Python interpreter 'python' (for virtual env.) or 'python3' (for others) has the torch library installed.
+
+It seems like that the Rust code uses the wrong Python interpreter, without torch installed on it.
+";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LinkType {
     Dynamic,
@@ -209,6 +217,19 @@ impl SystemInfo {
                 .arg(PYTHON_PRINT_PYTORCH_DETAILS)
                 .output()
                 .with_context(|| format!("error running {python_interpreter:?}"))?;
+
+            //Check for output.stderr emptiness and try to detect if it's related to torch module's missing
+            let output_stderr  = std::str::from_utf8(&output.stderr)?;
+            if output_stderr.len()>0 {
+                if output_stderr.contains("ModuleNotFoundError: No module named 'torch'") 
+                {
+                    anyhow::bail!(NO_PYTORCH_DURING_BUILD_TIME_ERROR_MESSAGE);
+                }
+                println!(
+                    "cargo:warning={}",
+                    format!("The command output to retrieve PyTorch details during build time has a non empty stderr field : {output_stderr}")
+                );
+            }
             let mut cxx11_abi = None;
             for line in String::from_utf8_lossy(&output.stdout).lines() {
                 if let Some(version) = line.strip_prefix("LIBTORCH_VERSION: ") {
