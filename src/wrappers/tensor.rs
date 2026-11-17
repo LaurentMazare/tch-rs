@@ -8,8 +8,11 @@ use super::{
 use crate::TchError;
 use libc::{c_char, c_int, c_void};
 use std::borrow::Borrow;
+use std::cell::Cell;
 use std::io::{Read, Seek, Write};
+use std::marker::PhantomData;
 use std::path::Path;
+use std::ptr;
 use torch_sys::io::ReadStream;
 use torch_sys::*;
 
@@ -843,6 +846,127 @@ pub struct NoGradGuard {
 /// for more details.
 pub fn no_grad_guard() -> NoGradGuard {
     NoGradGuard { enabled: grad_set_enabled(false) }
+}
+
+fn inference_mode_guard_new() -> *mut C_inference_mode_guard {
+    unsafe_torch!(at_inference_mode_guard_new())
+}
+
+#[derive(Clone, Copy)]
+struct InferenceModeGuardState {
+    count: usize,
+    c_guard: *mut C_inference_mode_guard,
+}
+
+thread_local! {
+    static INFERENCE_MODE_GUARD_STATE: Cell<InferenceModeGuardState> =
+        Cell::new(InferenceModeGuardState { count: 0, c_guard: ptr::null_mut() });
+}
+
+fn inference_mode_guard_enter() {
+    INFERENCE_MODE_GUARD_STATE.with(|state| {
+        let mut state_value = state.get();
+        if state_value.count == 0 {
+            state_value.c_guard = inference_mode_guard_new();
+        }
+        state_value.count += 1;
+        state.set(state_value);
+    });
+}
+
+fn inference_mode_guard_exit() {
+    INFERENCE_MODE_GUARD_STATE.with(|state| {
+        let mut state_value = state.get();
+        debug_assert!(state_value.count > 0);
+
+        state_value.count -= 1;
+        if state_value.count == 0 {
+            let c_guard = state_value.c_guard;
+            state_value.c_guard = ptr::null_mut();
+            state.set(state_value);
+            unsafe_torch!(at_inference_mode_guard_free(c_guard));
+        } else {
+            state.set(state_value);
+        }
+    });
+}
+
+/// Returns true if inference mode is currently enabled.
+///
+/// Inference mode is a more aggressive version of `no_grad` that provides
+/// better performance at the cost of not being able to access saved tensors
+/// or any autograd history.
+pub fn is_inference_mode_enabled() -> bool {
+    unsafe_torch!(at_inference_mode_is_enabled() != 0)
+}
+
+/// Runs a closure in inference mode.
+///
+/// Inference mode is a more aggressive version of `no_grad` that provides
+/// better performance at the cost of not being able to access saved tensors
+/// or any autograd history. Views created in inference mode are not tracked
+/// and behave like copies.
+///
+/// Use this for pure inference workloads where you don't need any autograd
+/// functionality. For inference that might need to access autograd metadata,
+/// use `no_grad` instead.
+///
+/// # Example
+/// ```
+/// use tch::{inference_mode, Tensor};
+///
+/// inference_mode(|| {
+///     let x = Tensor::randn([10, 10], (tch::Kind::Float, tch::Device::Cpu));
+///     let y = x.matmul(&x);
+///     // y does not track gradients, views are not tracked
+/// });
+/// ```
+pub fn inference_mode<T, F>(f: F) -> T
+where
+    F: FnOnce() -> T,
+{
+    let _guard = InferenceModeGuard::new();
+    f()
+}
+
+/// A RAII guard that enables inference mode until deallocated.
+///
+/// Inference mode provides better performance than `no_grad` by completely
+/// disabling autograd history tracking. Views created in inference mode
+/// behave like copies and don't track gradients.
+///
+/// Inference mode remains enabled until all guards in the current thread are
+/// dropped.
+///
+/// # Example
+/// ```
+/// use tch::InferenceModeGuard;
+///
+/// let _guard = InferenceModeGuard::new();
+/// // Inference mode is active within this scope
+/// ```
+pub struct InferenceModeGuard {
+    _not_send: PhantomData<*mut ()>,
+}
+
+impl InferenceModeGuard {
+    /// Creates a new inference mode guard, enabling inference mode.
+    pub fn new() -> InferenceModeGuard {
+        inference_mode_guard_enter();
+        InferenceModeGuard { _not_send: PhantomData }
+    }
+}
+
+impl Default for InferenceModeGuard {
+    fn default() -> InferenceModeGuard {
+        InferenceModeGuard::new()
+    }
+}
+
+impl Drop for InferenceModeGuard {
+    fn drop(&mut self) {
+        inference_mode_guard_exit();
+    }
 }
 
 impl std::convert::AsRef<Tensor> for Tensor {
