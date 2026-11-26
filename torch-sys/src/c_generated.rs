@@ -2924,7 +2924,8 @@ extern "C" {
         size_len: c_int,
         options_kind: c_int,
         options_device: c_int,
-        is_coalesced_: c_int,
+        is_coalesced_v: c_int,
+        is_coalesced_null: i8,
     );
     pub fn atg__sparse_coo_tensor_with_dims(
         out__: *mut *mut C_tensor,
@@ -2945,7 +2946,8 @@ extern "C" {
         values_: *mut C_tensor,
         options_kind: c_int,
         options_device: c_int,
-        is_coalesced_: c_int,
+        is_coalesced_v: c_int,
+        is_coalesced_null: i8,
     );
     pub fn atg__sparse_coo_tensor_with_dims_and_tensors_out(
         out__: *mut *mut C_tensor,
@@ -2956,7 +2958,8 @@ extern "C" {
         size_len: c_int,
         indices_: *mut C_tensor,
         values_: *mut C_tensor,
-        is_coalesced_: c_int,
+        is_coalesced_v: c_int,
+        is_coalesced_null: i8,
     );
     pub fn atg__sparse_coo_tensor_with_dims_out(
         out__: *mut *mut C_tensor,
@@ -3385,14 +3388,16 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         dtype_: c_int,
-        masked_grad_: c_int,
+        masked_grad_v: c_int,
+        masked_grad_null: i8,
     );
     pub fn atg__to_dense_out(
         out__: *mut *mut C_tensor,
         out_: *mut C_tensor,
         self_: *mut C_tensor,
         dtype_: c_int,
-        masked_grad_: c_int,
+        masked_grad_v: c_int,
+        masked_grad_null: i8,
     );
     pub fn atg__to_sparse(
         out__: *mut *mut C_tensor,
@@ -4083,7 +4088,8 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
-        check_pinning_: c_int,
+        check_pinning_v: c_int,
+        check_pinning_null: i8,
     );
     pub fn atg__validate_sparse_bsr_tensor_args(
         crow_indices_: *mut C_tensor,
@@ -4091,7 +4097,8 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
-        check_pinning_: c_int,
+        check_pinning_v: c_int,
+        check_pinning_null: i8,
     );
     pub fn atg__validate_sparse_compressed_tensor_args(
         compressed_indices_: *mut C_tensor,
@@ -4100,7 +4107,8 @@ extern "C" {
         size_data: *const i64,
         size_len: c_int,
         layout_: i8,
-        check_pinning_: c_int,
+        check_pinning_v: c_int,
+        check_pinning_null: i8,
     );
     pub fn atg__validate_sparse_csc_tensor_args(
         ccol_indices_: *mut C_tensor,
@@ -4108,7 +4116,8 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
-        check_pinning_: c_int,
+        check_pinning_v: c_int,
+        check_pinning_null: i8,
     );
     pub fn atg__validate_sparse_csr_tensor_args(
         crow_indices_: *mut C_tensor,
@@ -4116,7 +4125,8 @@ extern "C" {
         values_: *mut C_tensor,
         size_data: *const i64,
         size_len: c_int,
-        check_pinning_: c_int,
+        check_pinning_v: c_int,
+        check_pinning_null: i8,
     );
     pub fn atg__values(out__: *mut *mut C_tensor, self_: *mut C_tensor);
     pub fn atg__values_copy(out__: *mut *mut C_tensor, self_: *mut C_tensor);
@@ -7871,7 +7881,8 @@ extern "C" {
         out__: *mut *mut C_tensor,
         filename_ptr: *const u8,
         filename_len: c_int,
-        shared_: c_int,
+        shared_v: c_int,
+        shared_null: i8,
         size_v: i64,
         size_null: i8,
         options_kind: c_int,
@@ -7882,7 +7893,8 @@ extern "C" {
         out_: *mut C_tensor,
         filename_ptr: *const u8,
         filename_len: c_int,
-        shared_: c_int,
+        shared_v: c_int,
+        shared_null: i8,
         size_v: i64,
         size_null: i8,
     );
@@ -8871,7 +8883,8 @@ extern "C" {
         window_: *mut C_tensor,
         center_: c_int,
         normalized_: c_int,
-        onesided_: c_int,
+        onesided_v: c_int,
+        onesided_null: i8,
         length_v: i64,
         length_null: i8,
         return_complex_: c_int,
@@ -11536,7 +11549,8 @@ extern "C" {
         out__: *mut *mut C_tensor,
         input_: *mut C_tensor,
         p_: f64,
-        train_: c_int,
+        train_v: c_int,
+        train_null: i8,
     );
     pub fn atg_native_dropout_backward(
         out__: *mut *mut C_tensor,
@@ -11557,7 +11571,8 @@ extern "C" {
         out1_: *mut C_tensor,
         input_: *mut C_tensor,
         p_: f64,
-        train_: c_int,
+        train_v: c_int,
+        train_null: i8,
     );
     pub fn atg_native_group_norm(
         out__: *mut *mut C_tensor,
@@ -13872,7 +13887,8 @@ extern "C" {
     pub fn atg_sort_stable(
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
-        stable_: c_int,
+        stable_v: c_int,
+        stable_null: i8,
         dim_: i64,
         descending_: c_int,
     );
@@ -13889,7 +13905,8 @@ extern "C" {
         values_: *mut C_tensor,
         indices_: *mut C_tensor,
         self_: *mut C_tensor,
-        stable_: c_int,
+        stable_v: c_int,
+        stable_null: i8,
         dim_: i64,
         descending_: c_int,
     );
@@ -13960,7 +13977,8 @@ extern "C" {
         values_: *mut C_tensor,
         options_kind: c_int,
         options_device: c_int,
-        is_coalesced_: c_int,
+        is_coalesced_v: c_int,
+        is_coalesced_null: i8,
     );
     pub fn atg_sparse_coo_tensor_indices_size(
         out__: *mut *mut C_tensor,
@@ -13970,7 +13988,8 @@ extern "C" {
         size_len: c_int,
         options_kind: c_int,
         options_device: c_int,
-        is_coalesced_: c_int,
+        is_coalesced_v: c_int,
+        is_coalesced_null: i8,
     );
     pub fn atg_sparse_coo_tensor_size_out(
         out__: *mut *mut C_tensor,
@@ -15024,9 +15043,12 @@ extern "C" {
         win_length_null: i8,
         window_: *mut C_tensor,
         normalized_: c_int,
-        onesided_: c_int,
-        return_complex_: c_int,
-        align_to_window_: c_int,
+        onesided_v: c_int,
+        onesided_null: i8,
+        return_complex_v: c_int,
+        return_complex_null: i8,
+        align_to_window_v: c_int,
+        align_to_window_null: i8,
     );
     pub fn atg_stft_center(
         out__: *mut *mut C_tensor,
@@ -15041,9 +15063,12 @@ extern "C" {
         pad_mode_ptr: *const u8,
         pad_mode_len: c_int,
         normalized_: c_int,
-        onesided_: c_int,
-        return_complex_: c_int,
-        align_to_window_: c_int,
+        onesided_v: c_int,
+        onesided_null: i8,
+        return_complex_v: c_int,
+        return_complex_null: i8,
+        align_to_window_v: c_int,
+        align_to_window_null: i8,
     );
     pub fn atg_storage_offset(self_: *mut C_tensor) -> i64;
     pub fn atg_sub(out__: *mut *mut C_tensor, self_: *mut C_tensor, other_: *mut C_tensor);
@@ -15246,13 +15271,15 @@ extern "C" {
         out__: *mut *mut C_tensor,
         self_: *mut C_tensor,
         dtype_: c_int,
-        masked_grad_: c_int,
+        masked_grad_v: c_int,
+        masked_grad_null: i8,
     );
     pub fn atg_to_dense_backward(
         out__: *mut *mut C_tensor,
         grad_: *mut C_tensor,
         input_: *mut C_tensor,
-        masked_grad_: c_int,
+        masked_grad_v: c_int,
+        masked_grad_null: i8,
     );
     pub fn atg_to_device(
         out__: *mut *mut C_tensor,

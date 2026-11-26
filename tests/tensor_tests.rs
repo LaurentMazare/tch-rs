@@ -505,3 +505,15 @@ fn fp8_tensor() {
         assert_eq!(t.kind().elt_size_in_bytes(), 1);
     }
 }
+
+#[test]
+fn stft_center() {
+    // align_to_window is a nullable bool, it has to be None when center is true.
+    let x = Tensor::arange(16, tch::kind::FLOAT_CPU);
+    let window = Tensor::hann_window(8, tch::kind::FLOAT_CPU);
+    let stft = x.stft_center(8, 2, None, Some(&window), true, "reflect", false, None, true, None);
+    assert_eq!(stft.size(), [5, 9]);
+    // torch.stft(x, 8, hop_length=2, window=window, return_complex=True).abs().sum()
+    let sum = f64_from(&stft.abs().sum(tch::Kind::Double));
+    assert!((sum - 442.6346).abs() < 1e-3, "{sum}");
+}
