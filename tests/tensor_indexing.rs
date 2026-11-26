@@ -146,6 +146,14 @@ fn index_3d() {
 }
 
 #[test]
+fn out_of_range_index() {
+    let tensor = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
+    assert!(tensor.f_i(10).is_err());
+    assert!(tensor.f_i((.., 99)).is_err());
+    assert!(tensor.f_i(&Tensor::from_slice(&[0i64, 7])).is_err());
+}
+
+#[test]
 fn tensor_index() {
     let t = Tensor::arange(6, (Kind::Int64, Device::Cpu)).view((2, 3));
     let rows_select = Tensor::from_slice(&[0i64, 1, 0]);
