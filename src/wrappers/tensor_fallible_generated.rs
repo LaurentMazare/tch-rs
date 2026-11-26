@@ -7017,8 +7017,9 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let is_coalesced = is_coalesced.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_coo_tensor_unsafe(
             c_tensors.as_mut_ptr(),
@@ -7028,7 +7029,8 @@ impl Tensor {
             size.len_i32(),
             options.0.c_int(),
             options.1.c_int(),
-            if is_coalesced { 1 } else { 0 }
+            is_coalesced.unwrap_or(false) as i32,
+            is_coalesced.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7059,8 +7061,9 @@ impl Tensor {
         indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let is_coalesced = is_coalesced.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_coo_tensor_with_dims_and_tensors(
             c_tensors.as_mut_ptr(),
@@ -7072,7 +7075,8 @@ impl Tensor {
             values.c_tensor,
             options.0.c_int(),
             options.1.c_int(),
-            if is_coalesced { 1 } else { 0 }
+            is_coalesced.unwrap_or(false) as i32,
+            is_coalesced.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -7084,8 +7088,9 @@ impl Tensor {
         size: impl IntList,
         indices: &Tensor,
         values: &Tensor,
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let is_coalesced = is_coalesced.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__sparse_coo_tensor_with_dims_and_tensors_out(
             c_tensors.as_mut_ptr(),
@@ -7096,7 +7101,8 @@ impl Tensor {
             size.len_i32(),
             indices.c_tensor,
             values.c_tensor,
-            if is_coalesced { 1 } else { 0 }
+            is_coalesced.unwrap_or(false) as i32,
+            is_coalesced.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8128,14 +8134,16 @@ impl Tensor {
     pub fn f_internal_to_dense(
         &self,
         dtype: impl Into<Option<Kind>>,
-        masked_grad: bool,
+        masked_grad: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let masked_grad = masked_grad.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__to_dense(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dtype.into().map_or(-1, |s| s.c_int()),
-            if masked_grad { 1 } else { 0 }
+            masked_grad.unwrap_or(false) as i32,
+            masked_grad.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -8144,15 +8152,17 @@ impl Tensor {
         &self,
         out: &Tensor,
         dtype: impl Into<Option<Kind>>,
-        masked_grad: bool,
+        masked_grad: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let masked_grad = masked_grad.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg__to_dense_out(
             c_tensors.as_mut_ptr(),
             out.c_tensor,
             self.c_tensor,
             dtype.into().map_or(-1, |s| s.c_int()),
-            if masked_grad { 1 } else { 0 }
+            masked_grad.unwrap_or(false) as i32,
+            masked_grad.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -9693,15 +9703,17 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) -> Result<(), TchError> {
+        let check_pinning = check_pinning.into();
         unsafe_torch_err!(atg__validate_sparse_bsc_tensor_args(
             ccol_indices.c_tensor,
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
             size.len_i32(),
-            if check_pinning { 1 } else { 0 }
+            check_pinning.unwrap_or(false) as i32,
+            check_pinning.is_none() as i8
         ));
         Ok(())
     }
@@ -9711,15 +9723,17 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) -> Result<(), TchError> {
+        let check_pinning = check_pinning.into();
         unsafe_torch_err!(atg__validate_sparse_bsr_tensor_args(
             crow_indices.c_tensor,
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
             size.len_i32(),
-            if check_pinning { 1 } else { 0 }
+            check_pinning.unwrap_or(false) as i32,
+            check_pinning.is_none() as i8
         ));
         Ok(())
     }
@@ -9730,8 +9744,9 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         layout: Layout,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) -> Result<(), TchError> {
+        let check_pinning = check_pinning.into();
         unsafe_torch_err!(atg__validate_sparse_compressed_tensor_args(
             compressed_indices.c_tensor,
             plain_indices.c_tensor,
@@ -9739,7 +9754,8 @@ impl Tensor {
             size.as_ptr(),
             size.len_i32(),
             layout.to_i8(),
-            if check_pinning { 1 } else { 0 }
+            check_pinning.unwrap_or(false) as i32,
+            check_pinning.is_none() as i8
         ));
         Ok(())
     }
@@ -9749,15 +9765,17 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) -> Result<(), TchError> {
+        let check_pinning = check_pinning.into();
         unsafe_torch_err!(atg__validate_sparse_csc_tensor_args(
             ccol_indices.c_tensor,
             row_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
             size.len_i32(),
-            if check_pinning { 1 } else { 0 }
+            check_pinning.unwrap_or(false) as i32,
+            check_pinning.is_none() as i8
         ));
         Ok(())
     }
@@ -9767,15 +9785,17 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) -> Result<(), TchError> {
+        let check_pinning = check_pinning.into();
         unsafe_torch_err!(atg__validate_sparse_csr_tensor_args(
             crow_indices.c_tensor,
             col_indices.c_tensor,
             values.c_tensor,
             size.as_ptr(),
             size.len_i32(),
-            if check_pinning { 1 } else { 0 }
+            check_pinning.unwrap_or(false) as i32,
+            check_pinning.is_none() as i8
         ));
         Ok(())
     }
@@ -18895,17 +18915,19 @@ impl Tensor {
 
     pub fn f_from_file(
         filename: &str,
-        shared: bool,
+        shared: impl Into<Option<bool>>,
         size: impl Into<Option<i64>>,
         options: (Kind, Device),
     ) -> Result<Tensor, TchError> {
+        let shared = shared.into();
         let size = size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_from_file(
             c_tensors.as_mut_ptr(),
             filename.as_ptr(),
             filename.len() as i32,
-            if shared { 1 } else { 0 },
+            shared.unwrap_or(false) as i32,
+            shared.is_none() as i8,
             size.unwrap_or(0i64),
             size.is_none() as i8,
             options.0.c_int(),
@@ -18917,9 +18939,10 @@ impl Tensor {
     pub fn f_from_file_out(
         out: &Tensor,
         filename: &str,
-        shared: bool,
+        shared: impl Into<Option<bool>>,
         size: impl Into<Option<i64>>,
     ) -> Result<Tensor, TchError> {
+        let shared = shared.into();
         let size = size.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_from_file_out(
@@ -18927,7 +18950,8 @@ impl Tensor {
             out.c_tensor,
             filename.as_ptr(),
             filename.len() as i32,
-            if shared { 1 } else { 0 },
+            shared.unwrap_or(false) as i32,
+            shared.is_none() as i8,
             size.unwrap_or(0i64),
             size.is_none() as i8
         ));
@@ -21405,12 +21429,13 @@ impl Tensor {
         window: Option<T>,
         center: bool,
         normalized: bool,
-        onesided: bool,
+        onesided: impl Into<Option<bool>>,
         length: impl Into<Option<i64>>,
         return_complex: bool,
     ) -> Result<Tensor, TchError> {
         let hop_length = hop_length.into();
         let win_length = win_length.into();
+        let onesided = onesided.into();
         let length = length.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_istft(
@@ -21424,7 +21449,8 @@ impl Tensor {
             window.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if center { 1 } else { 0 },
             if normalized { 1 } else { 0 },
-            if onesided { 1 } else { 0 },
+            onesided.unwrap_or(false) as i32,
+            onesided.is_none() as i8,
             length.unwrap_or(0i64),
             length.is_none() as i8,
             if return_complex { 1 } else { 0 }
@@ -27768,13 +27794,19 @@ impl Tensor {
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
 
-    pub fn f_native_dropout(&self, p: f64, train: bool) -> Result<(Tensor, Tensor), TchError> {
+    pub fn f_native_dropout(
+        &self,
+        p: f64,
+        train: impl Into<Option<bool>>,
+    ) -> Result<(Tensor, Tensor), TchError> {
+        let train = train.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_native_dropout(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             p,
-            if train { 1 } else { 0 }
+            train.unwrap_or(false) as i32,
+            train.is_none() as i8
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -27816,8 +27848,9 @@ impl Tensor {
         out0: &Tensor,
         out1: &Tensor,
         p: f64,
-        train: bool,
+        train: impl Into<Option<bool>>,
     ) -> Result<(Tensor, Tensor), TchError> {
+        let train = train.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_native_dropout_out(
             c_tensors.as_mut_ptr(),
@@ -27825,7 +27858,8 @@ impl Tensor {
             out1.c_tensor,
             self.c_tensor,
             p,
-            if train { 1 } else { 0 }
+            train.unwrap_or(false) as i32,
+            train.is_none() as i8
         ));
         Ok((Tensor { c_tensor: c_tensors[0] }, Tensor { c_tensor: c_tensors[1] }))
     }
@@ -33429,15 +33463,17 @@ impl Tensor {
 
     pub fn f_sort_stable(
         &self,
-        stable: bool,
+        stable: impl Into<Option<bool>>,
         dim: i64,
         descending: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
+        let stable = stable.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_sort_stable(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
-            if stable { 1 } else { 0 },
+            stable.unwrap_or(false) as i32,
+            stable.is_none() as i8,
             dim,
             if descending { 1 } else { 0 }
         ));
@@ -33467,17 +33503,19 @@ impl Tensor {
         &self,
         values: &Tensor,
         indices: &Tensor,
-        stable: bool,
+        stable: impl Into<Option<bool>>,
         dim: i64,
         descending: bool,
     ) -> Result<(Tensor, Tensor), TchError> {
+        let stable = stable.into();
         let mut c_tensors = [std::ptr::null_mut(); 2];
         unsafe_torch_err!(atg_sort_values_stable(
             c_tensors.as_mut_ptr(),
             values.c_tensor,
             indices.c_tensor,
             self.c_tensor,
-            if stable { 1 } else { 0 },
+            stable.unwrap_or(false) as i32,
+            stable.is_none() as i8,
             dim,
             if descending { 1 } else { 0 }
         ));
@@ -33620,8 +33658,9 @@ impl Tensor {
         indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let is_coalesced = is_coalesced.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sparse_coo_tensor_indices(
             c_tensors.as_mut_ptr(),
@@ -33629,7 +33668,8 @@ impl Tensor {
             values.c_tensor,
             options.0.c_int(),
             options.1.c_int(),
-            if is_coalesced { 1 } else { 0 }
+            is_coalesced.unwrap_or(false) as i32,
+            is_coalesced.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -33639,8 +33679,9 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let is_coalesced = is_coalesced.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_sparse_coo_tensor_indices_size(
             c_tensors.as_mut_ptr(),
@@ -33650,7 +33691,8 @@ impl Tensor {
             size.len_i32(),
             options.0.c_int(),
             options.1.c_int(),
-            if is_coalesced { 1 } else { 0 }
+            is_coalesced.unwrap_or(false) as i32,
+            is_coalesced.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36305,12 +36347,15 @@ impl Tensor {
         win_length: impl Into<Option<i64>>,
         window: Option<T>,
         normalized: bool,
-        onesided: bool,
-        return_complex: bool,
-        align_to_window: bool,
+        onesided: impl Into<Option<bool>>,
+        return_complex: impl Into<Option<bool>>,
+        align_to_window: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
         let hop_length = hop_length.into();
         let win_length = win_length.into();
+        let onesided = onesided.into();
+        let return_complex = return_complex.into();
+        let align_to_window = align_to_window.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_stft(
             c_tensors.as_mut_ptr(),
@@ -36322,9 +36367,12 @@ impl Tensor {
             win_length.is_none() as i8,
             window.as_ref().map_or(std::ptr::null_mut(), |t| t.borrow().c_tensor),
             if normalized { 1 } else { 0 },
-            if onesided { 1 } else { 0 },
-            if return_complex { 1 } else { 0 },
-            if align_to_window { 1 } else { 0 }
+            onesided.unwrap_or(false) as i32,
+            onesided.is_none() as i8,
+            return_complex.unwrap_or(false) as i32,
+            return_complex.is_none() as i8,
+            align_to_window.unwrap_or(false) as i32,
+            align_to_window.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36338,12 +36386,15 @@ impl Tensor {
         center: bool,
         pad_mode: &str,
         normalized: bool,
-        onesided: bool,
-        return_complex: bool,
-        align_to_window: bool,
+        onesided: impl Into<Option<bool>>,
+        return_complex: impl Into<Option<bool>>,
+        align_to_window: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
         let hop_length = hop_length.into();
         let win_length = win_length.into();
+        let onesided = onesided.into();
+        let return_complex = return_complex.into();
+        let align_to_window = align_to_window.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_stft_center(
             c_tensors.as_mut_ptr(),
@@ -36358,9 +36409,12 @@ impl Tensor {
             pad_mode.as_ptr(),
             pad_mode.len() as i32,
             if normalized { 1 } else { 0 },
-            if onesided { 1 } else { 0 },
-            if return_complex { 1 } else { 0 },
-            if align_to_window { 1 } else { 0 }
+            onesided.unwrap_or(false) as i32,
+            onesided.is_none() as i8,
+            return_complex.unwrap_or(false) as i32,
+            return_complex.is_none() as i8,
+            align_to_window.unwrap_or(false) as i32,
+            align_to_window.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36952,14 +37006,16 @@ impl Tensor {
     pub fn f_to_dense(
         &self,
         dtype: impl Into<Option<Kind>>,
-        masked_grad: bool,
+        masked_grad: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let masked_grad = masked_grad.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_dense(
             c_tensors.as_mut_ptr(),
             self.c_tensor,
             dtype.into().map_or(-1, |s| s.c_int()),
-            if masked_grad { 1 } else { 0 }
+            masked_grad.unwrap_or(false) as i32,
+            masked_grad.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }
@@ -36967,14 +37023,16 @@ impl Tensor {
     pub fn f_to_dense_backward(
         &self,
         grad: &Tensor,
-        masked_grad: bool,
+        masked_grad: impl Into<Option<bool>>,
     ) -> Result<Tensor, TchError> {
+        let masked_grad = masked_grad.into();
         let mut c_tensors = [std::ptr::null_mut(); 1];
         unsafe_torch_err!(atg_to_dense_backward(
             c_tensors.as_mut_ptr(),
             grad.c_tensor,
             self.c_tensor,
-            if masked_grad { 1 } else { 0 }
+            masked_grad.unwrap_or(false) as i32,
+            masked_grad.is_none() as i8
         ));
         Ok(Tensor { c_tensor: c_tensors[0] })
     }

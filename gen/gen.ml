@@ -130,6 +130,7 @@ let extract_string = function
 module Func = struct
   type arg_type =
     | Bool
+    | BoolOption
     | Int64
     | Int64Option
     | Double
@@ -168,7 +169,7 @@ module Func = struct
 
   let arg_type_of_string str ~is_nullable =
     match String.lowercase str with
-    | "bool" -> Some Bool
+    | "bool" -> Some (if is_nullable then BoolOption else Bool)
     | "int64_t" -> Some (if is_nullable then Int64Option else Int64)
     | "double" -> Some (if is_nullable then DoubleOption else Double)
     | "at::tensor" -> Some (if is_nullable then TensorOption else Tensor)
@@ -195,6 +196,7 @@ module Func = struct
         Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
       | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
       | String -> Printf.sprintf "char* %s_ptr, int %s_len" arg_name arg_name
+      | BoolOption -> Printf.sprintf "int %s_v, uint8_t %s_null" arg_name arg_name
       | Int64Option -> Printf.sprintf "int64_t %s_v, uint8_t %s_null" arg_name arg_name
       | DoubleOption -> Printf.sprintf "double %s_v, uint8_t %s_null" arg_name arg_name
       | otherwise ->
@@ -210,6 +212,7 @@ module Func = struct
           | Device -> "int"
           | Scalar -> "scalar"
           | Layout | LayoutOption -> "int8_t"
+          | BoolOption
           | Int64Option
           | DoubleOption
           | String
@@ -236,6 +239,11 @@ module Func = struct
           arg_name
       | TensorOption -> Printf.sprintf "(%s ? ::std::optional<at::Tensor>(*%s) : ::std::nullopt)" arg_name arg_name
       | Bool -> "(bool)" ^ arg_name
+      | BoolOption ->
+        Printf.sprintf
+          "%s_null ? c10::nullopt : c10::optional<bool>((bool)%s_v)"
+          arg_name
+          arg_name
       | IntList -> Printf.sprintf "torch::IntArrayRef(%s_data, %s_len)" arg_name arg_name
       | IntListOption ->
         Printf.sprintf
@@ -334,6 +342,7 @@ module Func = struct
       | TensorOptList ->
         Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
       | TensorList -> Printf.sprintf "%s_data: *const *mut C_tensor, %s_len: c_int" an an
+      | BoolOption -> Printf.sprintf "%s_v: c_int, %s_null: i8" an an
       | Int64Option -> Printf.sprintf "%s_v: i64, %s_null: i8" an an
       | DoubleOption -> Printf.sprintf "%s_v: f64, %s_null: i8" an an
       | TensorOptions -> Printf.sprintf "%s_kind: c_int, %s_device: c_int" an an)
@@ -400,6 +409,7 @@ module Func = struct
           | TensorList -> "&[T]"
           | String -> "&str"
           | TensorOptions -> "(Kind, Device)"
+          | BoolOption -> "impl Into<Option<bool>>"
           | Int64Option -> "impl Into<Option<i64>>"
           | DoubleOption -> "impl Into<Option<f64>>"
           | Scalar -> "S"
@@ -461,6 +471,8 @@ module Func = struct
       | ScalarTypeOption -> Printf.sprintf "%s.into().map_or(-1, |s| s.c_int())" name
       | Device -> Printf.sprintf "%s.c_int()" name
       | TensorOptions -> Printf.sprintf "%s.0.c_int(), %s.1.c_int()" name name
+      | BoolOption ->
+        Printf.sprintf "%s.unwrap_or(false) as i32, %s.is_none() as i8" name name
       | Int64Option -> Printf.sprintf "%s.unwrap_or(0i64), %s.is_none() as i8" name name
       | DoubleOption ->
         Printf.sprintf "%s.unwrap_or(f64::NAN), %s.is_none() as i8" name name
@@ -695,7 +707,7 @@ let write_fallible_wrapper funcs filename =
       pm "    )%s {" (Func.rust_return_type func ~fallible:true);
       List.iter func.args ~f:(fun arg ->
         match arg.arg_type with
-        | DoubleOption | Int64Option ->
+        | BoolOption | DoubleOption | Int64Option ->
           let arg_name = Func.rust_name arg.arg_name in
           pm "        let %s = %s.into();" arg_name arg_name
         | _ -> ());

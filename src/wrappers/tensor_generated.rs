@@ -4276,7 +4276,7 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Tensor {
         Tensor::f_internal_sparse_coo_tensor_unsafe(indices, values, size, options, is_coalesced)
             .unwrap()
@@ -4299,7 +4299,7 @@ impl Tensor {
         indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Tensor {
         Tensor::f_internal_sparse_coo_tensor_with_dims_and_tensors(
             sparse_dim,
@@ -4320,7 +4320,7 @@ impl Tensor {
         size: impl IntList,
         indices: &Tensor,
         values: &Tensor,
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Tensor {
         Tensor::f_internal_sparse_coo_tensor_with_dims_and_tensors_out(
             out,
@@ -4768,7 +4768,11 @@ impl Tensor {
         Tensor::f_internal_to_cpu(tensors).unwrap()
     }
 
-    pub fn internal_to_dense(&self, dtype: impl Into<Option<Kind>>, masked_grad: bool) -> Tensor {
+    pub fn internal_to_dense(
+        &self,
+        dtype: impl Into<Option<Kind>>,
+        masked_grad: impl Into<Option<bool>>,
+    ) -> Tensor {
         self.f_internal_to_dense(dtype, masked_grad).unwrap()
     }
 
@@ -4776,7 +4780,7 @@ impl Tensor {
         &self,
         out: &Tensor,
         dtype: impl Into<Option<Kind>>,
-        masked_grad: bool,
+        masked_grad: impl Into<Option<bool>>,
     ) -> Tensor {
         self.f_internal_to_dense_out(out, dtype, masked_grad).unwrap()
     }
@@ -5696,7 +5700,7 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) {
         Tensor::f_internal_validate_sparse_bsc_tensor_args(
             ccol_indices,
@@ -5713,7 +5717,7 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) {
         Tensor::f_internal_validate_sparse_bsr_tensor_args(
             crow_indices,
@@ -5731,7 +5735,7 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         layout: Layout,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) {
         Tensor::f_internal_validate_sparse_compressed_tensor_args(
             compressed_indices,
@@ -5749,7 +5753,7 @@ impl Tensor {
         row_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) {
         Tensor::f_internal_validate_sparse_csc_tensor_args(
             ccol_indices,
@@ -5766,7 +5770,7 @@ impl Tensor {
         col_indices: &Tensor,
         values: &Tensor,
         size: impl IntList,
-        check_pinning: bool,
+        check_pinning: impl Into<Option<bool>>,
     ) {
         Tensor::f_internal_validate_sparse_csr_tensor_args(
             crow_indices,
@@ -10096,7 +10100,7 @@ impl Tensor {
 
     pub fn from_file(
         filename: &str,
-        shared: bool,
+        shared: impl Into<Option<bool>>,
         size: impl Into<Option<i64>>,
         options: (Kind, Device),
     ) -> Tensor {
@@ -10106,7 +10110,7 @@ impl Tensor {
     pub fn from_file_out(
         out: &Tensor,
         filename: &str,
-        shared: bool,
+        shared: impl Into<Option<bool>>,
         size: impl Into<Option<i64>>,
     ) -> Tensor {
         Tensor::f_from_file_out(out, filename, shared, size).unwrap()
@@ -11301,7 +11305,7 @@ impl Tensor {
         window: Option<T>,
         center: bool,
         normalized: bool,
-        onesided: bool,
+        onesided: impl Into<Option<bool>>,
         length: impl Into<Option<i64>>,
         return_complex: bool,
     ) -> Tensor {
@@ -14562,7 +14566,7 @@ impl Tensor {
         self.f_native_channel_shuffle(groups).unwrap()
     }
 
-    pub fn native_dropout(&self, p: f64, train: bool) -> (Tensor, Tensor) {
+    pub fn native_dropout(&self, p: f64, train: impl Into<Option<bool>>) -> (Tensor, Tensor) {
         self.f_native_dropout(p, train).unwrap()
     }
 
@@ -14584,7 +14588,7 @@ impl Tensor {
         out0: &Tensor,
         out1: &Tensor,
         p: f64,
-        train: bool,
+        train: impl Into<Option<bool>>,
     ) -> (Tensor, Tensor) {
         self.f_native_dropout_out(out0, out1, p, train).unwrap()
     }
@@ -17263,7 +17267,12 @@ impl Tensor {
         self.f_sort(dim, descending).unwrap()
     }
 
-    pub fn sort_stable(&self, stable: bool, dim: i64, descending: bool) -> (Tensor, Tensor) {
+    pub fn sort_stable(
+        &self,
+        stable: impl Into<Option<bool>>,
+        dim: i64,
+        descending: bool,
+    ) -> (Tensor, Tensor) {
         self.f_sort_stable(stable, dim, descending).unwrap()
     }
 
@@ -17281,7 +17290,7 @@ impl Tensor {
         &self,
         values: &Tensor,
         indices: &Tensor,
-        stable: bool,
+        stable: impl Into<Option<bool>>,
         dim: i64,
         descending: bool,
     ) -> (Tensor, Tensor) {
@@ -17375,7 +17384,7 @@ impl Tensor {
         indices: &Tensor,
         values: &Tensor,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Tensor {
         Tensor::f_sparse_coo_tensor_indices(indices, values, options, is_coalesced).unwrap()
     }
@@ -17385,7 +17394,7 @@ impl Tensor {
         values: &Tensor,
         size: impl IntList,
         options: (Kind, Device),
-        is_coalesced: bool,
+        is_coalesced: impl Into<Option<bool>>,
     ) -> Tensor {
         Tensor::f_sparse_coo_tensor_indices_size(indices, values, size, options, is_coalesced)
             .unwrap()
@@ -18552,9 +18561,9 @@ impl Tensor {
         win_length: impl Into<Option<i64>>,
         window: Option<T>,
         normalized: bool,
-        onesided: bool,
-        return_complex: bool,
-        align_to_window: bool,
+        onesided: impl Into<Option<bool>>,
+        return_complex: impl Into<Option<bool>>,
+        align_to_window: impl Into<Option<bool>>,
     ) -> Tensor {
         self.f_stft(
             n_fft,
@@ -18578,9 +18587,9 @@ impl Tensor {
         center: bool,
         pad_mode: &str,
         normalized: bool,
-        onesided: bool,
-        return_complex: bool,
-        align_to_window: bool,
+        onesided: impl Into<Option<bool>>,
+        return_complex: impl Into<Option<bool>>,
+        align_to_window: impl Into<Option<bool>>,
     ) -> Tensor {
         self.f_stft_center(
             n_fft,
@@ -18852,11 +18861,15 @@ impl Tensor {
         self.f_to(device).unwrap()
     }
 
-    pub fn to_dense(&self, dtype: impl Into<Option<Kind>>, masked_grad: bool) -> Tensor {
+    pub fn to_dense(
+        &self,
+        dtype: impl Into<Option<Kind>>,
+        masked_grad: impl Into<Option<bool>>,
+    ) -> Tensor {
         self.f_to_dense(dtype, masked_grad).unwrap()
     }
 
-    pub fn to_dense_backward(&self, grad: &Tensor, masked_grad: bool) -> Tensor {
+    pub fn to_dense_backward(&self, grad: &Tensor, masked_grad: impl Into<Option<bool>>) -> Tensor {
         self.f_to_dense_backward(grad, masked_grad).unwrap()
     }
 
